@@ -9,10 +9,16 @@
 tsconfig.json
 updates.config.js
 eslint.config.js
+CLAUDE.md
 
 node_modules
 .github
 .vscode
 rollup.config.ts
+typedoc.json
+tsconfig.node.json
 
 /src
+/docs
+/scripts
+/examples

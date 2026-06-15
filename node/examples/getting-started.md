@@ -521,15 +521,3 @@ const result = await face?.testFaceDetection(jpegBytes, { width: 640, height: 48
 ```
 
 Use `api.coreManager.getPluginsByInterface(PluginInterface.FaceDetection)` to discover candidate plugins by capability rather than by name.
-
-## 9. Common pitfalls
-
-- **Always release per-camera state in `onCameraReleased`.** Timers, vendor sessions, RTP sockets, `Disposable`s from `onSensorProperty` — drop them all. Leaking them keeps the camera object alive forever and prevents reassignment from working.
-- **Don't block in `configureCameras`.** It runs on the host's startup path; a slow vendor handshake delays every other plugin. Do the network work in `API_EVENT.FINISH_LAUNCHING` instead.
-- **Don't import from `@camera.ui/sdk/internal`.** The `internal` subpath exposes types the host uses to talk to plugins via RPC. The shapes there are not part of the stable public surface and may change without notice.
-- **Don't construct sensors in the constructor.** The host hasn't finished wiring up `api` / `storage` until `super()` returns and `configureCameras` is called. Construct sensors inside the lifecycle hooks.
-- **Don't log frame data.** Detection paths run dozens of times per second per camera. Use `logger.debug` / `logger.trace` (host-gated) for anything per-frame, and prefer aggregated counters over per-event logs.
-
-## 10. Next steps
-
-For complete production plugins to read alongside this guide, see [`plugins/`](https://github.com/seydx/camera.ui/tree/main/plugins) in the camera.ui repo. They cover everything documented above — discovery, notifier, detection, hub bridges — wired into a real UI.
