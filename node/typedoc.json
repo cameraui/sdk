@@ -1,0 +1,42 @@
+{
+  "plugin": [
+    "typedoc-plugin-markdown",
+    "typedoc-vitepress-theme"
+  ],
+  "entryPoints": [
+    "./src/camera/index.ts",
+    "./src/sensor/index.ts",
+    "./src/plugin/index.ts",
+    "./src/manager/index.ts",
+    "./src/storage/index.ts",
+    "./src/observable/index.ts",
+    "./src/types.ts"
+  ],
+  "exclude": [
+    "**/*.test.ts",
+    "**/dist/**",
+    "**/node_modules/**"
+  ],
+  "externalPattern": [
+    "**/*.test.ts",
+    "**/dist/**",
+    "**/node_modules/**"
+  ],
+  "excludeExternals": true,
+  "excludeInternal": true,
+  "out": "./docs/api",
+  "docsRoot": "./docs",
+  "sidebar": {
+    "autoConfiguration": true,
+    "format": "vitepress",
+    "pretty": false,
+    "collapsed": true
+  },
+  "validation": {
+    "notExported": true,
+    "invalidLink": true,
+    "rewrittenLink": true,
+    "notDocumented": false,
+    "unusedMergeModuleWith": true
+  }
+}

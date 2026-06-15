@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "camera-ui-sdk"
+version = "1.0.93"
+description = "camera.ui sdk"
+keywords = ["camera.ui", "python", "sdk"]
+readme = "README.md"
+license-files = ["LICENSE.md"]
+authors = [{ name = "seydx", email = "hi@seydx.dev" }]
+maintainers = [{ name = "seydx", email = "hi@seydx.dev" }]
+requires-python = ">=3.11"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = ["typing_extensions>=4.15.0"]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=9.1.0",
+    "pytest-asyncio>=1.4.0",
+]
+docs = [
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=1.0.4",
+    "mkdocs>=1.6",
+]
+
+[project.urls]
+Homepage = "https://github.com/cameraui/sdk"
+Documentation = "https://github.com/cameraui/sdk"
+Repository = "https://github.com/cameraui/sdk"
+"Bug Tracker" = "https://github.com/cameraui/sdk/issues"
+Changelog = "https://github.com/cameraui/sdk/blob/main/CHANGELOG.md"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["camera_ui_sdk*"]
+
+[tool.setuptools.package-data]
+camera_ui_sdk = ["py.typed", "*.pyi"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+asyncio_mode = "strict"

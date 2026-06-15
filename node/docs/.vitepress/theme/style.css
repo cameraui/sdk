@@ -1,0 +1,117 @@
+@import 'vitepress/dist/client/theme-default/styles/vars.css';
+
+/* camera.ui brand colors — mirror ui/src/plugins/preset.ts */
+:root {
+  --cui-primary-50: #fdf4f6;
+  --cui-primary-100: #f7ccd4;
+  --cui-primary-200: #f1a3b2;
+  --cui-primary-300: #eb7b90;
+  --cui-primary-400: #e5526e;
+  --cui-primary-500: #df2a4c;
+  --cui-primary-600: #be2441;
+  --cui-primary-700: #9c1d35;
+  --cui-primary-800: #7b172a;
+  --cui-primary-900: #59111e;
+  --cui-primary-950: #380b13;
+}
+
+:root {
+  --vp-c-brand-1: var(--cui-primary-500);
+  --vp-c-brand-2: var(--cui-primary-600);
+  --vp-c-brand-3: var(--cui-primary-700);
+  --vp-c-brand-soft: rgba(223, 42, 76, 0.14);
+
+  --vp-c-default-1: var(--vp-c-gray-1);
+  --vp-c-default-2: var(--vp-c-gray-2);
+  --vp-c-default-3: var(--vp-c-gray-3);
+  --vp-c-default-soft: var(--vp-c-gray-soft);
+
+  --vp-button-brand-border: transparent;
+  --vp-button-brand-text: #ffffff;
+  --vp-button-brand-bg: var(--cui-primary-500);
+  --vp-button-brand-hover-border: transparent;
+  --vp-button-brand-hover-text: #ffffff;
+  --vp-button-brand-hover-bg: var(--cui-primary-600);
+  --vp-button-brand-active-border: transparent;
+  --vp-button-brand-active-text: #ffffff;
+  --vp-button-brand-active-bg: var(--cui-primary-700);
+
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(
+    135deg,
+    var(--cui-primary-500) 0%,
+    var(--cui-primary-700) 100%
+  );
+  --vp-home-hero-image-background-image: linear-gradient(
+    135deg,
+    rgba(223, 42, 76, 0.32) 0%,
+    rgba(123, 23, 42, 0.32) 100%
+  );
+  --vp-home-hero-image-filter: blur(56px);
+
+  --vp-custom-block-tip-border: transparent;
+  --vp-custom-block-tip-text: var(--cui-primary-700);
+  --vp-custom-block-tip-bg: var(--vp-c-brand-soft);
+  --vp-custom-block-tip-code-bg: var(--vp-c-brand-soft);
+}
+
+/* dark surface palette mirrors ui preset.ts (neutral grey, not slate) */
+.dark {
+  --cui-surface-0: #ffffff;
+  --cui-surface-50: #f5f5f5;
+  --cui-surface-100: #d1d1d1;
+  --cui-surface-200: #adadad;
+  --cui-surface-300: #898989;
+  --cui-surface-400: #646464;
+  --cui-surface-500: #404040;
+  --cui-surface-600: #363636;
+  --cui-surface-700: #2d2d2d;
+  --cui-surface-800: #232323;
+  --cui-surface-850: #1d1d1d;
+  --cui-surface-900: #1a1a1a;
+  --cui-surface-925: #161616;
+  --cui-surface-950: #101010;
+  --cui-surface-1000: #0d0d0d;
+
+  --vp-c-brand-1: var(--cui-primary-400);
+  --vp-c-brand-2: var(--cui-primary-300);
+  --vp-c-brand-3: var(--cui-primary-200);
+  --vp-c-brand-soft: rgba(229, 82, 110, 0.16);
+
+  --vp-c-bg: var(--cui-surface-900);
+  --vp-c-bg-alt: var(--cui-surface-950);
+  --vp-c-bg-elv: var(--cui-surface-800);
+  --vp-c-bg-soft: var(--cui-surface-850);
+
+  --vp-c-divider: var(--cui-surface-800);
+  --vp-c-gutter: var(--cui-surface-950);
+  --vp-c-border: var(--cui-surface-700);
+
+  --vp-c-default-1: var(--cui-surface-800);
+  --vp-c-default-2: var(--cui-surface-700);
+  --vp-c-default-3: var(--cui-surface-600);
+  --vp-c-default-soft: rgba(64, 64, 64, 0.4);
+
+  --vp-c-text-1: rgba(255, 255, 255, 0.92);
+  --vp-c-text-2: rgba(255, 255, 255, 0.66);
+  --vp-c-text-3: rgba(255, 255, 255, 0.42);
+
+  --vp-code-bg: var(--cui-surface-925);
+  --vp-code-block-bg: var(--cui-surface-925);
+
+  --vp-button-brand-text: #ffffff;
+  --vp-button-brand-bg: var(--cui-primary-500);
+  --vp-button-brand-hover-bg: var(--cui-primary-400);
+  --vp-button-brand-active-bg: var(--cui-primary-600);
+
+  --vp-custom-block-tip-text: var(--cui-primary-200);
+}
+
+/* Pull search/box accents in line with brand */
+.dark .DocSearch {
+  --docsearch-primary-color: var(--cui-primary-400);
+}
+
+.DocSearch {
+  --docsearch-primary-color: var(--cui-primary-500);
+}

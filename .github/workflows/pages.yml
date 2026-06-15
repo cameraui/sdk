@@ -1,0 +1,62 @@
+name: Docs
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Build Node docs (TypeDoc + VitePress)
+        run: |
+          npm ci
+          npm ci --prefix node
+          npm --prefix node run docs:build
+
+      - name: Build Python & Go docs (MkDocs)
+        run: |
+          pip install -e "./python[docs]" mkdocs-exclude
+          (cd python && mkdocs build)
+          (cd go && mkdocs build)
+
+      - name: Assemble combined site
+        run: |
+          mkdir -p site/node site/python site/go
+          cp -r node/docs/.vitepress/dist/. site/node/
+          cp -r python/site/. site/python/
+          cp -r go/site/. site/go/
+          cp .github/pages/index.html .github/pages/logo.svg site/
+
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
