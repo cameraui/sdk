@@ -124,14 +124,22 @@ case "$PKG" in
   python)
     sed -i.bak -E "s/^version = \".*\"/version = \"$NEW\"/" python/pyproject.toml
     rm -f python/pyproject.toml.bak
-    git add python/pyproject.toml
+    sed -i.bak -E "s|^  sdk_version: .*|  sdk_version: \"$TAG\"|" python/mkdocs.yml
+    rm -f python/mkdocs.yml.bak
+    git add python/pyproject.toml python/mkdocs.yml
     ;;
-  go) ;; # no file to change; tag points at current HEAD
+  go)
+    # No version file, but the docs header version lives in mkdocs.yml.
+    sed -i.bak -E "s|^  sdk_version: .*|  sdk_version: \"$TAG\"|" go/mkdocs.yml
+    rm -f go/mkdocs.yml.bak
+    git add go/mkdocs.yml
+    ;;
 esac
 
 if [ "$PKG" = go ]; then
-  # Go has no version file, so make an empty commit and let the tag point at it -
-  # otherwise go/vX.Y.Z would ride on whatever the previous commit's message was.
+  # Go has no version file (only the docs sdk_version bump above), so allow an
+  # empty commit and let the tag point at it - otherwise go/vX.Y.Z would ride
+  # on whatever the previous commit's message was.
   git commit -q --allow-empty -m "release($PKG): v$NEW"
   committed=true
   echo -e "${GREEN}Created release commit.${NC}"
