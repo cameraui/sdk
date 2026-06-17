@@ -37,13 +37,13 @@ class EventAttribute(TypedDict):
     thumbnail: NotRequired[bytes]
     """Best-selected JPEG thumbnail crop. Only present on 'end' events."""
     embedding: NotRequired[list[float]]
-    """Face embedding vector for unknown face persistence."""
+    """Face embedding vector for unknown face persistence. Only present for face attributes."""
     embeddingModel: NotRequired[str]
-    """Embedding model identifier."""
+    """Embedding model identifier. Only present for face attributes with embedding."""
     clipEmbedding: NotRequired[list[float]]
-    """CLIP embedding vector for semantic search."""
+    """CLIP embedding vector for semantic search. Only present for clip attributes."""
     clipEmbeddingModel: NotRequired[str]
-    """CLIP embedding model identifier."""
+    """CLIP embedding model identifier. Only present for clip attributes with embedding."""
     parentTrackId: NotRequired[int]
     """Parent object's tracker ID (links this attribute to its parent detection)."""
 

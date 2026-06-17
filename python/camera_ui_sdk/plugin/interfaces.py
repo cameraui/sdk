@@ -100,7 +100,9 @@ class ClipDetectionPluginResponse(TypedDict):
 
 
 class ClipTextEmbeddingResult(TypedDict):
-    """Result of text-to-embedding conversion."""
+    """Result of text-to-embedding conversion — a single embedding vector
+    plus the model name used to produce it, so downstream code can refuse to
+    mix embeddings from different models."""
 
     embedding: list[float]
     embeddingModel: str

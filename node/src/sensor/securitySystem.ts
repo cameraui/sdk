@@ -5,10 +5,15 @@ import type { PropertyChangeOf, SensorLike } from './base.js';
 
 /** Security system arm/disarm states (HomeKit-compatible values) */
 export enum SecuritySystemState {
+  /** Armed, occupants home */
   StayArm = 0,
+  /** Armed, occupants away */
   AwayArm = 1,
+  /** Armed for night mode */
   NightArm = 2,
+  /** System disarmed */
   Disarmed = 3,
+  /** Alarm is triggered */
   AlarmTriggered = 4,
 }
 

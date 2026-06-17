@@ -67,6 +67,9 @@ class LockControl(Sensor[LockControlProperties, TStorage, str], Generic[TStorage
     Override `setTargetState()` to drive hardware and call
     `await super().setTargetState(value)` once the hardware confirms — the base
     implementation updates both `targetState` and `currentState` to the new value.
+
+    For asymmetric flows (long-running unlock with intermediate state) override
+    `setTargetState` and write `currentState` separately when transitions complete.
     """
 
     _requires_frames = False
@@ -102,6 +105,16 @@ class LockControl(Sensor[LockControlProperties, TStorage, str], Generic[TStorage
         """Set the target state. Override to drive hardware and call
         `await super().setTargetState(value)` after success — the base implementation
         syncs both `targetState` and `currentState` to the new value.
+
+        Args:
+            value: Desired lock state from the ``LockState`` enum.
+
+        Example:
+            ```python
+            from camera_ui_sdk import LockState
+
+            await lock.setTargetState(LockState.Secured)
+            ```
         """
         self._write_state(
             {
@@ -116,6 +129,16 @@ class LockControl(Sensor[LockControlProperties, TStorage, str], Generic[TStorage
         motorized smart locks that take time to rotate (publish ``Unknown``
         while moving), or hardware reporting an out-of-band state change.
         Read-only from cross-process consumers (``updateValue`` ignores it).
+
+        Args:
+            value: Current physical lock state from the ``LockState`` enum.
+
+        Example:
+            ```python
+            from camera_ui_sdk import LockState
+
+            lock.setCurrentState(LockState.Unknown)
+            ```
         """
         self._write_state({LockProperty.CurrentState.value: int(value)})
 

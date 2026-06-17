@@ -163,7 +163,7 @@ export interface FaceResult {
 export abstract class FaceDetectorSensor<TStorage extends object = Record<string, any>> extends FaceSensor<TStorage> {
   _requiresFrames = true;
 
-  /** Declares the expected input dimensions and trigger labels. */
+  /** Declares the expected input dimensions and trigger labels. The backend scales frames to match. */
   abstract get modelSpec(): ModelSpec;
 
   /**

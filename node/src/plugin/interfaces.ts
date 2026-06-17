@@ -68,7 +68,11 @@ export interface ClipDetectionPluginResponse {
   embeddingModel: string;
 }
 
-/** Result of a CLIP text embedding request */
+/**
+ * Result of a CLIP text embedding request — a single embedding vector plus
+ * the model name used to produce it, so downstream code can refuse to mix
+ * embeddings from different models.
+ */
 export interface ClipTextEmbeddingResult {
   embedding: number[];
   embeddingModel: string;
@@ -105,8 +109,6 @@ export interface ClipTextEmbeddingResult {
  *   }
  * }
  * ```
- *
- * @see /examples/getting-started — end-to-end walkthrough.
  */
 export abstract class BasePlugin<T extends Record<string, any> = Record<string, any>> {
   constructor(
@@ -234,6 +236,8 @@ export interface AudioDetectionInterface {
 /**
  * Interface for plugins that provide face detection.
  * Implement `testFaceDetection()` to handle detection test requests from the UI.
+ * The NVR owns matching against enrolled faces; the plugin only emits raw
+ * detections + embeddings.
  */
 export interface FaceDetectionInterface {
   /** Run face detection on image data. Used by the UI for testing/previewing. */

@@ -211,7 +211,8 @@ class BehaviorSubject(Subject[T]):
 
 
 class ReplaySubject(Subject[T]):
-    """Subject that buffers up to the last ``buffer_size`` values.
+    """Subject that buffers up to the last ``buffer_size`` values
+    (configurable, defaults to ``1``).
 
     New subscribers immediately receive every buffered value in order
     before continuing with live emissions.
@@ -469,6 +470,11 @@ def merge_map(project: Callable[[Any, int], list[Any]]) -> OperatorFn:
 async def first_value_from(observable: Observable[T] | Subject[T]) -> T:
     """Subscribe to the source and return its first emitted value as a
     coroutine, then dispose the subscription.
+
+    If the source has already completed without emitting, no value ever
+    arrives and the awaited coroutine never resolves — guard such calls
+    with :func:`asyncio.wait_for` (or a timeout) when the source may be
+    closed.
 
     Args:
         observable: Source observable or subject to read once.

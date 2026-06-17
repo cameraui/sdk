@@ -94,6 +94,9 @@ export interface AudioDetectionSettings {
   timeout: number;
 }
 
+/**
+ * PTZ autotracking settings — automatically follow detected objects.
+ */
 export interface PtzAutotrackSettings {
   /** Whether PTZ autotracking is enabled */
   enabled: boolean;

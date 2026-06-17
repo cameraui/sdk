@@ -28,20 +28,26 @@ class CoreManagerEvent(TypedDict):
 @runtime_checkable
 class CoreManager(Protocol):
     """
-    Core manager interface for system operations.
+    Core manager interface for system-level operations.
 
-    Provides access to system-level functionality like FFmpeg path,
-    server addresses, and inter-plugin communication.
+    Provides access to cross-cutting services like the FFmpeg binary path,
+    server addresses, HMAC signing for cloud requests, inter-plugin lookup,
+    and a stream of core system events.
 
     Accessed via `api.coreManager` in plugins.
 
     Example:
         ```python
-        # Get FFmpeg path for spawning processes
         ffmpeg_path = await api.coreManager.getFFmpegPath()
-
-        # Get server addresses for stream URLs
         addresses = await api.coreManager.getServerAddresses()
+
+
+        def on_event(e):
+            if e["type"] == "cloudAccountChanged":
+                print("Cloud account state:", e["data"])
+
+
+        api.coreManager.onEvent.subscribe(on_event)
         ```
     """
 

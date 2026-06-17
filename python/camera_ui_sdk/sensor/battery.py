@@ -14,7 +14,9 @@ class BatteryCapability(str, Enum):
     """Optional capabilities for battery info sensors."""
 
     LowBattery = "lowBattery"
+    """Sensor reports low-battery alerts."""
     Charging = "charging"
+    """Sensor reports charging state."""
 
 
 class BatteryProperty(str, Enum):
@@ -29,9 +31,13 @@ class ChargingState(str, Enum):
     """Battery charging state."""
 
     NotChargeable = "NOT_CHARGEABLE"
+    """Device has no rechargeable battery."""
     NotCharging = "NOT_CHARGING"
+    """Battery is not charging."""
     Charging = "CHARGING"
+    """Battery is currently charging."""
     Full = "FULL"
+    """Battery is fully charged."""
 
 
 class BatteryInfoProperties(TypedDict):
@@ -116,15 +122,44 @@ class BatteryInfo(Sensor[BatteryInfoProperties, TStorage, BatteryCapability], Ge
         return bool(self.props.low)
 
     def setLevel(self, value: int) -> None:
-        """Report a new battery level (percentage). Clamped to [0, 100]."""
+        """Report a new battery level (percentage). Clamped to [0, 100].
+
+        Args:
+            value: Battery level percentage in the range 0–100.
+
+        Example:
+            ```python
+            battery.setLevel(87)
+            ```
+        """
         self._write_state({BatteryProperty.Level.value: max(0, min(100, value))})
 
     def setCharging(self, value: ChargingState) -> None:
-        """Report the current charging state."""
+        """Report the current charging state.
+
+        Args:
+            value: Current charging state from the ``ChargingState`` enum.
+
+        Example:
+            ```python
+            from camera_ui_sdk import ChargingState
+
+            battery.setCharging(ChargingState.Charging)
+            ```
+        """
         self._write_state({BatteryProperty.Charging.value: value})
 
     def setLow(self, value: bool) -> None:
-        """Report whether the battery is critically low."""
+        """Report whether the battery is critically low.
+
+        Args:
+            value: True when the battery has crossed the low-battery threshold.
+
+        Example:
+            ```python
+            battery.setLow(True)
+            ```
+        """
         self._write_state({BatteryProperty.Low.value: value})
 
     async def updateValue(self, property: str, value: Any) -> None:

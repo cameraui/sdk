@@ -151,8 +151,9 @@ export interface PluginContract {
    */
   pythonVersion?: PythonVersion;
   /**
-   * Extra package dependencies installed into the plugin's runtime (PyPI
-   *  for Python plugins, npm for Node plugins).
+   * Extra package dependencies installed into the plugin's runtime (Go
+   *  module paths for Go plugins; PyPI / npm names for Python and Node
+   *  plugins).
    */
   dependencies?: string[];
 }

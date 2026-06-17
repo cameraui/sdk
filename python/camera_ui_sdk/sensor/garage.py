@@ -73,6 +73,9 @@ class GarageControl(Sensor[GarageControlProperties, TStorage, str], Generic[TSto
     Override `setTargetState()` to drive hardware and call
     `await super().setTargetState(value)` once the hardware confirms — the base
     implementation updates both `targetState` and `currentState`.
+
+    For long-running transitions (Opening/Closing intermediate states) override
+    `setTargetState` and write `currentState` separately as the door moves.
     """
 
     _requires_frames = False
@@ -113,6 +116,16 @@ class GarageControl(Sensor[GarageControlProperties, TStorage, str], Generic[TSto
         """Set the target state. Override to drive hardware and call
         `await super().setTargetState(value)` after success — the base implementation
         syncs both `targetState` and `currentState` to the new value.
+
+        Args:
+            value: Desired target state from the ``GarageState`` enum.
+
+        Example:
+            ```python
+            from camera_ui_sdk import GarageState
+
+            await garage.setTargetState(GarageState.Open)
+            ```
         """
         self._write_state(
             {
@@ -126,6 +139,16 @@ class GarageControl(Sensor[GarageControlProperties, TStorage, str], Generic[TSto
         transitions (e.g. Open → Closing → Closed) independently of the
         user-requested target state. Read-only from cross-process consumers
         (``updateValue`` ignores it).
+
+        Args:
+            value: Current physical door state from the ``GarageState`` enum.
+
+        Example:
+            ```python
+            from camera_ui_sdk import GarageState
+
+            garage.setCurrentState(GarageState.Closing)
+            ```
         """
         self._write_state({GarageProperty.CurrentState.value: int(value)})
 
@@ -133,6 +156,14 @@ class GarageControl(Sensor[GarageControlProperties, TStorage, str], Generic[TSto
         """Publish the obstruction-detected state. Read-only from the consumer
         side (``updateValue`` ignores it) — plugin code calls this when its
         hardware reports an obstruction sensor change.
+
+        Args:
+            value: True when an obstruction is currently detected.
+
+        Example:
+            ```python
+            garage.setObstructionDetected(True)
+            ```
         """
         self._write_state({GarageProperty.ObstructionDetected.value: value})
 

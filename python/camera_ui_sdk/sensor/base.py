@@ -216,6 +216,16 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
 
     @displayName.setter
     def displayName(self, value: str) -> None:
+        """Set the display name (the only mutable identifier on a sensor).
+
+        Args:
+            value: Human-readable label shown in the UI.
+
+        Example:
+            ```python
+            sensor.displayName = "Front Door Motion"
+            ```
+        """
         self._display_name = value
 
     @property
@@ -351,6 +361,12 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         or cleanup).
 
         Default: no-op. Most sensors don't need lifecycle hooks.
+
+        Example:
+            ```python
+            async def on_assigned(self) -> None:
+                self._task = asyncio.create_task(self._poll_loop())
+            ```
         """
         return None
 
@@ -368,6 +384,13 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         for scheduling semantics.
 
         Default: no-op.
+
+        Example:
+            ```python
+            def on_deassigned(self) -> None:
+                if self._task:
+                    self._task.cancel()
+            ```
         """
         return None
 
@@ -434,7 +457,17 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         return self._properties_store.get(property)
 
     def getValues(self) -> dict[str, Any]:
-        """Get a read-only snapshot of all property values."""
+        """Get a read-only snapshot of all property values.
+
+        Returns:
+            Snapshot of every property currently held by the sensor.
+
+        Example:
+            ```python
+            snapshot = sensor.getValues()
+            print(snapshot)
+            ```
+        """
         return self._properties_store.copy()
 
     @abstractmethod

@@ -14,6 +14,7 @@ class LightCapability(str, Enum):
     """Optional capabilities for light controls."""
 
     Brightness = "brightness"
+    """Light supports brightness adjustment (0–100)."""
 
 
 class LightProperty(str, Enum):

@@ -14,10 +14,15 @@ class SecuritySystemState(IntEnum):
     """Security system arm/disarm states (HomeKit-compatible values)."""
 
     StayArm = 0
+    """Armed, occupants home."""
     AwayArm = 1
+    """Armed, occupants away."""
     NightArm = 2
+    """Armed for night mode."""
     Disarmed = 3
+    """System disarmed."""
     AlarmTriggered = 4
+    """Alarm is triggered."""
 
 
 class SecuritySystemProperty(str, Enum):
@@ -108,6 +113,16 @@ class SecuritySystem(Sensor[SecuritySystemProperties, TStorage, str], Generic[TS
         """Set the target state. Override to drive hardware and call
         `await super().setTargetState(value)` after success — the base implementation
         syncs both `targetState` and `currentState` to the new value.
+
+        Args:
+            value: Desired armed/disarmed state from ``SecuritySystemState``.
+
+        Example:
+            ```python
+            from camera_ui_sdk import SecuritySystemState
+
+            await alarm.setTargetState(SecuritySystemState.AwayArm)
+            ```
         """
         self._write_state(
             {
@@ -122,6 +137,16 @@ class SecuritySystem(Sensor[SecuritySystemProperties, TStorage, str], Generic[TS
         the ``AlarmTriggered`` state when an intruder is detected, or
         arming-delay intermediate states. Read-only from cross-process
         consumers (``updateValue`` ignores it).
+
+        Args:
+            value: Current security system state from ``SecuritySystemState``.
+
+        Example:
+            ```python
+            from camera_ui_sdk import SecuritySystemState
+
+            alarm.setCurrentState(SecuritySystemState.AlarmTriggered)
+            ```
         """
         self._write_state({SecuritySystemProperty.CurrentState.value: int(value)})
 

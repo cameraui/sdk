@@ -24,7 +24,9 @@ class ObjectProperty(str, Enum):
 class TrackVelocity(TypedDict):
     """Signed centroid velocity vector in normalized units per frame step.
 
-    Positive x = moving right, positive y = moving down.
+    Positive x = moving right, positive y = moving down. Consumers doing
+    motion prediction (PTZ autotrack, trajectory estimation) should use this
+    instead of deriving velocity from frame-to-frame position deltas.
     """
 
     x: float

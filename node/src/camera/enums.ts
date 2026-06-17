@@ -109,6 +109,6 @@ export type DetectionEventState = 'active' | 'ended';
 export type EventTriggerType = 'motion' | 'audio' | 'contact' | 'doorbell' | 'switch' | 'light' | 'siren' | 'security_system' | 'line-crossing';
 
 /**
- * Stream direction (used in audio/video stream info).
+ * Stream direction (from SDP).
  */
 export type StreamDirection = 'sendonly' | 'recvonly' | 'sendrecv' | 'inactive';

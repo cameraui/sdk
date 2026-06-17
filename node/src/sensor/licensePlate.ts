@@ -157,7 +157,7 @@ export interface LicensePlateResult {
 export abstract class LicensePlateDetectorSensor<TStorage extends object = Record<string, any>> extends LicensePlateSensor<TStorage> {
   _requiresFrames = true;
 
-  /** Declares the expected input dimensions and trigger labels. */
+  /** Declares the expected input dimensions and trigger labels. The backend scales frames to match. */
   abstract get modelSpec(): ModelSpec;
 
   /**

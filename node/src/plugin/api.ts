@@ -25,6 +25,18 @@ export enum API_EVENT {
  * The PluginAPI is injected into the plugin at runtime and exposes the
  * system services the plugin is allowed to talk to. It also acts as an
  * EventEmitter for plugin lifecycle events (see {@link API_EVENT}).
+ *
+ * @example
+ * ```ts
+ * import { BasePlugin } from '@camera.ui/sdk';
+ *
+ * export default class MyPlugin extends BasePlugin {
+ *   async configureCameras() {
+ *     // Access FFmpeg path
+ *     const ffmpeg = await this.api.coreManager.getFFmpegPath();
+ *   }
+ * }
+ * ```
  */
 export interface PluginAPI {
   /**

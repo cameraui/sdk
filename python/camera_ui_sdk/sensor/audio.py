@@ -180,7 +180,16 @@ class AudioSensor(Sensor[AudioSensorProperties, TStorage, str], Generic[TStorage
         self.reportDetections(False)
 
     def setDecibels(self, value: float) -> None:
-        """Update the current audio level (in decibels)."""
+        """Update the current audio level (in decibels).
+
+        Args:
+            value: Audio level in decibels.
+
+        Example:
+            ```python
+            sensor.setDecibels(72)
+            ```
+        """
         self._write_state({AudioProperty.Decibels.value: value})
 
     async def updateValue(self, property: str, value: Any) -> None:

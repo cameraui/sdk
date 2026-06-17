@@ -171,7 +171,7 @@ export interface ClassifierResult {
 export abstract class ClassifierDetectorSensor<TStorage extends object = Record<string, any>> extends ClassifierSensor<TStorage> {
   override _requiresFrames = true;
 
-  /** Declares the expected input dimensions and trigger labels. */
+  /** Declares the expected input dimensions and trigger labels. The backend scales frames to match. */
   abstract get modelSpec(): ModelSpec;
 
   /**

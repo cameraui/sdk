@@ -39,7 +39,18 @@ class PTZPosition(TypedDict):
 
 
 class PTZDirection(TypedDict):
-    """PTZ movement speed for continuous move commands."""
+    """PTZ movement speed for continuous move commands.
+
+    Speeds are in normalized range ``[-1, 1]`` where:
+
+    - ``-1`` = maximum speed in negative direction
+    - ``0`` = stop movement
+    - ``1`` = maximum speed in positive direction
+
+    Conventions: positive ``panSpeed`` = right, positive ``tiltSpeed`` = up,
+    positive ``zoomSpeed`` = zoom in. Plugins should clamp values to ``[-1, 1]``
+    and map them to hardware-specific speeds.
+    """
 
     panSpeed: float
     tiltSpeed: float
@@ -99,8 +110,13 @@ class PTZControl(Sensor[PTZControlProperties, TStorage, PTZCapability], Generic[
 
     Override `setPosition()` / `setVelocity()` / `setTargetPreset()` to drive
     hardware, then call the corresponding `super().X()` method after success to
-    sync the SDK state. Use `setPresets()` to publish the discovered preset list
-    and `setMoving()` to publish movement state.
+    sync the SDK state. For hardware-pushed state updates (e.g. PTZ position
+    change events), call the super methods from your event handler — that
+    bypasses any plugin override and only syncs state.
+
+    Set `capabilities` to advertise supported axes and features. Use
+    `setPresets()` to publish the discovered preset list and `setMoving()` to
+    publish movement state.
     """
 
     _requires_frames = False
@@ -146,31 +162,80 @@ class PTZControl(Sensor[PTZControlProperties, TStorage, PTZCapability], Generic[
     async def setPosition(self, value: PTZPosition) -> None:
         """Move to an absolute pan/tilt/zoom position. Override to drive hardware
         and call `await super().setPosition(value)` after success to sync the SDK state.
+
+        Args:
+            value: Absolute pan/tilt/zoom target position.
+
+        Example:
+            ```python
+            await ptz.setPosition({"pan": 0.25, "tilt": -0.1, "zoom": 0.5})
+            ```
         """
         self._write_state({PTZProperty.Position.value: value})
 
     async def setVelocity(self, value: PTZDirection | None) -> None:
         """Continuous-move command. Override to drive hardware and call
         `await super().setVelocity(value)` after success to sync the SDK state.
+
+        Args:
+            value: Per-axis speeds in ``[-1, 1]``, or ``None`` to stop.
+
+        Example:
+            ```python
+            await ptz.setVelocity({"panSpeed": 0.5, "tiltSpeed": 0, "zoomSpeed": 0})
+            await ptz.setVelocity(None)  # stop
+            ```
         """
         self._write_state({PTZProperty.Velocity.value: value})
 
     async def setTargetPreset(self, value: str | None) -> None:
         """Preset-move command. Override to drive hardware and call
         `await super().setTargetPreset(value)` after success to sync the SDK state.
+
+        Args:
+            value: Preset name to move to, or ``None`` to clear.
+
+        Example:
+            ```python
+            await ptz.setTargetPreset("Driveway")
+            ```
         """
         self._write_state({PTZProperty.TargetPreset.value: value})
 
     def setPresets(self, value: list[str]) -> None:
-        """Publish the discovered preset list (typically called once at startup)."""
+        """Publish the discovered preset list (typically called once at startup).
+
+        Args:
+            value: List of preset names supported by the camera.
+
+        Example:
+            ```python
+            ptz.setPresets(["Home", "Driveway", "Backyard"])
+            ```
+        """
         self._write_state({PTZProperty.Presets.value: value})
 
     def setMoving(self, value: bool) -> None:
-        """Publish movement state (e.g. when continuous-move starts/stops)."""
+        """Publish movement state (e.g. when continuous-move starts/stops).
+
+        Args:
+            value: True while the camera is moving.
+
+        Example:
+            ```python
+            ptz.setMoving(True)
+            ```
+        """
         self._write_state({PTZProperty.Moving.value: value})
 
     async def goHome(self) -> None:
-        """Move the camera to the home position (pan=0, tilt=0, zoom=0)."""
+        """Move the camera to the home position (pan=0, tilt=0, zoom=0).
+
+        Example:
+            ```python
+            await ptz.goHome()
+            ```
+        """
         await self.setPosition({"pan": 0, "tilt": 0, "zoom": 0})
 
     async def updateValue(self, property: str, value: Any) -> None:

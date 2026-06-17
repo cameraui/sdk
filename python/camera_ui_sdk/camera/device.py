@@ -405,7 +405,7 @@ class StreamingInterface(Protocol):
         Get the streaming URL for a source.
 
         Args:
-            source_name: The name of the source
+            source_name: The ID of the source
 
         Returns:
             The streaming URL (e.g., rtsp://, rtmp://, or custom protocol)

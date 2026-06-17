@@ -27,9 +27,13 @@ export enum BatteryProperty {
 
 /** Battery charging state */
 export enum ChargingState {
+  /** Device has no rechargeable battery */
   NotChargeable = 'NOT_CHARGEABLE',
+  /** Battery is not charging */
   NotCharging = 'NOT_CHARGING',
+  /** Battery is currently charging */
   Charging = 'CHARGING',
+  /** Battery is fully charged */
   Full = 'FULL',
 }
 

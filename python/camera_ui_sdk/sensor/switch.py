@@ -52,7 +52,9 @@ class SwitchControlLike(SensorLike, Protocol):
 class SwitchControl(Sensor[SwitchControlProperties, TStorage, str], Generic[TStorage]):
     """Generic on/off switch control. Override `setOn()` / `setOff()` to drive
     hardware and call `await super().setOn()` / `await super().setOff()` after
-    success to sync the SDK state.
+    success to sync the SDK state. For hardware-pushed updates, call the super
+    methods from your event handler — that bypasses any plugin override and only
+    syncs state.
     """
 
     _requires_frames = False
@@ -76,12 +78,22 @@ class SwitchControl(Sensor[SwitchControlProperties, TStorage, str], Generic[TSto
     async def setOn(self) -> None:
         """Turn the switch on. Override to drive hardware and call
         `await super().setOn()` after success to sync the SDK state.
+
+        Example:
+            ```python
+            await sw.setOn()
+            ```
         """
         self._write_state({SwitchProperty.On.value: True})
 
     async def setOff(self) -> None:
         """Turn the switch off. Override to drive hardware and call
         `await super().setOff()` after success to sync the SDK state.
+
+        Example:
+            ```python
+            await sw.setOff()
+            ```
         """
         self._write_state({SwitchProperty.On.value: False})
 
