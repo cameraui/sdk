@@ -32,15 +32,6 @@ Used to identify different quality streams from the same camera.
 StreamingRole = Literal["high-resolution", "mid-resolution", "low-resolution"]
 """Streaming roles (excludes snapshot)."""
 
-DecoderFormat = Literal["nv12"]
-"""Internal decoder output format."""
-
-ImageInputFormat = Literal["nv12", "rgb", "rgba", "gray"]
-"""Supported image input formats for processing."""
-
-ImageOutputFormat = Literal["rgb", "rgba", "gray"]
-"""Supported image output formats after processing."""
-
 MotionResolution = Literal["low", "medium", "high"]
 """
 Motion detection resolution setting.

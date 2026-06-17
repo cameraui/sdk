@@ -5,6 +5,10 @@
   "description": "camera.ui sdk monorepo",
   "type": "module",
   "scripts": {
+    "build:docs:node": "npm --prefix node run docs:build",
+    "build:docs:go": "cd go && mkdocs build && cd ..",
+    "build:docs:python": "cd python && mkdocs build && cd ..",
+    "build:docs": "npm run build:docs:node && npm run build:docs:go && npm run build:docs:python",
     "build:node": "npm --prefix node run build",
     "build:go": "cd go && go build ./...",
     "build:python": "cd python && python scripts/build.py --local",

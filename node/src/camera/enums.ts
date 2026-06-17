@@ -66,21 +66,6 @@ export type RTSPAudioCodec = 'aac' | 'opus' | 'pcma';
 export type ProbeAudioCodec = 'aac' | 'opus' | 'pcma';
 
 /**
- * Internal decoder output format.
- */
-export type DecoderFormat = 'nv12';
-
-/**
- * Supported image input formats for processing.
- */
-export type ImageInputFormat = DecoderFormat | 'rgb' | 'rgba' | 'gray';
-
-/**
- * Supported image output formats after processing.
- */
-export type ImageOutputFormat = 'rgb' | 'rgba' | 'gray';
-
-/**
  * Motion detection resolution setting.
  * Higher resolution = more accurate but slower.
  */
