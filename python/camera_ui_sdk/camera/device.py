@@ -400,12 +400,12 @@ class CameraDevice(Protocol):
 
 @runtime_checkable
 class StreamingInterface(Protocol):
-    async def streamUrl(self, source_name: str) -> str:
+    async def streamUrl(self, source_id: str) -> str:
         """
         Get the streaming URL for a source.
 
         Args:
-            source_name: The ID of the source
+            source_id: The ID of the source
 
         Returns:
             The streaming URL (e.g., rtsp://, rtmp://, or custom protocol)
