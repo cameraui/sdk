@@ -15,8 +15,6 @@ import {
   share,
 } from './index.js';
 
-// ── Disposable ───────────────────────────────────────────────────────
-
 describe('Disposable', () => {
   it('should call teardown once on dispose', () => {
     let count = 0;
@@ -39,8 +37,6 @@ describe('Disposable', () => {
     expect(d.closed).toBe(true);
   });
 });
-
-// ── Subject ──────────────────────────────────────────────────────────
 
 describe('Subject', () => {
   it('should emit values to subscribers', () => {
@@ -117,8 +113,6 @@ describe('Subject', () => {
   });
 });
 
-// ── BehaviorSubject ──────────────────────────────────────────────────
-
 describe('BehaviorSubject', () => {
   it('should emit current value on subscribe', () => {
     const subject = new BehaviorSubject<number>(42);
@@ -171,8 +165,6 @@ describe('BehaviorSubject', () => {
   });
 });
 
-// ── ReplaySubject ────────────────────────────────────────────────────
-
 describe('ReplaySubject', () => {
   it('should replay buffered values to new subscribers', () => {
     const subject = new ReplaySubject<number>(2);
@@ -223,8 +215,6 @@ describe('ReplaySubject', () => {
   });
 });
 
-// ── Observable ───────────────────────────────────────────────────────
-
 describe('Observable', () => {
   it('should call subscribe function on subscribe', () => {
     let called = false;
@@ -252,8 +242,6 @@ describe('Observable', () => {
     expect(values).toEqual([1]);
   });
 });
-
-// ── Operators ────────────────────────────────────────────────────────
 
 describe('filter', () => {
   it('should filter values based on predicate', () => {
@@ -448,8 +436,6 @@ describe('share', () => {
   });
 });
 
-// ── Pipe chaining ────────────────────────────────────────────────────
-
 describe('pipe chaining', () => {
   it('should chain multiple operators', () => {
     const subject = new Subject<number>();
@@ -485,8 +471,6 @@ describe('pipe chaining', () => {
   });
 });
 
-// ── firstValueFrom ──────────────────────────────────────────────────
-
 describe('firstValueFrom', () => {
   it('should resolve with first emitted value', async () => {
     const subject = new Subject<number>();
@@ -516,5 +500,13 @@ describe('firstValueFrom', () => {
     subject.complete();
 
     await expect(firstValueFrom(subject)).rejects.toThrow();
+  });
+
+  it('should reject when subject completes after subscribe without emitting', async () => {
+    const subject = new Subject<number>();
+    const promise = firstValueFrom(subject);
+    subject.complete();
+
+    await expect(promise).rejects.toThrow();
   });
 });

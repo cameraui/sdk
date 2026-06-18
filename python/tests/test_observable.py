@@ -496,9 +496,21 @@ class TestFirstValueFrom:
         assert value == 99
 
     @pytest.mark.asyncio
-    async def test_hangs_for_closed_empty_subject(self) -> None:
+    async def test_raises_for_closed_empty_subject(self) -> None:
         subject: Subject[int] = Subject()
         subject.complete()
 
-        with pytest.raises(asyncio.TimeoutError):
-            await asyncio.wait_for(first_value_from(subject), timeout=0.05)
+        with pytest.raises(RuntimeError):
+            await first_value_from(subject)
+
+    @pytest.mark.asyncio
+    async def test_raises_when_completed_after_subscribe(self) -> None:
+        subject: Subject[int] = Subject()
+
+        async def complete_later() -> None:
+            await asyncio.sleep(0.01)
+            subject.complete()
+
+        asyncio.create_task(complete_later())
+        with pytest.raises(RuntimeError):
+            await first_value_from(subject)
