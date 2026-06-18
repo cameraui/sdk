@@ -147,6 +147,7 @@ class Subject(Generic[T]):
 
     def __init__(self) -> None:
         self._subscribers: set[Callable[[T], None]] = set()
+        self._complete_handlers: set[Callable[[], None]] = set()
         self._completed = False
 
     @property
@@ -164,6 +165,20 @@ class Subject(Generic[T]):
             return
         self._completed = True
         self._subscribers.clear()
+        handlers = list(self._complete_handlers)
+        self._complete_handlers.clear()
+        for handler in handlers:
+            handler()
+
+    def _on_complete(self, handler: Callable[[], None]) -> Disposable:
+        """Register a handler invoked once when this Subject completes. Runs
+        immediately if already completed. Used by :func:`first_value_from`.
+        """
+        if self._completed:
+            handler()
+            return Disposable(lambda: None)
+        self._complete_handlers.add(handler)
+        return Disposable(lambda: self._complete_handlers.discard(handler))
 
     def subscribe(self, callback: Callable[[T], None]) -> Disposable:
         if self._completed:
@@ -471,16 +486,19 @@ async def first_value_from(observable: Observable[T] | Subject[T]) -> T:
     """Subscribe to the source and return its first emitted value as a
     coroutine, then dispose the subscription.
 
-    If the source has already completed without emitting, no value ever
-    arrives and the awaited coroutine never resolves — guard such calls
-    with :func:`asyncio.wait_for` (or a timeout) when the source may be
-    closed.
+    Raises ``RuntimeError`` if the source completes before emitting (Subject,
+    BehaviorSubject, ReplaySubject). A bare :class:`Observable` has no
+    completion signal, so the coroutine stays pending until it emits — guard
+    such calls with :func:`asyncio.wait_for` (or a timeout).
 
     Args:
         observable: Source observable or subject to read once.
 
     Returns:
         The first value emitted by the source.
+
+    Raises:
+        RuntimeError: If the source completes without emitting a value.
 
     Example:
         ```python
@@ -492,19 +510,33 @@ async def first_value_from(observable: Observable[T] | Subject[T]) -> T:
     loop = asyncio.get_event_loop()
     future: asyncio.Future[T] = loop.create_future()
     sub: Disposable | None = None
+    complete_sub: Disposable | None = None
+
+    def cleanup() -> None:
+        if sub is not None:
+            sub.dispose()
+        if complete_sub is not None:
+            complete_sub.dispose()
 
     def on_next(value: T) -> None:
-        nonlocal sub
         if not future.done():
-            if sub is not None:
-                sub.dispose()
+            cleanup()
             future.set_result(value)
+
+    def on_complete() -> None:
+        if not future.done():
+            cleanup()
+            future.set_exception(RuntimeError("observable completed without emitting a value"))
 
     sub = observable.subscribe(on_next)
 
     # Already resolved synchronously (BehaviorSubject / ReplaySubject)
     if future.done():
-        sub.dispose()
+        cleanup()
+        return await future
+
+    if isinstance(observable, Subject):
+        complete_sub = observable._on_complete(on_complete)  # pyright: ignore[reportPrivateUsage]
 
     return await future
 

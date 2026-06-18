@@ -6,12 +6,8 @@
  * property-change notifications and event streams throughout the SDK.
  */
 
-// ── Types ────────────────────────────────────────────────────────────
-
 /** A function that transforms one Observable into another. Used as a building block for `pipe()` operator chains. */
 export type OperatorFn<T, R> = (source: Observable<T>) => Observable<R>;
-
-// ── Disposable ───────────────────────────────────────────────────────
 
 /**
  * Subscription handle returned by `subscribe()`.
@@ -42,8 +38,6 @@ export class Disposable {
     this.dispose();
   }
 }
-
-// ── Observable ───────────────────────────────────────────────────────
 
 /**
  * Cold producer of a push-based value stream.
@@ -96,8 +90,6 @@ export class Observable<T> {
   }
 }
 
-// ── Subject ──────────────────────────────────────────────────────────
-
 /**
  * Multicast value source.
  *
@@ -108,6 +100,7 @@ export class Observable<T> {
  */
 export class Subject<T> {
   #subscribers = new Set<(value: T) => void>();
+  #completeHandlers = new Set<() => void>();
   #completed = false;
 
   get closed(): boolean {
@@ -125,6 +118,32 @@ export class Subject<T> {
     if (this.#completed) return;
     this.#completed = true;
     this.#subscribers.clear();
+    const handlers = [...this.#completeHandlers];
+    this.#completeHandlers.clear();
+    for (const handler of handlers) {
+      handler();
+    }
+  }
+
+  /**
+   * Register a handler invoked once when this Subject completes. Runs
+   * immediately if already completed. Used by {@link firstValueFrom}.
+   *
+   * @internal
+   *
+   * @param handler - Completion callback.
+   *
+   * @returns Disposable that cancels the registration.
+   */
+  _onComplete(handler: () => void): Disposable {
+    if (this.#completed) {
+      handler();
+      return new Disposable(() => {});
+    }
+    this.#completeHandlers.add(handler);
+    return new Disposable(() => {
+      this.#completeHandlers.delete(handler);
+    });
   }
 
   subscribe(callback: (value: T) => void): Disposable {
@@ -169,8 +188,6 @@ export class Subject<T> {
   }
 }
 
-// ── BehaviorSubject ──────────────────────────────────────────────────
-
 /**
  * Subject seeded with an initial value that always remembers the latest
  * emission. New subscribers receive the current value immediately on
@@ -207,8 +224,6 @@ export class BehaviorSubject<T> extends Subject<T> {
   }
 }
 
-// ── ReplaySubject ────────────────────────────────────────────────────
-
 /**
  * Subject that buffers up to the last `bufferSize` values (configurable,
  * defaults to unbounded). New subscribers immediately receive every
@@ -240,8 +255,6 @@ export class ReplaySubject<T> extends Subject<T> {
     return super.subscribe(callback);
   }
 }
-
-// ── Operators ────────────────────────────────────────────────────────
 
 /**
  * Emit only the values for which `predicate` returns `true`.
@@ -435,12 +448,12 @@ export function share<T>(config?: { connector: () => Subject<T> }): OperatorFn<T
   };
 }
 
-// ── Utilities ────────────────────────────────────────────────────────
-
 /**
  * Subscribe to the source and return a Promise that resolves with its first
- * emitted value, then disposes the subscription. Rejects if the source has
- * already completed without emitting.
+ * emitted value, then disposes the subscription. Rejects if the source
+ * completes before emitting (Subject, BehaviorSubject, ReplaySubject). A bare
+ * Observable has no completion signal, so the Promise stays pending until it
+ * emits.
  *
  * @param observable - Source stream to await.
  *
@@ -456,30 +469,36 @@ export function share<T>(config?: { connector: () => Subject<T> }): OperatorFn<T
  */
 export function firstValueFrom<T>(observable: Observable<T> | Subject<T> | ReplaySubject<T> | BehaviorSubject<T>): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    let resolved = false;
-    // The callback may fire synchronously during subscribe() (BehaviorSubject/
-    // ReplaySubject), so declare sub up front to avoid the temporal dead zone.
-    let sub: Disposable | undefined = undefined;
-    sub = observable.subscribe((value) => {
-      if (!resolved) {
-        resolved = true;
-        // sub may not be assigned yet if value is emitted synchronously (BehaviorSubject/ReplaySubject)
-        if (sub) {
-          sub.dispose();
-        }
-        resolve(value);
-      }
+    let settled = false;
+    // Callbacks may fire synchronously during subscribe()/_onComplete()
+    // (BehaviorSubject/ReplaySubject/already-completed), so declare the
+    // handles up front and clean up both on settle.
+    let valueSub: Disposable | undefined = undefined;
+    let completeSub: Disposable | undefined = undefined;
+    const cleanup = (): void => {
+      valueSub?.dispose();
+      completeSub?.dispose();
+    };
+
+    valueSub = observable.subscribe((value) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve(value);
     });
 
-    // Already resolved synchronously — clean up immediately
-    if (resolved) {
-      sub.dispose();
+    if (settled) {
+      cleanup();
       return;
     }
 
-    // If the observable completed without emitting (closed subject)
-    if ('closed' in observable && observable.closed && !resolved) {
-      reject(new Error('Observable completed without emitting a value'));
+    if (observable instanceof Subject) {
+      completeSub = observable._onComplete(() => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        reject(new Error('Observable completed without emitting a value'));
+      });
     }
   });
 }
