@@ -1,4 +1,4 @@
-# @camera.ui/sdk
+# camera.ui - SDK
 
 [![npm](https://img.shields.io/npm/v/@camera.ui/sdk?label=npm&logo=npm)](https://www.npmjs.com/package/@camera.ui/sdk)
 [![PyPI](https://img.shields.io/pypi/v/camera-ui-sdk?label=pypi&logo=pypi&logoColor=white)](https://pypi.org/project/camera-ui-sdk/)
@@ -8,11 +8,11 @@ camera.ui SDK - A collection of language-specific SDKs for seamless integration 
 
 Available for three runtimes:
 
-| Runtime | Package                                  |
-| ------- | --------------------------------------- |
-| Node    | `@camera.ui/sdk` (`./node`)             |
-| Go      | `github.com/cameraui/sdk/go` (`./go`)   |
-| Python  | `camera-ui-sdk` (`./python`)            |
+| Runtime | Package                               |
+| ------- | ------------------------------------- |
+| Node    | `@camera.ui/sdk` (`./node`)           |
+| Go      | `github.com/cameraui/sdk/go` (`./go`) |
+| Python  | `camera-ui-sdk` (`./python`)          |
 
 ---
 
