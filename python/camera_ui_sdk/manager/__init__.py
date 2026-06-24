@@ -81,6 +81,18 @@ class CoreManager(Protocol):
         """
         ...
 
+    async def getCloudServerId(self) -> str:
+        """
+        Get the cloud server identity this server is registered as.
+
+        Returns the cloud ``server_id`` from the active cloud pairing, or an
+        empty string when the server is not connected to the cloud.
+
+        Returns:
+            Cloud server id, or an empty string if not paired
+        """
+        ...
+
     async def getPluginsByInterface(self, interfaceName: PluginInterface) -> list[PluginInfo]:
         """
         Get all active plugins that implement a specific interface.

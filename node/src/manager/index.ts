@@ -63,6 +63,16 @@ export interface CoreManager {
   getServerAddresses(): Promise<string[]>;
 
   /**
+   * Get the cloud server identity this server is registered as.
+   *
+   * Returns the cloud `server_id` from the active cloud pairing, or an empty
+   * string when the server is not connected to the cloud.
+   *
+   * @returns Cloud server id, or an empty string if not paired
+   */
+  getCloudServerId(): Promise<string>;
+
+  /**
    * Get all active plugins that implement a specific interface.
    *
    * @param interfaceName - Name of the plugin interface (e.g., 'ClipDetection')
