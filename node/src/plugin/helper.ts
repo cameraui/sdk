@@ -191,8 +191,8 @@ export function validateContractConsistency(contract: PluginContract, pluginName
 }
 
 /**
- * Reports whether the plugin's role is Hub (vendor cloud integration that
- * manages its own cameras end-to-end).
+ * Reports whether the plugin's role is Hub (a cross-camera aggregator such as a
+ * smart-home bridge or recorder, which owns no cameras of its own).
  *
  * @param contract - Plugin contract to inspect.
  *

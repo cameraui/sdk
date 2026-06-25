@@ -146,8 +146,8 @@ def validate_contract_consistency(contract: PluginContract, plugin_name: str | N
 
 
 def is_hub(contract: PluginContract) -> bool:
-    """Report whether the plugin's role is Hub (vendor cloud integration that
-    manages its own cameras end-to-end).
+    """Report whether the plugin's role is Hub (a cross-camera aggregator such as
+    a smart-home bridge or recorder, which owns no cameras of its own).
 
     Args:
         contract: Plugin contract to inspect.

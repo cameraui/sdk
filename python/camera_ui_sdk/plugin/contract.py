@@ -16,10 +16,12 @@ class PluginRole(str, Enum):
     hooks the host invokes and which contract validations apply."""
 
     Hub = "hub"
-    """Cloud-service integration that manages its own cameras end-to-end via
-    a vendor account (e.g. a vendor SDK / cloud API). The hub owns camera
-    creation, streaming and sensors; it cannot expose sensors for cameras
-    owned by other plugins."""
+    """System-wide aggregator that attaches to cameras owned by *other* plugins
+    to provide a cross-camera service (e.g. bridging cameras and sensors into a
+    smart-home platform, or recording and notifications). A hub creates no
+    cameras of its own and provides no sensors (`provides` must be empty); it
+    attaches to cameras via the `hub` assignment and typically reads camera and
+    sensor state through `consumes`."""
 
     SensorProvider = "sensorProvider"
     """Adds sensors to existing cameras without owning the camera itself.
