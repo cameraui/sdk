@@ -14,7 +14,7 @@
     "build:node": "npm --prefix node run build",
     "build:python": "cd python && python scripts/build.py --local",
     "build": "npm run build:node && npm run build:go && npm run build:python",
-    "install-updates": "npm i --save && npm run install-updates --if-present --prefix node",
+    "install-updates": "npm i --save && npm run install-updates --if-present --prefix node && cd go && go mod tidy && cd ..",
     "lint:go": "cd go && gofmt -w . && go fix ./... && staticcheck ./... && golangci-lint run ./...",
     "lint:node": "npm --prefix node run format && npm --prefix node run lint:fix",
     "lint:python": "cd python && mypy --config-file ./mypy.ini camera_ui_sdk",
@@ -25,7 +25,7 @@
     "test:unit": "npm run test:unit:node && npm run test:unit:go && npm run test:unit:python",
     "test": "npm run test:unit",
     "release": "bash scripts/release.sh",
-    "update": "updates --update ./ && updates --file go,node,python --update ./ && cd go && go mod tidy && cd .."
+    "update": "updates --update ./ && updates --file go,node,python --update ./"
   },
   "homepage": "https://github.com/cameraui/sdk#readme",
   "bugs": {
