@@ -100,22 +100,6 @@ class Notification(TypedDict):
     instance receives it, subject to their own notification settings)."""
 
 
-class TestNotificationResponse(TypedDict):
-    """Result of a :meth:`NotifierInterface.testNotification` call: whether
-    the test notification was delivered and, when known, to how many devices.
-    """
-
-    delivered: bool
-    """True when the notifier accepted and dispatched the test
-    notification."""
-
-    deviceCount: NotRequired[int]
-    """Number of devices the test notification was delivered to."""
-
-    message: NotRequired[str]
-    """Human-readable status or error detail."""
-
-
 @runtime_checkable
 class NotifierInterface(Protocol):
     """Implemented by plugins that deliver notifications.
@@ -157,14 +141,6 @@ class NotifierInterface(Protocol):
         plugin-agnostic (``name``, ``active``); plugins ignore unknown keys.
         Returns the updated device, or None if the id isn't ours so the
         manager can probe the next plugin."""
-        ...
-
-    async def testNotification(
-        self, notification: Notification, device_ids: list[str] | None = None
-    ) -> TestNotificationResponse | None:
-        """Send a test notification to the given devices and return the
-        delivery result. ``device_ids`` optionally restricts delivery to a
-        subset."""
         ...
 
     async def notificationSettings(self) -> list[JsonSchema] | None:

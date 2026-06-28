@@ -94,19 +94,6 @@ export interface Notification {
 }
 
 /**
- * Result of a {@link NotifierInterface.testNotification} call: whether the
- * test notification was delivered and, when known, to how many devices.
- */
-export interface TestNotificationResponse {
-  /** True when the notifier accepted and dispatched the test notification. */
-  delivered: boolean;
-  /** Number of devices the test notification was delivered to. */
-  deviceCount?: number;
-  /** Human-readable status or error detail. */
-  message?: string;
-}
-
-/**
  * Implemented by plugins that deliver notifications. The NotificationManager
  * invokes these methods over RPC. Plugins own their device storage — the
  * manager never persists devices itself.
@@ -144,11 +131,6 @@ export interface NotifierInterface {
    *  manager can probe the next plugin.
    */
   updateDevice(deviceId: string, patch: Record<string, unknown>): Promise<NotifierDevice | null>;
-  /**
-   * Sends a test notification to the given devices and returns the delivery
-   *  result. `deviceIds` optionally restricts delivery to a subset.
-   */
-  testNotification?(notification: Notification, deviceIds?: string[]): Promise<TestNotificationResponse | undefined>;
   /**
    * Returns the JSON schema used to render the notifier's settings form in
    *  the UI, or undefined for no schema.
