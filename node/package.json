@@ -37,7 +37,7 @@
     "@types/node": "26.0.1",
     "@typescript-eslint/parser": "^8.62.0",
     "cpy-cli": "^7.0.0",
-    "eslint": "9.39.2",
+    "eslint": "10.6.0",
     "eslint-plugin-jsdoc": "^63.0.10",
     "globals": "^17.7.0",
     "prettier": "^3.9.1",
