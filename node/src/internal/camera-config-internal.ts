@@ -17,8 +17,6 @@ export interface CameraInputSettings {
   hotMode: boolean;
   /** Preload stream on startup */
   preload: boolean;
-  /** Enable stream prebuffering */
-  prebuffer: boolean;
   /** User-provided stream URLs */
   urls: string[];
   /** Child source ID (for snapshot fallback) */

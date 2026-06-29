@@ -46,8 +46,6 @@ class CameraSource(Protocol):
     """Keep connection always active."""
     preload: bool
     """Preload stream on startup."""
-    prebuffer: bool
-    """Enable stream prebuffering."""
     urls: StreamUrls
     """Generated streaming URLs."""
     childSourceId: str | None

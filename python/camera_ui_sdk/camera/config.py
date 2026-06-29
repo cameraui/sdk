@@ -52,8 +52,6 @@ class CameraInput(TypedDict):
     """Keep connection always active."""
     preload: bool
     """Preload stream on startup."""
-    prebuffer: bool
-    """Enable stream prebuffering."""
     urls: StreamUrls
     """Generated streaming URLs."""
     childSourceId: NotRequired[str]
@@ -73,8 +71,6 @@ class CameraConfigInputSettings(TypedDict):
     """Keep connection always active."""
     preload: bool
     """Preload stream on startup."""
-    prebuffer: bool
-    """Enable stream prebuffering."""
     childSourceId: NotRequired[str]
     """Child source ID (for snapshot fallback)."""
     urls: NotRequired[list[str]]

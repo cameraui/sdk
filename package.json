@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "audit": "npm audit fix && npm --prefix node audit fix",
-    "build:docs:go": "cd go && mkdocs build && cd ..",
+    "build:docs:go": "cd go && bash scripts/gen-api-docs.sh && mkdocs build && cd ..",
     "build:docs:node": "npm --prefix node run docs:build",
     "build:docs:python": "cd python && mkdocs build && cd ..",
     "build:docs": "npm run build:docs:node && npm run build:docs:go && npm run build:docs:python",

@@ -41,8 +41,6 @@ class Go2RtcRTSPSource(TypedDict):
     """Stream with PCMA audio URL."""
     onvif: str
     """ONVIF URL."""
-    prebuffered: str
-    """Prebuffered stream URL."""
     noGop: str
     """Stream URL with GOP cache disabled."""
 
@@ -159,8 +157,6 @@ class RTSPUrlOptions(TypedDict, total=False):
     """Include audio track(s)."""
     gop: bool
     """Request keyframe at start (GOP)."""
-    prebuffer: bool
-    """Use prebuffered stream."""
     audioSingleTrack: bool
     """Combine audio tracks into single track."""
     backchannel: bool
@@ -184,5 +180,3 @@ class SnapshotUrlOptions(TypedDict, total=False):
     """Hardware acceleration backend."""
     gop: bool
     """Request keyframe at start (GOP)."""
-    prebuffer: bool
-    """Use prebuffered stream."""

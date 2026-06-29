@@ -33,8 +33,6 @@ export interface Go2RtcRTSPSource {
   pcma: string;
   /** ONVIF URL */
   onvif: string;
-  /** Prebuffered stream URL */
-  prebuffered: string;
   /** Stream URL with GOP cache disabled */
   noGop: string;
 }
@@ -179,8 +177,6 @@ export interface RTSPUrlOptions {
   audio?: boolean | RTSPAudioCodec | RTSPAudioCodec[];
   /** Request keyframe at start (GOP) */
   gop?: boolean;
-  /** Use prebuffered stream */
-  prebuffer?: boolean;
   /** Combine audio tracks into single track */
   audioSingleTrack?: boolean;
   /** Enable backchannel (two-way audio) */
@@ -205,8 +201,6 @@ export interface SnapshotUrlOptions {
   hw?: 'vaapi' | 'v4l2m2m' | 'cuda' | 'dxva2' | 'videotoolbox' | 'rkmpp';
   /** Request keyframe at start (GOP) */
   gop?: boolean;
-  /** Use prebuffered stream */
-  prebuffer?: boolean;
 }
 
 /**

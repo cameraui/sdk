@@ -351,7 +351,6 @@ class CameraProvider(BasePlugin, DiscoveryProvider):
                 "useForSnapshot": True,
                 "hotMode": True,
                 "preload": True,
-                "prebuffer": False,
             }],
         }
 ```

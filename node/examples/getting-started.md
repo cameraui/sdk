@@ -307,7 +307,6 @@ export default class CameraProvider extends BasePlugin implements DiscoveryProvi
         useForSnapshot: true,
         hotMode: true,
         preload: true,
-        prebuffer: false,
       }],
     };
   }
