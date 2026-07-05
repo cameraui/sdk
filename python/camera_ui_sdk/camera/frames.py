@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TypedDict
+from typing import NotRequired, TypedDict
 
 
 class CameraFrameWorkerSettings(TypedDict):
@@ -8,6 +8,8 @@ class CameraFrameWorkerSettings(TypedDict):
 
     fps: int
     """Target frames per second for detection."""
+    hqSnapshots: NotRequired[bool]
+    """Capture event thumbnails from the highest-resolution source."""
 
 
 class SnapshotSettings(TypedDict):

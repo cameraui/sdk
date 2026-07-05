@@ -4,6 +4,8 @@
 export interface CameraFrameWorkerSettings {
   /** Target frames per second for detection */
   fps: number;
+  /** Capture event thumbnails from the highest-resolution source. */
+  hqSnapshots?: boolean;
 }
 
 /**
