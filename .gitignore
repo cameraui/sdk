@@ -24,7 +24,6 @@ __pycache__
 *.egg-info
 .venv
 .tmp
-CLAUDE.md
 
 # Generated / built docs (rebuilt by the docs workflow)
 /node/docs/api/
