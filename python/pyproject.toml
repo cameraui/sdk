@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "camera-ui-sdk"
-version = "1.0.99"
+version = "1.0.100"
 description = "camera.ui sdk"
 keywords = ["camera.ui", "python", "sdk"]
 readme = "README.md"
