@@ -626,11 +626,15 @@ class DeviceStorage(Protocol, Generic[V2]):
 
     async def changeSchema(self, key: str, new_schema: dict[str, Any]) -> None:
         """
-        Update an existing schema field.
+        Replace an existing schema field with a full schema.
+
+        The whole schema is replaced — individual fields are not merged. It is
+        a no-op when no schema with that key is registered (use ``addSchema`` to
+        add a new field). The passed key always wins.
 
         Args:
-            key: Schema key to update
-            new_schema: Partial schema with updated fields
+            key: Schema key to replace
+            new_schema: Full schema definition that replaces the current one
         """
         ...
 

@@ -461,13 +461,17 @@ export interface DeviceStorage<T extends Record<string, any> = Record<string, an
   removeSchema(key: string): Promise<void>;
 
   /**
-   * Update an existing schema field.
+   * Replace an existing schema field with a full schema.
    *
-   * @param key - Schema key to update
+   * The whole schema is replaced — individual fields are not merged. It is a
+   * no-op when no schema with that key is registered (use {@link addSchema} to
+   * add a new field). The passed key always wins.
    *
-   * @param newSchema - Partial schema with updated fields
+   * @param key - Schema key to replace
+   *
+   * @param newSchema - Full schema definition that replaces the current one
    */
-  changeSchema(key: string, newSchema: Partial<JsonSchema>): Promise<void>;
+  changeSchema(key: string, newSchema: JsonSchema): Promise<void>;
 
   /**
    * Get a schema definition by key.
