@@ -365,6 +365,9 @@ export interface DeviceStorage<T extends Record<string, any> = Record<string, an
   /**
    * Get a configuration value.
    *
+   * Resolves in order: the schema's `onGet` callback (if any), then the stored
+   * value, then the schema default, then the provided default.
+   *
    * @param key - Configuration key
    *
    * @returns Value or undefined
@@ -385,9 +388,15 @@ export interface DeviceStorage<T extends Record<string, any> = Record<string, an
   /**
    * Set a configuration value.
    *
+   * Takes effect only if a schema exists for the key. Passing `null` or
+   * `undefined` deletes the key — it reads as never-set again and the schema
+   * default applies. For a field whose schema opts into storage (`store: true`)
+   * the value is durably persisted before the returned promise resolves; the
+   * schema's `onSet` fires afterwards.
+   *
    * @param key - Configuration key
    *
-   * @param newValue - New value to set
+   * @param newValue - New value to set, or `null`/`undefined` to delete the key
    */
   setValue<U = string>(key: string, newValue: U): Promise<void>;
 
@@ -417,9 +426,13 @@ export interface DeviceStorage<T extends Record<string, any> = Record<string, an
   getConfig(): Promise<SchemaConfig>;
 
   /**
-   * Set the full configuration.
+   * Merge configuration values into the current config.
    *
-   * @param newConfig - New configuration values
+   * Only keys present in `newConfig` are updated (not a full replace); arrays
+   * are replaced, not merged. Values are durably persisted before the returned
+   * promise resolves; `onSet` fires for each key whose value actually changed.
+   *
+   * @param newConfig - Configuration values to merge in
    */
   setConfig(newConfig: T): Promise<void>;
 
@@ -439,6 +452,9 @@ export interface DeviceStorage<T extends Record<string, any> = Record<string, an
 
   /**
    * Remove a schema field.
+   *
+   * The field's stored value is deleted along with the schema; the removal
+   * is durably persisted when the returned promise resolves.
    *
    * @param key - Schema key to remove
    */
@@ -472,14 +488,19 @@ export interface DeviceStorage<T extends Record<string, any> = Record<string, an
   /**
    * Set a system-internal value (e.g. _displayName) without requiring a schema and persist it.
    *
+   * When the returned promise resolves, the value is durably persisted.
+   * Passing `null` or `undefined` deletes the key — it reads as never-set again.
+   *
    * @param key - Internal key (typically prefixed with '_')
    *
-   * @param value - Value to set
+   * @param value - Value to set, or `null`/`undefined` to delete the key
    */
   setInternalValue(key: string, value: unknown): Promise<void>;
 
   /**
    * Persist all changes to storage.
+   *
+   * When the returned promise resolves, all values are durably persisted.
    */
   save(): Promise<void>;
 }
