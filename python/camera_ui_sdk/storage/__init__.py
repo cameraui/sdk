@@ -522,6 +522,9 @@ class DeviceStorage(Protocol, Generic[V2]):
         """
         Get a configuration value.
 
+        Resolves in order: the schema's ``onGet`` callback (if any), then the
+        stored value, then the schema default, then the provided default.
+
         Args:
             key: Configuration key
             default_value: Default value if key doesn't exist
@@ -535,9 +538,15 @@ class DeviceStorage(Protocol, Generic[V2]):
         """
         Set a configuration value.
 
+        Takes effect only if a schema exists for the key. Passing ``None``
+        deletes the key — it reads as never-set again and the schema default
+        applies. For a field whose schema opts into storage (``store: True``)
+        the value is durably persisted before the coroutine completes; the
+        schema's ``onSet`` fires afterwards.
+
         Args:
             key: Configuration key
-            new_value: New value to set
+            new_value: New value to set, or ``None`` to delete the key
         """
         ...
 
@@ -574,10 +583,23 @@ class DeviceStorage(Protocol, Generic[V2]):
 
     async def setConfig(self, new_config: V2) -> None:
         """
-        Set the full configuration.
+        Merge configuration values into the current config.
+
+        Only keys present in ``new_config`` are updated (not a full replace);
+        arrays are replaced, not merged. Values are durably persisted before the
+        coroutine completes; ``onSet`` fires for each key whose value changed.
 
         Args:
-            new_config: New configuration values
+            new_config: Configuration values to merge in
+        """
+        ...
+
+    def defineSchemas(self, schemas: list[JsonSchema]) -> None:
+        """
+        Define all schemas for this storage.
+
+        Args:
+            schemas: Array of schema definitions
         """
         ...
 
@@ -590,9 +612,12 @@ class DeviceStorage(Protocol, Generic[V2]):
         """
         ...
 
-    def removeSchema(self, key: str) -> None:
+    async def removeSchema(self, key: str) -> None:
         """
         Remove a schema field.
+
+        The field's stored value is deleted along with the schema; the
+        removal is durably persisted when the coroutine completes.
 
         Args:
             key: Schema key to remove
@@ -630,18 +655,24 @@ class DeviceStorage(Protocol, Generic[V2]):
         """
         ...
 
-    def setInternalValue(self, key: str, value: Any) -> None:
+    async def setInternalValue(self, key: str, value: Any) -> None:
         """
-        Set a system-internal value without requiring a schema and persist it.
+        Set a system-internal value (e.g. _displayName) without requiring a schema and persist it.
+
+        When the coroutine completes, the value is durably persisted.
+        Passing ``None`` deletes the key — it reads as never-set again.
 
         Args:
             key: Internal key (typically prefixed with '_')
-            value: Value to set
+            value: Value to set, or ``None`` to delete the key
         """
         ...
 
-    def save(self) -> None:
-        """Persist all changes to storage."""
+    async def save(self) -> None:
+        """Persist all changes to storage.
+
+        When the coroutine completes, all values are durably persisted.
+        """
         ...
 
 

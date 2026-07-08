@@ -79,6 +79,51 @@ class AsyncEventEmitter:
 
         return True
 
+    async def emit_and_wait(
+        self,
+        event: str,
+        *args: Any,
+        timeout: float | None = None,
+        on_error: Callable[[BaseException], None] | None = None,
+        **kwargs: Any,
+    ) -> bool:
+        """Invoke every listener registered for *event* and wait for async handlers to settle.
+
+        Handler exceptions are passed to *on_error* instead of propagating,
+        so one failing listener never blocks the others. Returns ``True``
+        when every handler settled within *timeout* seconds, ``False`` if
+        some were still pending when the timeout elapsed (they keep running
+        and remain cancellable via :meth:`cancel`).
+        """
+        event = self._normalize_event(event)
+        listeners = self._events.get(event)
+
+        pending: list[asyncio.Future[Any]] = []
+        for handler in list(listeners.values()) if listeners else []:
+            try:
+                result = handler(*args, **kwargs)
+            except Exception as e:
+                if on_error is not None:
+                    on_error(e)
+                continue
+            if asyncio.iscoroutine(result):
+                future = asyncio.ensure_future(result)
+                self._waiting.add(future)
+                future.add_done_callback(self._waiting.discard)
+                pending.append(future)
+
+        if not pending:
+            return True
+
+        done, still_pending = await asyncio.wait(pending, timeout=timeout)
+        for settled in done:
+            if settled.cancelled():
+                continue
+            exc = settled.exception()
+            if exc is not None and on_error is not None:
+                on_error(exc)
+        return not still_pending
+
     def remove_listener(self, event: str, f: Callable[..., Any]) -> None:
         """Remove a previously registered listener *f* from *event*. No-op if it is not registered."""
         event = self._normalize_event(event)
