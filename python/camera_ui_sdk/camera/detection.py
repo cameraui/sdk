@@ -110,6 +110,16 @@ class PtzAutotrackSettings(TypedDict):
     triggerDeadZone: float
     """Dead zone around frame center (0 - 0.3). No motor command while the
     target is inside this zone."""
+    trackingSpeed: float
+    """How aggressively the camera moves to re-center the target (1 - 5).
+    Higher reaches full pan/tilt speed at a smaller off-center error."""
+    leadFrames: float
+    """Motion prediction (0 - 6): aim this many detection-frames ahead along
+    the target's measured velocity. 0 disables prediction."""
+    panRate: float
+    """Camera pan-rate calibration (0.1 - 3): assumed pan travel at full motor
+    speed in normalized frame-widths per second. Lower it if the camera stops
+    short of the target, raise it if it overshoots."""
     returnToHome: bool
     """Return to home position when no target is found for homeWaitMs."""
     homeWaitMs: int

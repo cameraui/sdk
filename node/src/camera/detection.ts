@@ -109,6 +109,23 @@ export interface PtzAutotrackSettings {
    * no motor command is issued. Range 0 - 0.3.
    */
   triggerDeadZone: number;
+  /**
+   * How aggressively the camera moves to re-center the target. Higher reaches
+   * full pan/tilt speed at a smaller off-center error. Range 1 - 5.
+   */
+  trackingSpeed: number;
+  /**
+   * Motion prediction: aim this many detection-frames ahead along the target's
+   * measured velocity so a moving target is followed without lag. 0 disables
+   * prediction. Range 0 - 6.
+   */
+  leadFrames: number;
+  /**
+   * Camera pan-rate calibration — assumed pan travel at full motor speed, in
+   * normalized frame-widths per second. Lower it if the camera stops short of
+   * the target, raise it if it overshoots. Range 0.1 - 3.
+   */
+  panRate: number;
   /** Return to home position when no target is found for homeWaitMs */
   returnToHome: boolean;
   /** How long to wait (ms) without a target before returning home */

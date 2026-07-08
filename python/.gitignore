@@ -27,6 +27,7 @@ bkp.py
 /git.sh
 python-*
 requirements-lock.txt
+*.lock
 
 # Editor directories and files
 .idea

@@ -31,3 +31,4 @@ __pycache__
 /node/docs/.vitepress/cache/
 /python/site/
 /go/site/
+**/.vitepress/.temp
