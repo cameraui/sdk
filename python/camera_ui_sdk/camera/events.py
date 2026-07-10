@@ -135,6 +135,10 @@ class DetectionEvent(TypedDict):
     """Full-frame downscaled JPEG captured at event start. Inline only on the first
     message that delivers it (start or the first update); the NVR plugin persists it
     and clients fetch it on demand via getEventThumbnails."""
+    hasRecording: NotRequired[bool]
+    """Whether recorded footage overlaps this event's time window. Populated only when
+    the events query explicitly requests it (e.g. the recordings browser); absent
+    otherwise."""
 
 
 class DetectionEventPayload(TypedDict):
