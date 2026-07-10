@@ -183,6 +183,9 @@ class DiscoveredCamera(TypedDict):
     model: NotRequired[str]
     """Camera model label (optional)."""
 
+    address: NotRequired[str]
+    """Network address (IP or hostname) shown in the UI to disambiguate same-model cameras."""
+
 
 class CreateDownloadOptions(TypedDict):
     """Options for creating a download."""

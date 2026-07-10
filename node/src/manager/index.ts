@@ -293,4 +293,6 @@ export interface DiscoveredCamera {
   manufacturer?: string;
   /** Camera model label (optional). */
   model?: string;
+  /** Network address (IP or hostname) shown in the UI to disambiguate same-model cameras. */
+  address?: string;
 }
