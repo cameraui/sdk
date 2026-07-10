@@ -1,5 +1,5 @@
-import type { Subscribed } from '../internal/streaming-internal.js';
 import type { RtpPacket } from '../external.js';
+import type { Subscribed } from '../internal/streaming-internal.js';
 import type { ReplaySubject, Subject } from '../observable/index.js';
 import type { AudioCodec, AudioFFmpegCodec, ProbeAudioCodec, RTSPAudioCodec, StreamDirection, VideoCodec, VideoFFmpegCodec } from './enums.js';
 
@@ -358,7 +358,7 @@ export interface Fmp4SessionOptions {
 
   /** Use box mode for streaming */
   boxMode?: boolean;
-  /** Fragment duration in ms */
+  /** Fragment duration in microseconds */
   fragDuration?: number;
 
   /** Supported audio codecs (skip transcode if match) */
