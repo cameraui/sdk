@@ -52,6 +52,8 @@ class CameraInput(TypedDict):
     """Keep connection always active."""
     preload: bool
     """Preload stream on startup."""
+    muted: NotRequired[bool]
+    """Strip the audio track from this source (defaults to False)."""
     urls: StreamUrls
     """Generated streaming URLs."""
     childSourceId: NotRequired[str]
@@ -71,6 +73,8 @@ class CameraConfigInputSettings(TypedDict):
     """Keep connection always active."""
     preload: bool
     """Preload stream on startup."""
+    muted: NotRequired[bool]
+    """Strip the audio track from this source (defaults to False)."""
     childSourceId: NotRequired[str]
     """Child source ID (for snapshot fallback)."""
     urls: NotRequired[list[str]]

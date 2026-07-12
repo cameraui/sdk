@@ -17,6 +17,8 @@ export interface CameraInputSettings {
   hotMode: boolean;
   /** Preload stream on startup */
   preload: boolean;
+  /** Strip the audio track from this source (defaults to false) */
+  muted?: boolean;
   /** User-provided stream URLs */
   urls: string[];
   /** Child source ID (for snapshot fallback) */

@@ -46,6 +46,8 @@ class CameraSource(Protocol):
     """Keep connection always active."""
     preload: bool
     """Preload stream on startup."""
+    muted: bool | None
+    """Strip the audio track from this source (defaults to False)."""
     urls: StreamUrls
     """Generated streaming URLs."""
     childSourceId: str | None
