@@ -381,7 +381,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
    * Helper for `reportDetections(detected, detections?)` flows.
    *
    * - If `detected === false` → returns `[]` (clear).
-   * - If `detected === true` and `detections` has items → returns them as-is.
+   * - If `detected === true` and `detections` has items → returns them, substituting a full-frame box where missing.
    * - If `detected === true` and `detections` is missing/empty → returns a single
    *   synthesized full-frame detection with the given `fallbackLabel` and any
    *   `fallbackExtra` fields (used for type-specific properties like `attribute`,
@@ -409,7 +409,12 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     fallbackExtra?: Omit<T, 'label' | 'confidence' | 'box'>,
   ): T[] {
     if (!detected) return [];
-    if (detections && detections.length > 0) return detections;
+    if (detections && detections.length > 0) {
+      // Smart-camera plugins (Ring, Reolink, ...) report labels without
+      // coordinates, while downstream consumers (detection coordinator, zone
+      // matching) require a box on every detection — substitute full-frame.
+      return detections.map((detection) => (detection.box ? detection : { ...detection, box: { x: 0, y: 0, width: 1, height: 1 } }));
+    }
     return [
       {
         label: fallbackLabel,

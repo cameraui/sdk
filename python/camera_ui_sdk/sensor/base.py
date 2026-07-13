@@ -319,7 +319,7 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         """Helper for `reportDetections(detected, detections?)` flows.
 
         - If `detected` is False → returns `[]` (clear).
-        - If `detected` is True and `detections` has items → returns them as-is.
+        - If `detected` is True and `detections` has items → returns them, substituting a full-frame box where missing.
         - If `detected` is True and `detections` is missing/empty → returns a single
           synthesized full-frame detection with the given `fallback_label` and any
           `fallback_extra` fields (used for type-specific properties like `attribute`,
@@ -328,7 +328,15 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         if not detected:
             return []
         if detections:
-            return detections
+            # Smart-camera plugins report labels without coordinates, while
+            # downstream consumers (detection coordinator, zone matching)
+            # require a box on every detection — substitute full-frame.
+            return [
+                detection
+                if detection.get("box")
+                else {**detection, "box": {"x": 0, "y": 0, "width": 1, "height": 1}}
+                for detection in detections
+            ]
         synthesized: dict[str, Any] = {
             "label": fallback_label,
             "confidence": 1,
