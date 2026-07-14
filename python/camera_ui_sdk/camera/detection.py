@@ -66,6 +66,9 @@ class ObjectDetectionSettings(TypedDict):
     confidence: float
     """Minimum confidence threshold (0-1)."""
 
+    suppressStatic: NotRequired[bool]
+    """Suppress events from objects that stay stationary across events (e.g. parked cars). Defaults to True."""
+
 
 class AudioDetectionSettings(TypedDict):
     """Audio detection settings."""

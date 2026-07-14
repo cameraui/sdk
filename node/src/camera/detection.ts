@@ -82,6 +82,8 @@ export interface MotionDetectionSettings {
 export interface ObjectDetectionSettings {
   /** Minimum confidence threshold (0-1) */
   confidence: number;
+  /** Suppress events from objects that stay stationary across events (e.g. parked cars). Defaults to true. */
+  suppressStatic?: boolean;
 }
 
 /**
