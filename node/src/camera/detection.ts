@@ -47,7 +47,7 @@ export interface DetectionLine {
 
 /**
  * Detection zone configuration.
- * Defines areas for detection filtering or privacy masking.
+ * Defines areas that restrict or drop detections.
  */
 export interface DetectionZone {
   /** Zone display name */
@@ -60,7 +60,7 @@ export interface DetectionZone {
   filter: ZoneFilter;
   /** Labels to filter (empty = all labels) */
   labels: DetectionLabel[];
-  /** Whether this is a privacy mask (blur/block area) */
+  /** Whether this is an ignore zone: detections fully inside it are dropped. */
   isPrivacyMask: boolean;
   /** Zone display color (hex) */
   color: string;

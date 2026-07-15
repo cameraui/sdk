@@ -12,7 +12,7 @@ from .enums import LineDirection, MotionResolution, Point, ZoneFilter, ZoneType
 class DetectionZone(TypedDict):
     """
     Detection zone configuration.
-    Defines areas for detection filtering or privacy masking.
+    Defines areas that restrict or drop detections.
     """
 
     name: str
@@ -26,7 +26,7 @@ class DetectionZone(TypedDict):
     labels: list[DetectionLabel]
     """Labels to filter (empty = all labels)."""
     isPrivacyMask: bool
-    """Whether this is a privacy mask (blur/block area)."""
+    """Whether this is an ignore zone: detections fully inside it are dropped."""
     color: str
     """Zone display color (hex)."""
 
