@@ -18,6 +18,9 @@ class PTZCapability(str, Enum):
     Zoom = "zoom"
     Presets = "presets"
     Home = "home"
+    RelativeMove = "relativeMove"
+    AbsolutePosition = "absolutePosition"
+    VelocityControl = "velocityControl"
 
 
 class PTZProperty(str, Enum):
@@ -28,6 +31,7 @@ class PTZProperty(str, Enum):
     Presets = "presets"
     Velocity = "velocity"
     TargetPreset = "targetPreset"
+    RelativeMove = "relativeMove"
 
 
 class PTZPosition(TypedDict):
@@ -57,6 +61,21 @@ class PTZDirection(TypedDict):
     zoomSpeed: float
 
 
+class PTZRelativeMove(TypedDict):
+    """Relative displacement for a single PTZ move.
+
+    Deltas are normalized to the camera's field of view: ``panDelta: 1`` moves
+    the view by one full frame width, ``tiltDelta: 1`` by one full frame height.
+    Conventions match :class:`PTZDirection`: positive ``panDelta`` = right,
+    positive ``tiltDelta`` = up, positive ``zoomDelta`` = zoom in. Plugins map
+    the deltas to hardware-specific translation spaces (e.g. ONVIF RelativeMove).
+    """
+
+    panDelta: float
+    tiltDelta: float
+    zoomDelta: float
+
+
 class PTZControlProperties(TypedDict):
     """Property value map for PTZ controls."""
 
@@ -65,13 +84,14 @@ class PTZControlProperties(TypedDict):
     presets: list[str]
     velocity: NotRequired[PTZDirection | None]
     targetPreset: NotRequired[str | None]
+    relativeMove: NotRequired[PTZRelativeMove | None]
 
 
 class PTZPropertyChangeData(TypedDict):
     """Emitted on PTZControlLike.onPropertyChanged."""
 
     property: str  # PTZProperty value
-    value: PTZPosition | bool | list[str] | PTZDirection | str | None
+    value: PTZPosition | bool | list[str] | PTZDirection | PTZRelativeMove | str | None
 
 
 TStorage = TypeVar("TStorage", bound=Mapping[str, Any], default=dict[str, Any])
@@ -95,6 +115,8 @@ class PTZControlLike(SensorLike, Protocol):
     def getValue(self, property: Literal[PTZProperty.Velocity]) -> PTZDirection | None: ...
     @overload
     def getValue(self, property: Literal[PTZProperty.TargetPreset]) -> str | None: ...
+    @overload
+    def getValue(self, property: Literal[PTZProperty.RelativeMove]) -> PTZRelativeMove | None: ...
     @overload
     def getValue(self, property: str) -> object | None: ...
 
@@ -188,6 +210,23 @@ class PTZControl(Sensor[PTZControlProperties, TStorage, PTZCapability], Generic[
         """
         self._write_state({PTZProperty.Velocity.value: value})
 
+    async def setRelativeMove(self, value: PTZRelativeMove) -> None:
+        """Relative displacement move. Override to drive hardware (e.g. ONVIF
+        RelativeMove in a translation space) and call
+        `await super().setRelativeMove(value)` after success to sync the SDK state.
+        Advertise `PTZCapability.RelativeMove` when the camera supports it.
+
+        Args:
+            value: Per-axis displacement, normalized to the field of view.
+
+        Example:
+            ```python
+            # move the view a third of a frame to the right, a tenth down
+            await ptz.setRelativeMove({"panDelta": 0.33, "tiltDelta": -0.1, "zoomDelta": 0})
+            ```
+        """
+        self._write_state({PTZProperty.RelativeMove.value: value})
+
     async def setTargetPreset(self, value: str | None) -> None:
         """Preset-move command. Override to drive hardware and call
         `await super().setTargetPreset(value)` after success to sync the SDK state.
@@ -242,7 +281,8 @@ class PTZControl(Sensor[PTZControlProperties, TStorage, PTZCapability], Generic[
         """Routes generic property writes to semantic methods.
 
         `moving` and `presets` are observed/discovered state and not externally
-        writable; only `Position`, `Velocity`, and `TargetPreset` may be set.
+        writable; only `Position`, `Velocity`, `TargetPreset`, and
+        `RelativeMove` may be set.
         """
         if property == PTZProperty.Position.value:
             await self.setPosition(value)
@@ -252,5 +292,8 @@ class PTZControl(Sensor[PTZControlProperties, TStorage, PTZCapability], Generic[
             return
         if property == PTZProperty.TargetPreset.value:
             await self.setTargetPreset(value)
+            return
+        if property == PTZProperty.RelativeMove.value:
+            await self.setRelativeMove(value)
             return
         # Unknown / non-writable property (incl. moving, presets) — ignored.

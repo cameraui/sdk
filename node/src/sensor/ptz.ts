@@ -1,4 +1,4 @@
-import { Sensor, SensorType, SensorCategory } from './base.js';
+import { Sensor, SensorCategory, SensorType } from './base.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike } from './base.js';
@@ -12,6 +12,12 @@ export enum PTZCapability {
   Presets = 'presets',
   /** Camera supports a home position */
   Home = 'home',
+  /** Camera executes relative displacement moves */
+  RelativeMove = 'relativeMove',
+  /** Camera accepts absolute position writes via `setPosition()` */
+  AbsolutePosition = 'absolutePosition',
+  /** Camera accepts continuous-move commands via `setVelocity()` */
+  VelocityControl = 'velocityControl',
 }
 
 /**
@@ -30,6 +36,8 @@ export enum PTZProperty {
   Velocity = 'velocity',
   /** Target preset to move to */
   TargetPreset = 'targetPreset',
+  /** Relative displacement move command (write-only) */
+  RelativeMove = 'relativeMove',
 }
 
 /** Absolute PTZ position */
@@ -58,6 +66,21 @@ export interface PTZDirection {
 }
 
 /**
+ * Relative displacement for a single PTZ move.
+ *
+ * Deltas are normalized to the camera's field of view: `panDelta: 1` moves the
+ * view by one full frame width, `tiltDelta: 1` by one full frame height.
+ * Conventions match {@link PTZDirection}: positive `panDelta` = right,
+ * positive `tiltDelta` = up, positive `zoomDelta` = zoom in. Plugins map the
+ * deltas to hardware-specific translation spaces (e.g. ONVIF RelativeMove).
+ */
+export interface PTZRelativeMove {
+  panDelta: number;
+  tiltDelta: number;
+  zoomDelta: number;
+}
+
+/**
  * Property value map for PTZ controls.
  *
  * @internal
@@ -68,6 +91,7 @@ export interface PTZControlProperties {
   [PTZProperty.Presets]: string[];
   [PTZProperty.Velocity]?: PTZDirection;
   [PTZProperty.TargetPreset]?: string;
+  [PTZProperty.RelativeMove]?: PTZRelativeMove;
 }
 
 /** Read-only proxy interface for a PTZ control */
@@ -81,6 +105,7 @@ export interface PTZControlLike extends SensorLike {
   getValue(property: PTZProperty.Presets): string[] | undefined;
   getValue(property: PTZProperty.Velocity): PTZDirection | undefined;
   getValue(property: PTZProperty.TargetPreset): string | undefined;
+  getValue(property: PTZProperty.RelativeMove): PTZRelativeMove | undefined;
   getValue(property: string): unknown;
 }
 
@@ -160,6 +185,24 @@ export class PTZControl<TStorage extends object = Record<string, any>> extends S
   }
 
   /**
+   * Relative displacement move. Override to drive hardware (e.g. ONVIF
+   * RelativeMove in a translation space) and call
+   * `await super.setRelativeMove(value)` after success to sync the SDK state.
+   * Advertise {@link PTZCapability.RelativeMove} when the camera supports it.
+   *
+   * @param value - Per-axis displacement, normalized to the field of view.
+   *
+   * @example
+   * ```ts
+   * // move the view a third of a frame to the right, a tenth down
+   * await ptz.setRelativeMove({ panDelta: 0.33, tiltDelta: -0.1, zoomDelta: 0 });
+   * ```
+   */
+  async setRelativeMove(value: PTZRelativeMove): Promise<void> {
+    this._writeState({ [PTZProperty.RelativeMove]: value });
+  }
+
+  /**
    * Preset-move command. Override to drive hardware and call
    * `await super.setTargetPreset(value)` after success to sync the SDK state.
    *
@@ -236,6 +279,9 @@ export class PTZControl<TStorage extends object = Record<string, any>> extends S
         return;
       case PTZProperty.TargetPreset:
         await this.setTargetPreset(value as string | undefined);
+        return;
+      case PTZProperty.RelativeMove:
+        await this.setRelativeMove(value as PTZRelativeMove);
         return;
     }
     // Unknown / non-writable property (incl. moving, presets) — ignored.

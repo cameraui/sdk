@@ -100,6 +100,7 @@ from .ptz import (
     PTZControl,
     PTZDirection,
     PTZPosition,
+    PTZRelativeMove,
 )
 from .security_system import (
     SecuritySystem,
@@ -160,6 +161,7 @@ __all__ = [
     "ChargingState",
     "PTZPosition",
     "PTZDirection",
+    "PTZRelativeMove",
     "TrackedDetection",
     "ClipEmbedding",
     "ClipResult",
