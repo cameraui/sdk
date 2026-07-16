@@ -70,9 +70,10 @@ class Notification(TypedDict):
     Defaults to :attr:`Severity.Info` if omitted."""
 
     tag: NotRequired[str]
-    """Collapse-key for dedup at both manager and notifier level (e.g.
-    ``motion:cam-1`` — multiple events with the same tag inside the throttle
-    window collapse into one notification on the device)."""
+    """Collapse-key (e.g. ``motion:cam-1``). The host uses it to replace an older
+    entry with the same tag in the in-app notification list. Delivery is not
+    throttled: every publish is sent. Notifiers may map it to a platform
+    collapse-id."""
 
     thumbnail: NotRequired[bytes]
     """Optional inline JPEG attached to the notification."""

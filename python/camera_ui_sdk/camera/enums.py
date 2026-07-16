@@ -12,7 +12,7 @@ Camera device type.
 ZoneType = Literal["intersect", "contain"]
 """
 Detection zone intersection type.
-- `intersect`: Trigger when object touches the zone boundary
+- `intersect`: Trigger when object overlaps the zone at all
 - `contain`: Trigger only when object is fully inside the zone
 """
 

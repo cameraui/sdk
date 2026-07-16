@@ -34,7 +34,9 @@ class ModelSpec(TypedDict):
 
     input: VideoInputSpec  # Required input frame dimensions and pixel format
     triggerLabels: list[str]  # Labels emitted by an upstream object detector that activate this detector
-    embeddingModel: NotRequired[str]  # Embedding model identifier for face recognition
+    embeddingModel: NotRequired[
+        str
+    ]  # Embedding model identifier. Required for face recognition and for CLIP: embeddings are stored and matched under this id
 
 
 class AudioInputSpec(TypedDict):

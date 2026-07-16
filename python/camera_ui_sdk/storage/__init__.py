@@ -174,7 +174,8 @@ class JsonBaseSchema(JsonBaseSchemaWithoutCallbacks[T], Generic[T], total=False)
     """Whether to persist this field to storage."""
 
     onSet: OnSetCallback
-    """Callback when value changes."""
+    """Called after ``setValue`` writes the key, changed or not. ``setConfig``
+    calls it only for keys that changed. Receives (new_value, old_value)."""
 
     onGet: OnGetCallback
     """Callback to get computed value."""
@@ -522,8 +523,9 @@ class DeviceStorage(Protocol, Generic[V2]):
         """
         Get a configuration value.
 
-        Resolves in order: the schema's ``onGet`` callback (if any), then the
-        stored value, then the schema default, then the provided default.
+        If the schema declares an ``onGet`` callback, its result is returned
+        as-is, with no fallback. Otherwise resolves in order: the stored value,
+        then the schema default, then the provided default.
 
         Args:
             key: Configuration key

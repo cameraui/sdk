@@ -6,9 +6,8 @@ import type { Notification } from '../plugin/notifier.js';
 
 /**
  * Core manager event payload.
- * Emitted when a core system event occurs (e.g. cloud account changes,
- * remote-server availability, plugin lifecycle changes). Subscribe via
- * `coreManager.onEvent` to react to system-level state changes.
+ * The host currently publishes one event type, 'cloudAccountChanged'.
+ * Subscribe via `coreManager.onEvent` to react to it.
  */
 export interface CoreManagerEvent {
   /** Event type identifier (e.g. 'cloudAccountChanged'). */
@@ -21,8 +20,8 @@ export interface CoreManagerEvent {
  * Core manager interface for system-level operations.
  *
  * Provides access to cross-cutting services like the FFmpeg binary path,
- * server addresses, HMAC signing for cloud requests, inter-plugin lookup,
- * and a stream of core system events.
+ * server addresses, the cloud server id, inter-plugin lookup, and a stream
+ * of core system events.
  *
  * Accessed via `api.coreManager` in plugins.
  *
@@ -73,7 +72,9 @@ export interface CoreManager {
   getCloudServerId(): Promise<string>;
 
   /**
-   * Get all active plugins that implement a specific interface.
+   * Get all installed, enabled plugins that implement a specific interface.
+   * Plugins the admin disabled are excluded. A returned plugin may still be
+   * starting up or may have crashed, so a call into one can fail.
    *
    * @param interfaceName - Name of the plugin interface (e.g., 'ClipDetection')
    *

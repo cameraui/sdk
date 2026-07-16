@@ -309,7 +309,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   /**
    * Get a read-only snapshot of all property values.
    *
-   * @returns Frozen view of every property currently held by the sensor.
+   * @returns Shallow copy of every property currently held by the sensor.
    *
    * @example
    * ```ts
@@ -460,8 +460,9 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
    * override can safely access `this.cameraId`, `this.storage`, and publish
    * properties via the semantic helper methods.
    *
-   * Errors thrown here are caught and logged — they will NOT break assignment
-   * bookkeeping. If your work can fail, handle it inside the override.
+   * Errors thrown here are caught and swallowed, not logged. They will NOT
+   * break assignment bookkeeping, but nothing surfaces them either. If your
+   * work can fail, handle it inside the override.
    *
    * Paired 1:1 with `onDeassigned` — for every `onAssigned` call there is
    * exactly one matching `onDeassigned` later (on deassignment or cleanup).

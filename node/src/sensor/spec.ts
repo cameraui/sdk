@@ -32,7 +32,7 @@ export interface ModelSpec {
   input: VideoInputSpec;
   /** Labels emitted by an upstream object detector that activate this detector (e.g. `['person']` for face detection). */
   triggerLabels: DetectionLabel[];
-  /** Embedding model identifier for face recognition. */
+  /** Embedding model identifier. Required for face recognition and for CLIP: embeddings are stored and matched under this id. */
   embeddingModel?: string;
 }
 

@@ -18,7 +18,7 @@ export interface CameraInput {
   useForSnapshot: boolean;
   /** Keep connection always active */
   hotMode: boolean;
-  /** Preload stream on startup */
+  /** Keep a keyframe cache for this source, so the view opens faster. Use `hotMode` to keep the stream connected. */
   preload: boolean;
   /** Strip the audio track from this source (defaults to false) */
   muted?: boolean;

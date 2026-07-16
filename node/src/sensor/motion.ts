@@ -147,7 +147,7 @@ export class MotionSensor<TStorage extends object = Record<string, any>> extends
 
 /** Return type for {@link MotionDetectorSensor.detectMotion}. */
 export interface MotionResult {
-  /** Whether motion is detected in this frame. */
+  /** Whether motion is detected in this frame. Ignored by the backend, which re-derives it from the detections. */
   detected: boolean;
   /** Detections emitted for this frame. */
   detections: Detection[];
@@ -157,7 +157,9 @@ export interface MotionResult {
  * Motion detector that receives video frames from the backend pipeline.
  * Extend this class and implement {@link detectMotion} to analyze frames
  * for motion. The backend calls `detectMotion()` at the configured frame
- * interval and applies the returned result to the sensor.
+ * interval, zone-filters the returned detections and applies them.
+ * `detected` is re-derived from the surviving detections, so a result with
+ * no detections reports no motion.
  */
 export abstract class MotionDetectorSensor<TStorage extends object = Record<string, any>> extends MotionSensor<TStorage> {
   override _requiresFrames = true;

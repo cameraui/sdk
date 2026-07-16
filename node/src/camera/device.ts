@@ -1,3 +1,4 @@
+/* eslint-disable @stylistic/max-len */
 import type { Disposable, Observable } from '../observable/index.js';
 import type { Sensor, SensorLike, SensorType } from '../sensor/base.js';
 import type { DeviceStorage, JsonSchema } from '../storage/index.js';
@@ -220,13 +221,13 @@ export interface CameraDevice {
    */
   removeSensor(sensorId: string): Promise<void>;
 
-  /** Observable for sensor additions. Emits { sensorId, sensorType } when a sensor from another plugin is added. */
+  /** Observable for sensor additions. Emits for this plugin's own sensors and for other plugins' sensors whose type is listed in `contract.consumes`, also when such a sensor is activated for this camera. */
   readonly onSensorAdded: Observable<{ sensorId: string; sensorType: SensorType }>;
 
-  /** Observable for sensor removals. Emits { sensorId, sensorType } when a sensor from another plugin is removed. */
+  /** Observable for sensor removals. Emits for this plugin's own sensors and for other plugins' sensors on this camera, also when a sensor is deactivated for this camera. */
   readonly onSensorRemoved: Observable<{ sensorId: string; sensorType: SensorType }>;
 
-  /** Observable for detection events (start/update/end). Thumbnails in segments are only populated on 'end' events. */
+  /** Observable for detection events (start/update/end/segment-*). Segments are only present on 'segment-*' messages; thumbnails are populated on 'segment-start' and 'segment-end'. */
   readonly onDetectionEvent: Observable<{ type: DetectionEventType; event: DetectionEvent }>;
 
   /**

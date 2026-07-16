@@ -183,7 +183,7 @@ class MotionSensor(Sensor[MotionSensorProperties, TStorage, str], Generic[TStora
 class MotionResult(TypedDict):
     """Return type for MotionDetectorSensor.detectMotion()."""
 
-    detected: bool  # Whether motion is detected in this frame
+    detected: bool  # Ignored by the backend, which re-derives it from the detections
     detections: list[Detection]  # Detections emitted for this frame
 
 
@@ -192,7 +192,9 @@ class MotionDetectorSensor(MotionSensor[TStorage], Generic[TStorage]):
 
     Extend this class and implement ``detectMotion`` to analyze frames for
     motion. The backend calls ``detectMotion`` at the configured frame
-    interval and applies the returned result to the sensor.
+    interval, zone-filters the returned detections and applies them.
+    ``detected`` is re-derived from the surviving detections, so a result with
+    no detections reports no motion.
     """
 
     _requires_frames = True

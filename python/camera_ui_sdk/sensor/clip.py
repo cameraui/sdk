@@ -57,9 +57,10 @@ class ClipDetectorSensor(Sensor[dict[str, Any], TStorage, str], Generic[TStorage
 
     @abstractmethod
     async def detectEmbeddings(self, frames: list[VideoFrameData]) -> list[ClipResult]:
-        """Generate CLIP embeddings in batch. Each frame is a pre-cropped, pre-scaled trigger region
-        produced by the upstream object detector. Must return exactly one ClipResult per input
-        frame, in the same order. Use ``frame['label']`` to tag the emitted embedding."""
+        """Generate CLIP embeddings in batch. Each frame is pre-scaled to ``modelSpec['input']``:
+        normally a trigger region cropped by the upstream object detector, but the whole scene
+        when no decoded frame is available. Must return exactly one ClipResult per input frame,
+        in the same order. Use ``frame['label']`` to tag the emitted embedding."""
         ...
 
     async def updateValue(self, property: str, value: Any) -> None:

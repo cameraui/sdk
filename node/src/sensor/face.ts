@@ -167,8 +167,9 @@ export abstract class FaceDetectorSensor<TStorage extends object = Record<string
   abstract get modelSpec(): ModelSpec;
 
   /**
-   * Detect faces in batch. Each frame is a pre-cropped, pre-scaled person
-   * region produced by the upstream object detector. Must return exactly one
+   * Detect faces in batch. Each frame is pre-scaled to `modelSpec.input`:
+   * normally a person region cropped by the upstream object detector, but the
+   * whole scene when no decoded frame is available. Must return exactly one
    * FaceResult per input frame, in the same order.
    */
   abstract detectFaces(frames: VideoFrameData[]): Promise<FaceResult[]>;

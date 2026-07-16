@@ -18,7 +18,8 @@ class EventDetection(TypedDict):
     box: NotRequired[BoundingBox]
     """Bounding box of the highest-confidence detection (normalized 0-1)."""
     thumbnail: NotRequired[bytes]
-    """Best-selected JPEG thumbnail crop. Only present on 'end' events."""
+    """Best-selected JPEG thumbnail crop. Present on 'segment-start' and 'segment-end',
+    omitted when it matches the segment thumbnail."""
     trackId: NotRequired[int]
     """Object tracker ID (links this detection across frames)."""
     moving: NotRequired[bool]
@@ -35,7 +36,8 @@ class EventAttribute(TypedDict):
     confidence: NotRequired[float]
     """Detection confidence (0-1)."""
     thumbnail: NotRequired[bytes]
-    """Best-selected JPEG thumbnail crop. Only present on 'end' events."""
+    """Best-selected JPEG thumbnail crop. Present on 'segment-start' and 'segment-end',
+    and on 'segment-update' for unknown faces."""
     embedding: NotRequired[list[float]]
     """Face embedding vector for unknown face persistence. Only present for face attributes."""
     embeddingModel: NotRequired[str]
@@ -90,7 +92,7 @@ class EventSegment(TypedDict):
     lastSeen: int
     """Segment end time (Unix ms)."""
     thumbnail: NotRequired[bytes]
-    """Best-selected JPEG scene thumbnail for this segment. Only present on 'end' events."""
+    """Best-selected JPEG scene thumbnail for this segment. Only present on 'segment-*' messages."""
     detections: list[EventDetection]
     """Object detections in this segment."""
     attributes: list[EventAttribute]

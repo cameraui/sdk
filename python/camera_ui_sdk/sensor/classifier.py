@@ -190,7 +190,8 @@ class ClassifierDetectorSensor(ClassifierSensor[TStorage], Generic[TStorage]):
 
     @abstractmethod
     async def detectClassifications(self, frames: list[VideoFrameData]) -> list[ClassifierResult]:
-        """Classify frames in batch. Each frame is a pre-cropped, pre-scaled trigger region
-        produced by the upstream object detector. Must return exactly one ClassifierResult per
-        input frame, in the same order."""
+        """Classify frames in batch. Each frame is pre-scaled to ``modelSpec['input']``:
+        normally a trigger region cropped by the upstream object detector, but the whole
+        scene when no decoded frame is available. Must return exactly one ClassifierResult
+        per input frame, in the same order."""
         ...

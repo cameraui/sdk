@@ -200,12 +200,14 @@ class PTZControl(Sensor[PTZControlProperties, TStorage, PTZCapability], Generic[
         `await super().setVelocity(value)` after success to sync the SDK state.
 
         Args:
-            value: Per-axis speeds in ``[-1, 1]``, or ``None`` to stop.
+            value: Per-axis speeds in ``[-1, 1]``. Stop is zero on every axis.
+                ``None`` is ignored and the published ``velocity`` keeps its
+                last value.
 
         Example:
             ```python
             await ptz.setVelocity({"panSpeed": 0.5, "tiltSpeed": 0, "zoomSpeed": 0})
-            await ptz.setVelocity(None)  # stop
+            await ptz.setVelocity({"panSpeed": 0, "tiltSpeed": 0, "zoomSpeed": 0})  # stop
             ```
         """
         self._write_state({PTZProperty.Velocity.value: value})
@@ -232,7 +234,8 @@ class PTZControl(Sensor[PTZControlProperties, TStorage, PTZCapability], Generic[
         `await super().setTargetPreset(value)` after success to sync the SDK state.
 
         Args:
-            value: Preset name to move to, or ``None`` to clear.
+            value: Preset name to move to. ``None`` is ignored and the published
+                ``targetPreset`` keeps its last value.
 
         Example:
             ```python

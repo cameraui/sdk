@@ -180,7 +180,8 @@ class LicensePlateDetectorSensor(LicensePlateSensor[TStorage], Generic[TStorage]
 
     @abstractmethod
     async def detectLicensePlates(self, frames: list[VideoFrameData]) -> list[LicensePlateResult]:
-        """Detect license plates in batch. Each frame is a pre-cropped, pre-scaled vehicle region
-        produced by the upstream object detector. Must return exactly one LicensePlateResult per
+        """Detect license plates in batch. Each frame is pre-scaled to ``modelSpec['input']``:
+        normally a vehicle region cropped by the upstream object detector, but the whole scene
+        when no decoded frame is available. Must return exactly one LicensePlateResult per
         input frame, in the same order."""
         ...

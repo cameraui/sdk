@@ -80,7 +80,7 @@ export interface MotionDetectionSettings {
  * Object detection settings.
  */
 export interface ObjectDetectionSettings {
-  /** Minimum confidence threshold (0-1) */
+  /** Minimum confidence threshold (0.3 - 1.0) */
   confidence: number;
   /** Suppress events from objects that stay stationary across events (e.g. parked cars). Defaults to true. */
   suppressStatic?: boolean;
@@ -117,11 +117,11 @@ export interface PtzAutotrackSettings {
    */
   trackingSpeed: number;
   /**
-   * Motion prediction: aim this many detection-frames ahead along the target's
-   * measured velocity so a moving target is followed without lag. 0 disables
-   * prediction. Range 0 - 6.
+   * Motion prediction: aim this many milliseconds ahead along the target's
+   * measured velocity, covering the time the camera needs to move and settle.
+   * 0 disables prediction. Range 0 - 4000.
    */
-  leadFrames: number;
+  leadMs: number;
   /**
    * Camera pan-rate calibration — assumed pan travel at full motor speed, in
    * normalized frame-widths per second. Lower it if the camera stops short of

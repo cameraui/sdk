@@ -419,7 +419,7 @@ class MyNotifier(BasePlugin, NotifierInterface):
         return device
 ```
 
-`Notification.tag` is a collapse key for dedup at both the manager and notifier level — multiple events with the same tag inside the throttle window collapse into one notification. `Notification.severity` is `Severity.Info | Warn | Error | Critical`; map `Critical` to whatever DND-bypass mechanism your platform offers.
+`Notification.tag` is a collapse key (e.g. `"motion:cam-1"`). The host uses it to replace an older entry with the same tag in the in-app notification list. Delivery is not throttled: every publish reaches your notifier, so map the tag to a platform collapse-id if you want the same behavior on the device. `Notification.severity` is `Severity.Info | Warn | Error | Critical`; map `Critical` to whatever DND-bypass mechanism your platform offers.
 
 Note: notifier methods are snake_case (`get_devices`, `send_notification`, …) — the rest of the SDK uses camelCase for parity with the Node and Go SDKs, but the notifier surface is intentionally Pythonic.
 

@@ -96,7 +96,7 @@ export interface JsonBaseSchemaWithoutCallbacks<T extends string | string[] | nu
 export interface JsonBaseSchema<T extends string | string[] | number | number[] | boolean | boolean[] = any> extends JsonBaseSchemaWithoutCallbacks<T> {
   /** Whether to persist this field to storage */
   store?: boolean;
-  /** Callback when value changes */
+  /** Callback after a write. `setValue` fires it whether or not the value changed; `setConfig` fires it only for keys that changed. */
   onSet?: (newValue: any, oldValue: any) => Promise<void>;
   /** Callback to get computed value */
   onGet?: () => Promise<any>;
@@ -365,8 +365,9 @@ export interface DeviceStorage<T extends Record<string, any> = Record<string, an
   /**
    * Get a configuration value.
    *
-   * Resolves in order: the schema's `onGet` callback (if any), then the stored
-   * value, then the schema default, then the provided default.
+   * If the schema declares an `onGet` callback, its result is returned as-is,
+   * with no fallback. Otherwise resolves in order: the stored value, then the
+   * schema default, then the provided default.
    *
    * @param key - Configuration key
    *

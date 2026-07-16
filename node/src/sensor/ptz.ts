@@ -172,12 +172,13 @@ export class PTZControl<TStorage extends object = Record<string, any>> extends S
    * Continuous-move command. Override to drive hardware and call
    * `await super.setVelocity(value)` after success to sync the SDK state.
    *
-   * @param value - Per-axis speeds in `[-1, 1]`, or `undefined` to stop.
+   * @param value - Per-axis speeds in `[-1, 1]`. Stop is zero on every axis.
+   * `undefined` is ignored and the published `velocity` keeps its last value.
    *
    * @example
    * ```ts
    * await ptz.setVelocity({ panSpeed: 0.5, tiltSpeed: 0, zoomSpeed: 0 });
-   * await ptz.setVelocity(undefined); // stop
+   * await ptz.setVelocity({ panSpeed: 0, tiltSpeed: 0, zoomSpeed: 0 }); // stop
    * ```
    */
   async setVelocity(value: PTZDirection | undefined): Promise<void> {
@@ -206,7 +207,8 @@ export class PTZControl<TStorage extends object = Record<string, any>> extends S
    * Preset-move command. Override to drive hardware and call
    * `await super.setTargetPreset(value)` after success to sync the SDK state.
    *
-   * @param value - Preset name to move to, or `undefined` to clear.
+   * @param value - Preset name to move to. `undefined` is ignored and the
+   * published `targetPreset` keeps its last value.
    *
    * @example
    * ```ts
@@ -261,7 +263,7 @@ export class PTZControl<TStorage extends object = Record<string, any>> extends S
    * Cross-process consumer entry point. Dispatches writable properties
    * to semantic methods so plugin overrides (hardware actions) are honored.
    * `moving` and `presets` are observed/discovered state and not externally writable;
-   * only `Position`, `Velocity`, and `TargetPreset` may be set.
+   * only `Position`, `Velocity`, `TargetPreset`, and `RelativeMove` may be set.
    *
    * @param property - Property name to write.
    *

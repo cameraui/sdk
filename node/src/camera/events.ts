@@ -1,3 +1,4 @@
+/* eslint-disable @stylistic/max-len */
 import type { BoundingBox } from '../sensor/detection.js';
 import type { DetectionEventState, EventTriggerType } from './enums.js';
 
@@ -50,7 +51,7 @@ export interface EventDetection {
   maxCount: number;
   /** Bounding box of the highest-confidence detection (normalized 0–1) */
   box?: BoundingBox;
-  /** Best-selected JPEG thumbnail crop. Only present on 'end' events. */
+  /** Best-selected JPEG thumbnail crop. Only present on 'segment-start' and 'segment-end' messages, and omitted when it is the same image as the segment thumbnail. */
   thumbnail?: Uint8Array;
   /** Object tracker ID (links this detection across frames) */
   trackId?: number;
@@ -68,7 +69,7 @@ export interface EventAttribute {
   label: string;
   /** Detection confidence (0-1) */
   confidence?: number;
-  /** Best-selected JPEG thumbnail crop. Only present on 'end' events. */
+  /** Best-selected JPEG thumbnail crop. Present on 'segment-start' and 'segment-end' messages, and on 'segment-update' for unknown faces. */
   thumbnail?: Uint8Array;
   /** Face embedding vector for unknown face persistence. Only present for face attributes. */
   embedding?: number[];
@@ -90,7 +91,7 @@ export interface EventSegment {
   firstSeen: number;
   /** Segment end time (Unix ms) */
   lastSeen: number;
-  /** Best-selected JPEG scene thumbnail for this segment. Only present on 'end' events. */
+  /** Best-selected JPEG scene thumbnail for this segment. Only present on 'segment-start' and 'segment-end' messages, plus once on a 'segment-update' if the start message had none. */
   thumbnail?: Uint8Array;
   /** Object detections in this segment */
   detections: EventDetection[];

@@ -45,7 +45,7 @@ class CameraSource(Protocol):
     hotMode: bool
     """Keep connection always active."""
     preload: bool
-    """Preload stream on startup."""
+    """Keep a keyframe cache for this source, so the view opens faster. Use hotMode to keep the stream connected."""
     muted: bool | None
     """Strip the audio track from this source (defaults to False)."""
     urls: StreamUrls
@@ -360,17 +360,32 @@ class CameraDevice(Protocol):
 
     @property
     def onSensorAdded(self) -> Observable[SensorEventData]:
-        """Observable for sensor additions. Emits SensorEventData when a sensor from another plugin is added."""
+        """
+        Observable for sensor additions.
+
+        Emits for this plugin's own sensors and for other plugins' sensors whose type is
+        listed in contract.consumes. Also emits when such a sensor is activated for this camera.
+        """
         ...
 
     @property
     def onSensorRemoved(self) -> Observable[SensorEventData]:
-        """Observable for sensor removals. Emits SensorEventData when a sensor from another plugin is removed."""
+        """
+        Observable for sensor removals.
+
+        Emits for this plugin's own sensors and for other plugins' sensors on this camera.
+        Also emits when a sensor is deactivated for this camera.
+        """
         ...
 
     @property
     def onDetectionEvent(self) -> Observable[DetectionEventPayload]:
-        """Observable for detection events (start/update/end). Thumbnails in segments are only populated on 'end' events."""
+        """
+        Observable for detection events.
+
+        Emits 'start', 'update', 'end', 'segment-start', 'segment-update' and 'segment-end'.
+        Segments only ride on the segment-* events, start/update/end carry an empty segment list.
+        """
         ...
 
     async def implement(self, impl: CameraImplementation) -> None:

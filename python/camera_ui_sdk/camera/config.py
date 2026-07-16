@@ -51,7 +51,7 @@ class CameraInput(TypedDict):
     hotMode: bool
     """Keep connection always active."""
     preload: bool
-    """Preload stream on startup."""
+    """Keep a keyframe cache for this source, so the view opens faster. Use hotMode to keep the stream connected."""
     muted: NotRequired[bool]
     """Strip the audio track from this source (defaults to False)."""
     urls: StreamUrls
@@ -72,7 +72,7 @@ class CameraConfigInputSettings(TypedDict):
     hotMode: bool
     """Keep connection always active."""
     preload: bool
-    """Preload stream on startup."""
+    """Keep a keyframe cache for this source, so the view opens faster. Use hotMode to keep the stream connected."""
     muted: NotRequired[bool]
     """Strip the audio track from this source (defaults to False)."""
     childSourceId: NotRequired[str]

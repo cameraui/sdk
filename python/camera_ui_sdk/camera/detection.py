@@ -64,7 +64,7 @@ class ObjectDetectionSettings(TypedDict):
     """Object detection settings."""
 
     confidence: float
-    """Minimum confidence threshold (0-1)."""
+    """Minimum confidence threshold (0.3 - 1.0)."""
 
     suppressStatic: NotRequired[bool]
     """Suppress events from objects that stay stationary across events (e.g. parked cars). Defaults to True."""
@@ -116,9 +116,10 @@ class PtzAutotrackSettings(TypedDict):
     trackingSpeed: float
     """How aggressively the camera moves to re-center the target (1 - 5).
     Higher reaches full pan/tilt speed at a smaller off-center error."""
-    leadFrames: float
-    """Motion prediction (0 - 6): aim this many detection-frames ahead along
-    the target's measured velocity. 0 disables prediction."""
+    leadMs: float
+    """Motion prediction (0 - 4000): aim this many milliseconds ahead along the
+    target's measured velocity, covering the time the camera needs to move and
+    settle. 0 disables prediction."""
     panRate: float
     """Camera pan-rate calibration (0.1 - 3): assumed pan travel at full motor
     speed in normalized frame-widths per second. Lower it if the camera stops

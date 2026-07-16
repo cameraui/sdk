@@ -5,7 +5,6 @@
  * the host) and emits a log entry at the corresponding severity:
  *
  *   - log:       general informational message (default level).
- *   - info:      same as log; informational message.
  *   - warn:      potential problem that does not stop execution.
  *   - error:     a failure or unexpected condition.
  *   - success:   confirmation of a completed operation.
