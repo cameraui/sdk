@@ -69,8 +69,11 @@ Video streaming mode for UI playback.
 - `mse`: Media Source Extensions (browser native)
 """
 
-CameraAspectRatio = Literal["16:9", "9:16", "8:3", "4:3", "1:1"]
-"""Camera aspect ratio for UI display."""
+CameraAspectRatioPreset = Literal["16:9", "9:16", "8:3", "4:3", "1:1"]
+"""Built-in aspect ratio presets offered as quick picks in the UI."""
+
+CameraAspectRatio = CameraAspectRatioPreset | str
+"""Camera aspect ratio for UI display: a preset or any custom ``width:height`` ratio."""
 
 Point = tuple[float, float]
 """Zone polygon coordinate as [x, y] tuple (0-100 percentage)."""

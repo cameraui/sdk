@@ -81,9 +81,15 @@ export type MotionResolution = 'low' | 'medium' | 'high';
 export type VideoStreamingMode = 'auto' | 'webrtc' | 'mse' | 'webrtc/tcp';
 
 /**
- * Camera aspect ratio for UI display.
+ * Built-in aspect ratio presets offered as quick picks in the UI.
  */
-export type CameraAspectRatio = '16:9' | '9:16' | '8:3' | '4:3' | '1:1';
+export type CameraAspectRatioPreset = '16:9' | '9:16' | '8:3' | '4:3' | '1:1';
+
+/**
+ * Camera aspect ratio for UI display. One of the presets, or any custom
+ * `width:height` ratio (validated as `W:H` on the server).
+ */
+export type CameraAspectRatio = CameraAspectRatioPreset | `${number}:${number}`;
 
 /**
  * Line crossing direction filter.
