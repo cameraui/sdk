@@ -38,6 +38,8 @@ export enum PTZProperty {
   TargetPreset = 'targetPreset',
   /** Relative displacement move command (write-only) */
   RelativeMove = 'relativeMove',
+  /** Move to the home position (write-only command, carries no state) */
+  Home = 'home',
 }
 
 /** Absolute PTZ position */
@@ -263,7 +265,7 @@ export class PTZControl<TStorage extends object = Record<string, any>> extends S
    * Cross-process consumer entry point. Dispatches writable properties
    * to semantic methods so plugin overrides (hardware actions) are honored.
    * `moving` and `presets` are observed/discovered state and not externally writable;
-   * only `Position`, `Velocity`, `TargetPreset`, and `RelativeMove` may be set.
+   * only `Position`, `Velocity`, `TargetPreset`, `RelativeMove` and `Home` may be set.
    *
    * @param property - Property name to write.
    *
@@ -284,6 +286,9 @@ export class PTZControl<TStorage extends object = Record<string, any>> extends S
         return;
       case PTZProperty.RelativeMove:
         await this.setRelativeMove(value as PTZRelativeMove);
+        return;
+      case PTZProperty.Home:
+        await this.goHome();
         return;
     }
     // Unknown / non-writable property (incl. moving, presets) — ignored.

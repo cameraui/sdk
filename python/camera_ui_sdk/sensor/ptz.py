@@ -32,6 +32,7 @@ class PTZProperty(StrEnum):
     Velocity = "velocity"
     TargetPreset = "targetPreset"
     RelativeMove = "relativeMove"
+    Home = "home"
 
 
 class PTZPosition(TypedDict):
@@ -284,8 +285,8 @@ class PTZControl(Sensor[PTZControlProperties, TStorage, PTZCapability], Generic[
         """Routes generic property writes to semantic methods.
 
         `moving` and `presets` are observed/discovered state and not externally
-        writable; only `Position`, `Velocity`, `TargetPreset`, and
-        `RelativeMove` may be set.
+        writable; only `Position`, `Velocity`, `TargetPreset`, `RelativeMove`
+        and `Home` may be set.
         """
         if property == PTZProperty.Position.value:
             await self.setPosition(value)
@@ -298,5 +299,8 @@ class PTZControl(Sensor[PTZControlProperties, TStorage, PTZCapability], Generic[
             return
         if property == PTZProperty.RelativeMove.value:
             await self.setRelativeMove(value)
+            return
+        if property == PTZProperty.Home.value:
+            await self.goHome()
             return
         # Unknown / non-writable property (incl. moving, presets) — ignored.
