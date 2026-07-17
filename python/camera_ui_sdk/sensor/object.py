@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from collections.abc import Mapping
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Generic, Literal, Protocol, overload, runtime_checkable
 
 from typing_extensions import TypedDict, TypeVar
@@ -13,7 +13,7 @@ from .detection import Detection, DetectionLabel, VideoFrameData
 from .spec import ObjectModelSpec
 
 
-class ObjectProperty(str, Enum):
+class ObjectProperty(StrEnum):
     """Property names of an object detection sensor."""
 
     Detected = "detected"  # Whether any object is currently detected

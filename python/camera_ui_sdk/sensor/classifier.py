@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from collections.abc import Mapping
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Generic, Literal, Protocol, overload, runtime_checkable
 
 from typing_extensions import TypedDict, TypeVar
@@ -13,7 +13,7 @@ from .detection import Detection, VideoFrameData
 from .spec import ModelSpec
 
 
-class ClassifierProperty(str, Enum):
+class ClassifierProperty(StrEnum):
     """Property names of a classifier sensor."""
 
     Detected = "detected"  # Whether any classification result is active

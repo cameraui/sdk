@@ -6,13 +6,13 @@ these types directly.
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from typing import Any, NotRequired, Protocol, TypedDict, runtime_checkable
 
 from ..storage import JsonSchema
 
 
-class Severity(str, Enum):
+class Severity(StrEnum):
     """Classifies how urgent a Notification is.
 
     Notifiers map this to platform-specific delivery characteristics; the

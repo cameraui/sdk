@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from collections.abc import Mapping
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Generic, Literal, Protocol, overload, runtime_checkable
 
 from typing_extensions import TypedDict, TypeVar
@@ -38,7 +38,7 @@ __all__ = [
 ]
 
 
-class MotionProperty(str, Enum):
+class MotionProperty(StrEnum):
     """Property names of a motion sensor."""
 
     Detected = "detected"  # Whether motion is currently detected

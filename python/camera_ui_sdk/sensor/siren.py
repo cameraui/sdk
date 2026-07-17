@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Generic, Literal, Protocol, overload, runtime_checkable
 
 from typing_extensions import TypedDict, TypeVar
@@ -10,14 +10,14 @@ from ..observable import Observable
 from .base import Sensor, SensorCategory, SensorLike, SensorType
 
 
-class SirenCapability(str, Enum):
+class SirenCapability(StrEnum):
     """Optional capabilities for siren controls."""
 
     Volume = "volume"
     """Siren supports volume adjustment (0–100)."""
 
 
-class SirenProperty(str, Enum):
+class SirenProperty(StrEnum):
     """Properties for siren controls."""
 
     Active = "active"

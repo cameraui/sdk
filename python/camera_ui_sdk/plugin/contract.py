@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from typing import Literal, NotRequired, TypedDict
 
 from ..sensor import SensorType
@@ -11,7 +11,7 @@ ensures a matching interpreter exists in its venv pool before launching the
 plugin; Node and Go plugins ignore this field."""
 
 
-class PluginRole(str, Enum):
+class PluginRole(StrEnum):
     """Role a plugin plays in the system. The role decides which lifecycle
     hooks the host invokes and which contract validations apply."""
 
@@ -41,7 +41,7 @@ class PluginRole(str, Enum):
     by integrations that ship a complete camera + detection stack."""
 
 
-class PluginInterface(str, Enum):
+class PluginInterface(StrEnum):
     """Capability flags a plugin advertises in its contract.
 
     The host uses these to decide which RPC handlers to wire up and which
@@ -102,7 +102,7 @@ class PluginInterface(str, Enum):
     """Implements OAuthClientCredentialsCapable (user-supplied client_id + client_secret)."""
 
 
-class PluginCapability(str, Enum):
+class PluginCapability(StrEnum):
     """Permission a plugin requests so it can call a host-provided system
     feature. Each capability gates one outgoing SDK call — calls without
     the matching capability are rejected by the host."""

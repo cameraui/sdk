@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from enum import Enum, IntEnum
+from enum import IntEnum, StrEnum
 from typing import Any, Generic, Literal, Protocol, overload, runtime_checkable
 
 from typing_extensions import TypedDict, TypeVar
@@ -20,7 +20,7 @@ class GarageState(IntEnum):
     Stopped = 4
 
 
-class GarageProperty(str, Enum):
+class GarageProperty(StrEnum):
     """Properties for garage controls."""
 
     CurrentState = "currentState"

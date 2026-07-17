@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from collections.abc import Mapping
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Generic, Literal, NotRequired, Protocol, overload, runtime_checkable
 
 from typing_extensions import TypedDict, TypeVar
@@ -48,7 +48,7 @@ BaseAudioLabel = Literal[
 AudioLabel = BaseAudioLabel | str
 
 
-class AudioProperty(str, Enum):
+class AudioProperty(StrEnum):
     """Property names of an audio detection sensor."""
 
     Detected = "detected"  # Whether an audio event is currently detected

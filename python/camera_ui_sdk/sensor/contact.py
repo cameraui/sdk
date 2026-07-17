@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Generic, Literal, Protocol, overload, runtime_checkable
 
 from typing_extensions import TypedDict, TypeVar
@@ -10,7 +10,7 @@ from ..observable import Observable
 from .base import Sensor, SensorCategory, SensorLike, SensorType
 
 
-class ContactProperty(str, Enum):
+class ContactProperty(StrEnum):
     """Properties for contact sensors."""
 
     Detected = "detected"

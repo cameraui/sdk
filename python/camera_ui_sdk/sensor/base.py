@@ -5,7 +5,7 @@ import contextlib
 import time
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Mapping
-from enum import Enum
+from enum import StrEnum
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from ..storage import DeviceStorage, JsonSchema
 
 
-class SensorType(str, Enum):
+class SensorType(StrEnum):
     """Type of sensor. Each maps to a smart-home concept (HomeKit service)."""
 
     Motion = "motion"  # Video-based motion detection
@@ -58,7 +58,7 @@ class SensorType(str, Enum):
     Battery = "battery"  # Battery level and charging state
 
 
-class SensorCategory(str, Enum):
+class SensorCategory(StrEnum):
     """Categorizes a sensor's role in the system."""
 
     Sensor = "sensor"  # Read-only detection sensor

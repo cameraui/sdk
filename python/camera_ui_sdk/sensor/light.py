@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Generic, Literal, Protocol, overload, runtime_checkable
 
 from typing_extensions import TypedDict, TypeVar
@@ -10,14 +10,14 @@ from ..observable import Observable
 from .base import Sensor, SensorCategory, SensorLike, SensorType
 
 
-class LightCapability(str, Enum):
+class LightCapability(StrEnum):
     """Optional capabilities for light controls."""
 
     Brightness = "brightness"
     """Light supports brightness adjustment (0–100)."""
 
 
-class LightProperty(str, Enum):
+class LightProperty(StrEnum):
     """Properties for light controls."""
 
     On = "on"

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Generic, Literal, NotRequired, Protocol, overload, runtime_checkable
 
 from typing_extensions import TypedDict, TypeVar
@@ -10,7 +10,7 @@ from ..observable import Observable
 from .base import Sensor, SensorCategory, SensorLike, SensorType
 
 
-class PTZCapability(str, Enum):
+class PTZCapability(StrEnum):
     """Optional capabilities for PTZ controls."""
 
     Pan = "pan"
@@ -23,7 +23,7 @@ class PTZCapability(str, Enum):
     VelocityControl = "velocityControl"
 
 
-class PTZProperty(str, Enum):
+class PTZProperty(StrEnum):
     """Properties for PTZ controls."""
 
     Position = "position"
