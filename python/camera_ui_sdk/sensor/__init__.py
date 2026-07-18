@@ -42,10 +42,12 @@ from .contact import (
 from .detection import (
     DETECTION_ATTRIBUTES,
     DETECTION_LABELS,
+    OBJECT_DETECTION_LABELS,
     BoundingBox,
     Detection,
     DetectionAttribute,
     DetectionLabel,
+    ObjectDetectionLabel,
     VideoFrameData,
 )
 from .doorbell import (
@@ -141,6 +143,8 @@ __all__ = [
     "BASE_AUDIO_LABELS",
     "DETECTION_LABELS",
     "DETECTION_ATTRIBUTES",
+    "OBJECT_DETECTION_LABELS",
+    "ObjectDetectionLabel",
     "AudioLabel",
     "BaseAudioLabel",
     "DetectionLabel",

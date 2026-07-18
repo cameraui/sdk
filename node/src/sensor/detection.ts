@@ -1,5 +1,11 @@
+/** Object-detection labels the detector groups its classes into. */
+export const OBJECT_DETECTION_LABELS = ['person', 'vehicle', 'animal', 'package'] as const;
+
+/** Union of the object-detection label strings. */
+export type ObjectDetectionLabel = (typeof OBJECT_DETECTION_LABELS)[number];
+
 /** Built-in detection label types recognized across the system. */
-export const DETECTION_LABELS = ['motion', 'person', 'vehicle', 'animal', 'package', 'audio'] as const;
+export const DETECTION_LABELS = ['motion', ...OBJECT_DETECTION_LABELS, 'audio'] as const;
 
 /** Union of the built-in detection label strings. */
 export type DetectionLabel = (typeof DETECTION_LABELS)[number];

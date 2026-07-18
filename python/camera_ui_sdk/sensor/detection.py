@@ -4,8 +4,14 @@ from typing import Literal, NotRequired
 
 from typing_extensions import TypedDict
 
+#: Object-detection labels the detector groups its classes into.
+OBJECT_DETECTION_LABELS = ("person", "vehicle", "animal", "package")
+
+#: Union of the object-detection label strings.
+ObjectDetectionLabel = Literal["person", "vehicle", "animal", "package"]
+
 #: Built-in detection label types recognized across the system.
-DETECTION_LABELS = ("motion", "person", "vehicle", "animal", "package", "audio")
+DETECTION_LABELS = ("motion", *OBJECT_DETECTION_LABELS, "audio")
 
 #: Union of the built-in detection label strings.
 DetectionLabel = Literal["motion", "person", "vehicle", "animal", "package", "audio"]

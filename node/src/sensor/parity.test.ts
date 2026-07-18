@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import { SensorType } from './base.js';
+import { OBJECT_DETECTION_LABELS } from './detection.js';
 import { SENSOR_META } from './registry.js';
 
 const sdkRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
@@ -27,6 +28,14 @@ describe('cross-SDK sensor parity', () => {
 
     expect([...python].sort()).toEqual([...nodeTypes].sort());
     expect([...go].sort()).toEqual([...nodeTypes].sort());
+  });
+
+  it('OBJECT_DETECTION_LABELS match across node, python and go', () => {
+    const python = values(block(read('python/camera_ui_sdk/sensor/detection.py'), /OBJECT_DETECTION_LABELS = \(([\s\S]*?)\)/), /"([^"]+)"/g);
+    const go = values(block(read('go/sensor_detection.go'), /ObjectDetectionLabels = \[\]string\{([\s\S]*?)\}/), /"([^"]+)"/g);
+
+    expect([...python].sort()).toEqual([...OBJECT_DETECTION_LABELS].sort());
+    expect([...go].sort()).toEqual([...OBJECT_DETECTION_LABELS].sort());
   });
 
   it('PluginAssignments keys match across node, python and go', () => {
