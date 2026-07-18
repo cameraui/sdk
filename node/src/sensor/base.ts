@@ -78,7 +78,7 @@ export enum SensorType {
   Contact = 'contact',
   /** Temperature sensor (°C) */
   Temperature = 'temperature',
-  /** Humidity sensor (0–100%) */
+  /** Humidity sensor (0-100%) */
   Humidity = 'humidity',
   /** Occupancy/presence sensor */
   Occupancy = 'occupancy',

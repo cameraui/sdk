@@ -1,11 +1,12 @@
 import { Sensor, SensorType, SensorCategory } from './base.js';
+import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike } from './base.js';
 
 /** Optional capabilities for siren controls */
 export enum SirenCapability {
-  /** Siren supports volume adjustment (0–100) */
+  /** Siren supports volume adjustment (0-100) */
   Volume = 'volume',
 }
 
@@ -17,7 +18,7 @@ export enum SirenCapability {
 export enum SirenProperty {
   /** Whether the siren is currently active */
   Active = 'active',
-  /** Volume level (0–100) */
+  /** Volume level (0-100) */
   Volume = 'volume',
 }
 
@@ -99,7 +100,7 @@ export class SirenControl<TStorage extends object = Record<string, any>> extends
    * Set volume. Override to drive hardware and call `await super.setVolume(value)`
    * after success. The default implementation clamps the value to [0, 100].
    *
-   * @param value - Volume level in the range 0–100.
+   * @param value - Volume level in the range 0-100.
    *
    * @example
    * ```ts
@@ -134,3 +135,22 @@ export class SirenControl<TStorage extends object = Record<string, any>> extends
     // Unknown / non-writable property — ignored.
   }
 }
+
+/** Registry metadata for {@link SirenControl}. */
+export const sirenMeta = defineSensor({
+  type: SensorType.Siren,
+  category: SensorCategory.Control,
+  assignmentKey: 'siren',
+  multiProvider: true,
+  isDetectionType: false,
+  properties: Object.values(SirenProperty),
+  shortcutable: true,
+  cascadeTrigger: { property: SirenProperty.Active, value: true, sustained: true },
+  propertyCapabilities: { [SirenProperty.Volume]: SirenCapability.Volume },
+  virtual: { properties: { [SirenProperty.Active]: false, [SirenProperty.Volume]: 100 }, capabilities: [SirenCapability.Volume] },
+  semantics: {
+    domain: SensorDomain.Siren,
+    stateProperty: SirenProperty.Active,
+    commandProperty: SirenProperty.Active,
+  },
+});

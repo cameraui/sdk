@@ -14,14 +14,16 @@ class SirenCapability(StrEnum):
     """Optional capabilities for siren controls."""
 
     Volume = "volume"
-    """Siren supports volume adjustment (0–100)."""
+    """Siren supports volume adjustment (0-100)."""
 
 
 class SirenProperty(StrEnum):
     """Properties for siren controls."""
 
     Active = "active"
+    """Whether the siren is currently active."""
     Volume = "volume"
+    """Volume level (0-100)."""
 
 
 class SirenControlProperties(TypedDict):
@@ -127,7 +129,7 @@ class SirenControl(Sensor[SirenControlProperties, TStorage, SirenCapability], Ge
         clamps the value to [0, 100].
 
         Args:
-            value: Volume level in the range 0–100.
+            value: Volume level in the range 0-100.
 
         Example:
             ```python

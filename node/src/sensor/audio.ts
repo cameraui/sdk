@@ -1,4 +1,5 @@
 import { Sensor, SensorType, SensorCategory } from './base.js';
+import { defineSensor } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike } from './base.js';
@@ -220,3 +221,14 @@ export abstract class AudioDetectorSensor<TStorage extends object = Record<strin
   /** Analyze a single audio frame for events. Called by the backend at the configured cadence. */
   abstract detectAudio(audio: AudioFrameData): Promise<AudioResult>;
 }
+
+/** Registry metadata for {@link AudioSensor}. */
+export const audioMeta = defineSensor({
+  type: SensorType.Audio,
+  category: SensorCategory.Sensor,
+  assignmentKey: 'audio',
+  multiProvider: false,
+  isDetectionType: true,
+  properties: Object.values(AudioProperty),
+  semantics: null,
+});

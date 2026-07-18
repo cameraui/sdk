@@ -1,4 +1,5 @@
 import { Sensor, SensorType, SensorCategory } from './base.js';
+import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike } from './base.js';
@@ -9,7 +10,7 @@ import type { PropertyChangeOf, SensorLike } from './base.js';
  * @internal
  */
 export enum HumidityProperty {
-  /** Current relative humidity (0–100%) */
+  /** Current relative humidity (0-100%) */
   Current = 'current',
 }
 
@@ -49,7 +50,7 @@ export class HumidityInfo<TStorage extends object = Record<string, any>> extends
   /**
    * Report a new humidity reading. Clamped to [0, 100] %.
    *
-   * @param value - Relative humidity percentage in the range 0–100.
+   * @param value - Relative humidity percentage in the range 0-100.
    *
    * @example
    * ```ts
@@ -77,3 +78,22 @@ export class HumidityInfo<TStorage extends object = Record<string, any>> extends
     // No-op — humidity is reported by the plugin, not set externally.
   }
 }
+
+/** Registry metadata for {@link HumidityInfo}. */
+export const humidityMeta = defineSensor({
+  type: SensorType.Humidity,
+  category: SensorCategory.Info,
+  assignmentKey: 'humidity',
+  multiProvider: true,
+  isDetectionType: false,
+  properties: Object.values(HumidityProperty),
+  shortcutable: true,
+  virtual: { properties: { [HumidityProperty.Current]: 50 } },
+  semantics: {
+    domain: SensorDomain.Measurement,
+    stateProperty: HumidityProperty.Current,
+    commandProperty: HumidityProperty.Current,
+    deviceClass: 'humidity',
+    unit: '%',
+  },
+});

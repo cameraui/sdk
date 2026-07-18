@@ -1,4 +1,5 @@
 import { Sensor, SensorType, SensorCategory } from './base.js';
+import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike } from './base.js';
@@ -132,3 +133,28 @@ export class SecuritySystem<TStorage extends object = Record<string, any>> exten
     // Unknown / non-writable property (incl. currentState) — ignored.
   }
 }
+
+/** Registry metadata for {@link SecuritySystem}. */
+export const securitySystemMeta = defineSensor({
+  type: SensorType.SecuritySystem,
+  category: SensorCategory.Control,
+  assignmentKey: 'securitySystem',
+  multiProvider: true,
+  isDetectionType: false,
+  properties: Object.values(SecuritySystemProperty),
+  shortcutable: true,
+  cascadeTrigger: { property: SecuritySystemProperty.CurrentState, value: 4, sustained: true },
+  virtual: { properties: { [SecuritySystemProperty.CurrentState]: 3, [SecuritySystemProperty.TargetState]: 3 } },
+  semantics: {
+    domain: SensorDomain.Alarm,
+    stateProperty: SecuritySystemProperty.CurrentState,
+    commandProperty: SecuritySystemProperty.TargetState,
+    states: {
+      armed_home: SecuritySystemState.StayArm,
+      armed_away: SecuritySystemState.AwayArm,
+      armed_night: SecuritySystemState.NightArm,
+      disarmed: SecuritySystemState.Disarmed,
+      triggered: SecuritySystemState.AlarmTriggered,
+    },
+  },
+});

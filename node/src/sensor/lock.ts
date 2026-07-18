@@ -1,4 +1,5 @@
 import { Sensor, SensorType, SensorCategory } from './base.js';
+import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike } from './base.js';
@@ -128,3 +129,22 @@ export class LockControl<TStorage extends object = Record<string, any>> extends 
     // Unknown / non-writable property (incl. currentState) — ignored.
   }
 }
+
+/** Registry metadata for {@link LockControl}. */
+export const lockMeta = defineSensor({
+  type: SensorType.Lock,
+  category: SensorCategory.Control,
+  assignmentKey: 'lock',
+  multiProvider: true,
+  isDetectionType: false,
+  properties: Object.values(LockProperty),
+  shortcutable: true,
+  cascadeTrigger: { property: LockProperty.CurrentState, value: 1, sustained: true },
+  virtual: { properties: { [LockProperty.CurrentState]: 0, [LockProperty.TargetState]: 0 } },
+  semantics: {
+    domain: SensorDomain.Lock,
+    stateProperty: LockProperty.CurrentState,
+    commandProperty: LockProperty.TargetState,
+    states: { locked: LockState.Secured, unlocked: LockState.Unsecured },
+  },
+});

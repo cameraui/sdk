@@ -14,6 +14,7 @@ class HumidityProperty(StrEnum):
     """Properties for humidity info sensors."""
 
     Current = "current"
+    """Current relative humidity (0-100%)."""
 
 
 class HumidityInfoProperties(TypedDict):

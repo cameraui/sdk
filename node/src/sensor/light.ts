@@ -1,11 +1,12 @@
 import { Sensor, SensorType, SensorCategory } from './base.js';
+import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike } from './base.js';
 
 /** Optional capabilities for light controls */
 export enum LightCapability {
-  /** Light supports brightness adjustment (0–100) */
+  /** Light supports brightness adjustment (0-100) */
   Brightness = 'brightness',
 }
 
@@ -17,7 +18,7 @@ export enum LightCapability {
 export enum LightProperty {
   /** Whether the light is on */
   On = 'on',
-  /** Brightness level (0–100) */
+  /** Brightness level (0-100) */
   Brightness = 'brightness',
 }
 
@@ -104,7 +105,7 @@ export class LightControl<TStorage extends object = Record<string, any>> extends
    * Set brightness. Override to drive hardware and call `await super.setBrightness(value)`
    * after the hardware call succeeds. The default implementation clamps the value to [0, 100].
    *
-   * @param value - Brightness level in the range 0–100.
+   * @param value - Brightness level in the range 0-100.
    *
    * @example
    * ```ts
@@ -139,3 +140,25 @@ export class LightControl<TStorage extends object = Record<string, any>> extends
     // Unknown / non-writable property — ignored.
   }
 }
+
+/** Registry metadata for {@link LightControl}. */
+export const lightMeta = defineSensor({
+  type: SensorType.Light,
+  category: SensorCategory.Control,
+  assignmentKey: 'light',
+  multiProvider: true,
+  isDetectionType: false,
+  properties: Object.values(LightProperty),
+  shortcutable: true,
+  cascadeTrigger: { property: LightProperty.On, value: true, sustained: true },
+  propertyCapabilities: { [LightProperty.Brightness]: LightCapability.Brightness },
+  virtual: {
+    properties: { [LightProperty.On]: false, [LightProperty.Brightness]: 100 },
+    capabilities: [LightCapability.Brightness],
+  },
+  semantics: {
+    domain: SensorDomain.Light,
+    stateProperty: LightProperty.On,
+    commandProperty: LightProperty.On,
+  },
+});

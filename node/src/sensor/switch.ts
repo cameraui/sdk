@@ -1,4 +1,5 @@
 import { Sensor, SensorType, SensorCategory } from './base.js';
+import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike } from './base.js';
@@ -96,3 +97,21 @@ export class SwitchControl<TStorage extends object = Record<string, any>> extend
     // Unknown / non-writable property — ignored.
   }
 }
+
+/** Registry metadata for {@link SwitchControl}. */
+export const switchMeta = defineSensor({
+  type: SensorType.Switch,
+  category: SensorCategory.Control,
+  assignmentKey: 'switch',
+  multiProvider: true,
+  isDetectionType: false,
+  properties: Object.values(SwitchProperty),
+  shortcutable: true,
+  cascadeTrigger: { property: SwitchProperty.On, value: true, sustained: true },
+  virtual: { properties: { [SwitchProperty.On]: false } },
+  semantics: {
+    domain: SensorDomain.Switch,
+    stateProperty: SwitchProperty.On,
+    commandProperty: SwitchProperty.On,
+  },
+});

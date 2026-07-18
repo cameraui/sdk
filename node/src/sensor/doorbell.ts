@@ -1,4 +1,5 @@
 import { Sensor, SensorType, SensorCategory } from './base.js';
+import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike } from './base.js';
@@ -105,3 +106,22 @@ export class DoorbellTrigger<TStorage extends object = Record<string, any>> exte
     super._cleanup();
   }
 }
+
+/** Registry metadata for {@link DoorbellTrigger}. */
+export const doorbellMeta = defineSensor({
+  type: SensorType.Doorbell,
+  category: SensorCategory.Trigger,
+  assignmentKey: 'doorbell',
+  multiProvider: true,
+  isDetectionType: false,
+  properties: Object.values(DoorbellProperty),
+  shortcutable: true,
+  cascadeTrigger: { property: DoorbellProperty.Ring, value: true, sustained: false },
+  virtual: { properties: { [DoorbellProperty.Ring]: false } },
+  semantics: {
+    domain: SensorDomain.Binary,
+    stateProperty: DoorbellProperty.Ring,
+    commandProperty: DoorbellProperty.Ring,
+    icon: 'mdi:doorbell',
+  },
+});

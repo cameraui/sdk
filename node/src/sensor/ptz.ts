@@ -1,12 +1,16 @@
 import { Sensor, SensorCategory, SensorType } from './base.js';
+import { defineSensor } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike } from './base.js';
 
 /** Optional capabilities for PTZ controls. Add to `capabilities` to enable features. */
 export enum PTZCapability {
+  /** Camera supports panning (horizontal movement) */
   Pan = 'pan',
+  /** Camera supports tilting (vertical movement) */
   Tilt = 'tilt',
+  /** Camera supports zoom */
   Zoom = 'zoom',
   /** Camera supports named position presets */
   Presets = 'presets',
@@ -294,3 +298,14 @@ export class PTZControl<TStorage extends object = Record<string, any>> extends S
     // Unknown / non-writable property (incl. moving, presets) — ignored.
   }
 }
+
+/** Registry metadata for {@link PTZControl}. */
+export const ptzMeta = defineSensor({
+  type: SensorType.PTZ,
+  category: SensorCategory.Control,
+  assignmentKey: 'ptz',
+  multiProvider: false,
+  isDetectionType: false,
+  properties: Object.values(PTZProperty),
+  semantics: null,
+});

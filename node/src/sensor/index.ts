@@ -12,6 +12,8 @@ export * from './humidity.js';
 export * from './leak.js';
 export * from './licensePlate.js';
 export * from './light.js';
+export * from './meta.js';
+export * from './registry.js';
 export * from './lock.js';
 export * from './motion.js';
 export * from './object.js';

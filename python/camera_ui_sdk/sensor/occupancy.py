@@ -14,6 +14,7 @@ class OccupancyProperty(StrEnum):
     """Properties for occupancy sensors."""
 
     Detected = "detected"
+    """Whether occupancy is detected (true = occupied)."""
 
 
 class OccupancySensorProperties(TypedDict):

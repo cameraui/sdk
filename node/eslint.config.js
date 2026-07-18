@@ -84,6 +84,13 @@ export default [
     },
   },
   {
+    files: ['**/*.test.ts', '**/*.spec.ts'],
+    rules: {
+      'jsdoc/require-jsdoc': 'off',
+      'jsdoc/require-example': 'off',
+    },
+  },
+  {
     languageOptions: {
       globals: { ...globals.node },
       parser: tsParser,

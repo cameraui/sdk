@@ -11,17 +11,17 @@ export const DETECTION_ATTRIBUTES = ['face', 'license_plate'] as const;
 export type DetectionAttribute = (typeof DETECTION_ATTRIBUTES)[number];
 
 /**
- * Bounding box of a detection. All coordinates are normalized to 0–1
+ * Bounding box of a detection. All coordinates are normalized to 0-1
  * (fraction of frame dimensions), so they are independent of resolution.
  */
 export interface BoundingBox {
-  /** X coordinate of the top-left corner (0–1). */
+  /** X coordinate of the top-left corner (0-1). */
   x: number;
-  /** Y coordinate of the top-left corner (0–1). */
+  /** Y coordinate of the top-left corner (0-1). */
   y: number;
-  /** Width as a fraction of frame width (0–1). */
+  /** Width as a fraction of frame width (0-1). */
   width: number;
-  /** Height as a fraction of frame height (0–1). */
+  /** Height as a fraction of frame height (0-1). */
   height: number;
 }
 
@@ -29,7 +29,7 @@ export interface BoundingBox {
 export interface Detection {
   /** Detection label (e.g. `'person'`, `'vehicle'`). */
   label: DetectionLabel;
-  /** Confidence score in the range 0–1. */
+  /** Confidence score in the range 0-1. */
   confidence: number;
   /** Bounding box in normalized coordinates. */
   box: BoundingBox;

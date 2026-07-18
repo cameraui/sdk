@@ -1,4 +1,5 @@
 import { Sensor, SensorType, SensorCategory } from './base.js';
+import { defineSensor } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike } from './base.js';
@@ -167,3 +168,14 @@ export abstract class LicensePlateDetectorSensor<TStorage extends object = Recor
    */
   abstract detectLicensePlates(frames: VideoFrameData[]): Promise<LicensePlateResult[]>;
 }
+
+/** Registry metadata for {@link LicensePlateSensor}. */
+export const licensePlateMeta = defineSensor({
+  type: SensorType.LicensePlate,
+  category: SensorCategory.Sensor,
+  assignmentKey: 'licensePlate',
+  multiProvider: false,
+  isDetectionType: true,
+  properties: Object.values(LicensePlateProperty),
+  semantics: null,
+});

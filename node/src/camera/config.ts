@@ -1,4 +1,5 @@
 import type { CameraInputSettings } from '../internal/camera-config-internal.js';
+import type { SENSOR_META } from '../sensor/registry.js';
 import type { CameraDetectionSettings, DetectionLine, DetectionZone, PtzAutotrackSettings } from './detection.js';
 import type { CameraAspectRatio, CameraRole, CameraType, StreamingRole, VideoStreamingMode } from './enums.js';
 import type { CameraFrameWorkerSettings, SnapshotSettings } from './frames.js';
@@ -96,41 +97,20 @@ export interface AssignedPlugin {
   name: string;
 }
 
-/**
- * Plugin assignments for camera sensors/features.
- * Maps sensor types to their assigned plugin(s).
- */
-export interface PluginAssignments {
-  // Single-provider sensors
-  /** Motion detection plugin */
-  motion?: AssignedPlugin;
-  /** Object detection plugin */
-  object?: AssignedPlugin;
-  /** Audio detection plugin */
-  audio?: AssignedPlugin;
-  /** Face detection plugin */
-  face?: AssignedPlugin;
-  /** License plate detection plugin */
-  licensePlate?: AssignedPlugin;
-  /** PTZ control plugin */
-  ptz?: AssignedPlugin;
-  /** Battery info plugin */
-  battery?: AssignedPlugin;
-  /** Camera controller plugin */
-  cameraController?: AssignedPlugin;
+type SingleProviderAssignmentKey = Extract<(typeof SENSOR_META)[number], { multiProvider: false }>['assignmentKey'];
+type MultiProviderAssignmentKey = Extract<(typeof SENSOR_META)[number], { multiProvider: true }>['assignmentKey'];
 
-  // Multi-provider sensors
-  /** Light control plugins */
-  light?: AssignedPlugin[];
-  /** Siren control plugins */
-  siren?: AssignedPlugin[];
-  /** Contact sensor plugins */
-  contact?: AssignedPlugin[];
-  /** Doorbell trigger plugins */
-  doorbell?: AssignedPlugin[];
-  /** Hub/bridge plugins */
-  hub?: AssignedPlugin[];
-}
+/**
+ * Plugin assignments for a camera, keyed by the assignment keys the SDK sensor
+ * registry declares. Single-provider sensors and the camera controller hold one
+ * plugin; multi-provider sensors and the hub hold an array. Derived from the
+ * registry so a new sensor type gains its assignment slot automatically.
+ */
+export type PluginAssignments = Partial<Record<SingleProviderAssignmentKey, AssignedPlugin>> &
+  Partial<Record<MultiProviderAssignmentKey, AssignedPlugin[]>> & {
+    cameraController?: AssignedPlugin;
+    hub?: AssignedPlugin[];
+  };
 
 /**
  * Camera source plugin information.

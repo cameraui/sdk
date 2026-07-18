@@ -23,8 +23,11 @@ class BatteryProperty(StrEnum):
     """Properties for battery info sensors."""
 
     Level = "level"
+    """Battery level percentage (0-100)."""
     Charging = "charging"
+    """Current charging state."""
     Low = "low"
+    """Whether battery is critically low."""
 
 
 class ChargingState(StrEnum):
@@ -125,7 +128,7 @@ class BatteryInfo(Sensor[BatteryInfoProperties, TStorage, BatteryCapability], Ge
         """Report a new battery level (percentage). Clamped to [0, 100].
 
         Args:
-            value: Battery level percentage in the range 0–100.
+            value: Battery level percentage in the range 0-100.
 
         Example:
             ```python

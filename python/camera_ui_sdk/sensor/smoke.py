@@ -14,6 +14,7 @@ class SmokeProperty(StrEnum):
     """Properties for smoke sensors."""
 
     Detected = "detected"
+    """Whether smoke is detected."""
 
 
 class SmokeSensorProperties(TypedDict):

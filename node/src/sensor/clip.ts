@@ -1,4 +1,5 @@
 import { Sensor, SensorType, SensorCategory } from './base.js';
+import { defineSensor } from './meta.js';
 
 import type { BoundingBox, VideoFrameData } from './detection.js';
 import type { ModelSpec } from './spec.js';
@@ -63,3 +64,14 @@ export abstract class ClipDetectorSensor<TStorage extends object = Record<string
     // No-op — clip detector has no state.
   }
 }
+
+/** Registry metadata for {@link ClipDetectorSensor}. */
+export const clipMeta = defineSensor({
+  type: SensorType.Clip,
+  category: SensorCategory.Sensor,
+  assignmentKey: 'clip',
+  multiProvider: false,
+  isDetectionType: true,
+  properties: [],
+  semantics: null,
+});

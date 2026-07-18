@@ -1,4 +1,5 @@
 import { Sensor, SensorType, SensorCategory } from './base.js';
+import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike } from './base.js';
@@ -77,3 +78,22 @@ export class ContactSensor<TStorage extends object = Record<string, any>> extend
     // No-op — contact state is reported by the plugin, not set externally.
   }
 }
+
+/** Registry metadata for {@link ContactSensor}. */
+export const contactMeta = defineSensor({
+  type: SensorType.Contact,
+  category: SensorCategory.Sensor,
+  assignmentKey: 'contact',
+  multiProvider: true,
+  isDetectionType: false,
+  properties: Object.values(ContactProperty),
+  shortcutable: true,
+  cascadeTrigger: { property: ContactProperty.Detected, value: true, sustained: true },
+  virtual: { properties: { [ContactProperty.Detected]: false } },
+  semantics: {
+    domain: SensorDomain.Binary,
+    stateProperty: ContactProperty.Detected,
+    commandProperty: ContactProperty.Detected,
+    deviceClass: 'opening',
+  },
+});

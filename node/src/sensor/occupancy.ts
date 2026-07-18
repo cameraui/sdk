@@ -1,4 +1,5 @@
 import { Sensor, SensorType, SensorCategory } from './base.js';
+import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike } from './base.js';
@@ -77,3 +78,22 @@ export class OccupancySensor<TStorage extends object = Record<string, any>> exte
     // No-op — occupancy state is reported by the plugin, not set externally.
   }
 }
+
+/** Registry metadata for {@link OccupancySensor}. */
+export const occupancyMeta = defineSensor({
+  type: SensorType.Occupancy,
+  category: SensorCategory.Sensor,
+  assignmentKey: 'occupancy',
+  multiProvider: true,
+  isDetectionType: false,
+  properties: Object.values(OccupancyProperty),
+  shortcutable: true,
+  cascadeTrigger: { property: OccupancyProperty.Detected, value: true, sustained: true },
+  virtual: { properties: { [OccupancyProperty.Detected]: false } },
+  semantics: {
+    domain: SensorDomain.Binary,
+    stateProperty: OccupancyProperty.Detected,
+    commandProperty: OccupancyProperty.Detected,
+    deviceClass: 'occupancy',
+  },
+});

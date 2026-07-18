@@ -1,4 +1,5 @@
 import { Sensor, SensorType, SensorCategory } from './base.js';
+import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike } from './base.js';
@@ -77,3 +78,22 @@ export class TemperatureInfo<TStorage extends object = Record<string, any>> exte
     // No-op — temperature is reported by the plugin, not set externally.
   }
 }
+
+/** Registry metadata for {@link TemperatureInfo}. */
+export const temperatureMeta = defineSensor({
+  type: SensorType.Temperature,
+  category: SensorCategory.Info,
+  assignmentKey: 'temperature',
+  multiProvider: true,
+  isDetectionType: false,
+  properties: Object.values(TemperatureProperty),
+  shortcutable: true,
+  virtual: { properties: { [TemperatureProperty.Current]: 20 } },
+  semantics: {
+    domain: SensorDomain.Measurement,
+    stateProperty: TemperatureProperty.Current,
+    commandProperty: TemperatureProperty.Current,
+    deviceClass: 'temperature',
+    unit: '°C',
+  },
+});

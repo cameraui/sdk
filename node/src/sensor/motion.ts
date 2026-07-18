@@ -1,4 +1,5 @@
 import { Sensor, SensorType, SensorCategory } from './base.js';
+import { defineSensor } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike } from './base.js';
@@ -167,3 +168,14 @@ export abstract class MotionDetectorSensor<TStorage extends object = Record<stri
   /** Analyze a single video frame for motion. Called by the backend at the configured interval. */
   abstract detectMotion(frame: VideoFrameData): Promise<MotionResult>;
 }
+
+/** Registry metadata for {@link MotionSensor}. */
+export const motionMeta = defineSensor({
+  type: SensorType.Motion,
+  category: SensorCategory.Sensor,
+  assignmentKey: 'motion',
+  multiProvider: false,
+  isDetectionType: true,
+  properties: Object.values(MotionProperty),
+  semantics: null,
+});

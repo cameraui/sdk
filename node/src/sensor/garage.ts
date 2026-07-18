@@ -1,4 +1,5 @@
 import { Sensor, SensorType, SensorCategory } from './base.js';
+import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike } from './base.js';
@@ -154,3 +155,29 @@ export class GarageControl<TStorage extends object = Record<string, any>> extend
     // Unknown / non-writable property (incl. currentState, obstructionDetected) — ignored.
   }
 }
+
+/** Registry metadata for {@link GarageControl}. */
+export const garageMeta = defineSensor({
+  type: SensorType.Garage,
+  category: SensorCategory.Control,
+  assignmentKey: 'garage',
+  multiProvider: true,
+  isDetectionType: false,
+  properties: Object.values(GarageProperty),
+  shortcutable: true,
+  cascadeTrigger: { property: GarageProperty.CurrentState, value: 0, sustained: true },
+  virtual: { properties: { [GarageProperty.CurrentState]: 1, [GarageProperty.TargetState]: 1 } },
+  semantics: {
+    domain: SensorDomain.Cover,
+    stateProperty: GarageProperty.CurrentState,
+    commandProperty: GarageProperty.TargetState,
+    deviceClass: 'garage',
+    states: {
+      open: GarageState.Open,
+      closed: GarageState.Closed,
+      opening: GarageState.Opening,
+      closing: GarageState.Closing,
+      stopped: GarageState.Stopped,
+    },
+  },
+});

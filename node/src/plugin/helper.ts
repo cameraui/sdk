@@ -1,3 +1,4 @@
+import { SensorType } from '../sensor/base.js';
 import { PluginCapability, PluginInterface, PluginRole } from './contract.js';
 
 import type { PluginContract } from './contract.js';
@@ -30,31 +31,7 @@ export function getContractValidationErrors(contract: unknown): string[] {
 
   const c = contract as Record<string, unknown>;
   const validRoles = Object.values(PluginRole);
-  // Import SensorType values dynamically to avoid circular dependency
-  const validSensorTypes = [
-    'motion',
-    'object',
-    'audio',
-    'face',
-    'licensePlate',
-    'classifier',
-    'contact',
-    'temperature',
-    'humidity',
-    'occupancy',
-    'smoke',
-    'leak',
-    'light',
-    'siren',
-    'switch',
-    'lock',
-    'garage',
-    'ptz',
-    'securitySystem',
-    'doorbell',
-    'battery',
-    'clip',
-  ];
+  const validSensorTypes = Object.values(SensorType) as string[];
 
   // Check role
   if (c.role === undefined) {

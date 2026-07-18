@@ -29,7 +29,9 @@ class SecuritySystemProperty(StrEnum):
     """Properties for security system controls."""
 
     CurrentState = "currentState"
+    """The actual current state of the security system."""
     TargetState = "targetState"
+    """The desired target state (set by user, transitions to currentState)."""
 
 
 class SecuritySystemProperties(TypedDict):

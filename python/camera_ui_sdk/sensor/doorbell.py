@@ -15,6 +15,7 @@ class DoorbellProperty(StrEnum):
     """Properties for doorbell triggers."""
 
     Ring = "ring"
+    """Whether the doorbell is currently ringing."""
 
 
 class DoorbellTriggerProperties(TypedDict):

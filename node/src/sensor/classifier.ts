@@ -1,4 +1,5 @@
 import { Sensor, SensorType, SensorCategory } from './base.js';
+import { defineSensor } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike } from './base.js';
@@ -181,3 +182,14 @@ export abstract class ClassifierDetectorSensor<TStorage extends object = Record<
    */
   abstract detectClassifications(frames: VideoFrameData[]): Promise<ClassifierResult[]>;
 }
+
+/** Registry metadata for {@link ClassifierSensor}. */
+export const classifierMeta = defineSensor({
+  type: SensorType.Classifier,
+  category: SensorCategory.Sensor,
+  assignmentKey: 'classifier',
+  multiProvider: true,
+  isDetectionType: true,
+  properties: Object.values(ClassifierProperty),
+  semantics: null,
+});

@@ -14,6 +14,7 @@ class SwitchProperty(StrEnum):
     """Properties for switch controls."""
 
     On = "on"
+    """Whether the switch is on."""
 
 
 class SwitchControlProperties(TypedDict):

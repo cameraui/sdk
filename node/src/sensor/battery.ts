@@ -1,4 +1,5 @@
 import { Sensor, SensorType, SensorCategory } from './base.js';
+import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike } from './base.js';
@@ -17,7 +18,7 @@ export enum BatteryCapability {
  * @internal
  */
 export enum BatteryProperty {
-  /** Battery level percentage (0–100) */
+  /** Battery level percentage (0-100) */
   Level = 'level',
   /** Current charging state */
   Charging = 'charging',
@@ -97,7 +98,7 @@ export class BatteryInfo<TStorage extends object = Record<string, any>> extends 
   /**
    * Report a new battery level (percentage). Clamped to [0, 100].
    *
-   * @param value - Battery level percentage in the range 0–100.
+   * @param value - Battery level percentage in the range 0-100.
    *
    * @example
    * ```ts
@@ -154,3 +155,23 @@ export class BatteryInfo<TStorage extends object = Record<string, any>> extends 
     // No-op — battery state is reported by the plugin, not set externally.
   }
 }
+
+/** Registry metadata for {@link BatteryInfo}. */
+export const batteryMeta = defineSensor({
+  type: SensorType.Battery,
+  category: SensorCategory.Info,
+  assignmentKey: 'battery',
+  multiProvider: false,
+  isDetectionType: false,
+  properties: Object.values(BatteryProperty),
+  shortcutable: true,
+  propertyCapabilities: { [BatteryProperty.Charging]: BatteryCapability.Charging, [BatteryProperty.Low]: BatteryCapability.LowBattery },
+  semantics: {
+    domain: SensorDomain.Measurement,
+    stateProperty: BatteryProperty.Level,
+    commandProperty: BatteryProperty.Level,
+    deviceClass: 'battery',
+    unit: '%',
+    diagnostic: true,
+  },
+});

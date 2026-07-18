@@ -142,16 +142,38 @@ class PluginAssignments(TypedDict, total=False):
     """PTZ control plugin."""
     battery: AssignedPlugin
     """Battery info plugin."""
+    clip: AssignedPlugin
+    """CLIP embedding plugin."""
     cameraController: AssignedPlugin
     """Camera controller plugin."""
     light: list[AssignedPlugin]
     """Light control plugins."""
     siren: list[AssignedPlugin]
     """Siren control plugins."""
+    switch: list[AssignedPlugin]
+    """Switch control plugins."""
+    securitySystem: list[AssignedPlugin]
+    """Security system control plugins."""
+    lock: list[AssignedPlugin]
+    """Lock control plugins."""
+    garage: list[AssignedPlugin]
+    """Garage control plugins."""
     contact: list[AssignedPlugin]
     """Contact sensor plugins."""
+    occupancy: list[AssignedPlugin]
+    """Occupancy sensor plugins."""
+    smoke: list[AssignedPlugin]
+    """Smoke sensor plugins."""
+    leak: list[AssignedPlugin]
+    """Leak sensor plugins."""
     doorbell: list[AssignedPlugin]
     """Doorbell trigger plugins."""
+    temperature: list[AssignedPlugin]
+    """Temperature info plugins."""
+    humidity: list[AssignedPlugin]
+    """Humidity info plugins."""
+    classifier: list[AssignedPlugin]
+    """Image classifier plugins."""
     hub: list[AssignedPlugin]
     """Hub/bridge plugins."""
 

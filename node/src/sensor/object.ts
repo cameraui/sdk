@@ -1,4 +1,5 @@
 import { Sensor, SensorType, SensorCategory } from './base.js';
+import { defineSensor } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike } from './base.js';
@@ -187,3 +188,14 @@ export abstract class ObjectDetectorSensor<TStorage extends object = Record<stri
   /** Analyze a single video frame for objects. Called by the backend at the configured interval. */
   abstract detectObjects(frame: VideoFrameData): Promise<ObjectResult>;
 }
+
+/** Registry metadata for {@link ObjectSensor}. */
+export const objectMeta = defineSensor({
+  type: SensorType.Object,
+  category: SensorCategory.Sensor,
+  assignmentKey: 'object',
+  multiProvider: false,
+  isDetectionType: true,
+  properties: Object.values(ObjectProperty),
+  semantics: null,
+});

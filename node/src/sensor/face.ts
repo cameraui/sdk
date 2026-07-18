@@ -1,4 +1,5 @@
 import { Sensor, SensorType, SensorCategory } from './base.js';
+import { defineSensor } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike } from './base.js';
@@ -174,3 +175,14 @@ export abstract class FaceDetectorSensor<TStorage extends object = Record<string
    */
   abstract detectFaces(frames: VideoFrameData[]): Promise<FaceResult[]>;
 }
+
+/** Registry metadata for {@link FaceSensor}. */
+export const faceMeta = defineSensor({
+  type: SensorType.Face,
+  category: SensorCategory.Sensor,
+  assignmentKey: 'face',
+  multiProvider: false,
+  isDetectionType: true,
+  properties: Object.values(FaceProperty),
+  semantics: null,
+});

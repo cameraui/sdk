@@ -1,4 +1,5 @@
 import { Sensor, SensorType, SensorCategory } from './base.js';
+import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike } from './base.js';
@@ -77,3 +78,22 @@ export class SmokeSensor<TStorage extends object = Record<string, any>> extends 
     // No-op — smoke state is reported by the plugin, not set externally.
   }
 }
+
+/** Registry metadata for {@link SmokeSensor}. */
+export const smokeMeta = defineSensor({
+  type: SensorType.Smoke,
+  category: SensorCategory.Sensor,
+  assignmentKey: 'smoke',
+  multiProvider: true,
+  isDetectionType: false,
+  properties: Object.values(SmokeProperty),
+  shortcutable: true,
+  cascadeTrigger: { property: SmokeProperty.Detected, value: true, sustained: true },
+  virtual: { properties: { [SmokeProperty.Detected]: false } },
+  semantics: {
+    domain: SensorDomain.Binary,
+    stateProperty: SmokeProperty.Detected,
+    commandProperty: SmokeProperty.Detected,
+    deviceClass: 'smoke',
+  },
+});

@@ -24,8 +24,11 @@ class GarageProperty(StrEnum):
     """Properties for garage controls."""
 
     CurrentState = "currentState"
+    """The actual current state of the garage door."""
     TargetState = "targetState"
+    """The desired target state (set by user, transitions to currentState)."""
     ObstructionDetected = "obstructionDetected"
+    """Whether an obstruction is detected."""
 
 
 class GarageControlProperties(TypedDict):

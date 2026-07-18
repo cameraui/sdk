@@ -14,14 +14,16 @@ class LightCapability(StrEnum):
     """Optional capabilities for light controls."""
 
     Brightness = "brightness"
-    """Light supports brightness adjustment (0–100)."""
+    """Light supports brightness adjustment (0-100)."""
 
 
 class LightProperty(StrEnum):
     """Properties for light controls."""
 
     On = "on"
+    """Whether the light is on."""
     Brightness = "brightness"
+    """Brightness level (0-100)."""
 
 
 class LightControlProperties(TypedDict):
@@ -134,7 +136,7 @@ class LightControl(Sensor[LightControlProperties, TStorage, LightCapability], Ge
         succeeds. The default implementation clamps the value to [0, 100].
 
         Args:
-            value: Brightness level in the range 0–100.
+            value: Brightness level in the range 0-100.
 
         Example:
             ```python

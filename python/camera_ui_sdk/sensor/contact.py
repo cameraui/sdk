@@ -14,6 +14,7 @@ class ContactProperty(StrEnum):
     """Properties for contact sensors."""
 
     Detected = "detected"
+    """Whether the contact is open (true = open, false = closed)."""
 
 
 class ContactSensorProperties(TypedDict):

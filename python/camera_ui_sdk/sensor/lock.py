@@ -22,7 +22,9 @@ class LockProperty(StrEnum):
     """Properties for lock controls."""
 
     CurrentState = "currentState"
+    """The actual current state of the lock."""
     TargetState = "targetState"
+    """The desired target state (set by user, transitions to currentState)."""
 
 
 class LockControlProperties(TypedDict):

@@ -14,25 +14,40 @@ class PTZCapability(StrEnum):
     """Optional capabilities for PTZ controls."""
 
     Pan = "pan"
+    """Camera supports panning (horizontal movement)."""
     Tilt = "tilt"
+    """Camera supports tilting (vertical movement)."""
     Zoom = "zoom"
+    """Camera supports zoom."""
     Presets = "presets"
+    """Camera supports named position presets."""
     Home = "home"
+    """Camera supports a home position."""
     RelativeMove = "relativeMove"
+    """Camera executes relative displacement moves."""
     AbsolutePosition = "absolutePosition"
+    """Camera accepts absolute position writes via `setPosition()`."""
     VelocityControl = "velocityControl"
+    """Camera accepts continuous-move commands via `setVelocity()`."""
 
 
 class PTZProperty(StrEnum):
     """Properties for PTZ controls."""
 
     Position = "position"
+    """Current pan/tilt/zoom position."""
     Moving = "moving"
+    """Whether the camera is currently moving."""
     Presets = "presets"
+    """List of available preset names."""
     Velocity = "velocity"
+    """Current movement velocity (continuous move)."""
     TargetPreset = "targetPreset"
+    """Target preset to move to."""
     RelativeMove = "relativeMove"
+    """Relative displacement move command (write-only)."""
     Home = "home"
+    """Move to the home position (write-only command, carries no state)."""
 
 
 class PTZPosition(TypedDict):

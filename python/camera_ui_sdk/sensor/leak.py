@@ -14,6 +14,7 @@ class LeakProperty(StrEnum):
     """Properties for leak sensors."""
 
     Detected = "detected"
+    """Whether a leak is detected."""
 
 
 class LeakSensorProperties(TypedDict):

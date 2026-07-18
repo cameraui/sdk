@@ -14,6 +14,7 @@ class TemperatureProperty(StrEnum):
     """Properties for temperature info sensors."""
 
     Current = "current"
+    """Current temperature in degrees Celsius."""
 
 
 class TemperatureInfoProperties(TypedDict):

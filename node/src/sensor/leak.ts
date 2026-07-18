@@ -1,4 +1,5 @@
 import { Sensor, SensorType, SensorCategory } from './base.js';
+import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike } from './base.js';
@@ -77,3 +78,22 @@ export class LeakSensor<TStorage extends object = Record<string, any>> extends S
     // No-op — leak state is reported by the plugin, not set externally.
   }
 }
+
+/** Registry metadata for {@link LeakSensor}. */
+export const leakMeta = defineSensor({
+  type: SensorType.Leak,
+  category: SensorCategory.Sensor,
+  assignmentKey: 'leak',
+  multiProvider: true,
+  isDetectionType: false,
+  properties: Object.values(LeakProperty),
+  shortcutable: true,
+  cascadeTrigger: { property: LeakProperty.Detected, value: true, sustained: true },
+  virtual: { properties: { [LeakProperty.Detected]: false } },
+  semantics: {
+    domain: SensorDomain.Binary,
+    stateProperty: LeakProperty.Detected,
+    commandProperty: LeakProperty.Detected,
+    deviceClass: 'moisture',
+  },
+});
