@@ -24,6 +24,10 @@
   ],
   "excludeExternals": true,
   "excludeInternal": true,
+  "intentionallyNotExported": [
+    "SingleProviderAssignmentKey",
+    "MultiProviderAssignmentKey"
+  ],
   "out": "./docs/api",
   "docsRoot": "./docs",
   "sidebar": {

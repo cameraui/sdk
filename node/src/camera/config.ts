@@ -97,7 +97,9 @@ export interface AssignedPlugin {
   name: string;
 }
 
+/** @internal */
 type SingleProviderAssignmentKey = Extract<(typeof SENSOR_META)[number], { multiProvider: false }>['assignmentKey'];
+/** @internal */
 type MultiProviderAssignmentKey = Extract<(typeof SENSOR_META)[number], { multiProvider: true }>['assignmentKey'];
 
 /**
