@@ -176,6 +176,11 @@ export const motionMeta = defineSensor({
   assignmentKey: 'motion',
   multiProvider: false,
   isDetectionType: true,
-  properties: Object.values(MotionProperty),
+  properties: {
+    [MotionProperty.Detected]: { type: 'boolean' },
+    [MotionProperty.Detections]: { type: 'object', internal: true },
+    [MotionProperty.Blocked]: { type: 'boolean', internal: true },
+    [MotionProperty.LastTriggered]: { type: 'number', internal: true },
+  },
   semantics: null,
 });

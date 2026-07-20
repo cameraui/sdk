@@ -105,7 +105,9 @@ export const switchMeta = defineSensor({
   assignmentKey: 'switch',
   multiProvider: true,
   isDetectionType: false,
-  properties: Object.values(SwitchProperty),
+  properties: {
+    [SwitchProperty.On]: { type: 'boolean', writable: true },
+  },
   shortcutable: true,
   cascadeTrigger: { property: SwitchProperty.On, value: true, sustained: true },
   virtual: { properties: { [SwitchProperty.On]: false } },

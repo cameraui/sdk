@@ -86,7 +86,9 @@ export const temperatureMeta = defineSensor({
   assignmentKey: 'temperature',
   multiProvider: true,
   isDetectionType: false,
-  properties: Object.values(TemperatureProperty),
+  properties: {
+    [TemperatureProperty.Current]: { type: 'number', unit: '°C', writable: true },
+  },
   shortcutable: true,
   virtual: { properties: { [TemperatureProperty.Current]: 20 } },
   semantics: {

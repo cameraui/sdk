@@ -86,7 +86,9 @@ export const occupancyMeta = defineSensor({
   assignmentKey: 'occupancy',
   multiProvider: true,
   isDetectionType: false,
-  properties: Object.values(OccupancyProperty),
+  properties: {
+    [OccupancyProperty.Detected]: { type: 'boolean', writable: true },
+  },
   shortcutable: true,
   cascadeTrigger: { property: OccupancyProperty.Detected, value: true, sustained: true },
   virtual: { properties: { [OccupancyProperty.Detected]: false } },

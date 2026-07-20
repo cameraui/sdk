@@ -196,6 +196,10 @@ export const objectMeta = defineSensor({
   assignmentKey: 'object',
   multiProvider: false,
   isDetectionType: true,
-  properties: Object.values(ObjectProperty),
+  properties: {
+    [ObjectProperty.Detected]: { type: 'boolean' },
+    [ObjectProperty.Detections]: { type: 'object', internal: true },
+    [ObjectProperty.Labels]: { type: 'object' },
+  },
   semantics: null,
 });

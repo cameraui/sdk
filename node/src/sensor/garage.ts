@@ -163,7 +163,24 @@ export const garageMeta = defineSensor({
   assignmentKey: 'garage',
   multiProvider: true,
   isDetectionType: false,
-  properties: Object.values(GarageProperty),
+  properties: {
+    [GarageProperty.CurrentState]: {
+      type: 'enum',
+      values: {
+        open: GarageState.Open,
+        closed: GarageState.Closed,
+        opening: GarageState.Opening,
+        closing: GarageState.Closing,
+        stopped: GarageState.Stopped,
+      },
+    },
+    [GarageProperty.TargetState]: {
+      type: 'enum',
+      values: { open: GarageState.Open, closed: GarageState.Closed },
+      writable: true,
+    },
+    [GarageProperty.ObstructionDetected]: { type: 'boolean' },
+  },
   shortcutable: true,
   cascadeTrigger: { property: GarageProperty.CurrentState, value: 0, sustained: true },
   virtual: { properties: { [GarageProperty.CurrentState]: 1, [GarageProperty.TargetState]: 1 } },

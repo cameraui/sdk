@@ -229,6 +229,11 @@ export const audioMeta = defineSensor({
   assignmentKey: 'audio',
   multiProvider: false,
   isDetectionType: true,
-  properties: Object.values(AudioProperty),
+  properties: {
+    [AudioProperty.Detected]: { type: 'boolean' },
+    [AudioProperty.Detections]: { type: 'object', internal: true },
+    [AudioProperty.Decibels]: { type: 'number', unit: 'dB' },
+    [AudioProperty.LastTriggered]: { type: 'number', internal: true },
+  },
   semantics: null,
 });

@@ -141,7 +141,28 @@ export const securitySystemMeta = defineSensor({
   assignmentKey: 'securitySystem',
   multiProvider: true,
   isDetectionType: false,
-  properties: Object.values(SecuritySystemProperty),
+  properties: {
+    [SecuritySystemProperty.CurrentState]: {
+      type: 'enum',
+      values: {
+        stay_arm: SecuritySystemState.StayArm,
+        away_arm: SecuritySystemState.AwayArm,
+        night_arm: SecuritySystemState.NightArm,
+        disarmed: SecuritySystemState.Disarmed,
+        alarm_triggered: SecuritySystemState.AlarmTriggered,
+      },
+    },
+    [SecuritySystemProperty.TargetState]: {
+      type: 'enum',
+      values: {
+        stay_arm: SecuritySystemState.StayArm,
+        away_arm: SecuritySystemState.AwayArm,
+        night_arm: SecuritySystemState.NightArm,
+        disarmed: SecuritySystemState.Disarmed,
+      },
+      writable: true,
+    },
+  },
   shortcutable: true,
   cascadeTrigger: { property: SecuritySystemProperty.CurrentState, value: 4, sustained: true },
   virtual: { properties: { [SecuritySystemProperty.CurrentState]: 3, [SecuritySystemProperty.TargetState]: 3 } },

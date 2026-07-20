@@ -190,6 +190,10 @@ export const classifierMeta = defineSensor({
   assignmentKey: 'classifier',
   multiProvider: true,
   isDetectionType: true,
-  properties: Object.values(ClassifierProperty),
+  properties: {
+    [ClassifierProperty.Detected]: { type: 'boolean' },
+    [ClassifierProperty.Detections]: { type: 'object', internal: true },
+    [ClassifierProperty.Labels]: { type: 'object' },
+  },
   semantics: null,
 });

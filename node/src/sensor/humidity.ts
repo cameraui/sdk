@@ -86,7 +86,9 @@ export const humidityMeta = defineSensor({
   assignmentKey: 'humidity',
   multiProvider: true,
   isDetectionType: false,
-  properties: Object.values(HumidityProperty),
+  properties: {
+    [HumidityProperty.Current]: { type: 'number', min: 0, max: 100, unit: '%', writable: true },
+  },
   shortcutable: true,
   virtual: { properties: { [HumidityProperty.Current]: 50 } },
   semantics: {

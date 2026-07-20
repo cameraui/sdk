@@ -148,7 +148,10 @@ export const lightMeta = defineSensor({
   assignmentKey: 'light',
   multiProvider: true,
   isDetectionType: false,
-  properties: Object.values(LightProperty),
+  properties: {
+    [LightProperty.On]: { type: 'boolean', writable: true },
+    [LightProperty.Brightness]: { type: 'number', min: 0, max: 100, unit: '%', writable: true },
+  },
   shortcutable: true,
   cascadeTrigger: { property: LightProperty.On, value: true, sustained: true },
   propertyCapabilities: { [LightProperty.Brightness]: LightCapability.Brightness },

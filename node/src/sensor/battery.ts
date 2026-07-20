@@ -163,7 +163,19 @@ export const batteryMeta = defineSensor({
   assignmentKey: 'battery',
   multiProvider: false,
   isDetectionType: false,
-  properties: Object.values(BatteryProperty),
+  properties: {
+    [BatteryProperty.Level]: { type: 'number', min: 0, max: 100, unit: '%' },
+    [BatteryProperty.Charging]: {
+      type: 'enum',
+      values: {
+        not_chargeable: ChargingState.NotChargeable,
+        not_charging: ChargingState.NotCharging,
+        charging: ChargingState.Charging,
+        full: ChargingState.Full,
+      },
+    },
+    [BatteryProperty.Low]: { type: 'boolean' },
+  },
   shortcutable: true,
   propertyCapabilities: { [BatteryProperty.Charging]: BatteryCapability.Charging, [BatteryProperty.Low]: BatteryCapability.LowBattery },
   semantics: {

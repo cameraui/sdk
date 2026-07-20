@@ -306,6 +306,14 @@ export const ptzMeta = defineSensor({
   assignmentKey: 'ptz',
   multiProvider: false,
   isDetectionType: false,
-  properties: Object.values(PTZProperty),
+  properties: {
+    [PTZProperty.Position]: { type: 'object', writable: true, keys: ['pan', 'tilt', 'zoom'] },
+    [PTZProperty.Moving]: { type: 'boolean' },
+    [PTZProperty.Presets]: { type: 'object' },
+    [PTZProperty.Velocity]: { type: 'object', writable: true, internal: true },
+    [PTZProperty.TargetPreset]: { type: 'string', writable: true },
+    [PTZProperty.RelativeMove]: { type: 'object', writable: true, internal: true },
+    [PTZProperty.Home]: { type: 'boolean', writable: true, internal: true },
+  },
   semantics: null,
 });

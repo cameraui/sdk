@@ -183,6 +183,9 @@ export const faceMeta = defineSensor({
   assignmentKey: 'face',
   multiProvider: false,
   isDetectionType: true,
-  properties: Object.values(FaceProperty),
+  properties: {
+    [FaceProperty.Detected]: { type: 'boolean' },
+    [FaceProperty.Detections]: { type: 'object', internal: true },
+  },
   semantics: null,
 });

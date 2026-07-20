@@ -13,6 +13,30 @@ export interface SensorVirtualDefaults {
   readonly capabilities?: readonly string[];
 }
 
+/** Runtime value type of a sensor property. */
+export type SensorPropertyValueType = 'boolean' | 'number' | 'string' | 'enum' | 'object';
+
+/**
+ * Per-property value description: what type a property carries, its possible
+ * enum values or numeric range, and whether it is a command or an internal
+ * detail. Consumers (automation pickers, value editors) render from this
+ * instead of hand-maintained tables.
+ */
+export interface SensorPropertySpec {
+  readonly type: SensorPropertyValueType;
+  /** Enum properties: value-name → wire value. Names double as i18n key stems. */
+  readonly values?: Readonly<Record<string, string | number>>;
+  /** Object properties: scalar member keys, exposed as value-path variables. */
+  readonly keys?: readonly string[];
+  readonly min?: number;
+  readonly max?: number;
+  readonly unit?: string;
+  /** Accepts external writes (commands, target states, virtual sensor state). */
+  readonly writable?: boolean;
+  /** Not an observable state: hidden from trigger/condition pickers. */
+  readonly internal?: boolean;
+}
+
 /** The kind of thing a sensor is, used by consumers to pick how to render it. */
 export enum SensorDomain {
   Binary = 'binary',
@@ -55,7 +79,7 @@ export interface SensorMeta {
   readonly assignmentKey: string;
   readonly multiProvider: boolean;
   readonly isDetectionType: boolean;
-  readonly properties: readonly string[];
+  readonly properties: Readonly<Record<string, SensorPropertySpec>>;
   readonly shortcutable?: boolean;
   readonly cascadeTrigger?: SensorCascadeTrigger;
   readonly propertyCapabilities?: Readonly<Record<string, string>>;

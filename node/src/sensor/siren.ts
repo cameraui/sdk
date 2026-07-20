@@ -143,7 +143,10 @@ export const sirenMeta = defineSensor({
   assignmentKey: 'siren',
   multiProvider: true,
   isDetectionType: false,
-  properties: Object.values(SirenProperty),
+  properties: {
+    [SirenProperty.Active]: { type: 'boolean', writable: true },
+    [SirenProperty.Volume]: { type: 'number', min: 0, max: 100, unit: '%', writable: true },
+  },
   shortcutable: true,
   cascadeTrigger: { property: SirenProperty.Active, value: true, sustained: true },
   propertyCapabilities: { [SirenProperty.Volume]: SirenCapability.Volume },

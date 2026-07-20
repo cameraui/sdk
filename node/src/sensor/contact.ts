@@ -86,7 +86,9 @@ export const contactMeta = defineSensor({
   assignmentKey: 'contact',
   multiProvider: true,
   isDetectionType: false,
-  properties: Object.values(ContactProperty),
+  properties: {
+    [ContactProperty.Detected]: { type: 'boolean', writable: true },
+  },
   shortcutable: true,
   cascadeTrigger: { property: ContactProperty.Detected, value: true, sustained: true },
   virtual: { properties: { [ContactProperty.Detected]: false } },

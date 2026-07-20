@@ -86,7 +86,9 @@ export const smokeMeta = defineSensor({
   assignmentKey: 'smoke',
   multiProvider: true,
   isDetectionType: false,
-  properties: Object.values(SmokeProperty),
+  properties: {
+    [SmokeProperty.Detected]: { type: 'boolean', writable: true },
+  },
   shortcutable: true,
   cascadeTrigger: { property: SmokeProperty.Detected, value: true, sustained: true },
   virtual: { properties: { [SmokeProperty.Detected]: false } },

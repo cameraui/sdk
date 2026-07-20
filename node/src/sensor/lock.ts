@@ -137,7 +137,17 @@ export const lockMeta = defineSensor({
   assignmentKey: 'lock',
   multiProvider: true,
   isDetectionType: false,
-  properties: Object.values(LockProperty),
+  properties: {
+    [LockProperty.CurrentState]: {
+      type: 'enum',
+      values: { secured: LockState.Secured, unsecured: LockState.Unsecured, unknown: LockState.Unknown },
+    },
+    [LockProperty.TargetState]: {
+      type: 'enum',
+      values: { secured: LockState.Secured, unsecured: LockState.Unsecured },
+      writable: true,
+    },
+  },
   shortcutable: true,
   cascadeTrigger: { property: LockProperty.CurrentState, value: 1, sustained: true },
   virtual: { properties: { [LockProperty.CurrentState]: 0, [LockProperty.TargetState]: 0 } },

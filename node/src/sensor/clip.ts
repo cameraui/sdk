@@ -72,6 +72,6 @@ export const clipMeta = defineSensor({
   assignmentKey: 'clip',
   multiProvider: false,
   isDetectionType: true,
-  properties: [],
+  properties: {},
   semantics: null,
 });

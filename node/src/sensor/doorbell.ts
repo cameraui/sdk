@@ -114,7 +114,9 @@ export const doorbellMeta = defineSensor({
   assignmentKey: 'doorbell',
   multiProvider: true,
   isDetectionType: false,
-  properties: Object.values(DoorbellProperty),
+  properties: {
+    [DoorbellProperty.Ring]: { type: 'boolean', writable: true },
+  },
   shortcutable: true,
   cascadeTrigger: { property: DoorbellProperty.Ring, value: true, sustained: false },
   virtual: { properties: { [DoorbellProperty.Ring]: false } },

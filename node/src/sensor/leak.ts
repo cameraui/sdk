@@ -86,7 +86,9 @@ export const leakMeta = defineSensor({
   assignmentKey: 'leak',
   multiProvider: true,
   isDetectionType: false,
-  properties: Object.values(LeakProperty),
+  properties: {
+    [LeakProperty.Detected]: { type: 'boolean', writable: true },
+  },
   shortcutable: true,
   cascadeTrigger: { property: LeakProperty.Detected, value: true, sustained: true },
   virtual: { properties: { [LeakProperty.Detected]: false } },

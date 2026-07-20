@@ -176,6 +176,9 @@ export const licensePlateMeta = defineSensor({
   assignmentKey: 'licensePlate',
   multiProvider: false,
   isDetectionType: true,
-  properties: Object.values(LicensePlateProperty),
+  properties: {
+    [LicensePlateProperty.Detected]: { type: 'boolean' },
+    [LicensePlateProperty.Detections]: { type: 'object', internal: true },
+  },
   semantics: null,
 });
