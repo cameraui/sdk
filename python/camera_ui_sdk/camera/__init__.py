@@ -74,6 +74,11 @@ from .frames import (
     CameraFrameWorkerSettings,
     SnapshotSettings,
 )
+from .recording import (
+    CameraRecordingSettings,
+    RecordingMode,
+    RecordingSource,
+)
 from .streaming import (
     AudioCodecProperties,
     AudioStreamInfo,
@@ -149,6 +154,9 @@ __all__ = [
     "SensorTriggerSettings",
     "PtzAutotrackSettings",
     "CameraDetectionSettings",
+    "CameraRecordingSettings",
+    "RecordingMode",
+    "RecordingSource",
     "SnapshotSettings",
     # Config
     "CameraInformation",

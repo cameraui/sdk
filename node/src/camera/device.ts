@@ -5,6 +5,7 @@ import type { DeviceStorage, JsonSchema } from '../storage/index.js';
 import type { LoggerService } from '../types.js';
 import type { Camera, CameraInformation, CameraInput, CameraPluginInfo, CameraUiSettings } from './config.js';
 import type { CameraDetectionSettings, DetectionLine, DetectionZone, PtzAutotrackSettings } from './detection.js';
+import type { CameraRecordingSettings } from './recording.js';
 import type { CameraType, DetectionEventType } from './enums.js';
 import type { DetectionEvent } from './events.js';
 import type { CameraFrameWorkerSettings, SnapshotSettings } from './frames.js';
@@ -116,6 +117,8 @@ export interface CameraDevice {
   readonly detectionSettings: CameraDetectionSettings;
   /** PTZ autotracking settings */
   readonly ptzAutotrack: PtzAutotrackSettings;
+  /** Recording settings */
+  readonly recordingSettings: CameraRecordingSettings;
   /** Whether detections are snoozed (paused) */
   readonly snooze: boolean;
   /** Frame worker settings */

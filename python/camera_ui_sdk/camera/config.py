@@ -17,6 +17,7 @@ from .enums import (
     VideoStreamingMode,
 )
 from .frames import CameraFrameWorkerSettings, SnapshotSettings
+from .recording import CameraRecordingSettings
 from .streaming import StreamUrls
 
 
@@ -218,6 +219,8 @@ class BaseCamera(TypedDict):
     """Detection settings."""
     ptzAutotrack: PtzAutotrackSettings
     """PTZ autotracking settings."""
+    recordingSettings: CameraRecordingSettings
+    """Recording settings."""
     frameWorkerSettings: CameraFrameWorkerSettings
     """Frame worker settings."""
     interfaceSettings: CameraUiSettings
@@ -250,7 +253,7 @@ CameraPublicProperties = Literal[
     "ptzAutotrack",
     "frameWorkerSettings",
     "interfaceSettings",
-    "recording",
+    "recordingSettings",
     "plugins",
     "assignments",
     "sources",

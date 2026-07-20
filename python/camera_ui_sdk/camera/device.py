@@ -21,6 +21,7 @@ from .detection import CameraDetectionSettings, DetectionLine, DetectionZone, Pt
 from .enums import CameraRole, CameraType
 from .events import DetectionEventPayload
 from .frames import CameraFrameWorkerSettings, SnapshotSettings
+from .recording import CameraRecordingSettings
 from .streaming import (
     ProbeConfig,
     ProbeStream,
@@ -194,6 +195,11 @@ class CameraDevice(Protocol):
     @property
     def ptzAutotrack(self) -> PtzAutotrackSettings:
         """PTZ autotracking settings."""
+        ...
+
+    @property
+    def recordingSettings(self) -> CameraRecordingSettings:
+        """Recording settings."""
         ...
 
     @property

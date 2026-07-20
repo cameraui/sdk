@@ -25,7 +25,9 @@ class LicensePlateDetection(Detection):
 
     attribute: Literal["license_plate"]  # type: ignore[misc]  # Sub-detection attribute, fixed to "license_plate"
     plateText: str  # Recognized plate text (e.g. "ABC 1234")
-    ocrConfidence: NotRequired[float]  # Average text recognition confidence (0-1), separate from the box confidence
+    ocrConfidence: NotRequired[
+        float
+    ]  # Average text recognition confidence (0-1), separate from the box confidence
 
 
 class LicensePlateSensorProperties(TypedDict):
