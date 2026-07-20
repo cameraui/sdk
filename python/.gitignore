@@ -44,3 +44,5 @@ requirements-lock.txt
 
 # MkDocs build output
 /site
+
+/build
