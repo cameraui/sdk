@@ -24,6 +24,8 @@ export interface LicensePlateDetection extends Detection {
   attribute: 'license_plate';
   /** Recognized plate text (e.g. `"ABC 1234"`). */
   plateText: string;
+  /** Average text recognition confidence (0-1), separate from the box confidence. */
+  ocrConfidence?: number;
 }
 
 /**

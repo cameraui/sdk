@@ -92,6 +92,22 @@ class SensorTriggerRef(TypedDict):
     """Plugin ID that provides this sensor."""
 
 
+class FaceDetectionSettings(TypedDict):
+    """Face detection settings."""
+
+    confidence: NotRequired[float]
+    """Minimum confidence threshold (0 - 1) for a face to count."""
+
+
+class LicensePlateDetectionSettings(TypedDict):
+    """License plate detection settings."""
+
+    confidence: NotRequired[float]
+    """Minimum text recognition confidence (0 - 1) for a plate read to count."""
+    minLength: NotRequired[int]
+    """Minimum plate text length, shorter reads are dropped as fragments."""
+
+
 class SensorTriggerSettings(TypedDict):
     """Sensor trigger settings (contact, doorbell, switch, light, etc.)."""
 
@@ -139,6 +155,10 @@ class CameraDetectionSettings(TypedDict):
     """Object detection settings."""
     audio: AudioDetectionSettings
     """Audio detection settings."""
+    face: NotRequired[FaceDetectionSettings]
+    """Face detection settings."""
+    licensePlate: NotRequired[LicensePlateDetectionSettings]
+    """License plate detection settings."""
     sensor: SensorTriggerSettings
     """Sensor trigger settings."""
     cascadeDetection: NotRequired[bool]

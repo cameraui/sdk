@@ -97,6 +97,24 @@ export interface AudioDetectionSettings {
 }
 
 /**
+ * Face detection settings.
+ */
+export interface FaceDetectionSettings {
+  /** Minimum confidence threshold (0 - 1) for a face to count. */
+  confidence?: number;
+}
+
+/**
+ * License plate detection settings.
+ */
+export interface LicensePlateDetectionSettings {
+  /** Minimum text recognition confidence (0 - 1) for a plate read to count. */
+  confidence?: number;
+  /** Minimum plate text length, shorter reads are dropped as fragments. */
+  minLength?: number;
+}
+
+/**
  * PTZ autotracking settings — automatically follow detected objects.
  */
 export interface PtzAutotrackSettings {
@@ -144,6 +162,10 @@ export interface CameraDetectionSettings {
   object: ObjectDetectionSettings;
   /** Audio detection settings */
   audio: AudioDetectionSettings;
+  /** Face detection settings */
+  face?: FaceDetectionSettings;
+  /** License plate detection settings */
+  licensePlate?: LicensePlateDetectionSettings;
   /** Sensor trigger settings */
   sensor: SensorTriggerSettings;
   /** Whether the detection cascade is enabled */

@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections.abc import Mapping
 from enum import StrEnum
-from typing import Any, Generic, Literal, Protocol, overload, runtime_checkable
+from typing import Any, Generic, Literal, NotRequired, Protocol, overload, runtime_checkable
 
 from typing_extensions import TypedDict, TypeVar
 
@@ -25,6 +25,7 @@ class LicensePlateDetection(Detection):
 
     attribute: Literal["license_plate"]  # type: ignore[misc]  # Sub-detection attribute, fixed to "license_plate"
     plateText: str  # Recognized plate text (e.g. "ABC 1234")
+    ocrConfidence: NotRequired[float]  # Average text recognition confidence (0-1), separate from the box confidence
 
 
 class LicensePlateSensorProperties(TypedDict):
