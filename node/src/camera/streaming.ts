@@ -252,6 +252,8 @@ export interface RtpSessionOptions {
     width?: number;
     /** Output height */
     height?: number;
+    /** Maximum output bitrate in bits per second */
+    bitrate?: number;
     /** Additional encoder options */
     encoderOptions?: Record<string, string | number | boolean | undefined | null>;
   };
