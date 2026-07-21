@@ -26,8 +26,6 @@ export interface CameraInput {
   muted?: boolean;
   /** Generated streaming URLs */
   urls: StreamUrls;
-  /** Optional dedicated HomeKit/HKSV source URLs. */
-  homekitUrls?: StreamUrls;
   /** Child source ID (for snapshot fallback) */
   childSourceId?: string;
 }
