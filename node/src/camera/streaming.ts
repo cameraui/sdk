@@ -376,7 +376,7 @@ export interface Fmp4SessionOptions {
     width?: number;
     /** Output height */
     height?: number;
-    /** Maximum video bitrate in bits per second (VBV cap, applied on transcode only) */
+    /** Maximum video bitrate in bits per second */
     bitrate?: number;
     /** Additional encoder options */
     encoderOptions?: Record<string, string | number | boolean | undefined | null>;
