@@ -41,6 +41,7 @@ class SensorType(StrEnum):
     LicensePlate = "licensePlate"  # License plate detection and OCR
     Classifier = "classifier"  # General-purpose image classifier
     Clip = "clip"  # CLIP embedding sensor
+    ObjectAssist = "objectAssist"  # Object assist that locates objects in a frame so secondaries get real crops from camera-side detections
     Contact = "contact"  # Contact/open-close sensor (door, window)
     Humidity = "humidity"  # Humidity level sensor
     Leak = "leak"  # Water leak detection sensor

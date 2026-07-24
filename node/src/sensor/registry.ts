@@ -13,6 +13,7 @@ import { lightMeta } from './light.js';
 import { lockMeta } from './lock.js';
 import { motionMeta } from './motion.js';
 import { objectMeta } from './object.js';
+import { objectAssistMeta } from './objectAssist.js';
 import { occupancyMeta } from './occupancy.js';
 import { ptzMeta } from './ptz.js';
 import { securitySystemMeta } from './securitySystem.js';
@@ -41,6 +42,7 @@ export const SENSOR_META = [
   lockMeta,
   motionMeta,
   objectMeta,
+  objectAssistMeta,
   occupancyMeta,
   ptzMeta,
   securitySystemMeta,

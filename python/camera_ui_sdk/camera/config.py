@@ -145,6 +145,8 @@ class PluginAssignments(TypedDict, total=False):
     """Battery info plugin."""
     clip: AssignedPlugin
     """CLIP embedding plugin."""
+    objectAssist: AssignedPlugin
+    """Object assist plugin for camera-side detections."""
     cameraController: AssignedPlugin
     """Camera controller plugin."""
     light: list[AssignedPlugin]

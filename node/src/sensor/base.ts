@@ -72,6 +72,8 @@ export enum SensorType {
   Classifier = 'classifier',
   /** CLIP embedding generation for semantic search */
   Clip = 'clip',
+  /** Object assist that locates objects in a frame so secondaries get real crops from camera-side detections */
+  ObjectAssist = 'objectAssist',
 
   // Sensors — read-only state/environment sensors
   /** Contact/open-close sensor (door, window) */

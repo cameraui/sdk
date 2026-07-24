@@ -17,6 +17,7 @@ export * from './registry.js';
 export * from './lock.js';
 export * from './motion.js';
 export * from './object.js';
+export * from './objectAssist.js';
 export * from './occupancy.js';
 export * from './ptz.js';
 export * from './securitySystem.js';
