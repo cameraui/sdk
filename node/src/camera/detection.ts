@@ -94,6 +94,8 @@ export interface AudioDetectionSettings {
   minDecibels: number;
   /** Audio dwell time in seconds */
   timeout: number;
+  /** Minimum confidence threshold (0 - 1) for a labelled audio detection to count. */
+  confidence?: number;
 }
 
 /**

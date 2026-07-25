@@ -77,6 +77,8 @@ class AudioDetectionSettings(TypedDict):
     """Minimum volume threshold in dBFS (-100 to 0). Audio below this level is skipped."""
     timeout: int
     """Audio dwell time in seconds."""
+    confidence: NotRequired[float]
+    """Minimum confidence threshold (0 - 1) for a labelled audio detection to count."""
 
 
 class SensorTriggerRef(TypedDict):
