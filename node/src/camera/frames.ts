@@ -6,19 +6,7 @@
  * `auto` probes the platform order, `cpu` forces software decoding.
  */
 export type FrameWorkerDecoderHardware =
-  | 'auto'
-  | 'cpu'
-  | 'cuda'
-  | 'vaapi'
-  | 'qsv'
-  | 'videotoolbox'
-  | 'd3d11va'
-  | 'd3d12va'
-  | 'dxva2'
-  | 'vulkan'
-  | 'opencl'
-  | 'drm'
-  | 'rkmpp';
+  'auto' | 'cpu' | 'cuda' | 'vaapi' | 'qsv' | 'videotoolbox' | 'd3d11va' | 'd3d12va' | 'dxva2' | 'vulkan' | 'opencl' | 'drm' | 'rkmpp';
 
 /**
  * Decoder hardware selection for the frame worker.
