@@ -10,10 +10,12 @@ from .detection import (
     PtzAutotrackSettings,
 )
 from .enums import (
+    AudioCodec,
     CameraAspectRatio,
     CameraRole,
     CameraType,
     StreamingRole,
+    VideoCodec,
     VideoStreamingMode,
 )
 from .frames import CameraFrameWorkerSettings, SnapshotSettings
@@ -57,6 +59,12 @@ class CameraInput(TypedDict):
     """Strip the audio track from this source (defaults to False)."""
     urls: StreamUrls
     """Generated streaming URLs."""
+    videoCodec: NotRequired[VideoCodec]
+    """Probed video codec of this source. Filled by the server once the stream has been probed; absent until then."""
+    audioCodecs: NotRequired[list[AudioCodec]]
+    """Probed audio codecs of this source (camera to client, deduplicated, in track order). Filled by the server once the stream has been probed; absent until then."""
+    backchannelAudioCodec: NotRequired[AudioCodec]
+    """Probed talkback audio codec (client to camera). Present only when the probed source has a backchannel."""
     childSourceId: NotRequired[str]
     """Child source ID (for snapshot fallback)."""
 

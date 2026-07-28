@@ -2,7 +2,7 @@ import type { CameraInputSettings } from '../internal/camera-config-internal.js'
 import type { SENSOR_META } from '../sensor/registry.js';
 import type { CameraDetectionSettings, DetectionLine, DetectionZone, PtzAutotrackSettings } from './detection.js';
 import type { CameraRecordingSettings } from './recording.js';
-import type { CameraAspectRatio, CameraRole, CameraType, StreamingRole, VideoStreamingMode } from './enums.js';
+import type { AudioCodec, CameraAspectRatio, CameraRole, CameraType, StreamingRole, VideoCodec, VideoStreamingMode } from './enums.js';
 import type { CameraFrameWorkerSettings, SnapshotSettings } from './frames.js';
 import type { StreamUrls } from './streaming.js';
 
@@ -26,6 +26,12 @@ export interface CameraInput {
   muted?: boolean;
   /** Generated streaming URLs */
   urls: StreamUrls;
+  /** Probed video codec of this source. Filled by the server once the stream has been probed; absent until then. */
+  videoCodec?: VideoCodec;
+  /** Probed audio codecs of this source (camera to client, deduplicated, in track order). Filled by the server once the stream has been probed; absent until then. */
+  audioCodecs?: AudioCodec[];
+  /** Probed talkback audio codec (client to camera). Present only when the probed source has a backchannel. */
+  backchannelAudioCodec?: AudioCodec;
   /** Child source ID (for snapshot fallback) */
   childSourceId?: string;
 }
