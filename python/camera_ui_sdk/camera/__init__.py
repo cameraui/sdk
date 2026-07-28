@@ -72,6 +72,8 @@ from .events import (
 )
 from .frames import (
     CameraFrameWorkerSettings,
+    FrameWorkerDecoderHardware,
+    FrameWorkerDecoderSettings,
     SnapshotSettings,
 )
 from .recording import (
@@ -155,6 +157,8 @@ __all__ = [
     "PtzAutotrackSettings",
     "CameraDetectionSettings",
     "CameraRecordingSettings",
+    "FrameWorkerDecoderHardware",
+    "FrameWorkerDecoderSettings",
     "RecordingMode",
     "RecordingSource",
     "SnapshotSettings",
