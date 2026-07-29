@@ -2,7 +2,7 @@ import { Sensor, SensorType, SensorCategory } from './base.js';
 import { defineSensor } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
-import type { PropertyChangeOf, SensorLike } from './base.js';
+import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 import type { Detection, VideoFrameData } from './detection.js';
 import type { ModelSpec } from './spec.js';
 
@@ -64,8 +64,8 @@ export class ClassifierSensor<TStorage extends object = Record<string, any>> ext
 
   _requiresFrames = false;
 
-  constructor(name = 'Classifier') {
-    super(name);
+  constructor(name = 'Classifier', options?: SensorOptions) {
+    super(name, options);
 
     this._writeState({
       [ClassifierProperty.Detected]: false,

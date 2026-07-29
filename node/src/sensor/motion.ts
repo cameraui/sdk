@@ -2,7 +2,7 @@ import { Sensor, SensorType, SensorCategory } from './base.js';
 import { defineSensor } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
-import type { PropertyChangeOf, SensorLike } from './base.js';
+import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 import type { Detection, VideoFrameData } from './detection.js';
 
 /**
@@ -59,8 +59,8 @@ export class MotionSensor<TStorage extends object = Record<string, any>> extends
 
   override _requiresFrames = false;
 
-  constructor(name = 'Motion Sensor') {
-    super(name);
+  constructor(name = 'Motion Sensor', options?: SensorOptions) {
+    super(name, options);
 
     this._writeState({
       [MotionProperty.Detected]: false,

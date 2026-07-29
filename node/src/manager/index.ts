@@ -3,6 +3,7 @@ import type { Observable } from '../observable/index.js';
 import type { PluginInfo, PluginInterface } from '../plugin/contract.js';
 import type { BasePlugin, PluginInterfaces } from '../plugin/interfaces.js';
 import type { Notification } from '../plugin/notifier.js';
+import type { Sensor } from '../sensor/base.js';
 
 /**
  * Core manager event payload.
@@ -133,6 +134,53 @@ export interface DeviceManager {
    * @returns Camera device or undefined if not found
    */
   getCamera(cameraIdOrName: string): Promise<CameraDevice | undefined>;
+}
+
+/**
+ * Sensor manager interface for standalone sensors.
+ *
+ * Registers sensors as entities of their own: they persist across restarts,
+ * are assignable to any number of cameras by the user and exported once.
+ * `camera.addSensor()` shares this model and only adds the automatic initial
+ * assignment; use the manager directly for sensors that represent devices
+ * which are not part of a camera (an imported lock, an external motion
+ * sensor, ...).
+ *
+ * Accessed via `api.sensorManager` in plugins.
+ *
+ * @example
+ * ```typescript
+ * const lock = new LockControl('Front Door', { nativeId: 'lock.front_door' });
+ * await api.sensorManager.addSensor(lock);
+ * ```
+ */
+export interface SensorManager {
+  /**
+   * Register a standalone sensor with the host.
+   *
+   * The host reconciles it against the persisted entity by
+   * `(pluginId, nativeId)` — or `(type, name)` when no nativeId is set — and
+   * replaces the sensor's provisional `id` with the persistent entity id.
+   * Camera assignment is the user's decision and happens in the UI.
+   *
+   * @param sensor - Sensor instance to register
+   */
+  addSensor(sensor: Sensor<any, any, any>): Promise<void>;
+
+  /**
+   * Unregister a sensor. The persisted entity stays (shows disconnected)
+   * unless the user deletes it in the UI.
+   *
+   * @param sensor - Sensor instance to unregister
+   */
+  removeSensor(sensor: Sensor<any, any, any>): Promise<void>;
+
+  /**
+   * Get all sensors this plugin has registered in this session.
+   *
+   * @returns Sensor instances owned by this plugin
+   */
+  getSensors(): Sensor<any, any, any>[];
 }
 
 /**

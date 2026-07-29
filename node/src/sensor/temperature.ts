@@ -2,7 +2,7 @@ import { Sensor, SensorType, SensorCategory } from './base.js';
 import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
-import type { PropertyChangeOf, SensorLike } from './base.js';
+import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /**
  * Properties for temperature sensors
@@ -37,8 +37,8 @@ export class TemperatureInfo<TStorage extends object = Record<string, any>> exte
   readonly type = SensorType.Temperature;
   readonly category = SensorCategory.Info;
 
-  constructor(name = 'Temperature') {
-    super(name);
+  constructor(name = 'Temperature', options?: SensorOptions) {
+    super(name, options);
 
     this._writeState({ [TemperatureProperty.Current]: 20 });
   }

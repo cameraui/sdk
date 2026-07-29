@@ -2,7 +2,7 @@ import { Sensor, SensorType, SensorCategory } from './base.js';
 import { defineSensor } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
-import type { PropertyChangeOf, SensorLike } from './base.js';
+import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 import type { Detection, VideoFrameData } from './detection.js';
 import type { ModelSpec } from './spec.js';
 
@@ -60,8 +60,8 @@ export class LicensePlateSensor<TStorage extends object = Record<string, any>> e
   readonly type = SensorType.LicensePlate;
   readonly category = SensorCategory.Sensor;
 
-  constructor(name = 'License Plate Sensor') {
-    super(name);
+  constructor(name = 'License Plate Sensor', options?: SensorOptions) {
+    super(name, options);
 
     this._writeState({
       [LicensePlateProperty.Detected]: false,

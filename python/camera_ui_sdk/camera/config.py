@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Any, Literal, NotRequired, TypedDict
 
-from ..sensor.base import SensorType
 from .detection import (
     CameraDetectionSettings,
     DetectionLine,
@@ -269,15 +268,6 @@ CameraPublicProperties = Literal[
     "sources",
 ]
 """Camera public property names for observation."""
-
-
-class SensorEventData(TypedDict):
-    """Emitted when a sensor is added or removed."""
-
-    sensorId: str
-    """Sensor ID."""
-    sensorType: SensorType
-    """Sensor type."""
 
 
 class CameraPropertyObservableObject(TypedDict):

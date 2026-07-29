@@ -54,8 +54,6 @@ from .camera import (
     RecordingSource,
     RTSPAudioCodec,
     RTSPUrlOptions,
-    SensorEventData,
-    SensorTriggerRef,
     SensorTriggerSettings,
     SnapshotInterface,
     SnapshotSettings,
@@ -84,6 +82,7 @@ from .manager import (
     DownloadManager,
     DownloadToken,
     NotificationManager,
+    SensorManager,
 )
 from .observable import (
     BehaviorSubject,
@@ -330,7 +329,6 @@ __all__ = [
     "AudioDetectionSettings",
     "FaceDetectionSettings",
     "LicensePlateDetectionSettings",
-    "SensorTriggerRef",
     "SensorTriggerSettings",
     "CameraDetectionSettings",
     "Go2RtcWSSource",
@@ -358,7 +356,6 @@ __all__ = [
     "CameraDeviceSource",
     "CameraPublicProperties",
     "CameraPropertyObservableObject",
-    "SensorEventData",
     "DetectionEventPayload",
     # Sensor
     "SensorType",
@@ -468,6 +465,7 @@ __all__ = [
     # Manager
     "LoggerService",
     "DeviceManager",
+    "SensorManager",
     "CoreManager",
     "CoreManagerEvent",
     "DownloadManager",

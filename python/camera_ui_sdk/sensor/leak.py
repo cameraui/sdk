@@ -55,8 +55,8 @@ class LeakSensor(Sensor[LeakSensorProperties, TStorage, str], Generic[TStorage])
 
     _requires_frames = False
 
-    def __init__(self, name: str = "Leak Sensor") -> None:
-        super().__init__(name)
+    def __init__(self, name: str = "Leak Sensor", *, native_id: str | None = None) -> None:
+        super().__init__(name, native_id=native_id)
         self._write_state({LeakProperty.Detected.value: False})
 
     @property

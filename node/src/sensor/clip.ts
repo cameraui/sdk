@@ -1,6 +1,7 @@
 import { Sensor, SensorType, SensorCategory } from './base.js';
 import { defineSensor } from './meta.js';
 
+import type { SensorOptions } from './base.js';
 import type { BoundingBox, VideoFrameData } from './detection.js';
 import type { ModelSpec } from './spec.js';
 
@@ -32,8 +33,8 @@ export abstract class ClipDetectorSensor<TStorage extends object = Record<string
   readonly category = SensorCategory.Sensor;
   _requiresFrames = true;
 
-  constructor(name = 'CLIP Sensor') {
-    super(name);
+  constructor(name = 'CLIP Sensor', options?: SensorOptions) {
+    super(name, options);
   }
 
   /** Declares the expected input dimensions and trigger labels. */

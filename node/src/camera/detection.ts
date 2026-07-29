@@ -1,20 +1,5 @@
-import type { SensorType } from '../sensor/base.js';
 import type { DetectionLabel } from '../sensor/detection.js';
 import type { LineDirection, MotionResolution, Point, ZoneFilter, ZoneType } from './enums.js';
-
-/**
- * Stable reference to a sensor for cascade trigger configuration.
- * Uses composite key (sensorType + sensorName + pluginId) instead of UUID
- * so references survive plugin restarts.
- */
-export interface SensorTriggerRef {
-  /** Sensor type (e.g. 'contact', 'doorbell') */
-  sensorType: SensorType;
-  /** Sensor name (stable across restarts) */
-  sensorName: string;
-  /** Plugin ID that provides this sensor */
-  pluginId: string;
-}
 
 /**
  * Sensor trigger settings (contact, doorbell, switch, light, etc.).
@@ -22,8 +7,8 @@ export interface SensorTriggerRef {
 export interface SensorTriggerSettings {
   /** Sensor trigger timeout in seconds */
   timeout: number;
-  /** Sensors that also trigger the detection cascade (in addition to motion/audio) */
-  triggers: SensorTriggerRef[];
+  /** Persistent sensor ids that also trigger the detection cascade (in addition to motion/audio) */
+  triggers: string[];
 }
 
 /**

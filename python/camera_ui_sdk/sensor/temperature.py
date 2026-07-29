@@ -55,8 +55,8 @@ class TemperatureInfo(Sensor[TemperatureInfoProperties, TStorage, str], Generic[
 
     _requires_frames = False
 
-    def __init__(self, name: str = "Temperature") -> None:
-        super().__init__(name)
+    def __init__(self, name: str = "Temperature", *, native_id: str | None = None) -> None:
+        super().__init__(name, native_id=native_id)
         self._write_state({TemperatureProperty.Current.value: 20})
 
     @property

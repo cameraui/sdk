@@ -1,4 +1,4 @@
-import type { CoreManager, DeviceManager, DownloadManager, NotificationManager } from '../manager/index.js';
+import type { CoreManager, DeviceManager, DownloadManager, NotificationManager, SensorManager } from '../manager/index.js';
 
 /**
  * Lifecycle events emitted on the PluginAPI EventEmitter. Plugins subscribe
@@ -49,6 +49,12 @@ export interface PluginAPI {
    *  camera-state changes.
    */
   readonly deviceManager: DeviceManager;
+  /**
+   * Registers standalone sensors: entities of their own, persisted across
+   *  restarts, assignable to cameras by the user. `camera.addSensor()`
+   *  delegates here with an automatic assignment.
+   */
+  readonly sensorManager: SensorManager;
   /**
    * Mints token-protected download URLs for files the plugin wants to
    *  expose to the UI (e.g. clip exports, snapshots).

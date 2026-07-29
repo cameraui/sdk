@@ -2,7 +2,7 @@ import { Sensor, SensorType, SensorCategory } from './base.js';
 import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
-import type { PropertyChangeOf, SensorLike } from './base.js';
+import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /**
  * Properties for occupancy sensors
@@ -37,8 +37,8 @@ export class OccupancySensor<TStorage extends object = Record<string, any>> exte
   readonly type = SensorType.Occupancy;
   readonly category = SensorCategory.Sensor;
 
-  constructor(name = 'Occupancy Sensor') {
-    super(name);
+  constructor(name = 'Occupancy Sensor', options?: SensorOptions) {
+    super(name, options);
 
     this._writeState({ [OccupancyProperty.Detected]: false });
   }

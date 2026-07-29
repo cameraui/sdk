@@ -99,8 +99,8 @@ class MotionSensor(Sensor[MotionSensorProperties, TStorage, str], Generic[TStora
 
     _requires_frames = False
 
-    def __init__(self, name: str = "Motion Sensor") -> None:
-        super().__init__(name)
+    def __init__(self, name: str = "Motion Sensor", *, native_id: str | None = None) -> None:
+        super().__init__(name, native_id=native_id)
         self._write_state(
             {
                 MotionProperty.Detected.value: False,

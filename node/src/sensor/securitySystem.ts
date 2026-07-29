@@ -2,7 +2,7 @@ import { Sensor, SensorType, SensorCategory } from './base.js';
 import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
-import type { PropertyChangeOf, SensorLike } from './base.js';
+import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /** Security system arm/disarm states (HomeKit-compatible values) */
 export enum SecuritySystemState {
@@ -59,8 +59,8 @@ export class SecuritySystem<TStorage extends object = Record<string, any>> exten
   readonly type = SensorType.SecuritySystem;
   readonly category = SensorCategory.Control;
 
-  constructor(name = 'Security System') {
-    super(name);
+  constructor(name = 'Security System', options?: SensorOptions) {
+    super(name, options);
 
     this._writeState({
       [SecuritySystemProperty.CurrentState]: SecuritySystemState.Disarmed,

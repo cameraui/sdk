@@ -3,6 +3,7 @@ import type { DiscoveredCamera } from '../manager/index.js';
 import type { AudioFrameData } from '../sensor/audio.js';
 import type { ClassifierDetection } from '../sensor/classifier.js';
 import type { ClipEmbedding } from '../sensor/clip.js';
+import type { SensorLike } from '../sensor/base.js';
 import type { Detection, VideoFrameData } from '../sensor/detection.js';
 import type { FaceDetection } from '../sensor/face.js';
 import type { LicensePlateDetection } from '../sensor/licensePlate.js';
@@ -152,6 +153,35 @@ export abstract class BasePlugin<T extends Record<string, any> = Record<string, 
    * @param cameraId - ID of the camera that was released.
    */
   abstract onCameraReleased(cameraId: string): Promise<void>;
+
+  /**
+   * Called once on startup with every sensor this plugin may consume: sensors
+   * whose type is listed in `contract.consumes` and that are exposed. Each
+   * sensor carries `type`, `assignedCameraIds`, `exposed` and `connected`, so
+   * consumers decide rendering purely from that data. Optional, only bridge
+   * plugins implement this.
+   *
+   * @param sensors - Consumable sensors known at startup.
+   */
+  configureSensors?(sensors: SensorLike[]): Promise<void>;
+
+  /**
+   * Called when a sensor enters this plugin's consumable view at runtime: it
+   * was created, became exposed, or its type became consumable. Counterpart
+   * of `configureSensors` for single sensors.
+   *
+   * @param sensor - The sensor that appeared.
+   */
+  onSensorAdded?(sensor: SensorLike): Promise<void>;
+
+  /**
+   * Called when a sensor permanently leaves the consumable view: it was
+   * deleted or unexposed. Plugin connectivity does NOT fire this — watch
+   * `sensor.onConnectedChanged` for that.
+   *
+   * @param sensorId - Persistent id of the sensor that left.
+   */
+  onSensorReleased?(sensorId: string): Promise<void>;
 }
 
 /**

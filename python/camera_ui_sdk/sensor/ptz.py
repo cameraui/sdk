@@ -159,8 +159,8 @@ class PTZControl(Sensor[PTZControlProperties, TStorage, PTZCapability], Generic[
 
     _requires_frames = False
 
-    def __init__(self, name: str = "PTZ") -> None:
-        super().__init__(name)
+    def __init__(self, name: str = "PTZ", *, native_id: str | None = None) -> None:
+        super().__init__(name, native_id=native_id)
         self._write_state(
             {
                 PTZProperty.Position.value: {"pan": 0, "tilt": 0, "zoom": 0},

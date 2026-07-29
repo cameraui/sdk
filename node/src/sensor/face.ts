@@ -2,7 +2,7 @@ import { Sensor, SensorType, SensorCategory } from './base.js';
 import { defineSensor } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
-import type { PropertyChangeOf, SensorLike } from './base.js';
+import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 import type { Detection, VideoFrameData } from './detection.js';
 import type { ModelSpec } from './spec.js';
 
@@ -62,8 +62,8 @@ export class FaceSensor<TStorage extends object = Record<string, any>> extends S
   readonly type = SensorType.Face;
   readonly category = SensorCategory.Sensor;
 
-  constructor(name = 'Face Sensor') {
-    super(name);
+  constructor(name = 'Face Sensor', options?: SensorOptions) {
+    super(name, options);
 
     this._writeState({
       [FaceProperty.Detected]: false,

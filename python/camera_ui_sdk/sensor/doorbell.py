@@ -66,8 +66,8 @@ class DoorbellTrigger(Sensor[DoorbellTriggerProperties, TStorage, str], Generic[
 
     _requires_frames = False
 
-    def __init__(self, name: str = "Doorbell") -> None:
-        super().__init__(name)
+    def __init__(self, name: str = "Doorbell", *, native_id: str | None = None) -> None:
+        super().__init__(name, native_id=native_id)
         self._ring_reset_timer: threading.Timer | None = None
         self._write_state({DoorbellProperty.Ring.value: False})
 

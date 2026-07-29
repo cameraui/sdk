@@ -2,7 +2,7 @@ import { Sensor, SensorType, SensorCategory } from './base.js';
 import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
-import type { PropertyChangeOf, SensorLike } from './base.js';
+import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /**
  * Properties for switch controls
@@ -42,8 +42,8 @@ export class SwitchControl<TStorage extends object = Record<string, any>> extend
   readonly type = SensorType.Switch;
   readonly category = SensorCategory.Control;
 
-  constructor(name = 'Switch') {
-    super(name);
+  constructor(name = 'Switch', options?: SensorOptions) {
+    super(name, options);
 
     this._writeState({ [SwitchProperty.On]: false });
   }

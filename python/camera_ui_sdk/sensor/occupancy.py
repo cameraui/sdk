@@ -55,8 +55,8 @@ class OccupancySensor(Sensor[OccupancySensorProperties, TStorage, str], Generic[
 
     _requires_frames = False
 
-    def __init__(self, name: str = "Occupancy Sensor") -> None:
-        super().__init__(name)
+    def __init__(self, name: str = "Occupancy Sensor", *, native_id: str | None = None) -> None:
+        super().__init__(name, native_id=native_id)
         self._write_state({OccupancyProperty.Detected.value: False})
 
     @property

@@ -56,7 +56,6 @@ if TYPE_CHECKING:
 class PropertyChangedEvent(TypedDict):
     """Emitted when a sensor property value changes."""
 
-    cameraId: str
     sensorId: str
     sensorType: SensorType
     property: str
@@ -69,7 +68,6 @@ class PropertyChangedEvent(TypedDict):
 # Receives a partial-state delta (only properties that actually changed). One callback
 # invocation per `_writeState` call — atomic from the receiver's perspective.
 PropertyUpdateFn = Callable[[dict[str, Any]], None]
-PropertyChangeListener = Callable[[PropertyChangedEvent], None]
 CapabilityUpdateFn = Callable[[list[str]], None]
 
 
@@ -81,7 +79,7 @@ class SensorJSON(TypedDict):
     name: str
     displayName: str
     category: SensorCategory
-    cameraId: str
+    nativeId: NotRequired[str]
     pluginId: NotRequired[str]
     properties: dict[str, Any]
     capabilities: NotRequired[list[str]]

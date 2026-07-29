@@ -74,8 +74,8 @@ class FaceSensor(Sensor[FaceSensorProperties, TStorage, str], Generic[TStorage])
 
     _requires_frames = False
 
-    def __init__(self, name: str = "Face Sensor") -> None:
-        super().__init__(name)
+    def __init__(self, name: str = "Face Sensor", *, native_id: str | None = None) -> None:
+        super().__init__(name, native_id=native_id)
         self._write_state(
             {
                 FaceProperty.Detected.value: False,

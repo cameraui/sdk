@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import time
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Mapping
@@ -19,8 +18,6 @@ from uuid import uuid4
 
 from ..internal.sensor_rpc import (
     CapabilityUpdateFn,
-    PropertyChangedEvent,
-    PropertyChangeListener,
     PropertyUpdateFn,
     SensorJSON,
 )
@@ -32,7 +29,13 @@ if TYPE_CHECKING:
 
 
 class SensorType(StrEnum):
-    """Type of sensor. Each maps to a smart-home concept (HomeKit service)."""
+    """Type of sensor. "Sensor" is camera.ui's umbrella term for the smallest
+    smart-home unit, like Home Assistant's "entity" or HomeKit's "service":
+    it covers measuring devices and controllable ones alike. The concrete
+    classes carry the real meaning (`LightControl`, `MotionSensor`, ...).
+    Plugins create sensors of these types, either standalone via the sensor
+    manager or attached to a camera via `camera.addSensor()`.
+    """
 
     Motion = "motion"  # Video-based motion detection
     Object = "object"  # Object detection (person, vehicle, animal, etc.)
@@ -92,14 +95,23 @@ class SensorLike(Protocol):
     @property
     def name(self) -> str: ...
     @property
+    def nativeId(self) -> str | None: ...
+    @property
     def pluginId(self) -> str | None: ...
     @property
     def capabilities(self) -> list[str]: ...
-
+    @property
+    def connected(self) -> bool: ...
     @property
     def displayName(self) -> str: ...
     @displayName.setter
     def displayName(self, value: str) -> None: ...
+    @property
+    def onPropertyChanged(self) -> Observable[Any]: ...
+    @property
+    def onCapabilitiesChanged(self) -> Observable[Any]: ...
+    @property
+    def onConnectedChanged(self) -> Observable[bool]: ...
 
     def getValue(self, property: str) -> Any | None:
         """Get the current value of a sensor property."""
@@ -122,11 +134,9 @@ class SensorLike(Protocol):
         """
         ...
 
-    @property
-    def onPropertyChanged(self) -> Observable[Any]: ...
-    @property
-    def onCapabilitiesChanged(self) -> Observable[Any]: ...
-    def hasCapability(self, capability: str) -> bool: ...
+    def hasCapability(self, capability: str) -> bool:
+        """Check whether this sensor has a given capability."""
+        ...
 
 
 TProperties = TypeVar("TProperties", bound=Mapping[str, Any])
@@ -170,26 +180,37 @@ class PropertiesProxy(Generic[TProperties]):
 
 
 class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
-    """Abstract base class for all sensors. Plugins extend this (or use specialized subclasses like MotionSensor, LightControl, etc.) to implement sensor logic."""
+    """Abstract base class for all sensors. Plugins extend this (or use specialized
+    subclasses like MotionSensor, LightControl, etc.) to implement sensor logic.
+
+    Sensors are standalone entities: the plugin supplies the durable identity
+    (``native_id``), everything else belongs to the user — camera assignments,
+    display name and whether the sensor is exported to HomeKit/HA/MQTT. A plugin
+    never decides where its sensor is used and never handles the export itself.
+    """
 
     _requires_frames: bool = False
 
-    def __init__(self, name: str) -> None:
-        self._camera_id: str | None = None
+    def __init__(self, name: str, *, native_id: str | None = None) -> None:
         self._name = name
-        self._id = str(uuid4())
+        self._id = str(
+            uuid4()
+        )  # provisional id, replaced by the host's persistent id at registration
+        self._native_id = native_id
         self._display_name = name
         self._plugin_id: str | None = None
+        self._assigned_camera_ids: list[str] = []
         self._capabilities: list[TCapability] = []
         self._property_changed_subject: Subject[SensorPropertyChangeData] = Subject()
         self._capabilities_changed_subject: Subject[list[TCapability]] = Subject()
-        self._detailed_listeners: set[PropertyChangeListener] = set()
-        self._assignment_changed_subject: Subject[bool] = Subject()
+        self._assignment_changed_subject: Subject[list[str]] = Subject()
+        self._connected_changed_subject: Subject[bool] = Subject()
 
         self._update_fn: PropertyUpdateFn | None = None
         self._capabilities_change_fn: Callable[[list[str]], None] | None = None
         self._storage: DeviceStorage[TStorage] | None = None
-        self._is_assigned: bool = False
+        self._registered: bool = False
+        self._active: bool = False
         self._properties_store: dict[str, Any] = {}
         self._properties_proxy: PropertiesProxy[TProperties] = PropertiesProxy(
             self._properties_store,
@@ -205,7 +226,14 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
 
     @property
     def id(self) -> str:
+        """The sensor's id. Provisional until registration; after ``addSensor``
+        the host replaces it with the persistent entity id, stable across restarts."""
         return self._id
+
+    @property
+    def nativeId(self) -> str | None:
+        """Plugin-supplied durable identity (e.g. an upstream device id), if any."""
+        return self._native_id
 
     @property
     def name(self) -> str:
@@ -234,8 +262,14 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         return self._plugin_id
 
     @property
-    def cameraId(self) -> str | None:
-        return self._camera_id
+    def assignedCameraIds(self) -> list[str]:
+        """Cameras this sensor is currently assigned to. Empty for unassigned standalone sensors."""
+        return self._assigned_camera_ids.copy()
+
+    @property
+    def connected(self) -> bool:
+        """The owning side of a sensor is connected exactly while it is registered."""
+        return self._registered
 
     @property
     def capabilities(self) -> list[TCapability]:
@@ -261,12 +295,15 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
     @property
     def storage(self) -> DeviceStorage[TStorage]:
         """Per-sensor persistent storage. Raises if not yet added to a camera."""
-        assert self._storage is not None, "Storage not initialized - sensor not added to camera yet"
+        assert self._storage is not None, (
+            "Storage not initialized - sensor not registered yet"
+        )
         return self._storage
 
     @property
     def isAssigned(self) -> bool:
-        return self._is_assigned
+        """Whether this sensor is assigned to at least one camera."""
+        return len(self._assigned_camera_ids) > 0
 
     @property
     def props(self) -> PropertiesProxy[TProperties]:
@@ -350,64 +387,51 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
     def _setStorage(self, storage: DeviceStorage[TStorage]) -> None:
         self._storage = storage
 
-    def on_assigned(self) -> Any:
-        """Lifecycle hook: the sensor just became assigned to a camera.
-
-        Override to start background work that should only run while this
-        sensor is live — polling loops, event subscriptions, timers, external
-        connections.
-
-        Called AFTER ``cameraId``, ``storage``, and RPC channels are wired up,
-        so the override can safely access ``self.cameraId``, ``self.storage``,
-        and publish properties via the semantic helper methods.
+    def on_start(self) -> Any:
+        """Lifecycle hook: the sensor is registered and live (storage and RPC
+        are wired up). Override to start background work whose lifetime matches
+        the sensor's — polling loops, event subscriptions, timers. Sensors that
+        only receive writes from the plugin's own connections need no hook at all.
 
         May be either a plain ``def`` or an ``async def``. If async, the SDK
         schedules it on the running event loop (fire-and-forget). Errors are
-        caught and swallowed — they will NOT break assignment bookkeeping.
+        caught and swallowed — they will NOT break lifecycle bookkeeping, but
+        nothing surfaces them either. If your work can fail, handle it inside
+        the override.
 
-        Paired 1:1 with ``on_deassigned`` — for every ``on_assigned`` call
-        there is exactly one matching ``on_deassigned`` later (on deassignment
-        or cleanup).
-
-        Default: no-op. Most sensors don't need lifecycle hooks.
+        Paired 1:1 with ``on_stop`` — for every ``on_start`` call there is
+        exactly one matching ``on_stop`` later (on removal, plugin shutdown or
+        cleanup).
 
         Example:
             ```python
-            async def on_assigned(self) -> None:
+            async def on_start(self) -> None:
                 self._task = asyncio.create_task(self._poll_loop())
             ```
         """
         return None
 
-    def on_deassigned(self) -> Any:
-        """Lifecycle hook: the sensor is being deassigned.
-
-        Override to tear down whatever was started in ``on_assigned`` — clear
+    def on_stop(self) -> Any:
+        """Counterpart of ``on_start``: tear down whatever it started — clear
         timers, close subscriptions, release external resources.
 
-        Always called exactly once for each prior ``on_assigned``. Also called
-        from ``_cleanup`` if the sensor is being removed while still assigned,
-        so you can rely on this as the single teardown point.
-
-        May be either a plain ``def`` or an ``async def``. See ``on_assigned``
+        May be either a plain ``def`` or an ``async def``. See ``on_start``
         for scheduling semantics.
-
-        Default: no-op.
 
         Example:
             ```python
-            def on_deassigned(self) -> None:
+            def on_stop(self) -> None:
                 if self._task:
                     self._task.cancel()
             ```
         """
         return None
 
-    def _fire_lifecycle(self, assigned: bool) -> None:
+    def _fire_lifecycle(self, active: bool) -> None:
         """Internal helper — invoke the appropriate lifecycle hook and, if the
         override returned a coroutine, schedule it on the running loop."""
         try:
-            result = self.on_assigned() if assigned else self.on_deassigned()
+            result = self.on_start() if active else self.on_stop()
         except Exception:  # noqa: BLE001 - lifecycle errors must not break bookkeeping
             return
         if asyncio.iscoroutine(result):
@@ -421,19 +445,26 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
             task = loop.create_task(result)
             # Swallow exceptions from async lifecycle work so they don't
             # surface as "Task exception was never retrieved" warnings.
-            task.add_done_callback(lambda t: t.exception() if not t.cancelled() else None)
+            task.add_done_callback(
+                lambda t: t.exception() if not t.cancelled() else None
+            )
 
-    def _setAssigned(self, assigned: bool) -> None:
-        if self._is_assigned == assigned:
+    def _setActive(self, active: bool) -> None:
+        if self._active == active:
             return
-        self._is_assigned = assigned
-        self._assignment_changed_subject.next(assigned)
-        self._fire_lifecycle(assigned)
+        self._active = active
+        self._connected_changed_subject.next(active)
+        self._fire_lifecycle(active)
 
     @property
-    def onAssignmentChanged(self) -> Observable[bool]:
-        """Observable for assignment state changes (sensor added/removed from camera)."""
+    def onAssignmentChanged(self) -> Observable[list[str]]:
+        """Observable for assignment changes. Emits the current camera id list."""
         return self._assignment_changed_subject.as_observable()
+
+    @property
+    def onConnectedChanged(self) -> Observable[bool]:
+        """Observable for connectivity changes of the owning plugin."""
+        return self._connected_changed_subject.as_observable()
 
     def toJSON(self) -> SensorJSON:
         """Serialize this sensor to a JSON-safe dict for RPC transport."""
@@ -443,22 +474,27 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
             "name": self.name,
             "displayName": self.displayName or self.name,
             "category": self.category,
-            "cameraId": self._camera_id or "",
             "properties": self._getProperties(),
             "capabilities": [str(c) for c in self.capabilities],
             "requiresFrames": self._requires_frames,
         }
+        if self._native_id:
+            result["nativeId"] = self._native_id
         if self._plugin_id:
             result["pluginId"] = self._plugin_id
         return result
 
-    def _setPropertyInternal(self, key: str, value: Any, timestamp: int | None = None) -> None:
+    def _setPropertyInternal(
+        self, key: str, value: Any, timestamp: int | None = None
+    ) -> None:
         old_value = self._properties_store.get(key)
         if old_value != value:
             self._properties_store[key] = value
             self._notifyListeners(key, value, old_value, timestamp)
 
-    def _onBackendPropertyChanged(self, property: str, value: Any, timestamp: int | None = None) -> None:
+    def _onBackendPropertyChanged(
+        self, property: str, value: Any, timestamp: int | None = None
+    ) -> None:
         self._setPropertyInternal(property, value, timestamp)
 
     def getValue(self, property: str) -> Any | None:
@@ -502,59 +538,59 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         return self._property_changed_subject.as_observable()
 
     def _notifyListeners(
-        self, property: str, value: Any, previousValue: Any, timestamp: int | None = None
+        self,
+        property: str,
+        value: Any,
+        previousValue: Any,
+        timestamp: int | None = None,
     ) -> None:
-        if not self._camera_id:
+        # skip constructor-time writes, listeners only matter once registered
+        if not self._registered:
             return
 
         ts = timestamp or int(time.time() * 1000)
-        if self._detailed_listeners:
-            event: PropertyChangedEvent = {
-                "cameraId": self._camera_id,
-                "sensorId": self._id,
-                "sensorType": self.type,
-                "property": property,
-                "value": value,
-                "previousValue": previousValue,
-                "timestamp": ts,
-            }
-            for detailed_listener in self._detailed_listeners:
-                with contextlib.suppress(Exception):
-                    detailed_listener(event)
-        self._property_changed_subject.next({"property": property, "value": value, "timestamp": ts})
+        self._property_changed_subject.next(
+            {"property": property, "value": value, "timestamp": ts}
+        )
 
     @property
     def onCapabilitiesChanged(self) -> Observable[list[TCapability]]:
         """Observable for capability changes. Emits the full capabilities array when capabilities change."""
         return self._capabilities_changed_subject.as_observable()
 
-    def _setCameraId(self, camera_id: str) -> None:
-        self._camera_id = camera_id
+    def _setId(self, id: str) -> None:
+        self._id = id
+
+    def _setAssignedCameras(self, camera_ids: list[str]) -> None:
+        self._assigned_camera_ids = list(camera_ids)
+        self._assignment_changed_subject.next(self._assigned_camera_ids.copy())
 
     def _setPluginId(self, plugin_id: str) -> None:
         self._plugin_id = plugin_id
 
     def _init(self, update_fn: PropertyUpdateFn) -> None:
         self._update_fn = update_fn
+        self._registered = True
 
     def _initCapabilities(self, update_fn: CapabilityUpdateFn) -> None:
         self._capabilities_change_fn = update_fn
 
     def _cleanup(self) -> None:
-        # Trigger on_deassigned if we're still assigned — guarantees the hook
-        # is paired 1:1 even when the sensor is force-removed without going
-        # through a proper deassignment path.
-        if self._is_assigned:
-            self._is_assigned = False
+        # Trigger on_stop if still active — guarantees the hook is paired 1:1
+        # even when the sensor is force-removed without a proper teardown path.
+        if self._active:
+            self._active = False
             self._fire_lifecycle(False)
 
         self._update_fn = None
         self._capabilities_change_fn = None
         self._storage = None
-        self._detailed_listeners.clear()
+        self._registered = False
+        self._assigned_camera_ids = []
         self._property_changed_subject.complete()
         self._capabilities_changed_subject.complete()
         self._assignment_changed_subject.complete()
+        self._connected_changed_subject.complete()
 
     def _getProperties(self) -> dict[str, Any]:
         return self._properties_store.copy()

@@ -5,7 +5,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
-    from ..manager import CoreManager, DeviceManager, DownloadManager, NotificationManager
+    from ..manager import CoreManager, DeviceManager, DownloadManager, NotificationManager, SensorManager
 
 APIListener = Callable[[], None] | Callable[[], Awaitable[None]]
 """Listener for plugin lifecycle events. May be a plain callable or a
@@ -61,6 +61,12 @@ class PluginAPI(Protocol):
     def deviceManager(self) -> DeviceManager:
         """Owns the camera devices assigned to this plugin and publishes
         camera-state changes."""
+        ...
+
+    @property
+    def sensorManager(self) -> SensorManager:
+        """Registers standalone sensors (devices without a camera) and holds
+        the sensors this plugin provides in this session."""
         ...
 
     @property

@@ -94,8 +94,8 @@ class BatteryInfo(Sensor[BatteryInfoProperties, TStorage, BatteryCapability], Ge
 
     _requires_frames = False
 
-    def __init__(self, name: str = "Battery") -> None:
-        super().__init__(name)
+    def __init__(self, name: str = "Battery", *, native_id: str | None = None) -> None:
+        super().__init__(name, native_id=native_id)
         self._write_state(
             {
                 BatteryProperty.Level.value: 100,

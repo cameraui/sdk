@@ -2,7 +2,7 @@ import { Sensor, SensorType, SensorCategory } from './base.js';
 import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
-import type { PropertyChangeOf, SensorLike } from './base.js';
+import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /**
  * Properties for humidity sensors
@@ -37,8 +37,8 @@ export class HumidityInfo<TStorage extends object = Record<string, any>> extends
   readonly type = SensorType.Humidity;
   readonly category = SensorCategory.Info;
 
-  constructor(name = 'Humidity') {
-    super(name);
+  constructor(name = 'Humidity', options?: SensorOptions) {
+    super(name, options);
 
     this._writeState({ [HumidityProperty.Current]: 50 });
   }

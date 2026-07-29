@@ -14,7 +14,6 @@ from .config import (
     CameraPublicProperties,
     CameraUiSettings,
     PluginAssignments,
-    SensorEventData,
 )
 from .detection import (
     AudioDetectionSettings,
@@ -26,7 +25,6 @@ from .detection import (
     MotionDetectionSettings,
     ObjectDetectionSettings,
     PtzAutotrackSettings,
-    SensorTriggerRef,
     SensorTriggerSettings,
 )
 from .device import (
@@ -152,7 +150,6 @@ __all__ = [
     "AudioDetectionSettings",
     "FaceDetectionSettings",
     "LicensePlateDetectionSettings",
-    "SensorTriggerRef",
     "SensorTriggerSettings",
     "PtzAutotrackSettings",
     "CameraDetectionSettings",
@@ -178,7 +175,6 @@ __all__ = [
     "BaseCamera",
     "Camera",
     "CameraPublicProperties",
-    "SensorEventData",
     "CameraPropertyObservableObject",
     # Protocols
     "CameraSource",

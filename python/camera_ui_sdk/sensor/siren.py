@@ -75,8 +75,8 @@ class SirenControl(Sensor[SirenControlProperties, TStorage, SirenCapability], Ge
 
     _requires_frames = False
 
-    def __init__(self, name: str = "Siren") -> None:
-        super().__init__(name)
+    def __init__(self, name: str = "Siren", *, native_id: str | None = None) -> None:
+        super().__init__(name, native_id=native_id)
         self._write_state(
             {
                 SirenProperty.Active.value: False,

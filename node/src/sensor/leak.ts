@@ -2,7 +2,7 @@ import { Sensor, SensorType, SensorCategory } from './base.js';
 import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
-import type { PropertyChangeOf, SensorLike } from './base.js';
+import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /**
  * Properties for leak sensors
@@ -37,8 +37,8 @@ export class LeakSensor<TStorage extends object = Record<string, any>> extends S
   readonly type = SensorType.Leak;
   readonly category = SensorCategory.Sensor;
 
-  constructor(name = 'Leak Sensor') {
-    super(name);
+  constructor(name = 'Leak Sensor', options?: SensorOptions) {
+    super(name, options);
 
     this._writeState({ [LeakProperty.Detected]: false });
   }

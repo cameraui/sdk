@@ -7,6 +7,7 @@ if TYPE_CHECKING:
     from ..observable import Observable
     from ..plugin import BasePlugin, PluginInfo, PluginInterface
     from ..plugin.notifier import Notification
+    from ..sensor.base import Sensor
 
 
 class CoreManagerEvent(TypedDict):
@@ -116,6 +117,60 @@ class CoreManager(Protocol):
             ```python
             api.coreManager.onEvent.subscribe(lambda e: print(e["type"], e["data"]))
             ```
+        """
+        ...
+
+
+@runtime_checkable
+class SensorManager(Protocol):
+    """
+    Sensor manager for standalone sensors — devices that are not part of a
+    camera's hardware (smart plugs, imported smart-home devices, hubs).
+
+    The host persists each sensor as its own entity: the user assigns it to
+    cameras, renames it and decides whether it is exported to HomeKit/HA/MQTT.
+    Sensors that belong to a camera's hardware are registered via
+    ``camera.addSensor()`` instead.
+
+    Accessed via `api.sensorManager` in plugins.
+
+    Example:
+        ```python
+        light = LightControl("Hue Bloom", native_id="hue:00:17:88:01")
+        await api.sensorManager.addSensor(light)
+        ```
+    """
+
+    async def addSensor(self, sensor: Sensor[Any, Any, Any]) -> None:
+        """
+        Register a standalone sensor with the host.
+
+        The host reconciles it against the persisted entity by
+        ``(pluginId, nativeId)`` — or ``(type, name)`` when no native_id is
+        set — and replaces the sensor's provisional ``id`` with the persistent
+        entity id. Camera assignment is the user's decision and happens in the UI.
+
+        Args:
+            sensor: Sensor instance to register
+        """
+        ...
+
+    async def removeSensor(self, sensor: Sensor[Any, Any, Any]) -> None:
+        """
+        Unregister a sensor. The persisted entity stays (shows disconnected)
+        unless the user deletes it in the UI.
+
+        Args:
+            sensor: Sensor instance to unregister
+        """
+        ...
+
+    def getSensors(self) -> list[Sensor[Any, Any, Any]]:
+        """
+        Get all sensors this plugin has registered in this session.
+
+        Returns:
+            Sensor instances owned by this plugin
         """
         ...
 
@@ -355,6 +410,7 @@ __all__ = [
     "DeviceManager",
     "DownloadManager",
     "NotificationManager",
+    "SensorManager",
     # Signed request
     # Download types
     "CreateDownloadOptions",

@@ -2,7 +2,7 @@ import { Sensor, SensorType, SensorCategory } from './base.js';
 import { defineSensor } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
-import type { PropertyChangeOf, SensorLike } from './base.js';
+import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 import type { Detection, DetectionLabel, VideoFrameData } from './detection.js';
 import type { ObjectModelSpec } from './spec.js';
 
@@ -75,8 +75,8 @@ export class ObjectSensor<TStorage extends object = Record<string, any>> extends
 
   _requiresFrames = false;
 
-  constructor(name = 'Object Sensor') {
-    super(name);
+  constructor(name = 'Object Sensor', options?: SensorOptions) {
+    super(name, options);
 
     this._writeState({
       [ObjectProperty.Detected]: false,

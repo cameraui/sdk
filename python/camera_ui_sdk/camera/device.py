@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Protocol, TypeAlias, runtime_checkable
 
 if TYPE_CHECKING:
-    from ..observable import Disposable, Observable
-    from ..sensor.base import Sensor, SensorLike, SensorType
+    from ..observable import Observable
+    from ..sensor.base import Sensor
     from ..storage import DeviceStorage, JsonSchema
     from ..types import LoggerService
 
@@ -15,7 +14,6 @@ from .config import (
     CameraPropertyObservableObject,
     CameraPublicProperties,
     CameraUiSettings,
-    SensorEventData,
 )
 from .detection import CameraDetectionSettings, DetectionLine, DetectionZone, PtzAutotrackSettings
 from .enums import CameraRole, CameraType
@@ -314,73 +312,24 @@ class CameraDevice(Protocol):
         """
         ...
 
-    def getSensors(self) -> list[SensorLike]:
-        """Get all sensors attached to this camera (owned + foreign)."""
-        ...
-
-    def getSensor(self, sensorId: str) -> SensorLike | None:
-        """Get sensor by ID (checks owned and foreign sensors)."""
-        ...
-
-    def getSensorsByType(self, sensorType: SensorType) -> list[SensorLike]:
-        """Get all sensors of a specific type (owned + foreign)."""
-        ...
-
-    def onSensorProperty(
-        self,
-        sensor_type: SensorType,
-        property: str,
-        callback: Callable[[Any, int, SensorLike], None],
-    ) -> Disposable:
-        """
-        Subscribe to a specific property on a sensor type with full lifecycle management.
-        Automatically subscribes/unsubscribes when sensors of the given type are added/removed.
-
-        Args:
-            sensor_type: The sensor type to watch.
-            property: The property name to observe.
-            callback: Called with (value, timestamp_ms, sensor) when the property changes.
-
-        Returns:
-            Disposable to stop all subscriptions.
-        """
-        ...
-
     async def addSensor(self, sensor: Sensor[Any, Any, Any]) -> None:
         """
-        Add a sensor to this camera.
+        Register a sensor that belongs to this camera's hardware (spotlight,
+        siren, PTZ, battery, ...). The host assigns it to this camera and
+        reconciles it across restarts like a standalone sensor.
 
         Args:
-            sensor: Sensor instance to add.
+            sensor: Sensor instance to register.
         """
         ...
 
     async def removeSensor(self, sensorId: str) -> None:
         """
-        Remove a sensor from this camera.
+        Unregister a sensor this plugin registered on this camera. The
+        persisted entity stays (shows disconnected) unless the user deletes it.
 
         Args:
-            sensorId: ID of sensor to remove.
-        """
-        ...
-
-    @property
-    def onSensorAdded(self) -> Observable[SensorEventData]:
-        """
-        Observable for sensor additions.
-
-        Emits for this plugin's own sensors and for other plugins' sensors whose type is
-        listed in contract.consumes. Also emits when such a sensor is activated for this camera.
-        """
-        ...
-
-    @property
-    def onSensorRemoved(self) -> Observable[SensorEventData]:
-        """
-        Observable for sensor removals.
-
-        Emits for this plugin's own sensors and for other plugins' sensors on this camera.
-        Also emits when a sensor is deactivated for this camera.
+            sensorId: ID of sensor to unregister.
         """
         ...
 

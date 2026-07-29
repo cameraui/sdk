@@ -38,8 +38,8 @@ class ClipDetectorSensor(Sensor[dict[str, Any], TStorage, str], Generic[TStorage
 
     _requires_frames = True
 
-    def __init__(self, name: str = "CLIP Sensor") -> None:
-        super().__init__(name)
+    def __init__(self, name: str = "CLIP Sensor", *, native_id: str | None = None) -> None:
+        super().__init__(name, native_id=native_id)
 
     @property
     def type(self) -> SensorType:

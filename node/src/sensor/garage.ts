@@ -2,7 +2,7 @@ import { Sensor, SensorType, SensorCategory } from './base.js';
 import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
-import type { PropertyChangeOf, SensorLike } from './base.js';
+import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /** Garage door states (HomeKit-compatible values) */
 export enum GarageState {
@@ -61,8 +61,8 @@ export class GarageControl<TStorage extends object = Record<string, any>> extend
   readonly type = SensorType.Garage;
   readonly category = SensorCategory.Control;
 
-  constructor(name = 'Garage') {
-    super(name);
+  constructor(name = 'Garage', options?: SensorOptions) {
+    super(name, options);
 
     this._writeState({
       [GarageProperty.CurrentState]: GarageState.Closed,

@@ -80,6 +80,7 @@ export interface SensorMeta {
   readonly multiProvider: boolean;
   readonly isDetectionType: boolean;
   readonly properties: Readonly<Record<string, SensorPropertySpec>>;
+  readonly cameraBound?: boolean;
   readonly shortcutable?: boolean;
   readonly cascadeTrigger?: SensorCascadeTrigger;
   readonly propertyCapabilities?: Readonly<Record<string, string>>;

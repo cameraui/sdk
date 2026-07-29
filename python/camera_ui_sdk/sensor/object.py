@@ -91,8 +91,8 @@ class ObjectSensor(Sensor[ObjectSensorProperties, TStorage, str], Generic[TStora
 
     _requires_frames = False
 
-    def __init__(self, name: str = "Object Sensor") -> None:
-        super().__init__(name)
+    def __init__(self, name: str = "Object Sensor", *, native_id: str | None = None) -> None:
+        super().__init__(name, native_id=native_id)
         self._write_state(
             {
                 ObjectProperty.Detected.value: False,

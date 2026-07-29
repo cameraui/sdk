@@ -2,7 +2,7 @@ import { Sensor, SensorType, SensorCategory } from './base.js';
 import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
-import type { PropertyChangeOf, SensorLike } from './base.js';
+import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /**
  * Properties for doorbell triggers
@@ -49,8 +49,8 @@ export class DoorbellTrigger<TStorage extends object = Record<string, any>> exte
 
   private _ringResetTimer?: ReturnType<typeof setTimeout>;
 
-  constructor(name = 'Doorbell') {
-    super(name);
+  constructor(name = 'Doorbell', options?: SensorOptions) {
+    super(name, options);
 
     this._writeState({ [DoorbellProperty.Ring]: false });
   }

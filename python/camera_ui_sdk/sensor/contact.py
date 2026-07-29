@@ -55,8 +55,8 @@ class ContactSensor(Sensor[ContactSensorProperties, TStorage, str], Generic[TSto
 
     _requires_frames = False
 
-    def __init__(self, name: str = "Contact Sensor") -> None:
-        super().__init__(name)
+    def __init__(self, name: str = "Contact Sensor", *, native_id: str | None = None) -> None:
+        super().__init__(name, native_id=native_id)
         self._write_state({ContactProperty.Detected.value: False})
 
     @property

@@ -2,7 +2,7 @@ import { Sensor, SensorType, SensorCategory } from './base.js';
 import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
-import type { PropertyChangeOf, SensorLike } from './base.js';
+import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /**
  * Properties for contact sensors
@@ -37,8 +37,8 @@ export class ContactSensor<TStorage extends object = Record<string, any>> extend
   readonly type = SensorType.Contact;
   readonly category = SensorCategory.Sensor;
 
-  constructor(name = 'Contact Sensor') {
-    super(name);
+  constructor(name = 'Contact Sensor', options?: SensorOptions) {
+    super(name, options);
 
     this._writeState({ [ContactProperty.Detected]: false });
   }

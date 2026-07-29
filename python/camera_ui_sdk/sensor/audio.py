@@ -107,8 +107,8 @@ class AudioSensor(Sensor[AudioSensorProperties, TStorage, str], Generic[TStorage
 
     _requires_frames = False
 
-    def __init__(self, name: str = "Audio Sensor") -> None:
-        super().__init__(name)
+    def __init__(self, name: str = "Audio Sensor", *, native_id: str | None = None) -> None:
+        super().__init__(name, native_id=native_id)
         self._write_state(
             {
                 AudioProperty.Detected.value: False,

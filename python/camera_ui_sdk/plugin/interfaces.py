@@ -23,6 +23,7 @@ from .api import PluginAPI
 if TYPE_CHECKING:
     from ..camera import CameraConfig, CameraDevice
     from ..manager import DiscoveredCamera
+    from ..sensor.base import SensorLike
     from ..storage import DeviceStorage, JsonSchemaWithoutCallbacks
     from ..types import LoggerService
 
@@ -192,6 +193,38 @@ class BasePlugin(ABC, Generic[StorageT]):
             cameraId: ID of the camera that was released.
         """
         ...
+
+    async def configureSensors(self, sensors: list[SensorLike]) -> None:
+        """Called once on startup with every sensor this plugin may consume:
+        sensors whose type is listed in ``contract.consumes`` and that are
+        exposed. Each sensor carries ``type``, ``assignedCameraIds``,
+        ``exposed`` and ``connected``, so consumers decide rendering purely
+        from that data. Optional, only bridge plugins override this.
+
+        Args:
+            sensors: Consumable sensors known at startup.
+        """
+        return None
+
+    async def onSensorAdded(self, sensor: SensorLike) -> None:
+        """Called when a sensor enters this plugin's consumable view at
+        runtime: it was created, became exposed, or its type became
+        consumable. Counterpart of :meth:`configureSensors` for single sensors.
+
+        Args:
+            sensor: The sensor that appeared.
+        """
+        return None
+
+    async def onSensorReleased(self, sensorId: str) -> None:
+        """Called when a sensor permanently leaves the consumable view: it
+        was deleted or unexposed. Plugin connectivity does NOT fire this —
+        watch ``sensor.onConnectedChanged`` for that.
+
+        Args:
+            sensorId: Persistent id of the sensor that left.
+        """
+        return None
 
 
 @runtime_checkable

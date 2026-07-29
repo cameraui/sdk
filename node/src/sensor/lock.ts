@@ -2,7 +2,7 @@ import { Sensor, SensorType, SensorCategory } from './base.js';
 import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
-import type { PropertyChangeOf, SensorLike } from './base.js';
+import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /** Lock states (HomeKit-compatible values) */
 export enum LockState {
@@ -55,8 +55,8 @@ export class LockControl<TStorage extends object = Record<string, any>> extends 
   readonly type = SensorType.Lock;
   readonly category = SensorCategory.Control;
 
-  constructor(name = 'Lock') {
-    super(name);
+  constructor(name = 'Lock', options?: SensorOptions) {
+    super(name, options);
 
     this._writeState({
       [LockProperty.CurrentState]: LockState.Secured,

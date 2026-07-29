@@ -22,11 +22,9 @@ if TYPE_CHECKING:
     from .sensor_rpc import (
         CapabilityUpdateFn,
         PropertyChangedEvent,
-        PropertyChangeListener,
         PropertyUpdateFn,
         SensorJSON,
     )
-    from .sensor_triggers import SENSOR_TRIGGER_TYPES
     from .shared_utils import is_equal
     from .streaming_internal import IceServer
 
@@ -39,13 +37,10 @@ __all__ = [
     # Sensor wire-format / RPC
     "SensorJSON",
     "PropertyChangedEvent",
-    "PropertyChangeListener",
     "PropertyUpdateFn",
     "CapabilityUpdateFn",
     # Camera wire-format
     "DetectionEventMessage",
-    # Sensor triggers
-    "SENSOR_TRIGGER_TYPES",
     # Streaming
     "IceServer",
     # Camera enums
@@ -65,11 +60,9 @@ _LAZY: dict[str, tuple[str, str]] = {
     "DiscoveredCameraWithState": (".manager_rpc", "DiscoveredCameraWithState"),
     "SensorJSON": (".sensor_rpc", "SensorJSON"),
     "PropertyChangedEvent": (".sensor_rpc", "PropertyChangedEvent"),
-    "PropertyChangeListener": (".sensor_rpc", "PropertyChangeListener"),
     "PropertyUpdateFn": (".sensor_rpc", "PropertyUpdateFn"),
     "CapabilityUpdateFn": (".sensor_rpc", "CapabilityUpdateFn"),
     "DetectionEventMessage": (".camera_wire", "DetectionEventMessage"),
-    "SENSOR_TRIGGER_TYPES": (".sensor_triggers", "SENSOR_TRIGGER_TYPES"),
     "IceServer": (".streaming_internal", "IceServer"),
     "FrameType": (".camera_enums", "FrameType"),
     "CameraFrameWorkerDecoder": (".camera_enums", "CameraFrameWorkerDecoder"),

@@ -1,6 +1,6 @@
 /* eslint-disable @stylistic/max-len */
-import type { Disposable, Observable } from '../observable/index.js';
-import type { Sensor, SensorLike, SensorType } from '../sensor/base.js';
+import type { Observable } from '../observable/index.js';
+import type { Sensor } from '../sensor/base.js';
 import type { DeviceStorage, JsonSchema } from '../storage/index.js';
 import type { LoggerService } from '../types.js';
 import type { Camera, CameraInformation, CameraInput, CameraPluginInfo, CameraUiSettings } from './config.js';
@@ -189,27 +189,6 @@ export interface CameraDevice {
    */
   onPropertyChange<T extends keyof Camera>(property: T | T[]): Observable<{ property: T; oldData: Camera[T]; newData: Camera[T] }>;
 
-  /** Get all sensors attached to this camera (owned + foreign). */
-  getSensors(): SensorLike[];
-  /** Get sensor by ID (checks owned and foreign sensors). */
-  getSensor(sensorId: string): SensorLike | undefined;
-  /** Get all sensors of a specific type (owned + foreign). */
-  getSensorsByType(type: SensorType): SensorLike[];
-
-  /**
-   * Subscribe to a specific property on a sensor type with full lifecycle management.
-   * Automatically subscribes/unsubscribes when sensors of the given type are added/removed.
-   *
-   * @param sensorType - The sensor type to watch
-   *
-   * @param property - The property name to observe
-   *
-   * @param callback - Called with the new value, timestamp (ms), and sensor when the property changes
-   *
-   * @returns Disposable to stop all subscriptions
-   */
-  onSensorProperty<T = unknown>(sensorType: SensorType, property: string, callback: (value: T, timestamp: number, sensor: SensorLike) => void): Disposable;
-
   /**
    * Add a sensor to this camera.
    *
@@ -223,12 +202,6 @@ export interface CameraDevice {
    * @param sensorId - ID of sensor to remove
    */
   removeSensor(sensorId: string): Promise<void>;
-
-  /** Observable for sensor additions. Emits for this plugin's own sensors and for other plugins' sensors whose type is listed in `contract.consumes`, also when such a sensor is activated for this camera. */
-  readonly onSensorAdded: Observable<{ sensorId: string; sensorType: SensorType }>;
-
-  /** Observable for sensor removals. Emits for this plugin's own sensors and for other plugins' sensors on this camera, also when a sensor is deactivated for this camera. */
-  readonly onSensorRemoved: Observable<{ sensorId: string; sensorType: SensorType }>;
 
   /** Observable for detection events (start/update/end/segment-*). Segments are only present on 'segment-*' messages; thumbnails are populated on 'segment-start' and 'segment-end'. */
   readonly onDetectionEvent: Observable<{ type: DetectionEventType; event: DetectionEvent }>;

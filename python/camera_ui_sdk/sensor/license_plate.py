@@ -77,8 +77,8 @@ class LicensePlateSensor(Sensor[LicensePlateSensorProperties, TStorage, str], Ge
 
     _requires_frames = False
 
-    def __init__(self, name: str = "License Plate Sensor") -> None:
-        super().__init__(name)
+    def __init__(self, name: str = "License Plate Sensor", *, native_id: str | None = None) -> None:
+        super().__init__(name, native_id=native_id)
         self._write_state(
             {
                 LicensePlateProperty.Detected.value: False,

@@ -2,7 +2,7 @@ import { Sensor, SensorType, SensorCategory } from './base.js';
 import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
-import type { PropertyChangeOf, SensorLike } from './base.js';
+import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /** Optional capabilities for battery info sensors */
 export enum BatteryCapability {
@@ -73,8 +73,8 @@ export class BatteryInfo<TStorage extends object = Record<string, any>> extends 
   readonly type = SensorType.Battery;
   readonly category = SensorCategory.Info;
 
-  constructor(name = 'Battery') {
-    super(name);
+  constructor(name = 'Battery', options?: SensorOptions) {
+    super(name, options);
 
     this._writeState({
       [BatteryProperty.Level]: 100,
@@ -163,6 +163,7 @@ export const batteryMeta = defineSensor({
   assignmentKey: 'battery',
   multiProvider: false,
   isDetectionType: false,
+  cameraBound: true,
   properties: {
     [BatteryProperty.Level]: { type: 'number', min: 0, max: 100, unit: '%' },
     [BatteryProperty.Charging]: {

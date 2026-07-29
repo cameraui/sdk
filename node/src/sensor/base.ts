@@ -1,6 +1,7 @@
-import { Subject } from '../observable/index.js';
 import { isEqual } from '../internal/shared-utils.js';
+import { Subject } from '../observable/index.js';
 
+import type { CapabilityUpdateFn, PropertyUpdateFn, SensorJSON } from '../internal/sensor-rpc.js';
 import type { Observable } from '../observable/index.js';
 import type { DeviceStorage, JsonSchema } from '../storage/index.js';
 import type { AudioProperty } from './audio.js';
@@ -24,7 +25,6 @@ import type { SirenCapability, SirenProperty } from './siren.js';
 import type { SmokeProperty } from './smoke.js';
 import type { SwitchProperty } from './switch.js';
 import type { TemperatureProperty } from './temperature.js';
-import type { CapabilityUpdateFn, PropertyChangedEvent, PropertyChangeListener, PropertyUpdateFn, SensorJSON } from '../internal/sensor-rpc.js';
 
 /** Union of all sensor-specific property enums */
 export type SensorPropertyType =
@@ -53,8 +53,12 @@ export type SensorPropertyType =
 export type SensorCapability = PTZCapability | LightCapability | SirenCapability | BatteryCapability;
 
 /**
- * Type of sensor. Each maps to a smart-home concept (HomeKit service).
- * Plugins create sensors of these types and attach them to cameras.
+ * Type of sensor. "Sensor" is camera.ui's umbrella term for the smallest
+ * smart-home unit, like Home Assistant's "entity" or HomeKit's "service":
+ * it covers measuring devices and controllable ones alike. The concrete
+ * classes carry the real meaning (`LightControl`, `MotionSensor`, ...).
+ * Plugins create sensors of these types, either standalone via the sensor
+ * manager or attached to a camera via `camera.addSensor()`.
  */
 export enum SensorType {
   // Detection Sensors — analyze frames and report detections
@@ -147,8 +151,13 @@ export interface SensorLike {
   readonly type: SensorType;
   readonly name: string;
   readonly displayName: string;
+  readonly nativeId?: string;
   readonly pluginId?: string;
   readonly capabilities: string[];
+  readonly connected: boolean;
+  readonly onPropertyChanged: Observable<{ property: string; value: unknown; timestamp: number }>;
+  readonly onCapabilitiesChanged: Observable<string[]>;
+  readonly onConnectedChanged: Observable<boolean>;
 
   /** Get the current value of a sensor property */
   getValue(property: string): unknown;
@@ -166,16 +175,17 @@ export interface SensorLike {
    * methods directly on the concrete sensor class.
    */
   updateValue(property: string, value: unknown): void | Promise<void>;
-  /** Observable for property changes. Emits { property, value, timestamp } when any property changes. */
-  readonly onPropertyChanged: Observable<{ property: string; value: unknown; timestamp: number }>;
-  /** Observable for capability changes. Emits the full capabilities array when capabilities change. */
-  readonly onCapabilitiesChanged: Observable<string[]>;
   hasCapability(capability: string): boolean;
 }
 
 /**
  * Abstract base class for all sensors. Plugins extend this (or use specialized
  * subclasses like `MotionSensor`, `LightControl`, etc.) to implement sensor logic.
+ *
+ * Sensors are standalone entities: the plugin supplies the durable identity
+ * (`nativeId`), everything else belongs to the user — camera assignments,
+ * display name and whether the sensor is exported to HomeKit/HA/MQTT. A plugin
+ * never decides where its sensor is used and never handles the export itself.
  *
  * Properties are managed through a reactive proxy — setting a property via `this.props`
  * automatically notifies the backend and local listeners if the value changed.
@@ -189,26 +199,29 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   abstract readonly category: SensorCategory;
 
   readonly name: string;
-  readonly id: string;
 
-  private _cameraId?: string;
+  private _id: string;
+  private _nativeId?: string;
+  private _assignedCameraIds: string[] = [];
   private _pluginId?: string;
   private _propertiesStore: TProperties;
+  private _registered = false;
 
-  private _listeners = new Set<PropertyChangeListener>();
   readonly #propertyChangedSubject = new Subject<PropertyChangeOf<TProperties>>();
   readonly onPropertyChanged: Observable<PropertyChangeOf<TProperties>> = this.#propertyChangedSubject.asObservable();
   readonly #capabilitiesChangedSubject = new Subject<TCapability[]>();
   readonly onCapabilitiesChanged: Observable<TCapability[]> = this.#capabilitiesChangedSubject.asObservable();
 
-  /** Per-sensor persistent storage (available after sensor is added to a camera) */
+  /** Per-sensor persistent storage (available after the sensor is registered) */
   private _storage?: DeviceStorage<TStorage>;
   private _capabilities: TCapability[] = [];
   private _capabilitiesUpdateFn?: CapabilityUpdateFn;
 
-  private _isAssigned = false;
-  readonly #assignmentChangedSubject = new Subject<boolean>();
-  readonly onAssignmentChanged: Observable<boolean> = this.#assignmentChangedSubject.asObservable();
+  private _active = false;
+  readonly #assignmentChangedSubject = new Subject<readonly string[]>();
+  readonly onAssignmentChanged: Observable<readonly string[]> = this.#assignmentChangedSubject.asObservable();
+  readonly #connectedChangedSubject = new Subject<boolean>();
+  readonly onConnectedChanged: Observable<boolean> = this.#connectedChangedSubject.asObservable();
 
   private _updateFn?: PropertyUpdateFn;
 
@@ -224,12 +237,27 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
    */
   _requiresFrames?: boolean;
 
-  constructor(name: string) {
-    this.id = crypto.randomUUID();
+  constructor(name: string, options?: SensorOptions) {
+    // provisional id, replaced by the host's persistent id at registration
+    this._id = crypto.randomUUID();
     this.name = name;
+    this._nativeId = options?.nativeId;
 
     // Initialize empty storage
     this._propertiesStore = {} as TProperties;
+  }
+
+  /**
+   * The sensor's id. Provisional until registration; after `addSensor` the host
+   * replaces it with the persistent entity id, stable across restarts.
+   */
+  get id(): string {
+    return this._id;
+  }
+
+  /** Plugin-supplied durable identity (e.g. an upstream device id), if any */
+  get nativeId(): string | undefined {
+    return this._nativeId;
   }
 
   get displayName(): string {
@@ -250,27 +278,29 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     this._displayName = value;
   }
 
-  /** Whether this sensor has been assigned to a camera in the backend */
+  /** Whether this sensor is assigned to at least one camera */
   get isAssigned(): boolean {
-    return this._isAssigned;
+    return this._assignedCameraIds.length > 0;
   }
 
-  /** Camera ID this sensor belongs to. Throws if sensor not yet added to a camera. */
-  get cameraId(): string {
-    if (!this._cameraId) {
-      throw new Error('Sensor not attached to camera. Call camera.addSensor() first.');
-    }
-    return this._cameraId;
+  /** The owning side of a sensor is connected exactly while it is registered */
+  get connected(): boolean {
+    return this._registered;
+  }
+
+  /** Cameras this sensor is currently assigned to. Empty for unassigned standalone sensors. */
+  get assignedCameraIds(): readonly string[] {
+    return this._assignedCameraIds;
   }
 
   get pluginId(): string | undefined {
     return this._pluginId;
   }
 
-  /** Per-sensor persistent storage. Throws if sensor not yet added to a camera. */
+  /** Per-sensor persistent storage. Throws if the sensor is not registered yet. */
   get storage(): DeviceStorage<TStorage> {
     if (!this._storage) {
-      throw new Error('Storage not initialized - sensor not added to camera yet');
+      throw new Error('Storage not initialized - sensor not registered yet');
     }
     return this._storage;
   }
@@ -353,7 +383,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
    */
   protected _writeState(partial: Partial<TProperties>): void {
     const delta: Record<string, unknown> = {};
-    const changes: { property: SensorPropertyType; value: unknown; previousValue: unknown }[] = [];
+    const changes: { property: SensorPropertyType; value: unknown }[] = [];
 
     for (const key of Object.keys(partial) as (keyof TProperties)[]) {
       const value = partial[key];
@@ -365,7 +395,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
 
       this._propertiesStore[key] = value;
       delta[key as string] = value;
-      changes.push({ property: key as SensorPropertyType, value, previousValue });
+      changes.push({ property: key as SensorPropertyType, value });
     }
 
     if (Object.keys(delta).length === 0) return;
@@ -375,7 +405,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
 
     // Notify local listeners per-property (existing observable contract)
     for (const change of changes) {
-      this._notifyListeners(change.property, change.value, change.previousValue);
+      this._notifyListeners(change.property, change.value);
     }
   }
 
@@ -445,7 +475,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
       name: this.name,
       displayName: this.displayName,
       category: this.category,
-      cameraId: this.cameraId,
+      nativeId: this.nativeId,
       pluginId: this.pluginId,
       properties: this._getProperties() as Record<string, unknown>,
       capabilities: this._capabilities,
@@ -454,51 +484,39 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   }
 
   /**
-   * Lifecycle hook: the sensor just became assigned to a camera. Override to
-   * start background work that should only run while this sensor is live —
-   * polling loops, event subscriptions, timers, external connections.
-   *
-   * Called AFTER `cameraId`, `storage`, and RPC channels are wired up, so the
-   * override can safely access `this.cameraId`, `this.storage`, and publish
-   * properties via the semantic helper methods.
+   * Lifecycle hook: the sensor is registered and live (storage and RPC are
+   * wired up). Override to start background work whose lifetime matches the
+   * sensor's — polling loops, event subscriptions, timers. Sensors that only
+   * receive writes from the plugin's own connections need no hook at all.
    *
    * Errors thrown here are caught and swallowed, not logged. They will NOT
-   * break assignment bookkeeping, but nothing surfaces them either. If your
+   * break lifecycle bookkeeping, but nothing surfaces them either. If your
    * work can fail, handle it inside the override.
    *
-   * Paired 1:1 with `onDeassigned` — for every `onAssigned` call there is
-   * exactly one matching `onDeassigned` later (on deassignment or cleanup).
-   *
-   * Default: no-op. Most sensors don't need lifecycle hooks.
+   * Paired 1:1 with `onStop` — for every `onStart` call there is exactly one
+   * matching `onStop` later (on removal, plugin shutdown or cleanup).
    *
    * @example
    * ```ts
-   * protected override async onAssigned(): Promise<void> {
+   * protected override onStart(): void {
    *   this._timer = setInterval(() => this.poll(), 5_000);
    * }
    * ```
    */
-  protected onAssigned(): void | Promise<void> {}
+  protected onStart(): void | Promise<void> {}
 
   /**
-   * Lifecycle hook: the sensor is being deassigned. Override to tear down
-   * whatever was started in `onAssigned` — clear timers, close subscriptions,
-   * release external resources.
-   *
-   * Always called exactly once for each prior `onAssigned`. Also called from
-   * `_cleanup` if the sensor is being removed while still assigned, so you
-   * can rely on this as the single teardown point.
-   *
-   * Default: no-op.
+   * Counterpart of `onStart`: tear down whatever it started — clear timers,
+   * close subscriptions, release external resources.
    *
    * @example
    * ```ts
-   * protected override onDeassigned(): void {
+   * protected override onStop(): void {
    *   if (this._timer) clearInterval(this._timer);
    * }
    * ```
    */
-  protected onDeassigned(): void | Promise<void> {}
+  protected onStop(): void | Promise<void> {}
 
   /**
    * @param updateFn - Receiver invoked with each batched property delta.
@@ -507,6 +525,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
    */
   _init(updateFn: PropertyUpdateFn): void {
     this._updateFn = updateFn;
+    this._registered = true;
   }
 
   /**
@@ -514,15 +533,17 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
    *
    * @param value - New value to assign to the property.
    *
+   * @param timestamp - Origin timestamp of the change, defaults to now.
+   *
    * @internal
    */
-  _setPropertyInternal<K extends keyof TProperties>(property: K, value: TProperties[K]): void {
+  _setPropertyInternal<K extends keyof TProperties>(property: K, value: TProperties[K], timestamp?: number): void {
     const previousValue = this._propertiesStore[property];
     // Deep compare for objects/arrays
     if (!isEqual(previousValue, value)) {
       this._propertiesStore[property] = value;
       // property is always a valid property enum value (K extends keyof TProperties)
-      this._notifyListeners(property as SensorPropertyType, value, previousValue);
+      this._notifyListeners(property as SensorPropertyType, value, timestamp);
     }
   }
 
@@ -536,12 +557,22 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   }
 
   /**
-   * @param cameraId - ID of the camera the sensor has been attached to.
+   * @param id - Persistent entity id assigned by the host at registration.
    *
    * @internal
    */
-  _setCameraId(cameraId: string): void {
-    this._cameraId = cameraId;
+  _setId(id: string): void {
+    this._id = id;
+  }
+
+  /**
+   * @param cameraIds - Cameras this sensor is currently assigned to.
+   *
+   * @internal
+   */
+  _setAssignedCameras(cameraIds: string[]): void {
+    this._assignedCameraIds = [...cameraIds];
+    this.#assignmentChangedSubject.next(this._assignedCameraIds);
   }
 
   /**
@@ -572,21 +603,21 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   }
 
   /**
-   * @param assigned - True when the sensor is assigned to a camera, false when deassigned.
+   * @param active - True right after registration, false on teardown.
    *
    * @internal
    */
-  _setAssigned(assigned: boolean): void {
-    if (this._isAssigned === assigned) return;
-    this._isAssigned = assigned;
-    this.#assignmentChangedSubject.next(assigned);
+  _setActive(active: boolean): void {
+    if (this._active === active) return;
+    this._active = active;
+    this.#connectedChangedSubject.next(active);
     // Fire-and-forget the lifecycle hook. Plugin authors who need error
-    // handling can wrap their onAssigned/onDeassigned body in try/catch.
+    // handling can wrap their onStart/onStop body in try/catch.
     try {
-      const result = assigned ? this.onAssigned() : this.onDeassigned();
+      const result = active ? this.onStart() : this.onStop();
       if (result && typeof result.catch === 'function') {
         result.catch(() => {
-          // swallow — lifecycle errors must not break assignment bookkeeping
+          // swallow — lifecycle errors must not break bookkeeping
         });
       }
     } catch {
@@ -599,24 +630,25 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
    *
    * @param value - New value for the property.
    *
+   * @param timestamp - Server-side timestamp of the change, defaults to now.
+   *
    * @internal
    */
-  _onBackendPropertyChanged(property: string, value: unknown): void {
+  _onBackendPropertyChanged(property: string, value: unknown, timestamp?: number): void {
     // Update internal state (bypasses proxy to avoid re-broadcast)
-    this._setPropertyInternal(property as keyof TProperties, value as TProperties[keyof TProperties]);
+    this._setPropertyInternal(property as keyof TProperties, value as TProperties[keyof TProperties], timestamp);
   }
 
   /**
    * @internal
    */
   _cleanup(): void {
-    // Trigger onDeassigned if we're still assigned — guarantees the hook is
-    // paired 1:1 even when the sensor is force-removed without going through
-    // a proper deassignment path.
-    if (this._isAssigned) {
-      this._isAssigned = false;
+    // Trigger onStop if still active — guarantees the hook is paired 1:1 even
+    // when the sensor is force-removed without a proper teardown path.
+    if (this._active) {
+      this._active = false;
       try {
-        const result = this.onDeassigned();
+        const result = this.onStop();
         if (result && typeof result.catch === 'function') {
           result.catch(() => {});
         }
@@ -628,39 +660,31 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     this._updateFn = undefined;
     this._capabilitiesUpdateFn = undefined;
     this._storage = undefined;
-    this._listeners.clear();
+    this._registered = false;
+    this._assignedCameraIds = [];
     this.#propertyChangedSubject.complete();
     this.#capabilitiesChangedSubject.complete();
     this.#assignmentChangedSubject.complete();
+    this.#connectedChangedSubject.complete();
   }
 
-  private _notifyListeners(property: SensorPropertyType, value: unknown, previousValue: unknown): void {
-    // Skip notification if sensor not yet attached to camera
-    // (e.g., during constructor initialization)
-    if (!this._cameraId) {
+  private _notifyListeners(property: SensorPropertyType, value: unknown, timestamp?: number): void {
+    // skip constructor-time writes, listeners only matter once registered
+    if (!this._registered) {
       return;
     }
 
-    const event: PropertyChangedEvent = {
-      cameraId: this._cameraId,
-      sensorId: this.id,
-      sensorType: this.type,
-      property,
-      value,
-      previousValue,
-      timestamp: Date.now(),
-    };
-
-    // Notify detailed listeners
-    for (const listener of this._listeners) {
-      try {
-        listener(event);
-      } catch {
-        // Ignore listener errors
-      }
-    }
-
-    // Notify via Observable subject
-    this.#propertyChangedSubject.next({ property, value, timestamp: event.timestamp } as PropertyChangeOf<TProperties>);
+    this.#propertyChangedSubject.next({ property, value, timestamp: timestamp ?? Date.now() } as PropertyChangeOf<TProperties>);
   }
+}
+
+/** Options accepted by every sensor constructor. */
+export interface SensorOptions {
+  /**
+   * Durable identity supplied by the plugin, e.g. an upstream device id. The
+   * host reconciles the sensor across restarts by `(pluginId, nativeId)`;
+   * without it, identity falls back to `(type, name)` and a rename creates a
+   * new sensor.
+   */
+  nativeId?: string;
 }

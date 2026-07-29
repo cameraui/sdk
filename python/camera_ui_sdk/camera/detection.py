@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, NotRequired, TypedDict
-
-if TYPE_CHECKING:
-    from ..sensor.base import SensorType
+from typing import NotRequired, TypedDict
 
 from ..sensor.detection import DetectionLabel
 from .enums import LineDirection, MotionResolution, Point, ZoneFilter, ZoneType
@@ -81,19 +78,6 @@ class AudioDetectionSettings(TypedDict):
     """Minimum confidence threshold (0 - 1) for a labelled audio detection to count."""
 
 
-class SensorTriggerRef(TypedDict):
-    """Stable reference to a sensor for cascade trigger configuration.
-    Uses composite key (sensorType + sensorName + pluginId) instead of UUID
-    so references survive plugin restarts."""
-
-    sensorType: SensorType
-    """Sensor type (e.g. 'contact', 'doorbell')."""
-    sensorName: str
-    """Sensor name (stable across restarts)."""
-    pluginId: str
-    """Plugin ID that provides this sensor."""
-
-
 class FaceDetectionSettings(TypedDict):
     """Face detection settings."""
 
@@ -115,8 +99,8 @@ class SensorTriggerSettings(TypedDict):
 
     timeout: int
     """Sensor trigger timeout in seconds."""
-    triggers: list[SensorTriggerRef]
-    """Sensors that also trigger the detection cascade (in addition to motion/audio)."""
+    triggers: list[str]
+    """Sensor entity ids that also trigger the detection cascade (in addition to motion/audio)."""
 
 
 class PtzAutotrackSettings(TypedDict):

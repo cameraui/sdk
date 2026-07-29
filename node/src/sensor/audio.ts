@@ -2,7 +2,7 @@ import { Sensor, SensorType, SensorCategory } from './base.js';
 import { defineSensor } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
-import type { PropertyChangeOf, SensorLike } from './base.js';
+import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 import type { Detection } from './detection.js';
 import type { AudioModelSpec } from './spec.js';
 
@@ -80,8 +80,8 @@ export class AudioSensor<TStorage extends object = Record<string, any>> extends 
 
   _requiresFrames = false;
 
-  constructor(name = 'Audio Sensor') {
-    super(name);
+  constructor(name = 'Audio Sensor', options?: SensorOptions) {
+    super(name, options);
 
     this._writeState({
       [AudioProperty.Detected]: false,
