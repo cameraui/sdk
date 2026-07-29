@@ -319,15 +319,15 @@ export class BehaviorSubject<T> extends Subject<T> {
 }
 
 /**
- * Subject that buffers up to the last `bufferSize` values (configurable,
- * defaults to unbounded). New subscribers immediately receive every
- * buffered value in order before continuing with live emissions.
+ * Subject that buffers up to the last `bufferSize` values, the latest one by
+ * default. New subscribers immediately receive every buffered value in order
+ * before continuing with live emissions. Pass `Infinity` to keep everything.
  */
 export class ReplaySubject<T> extends Subject<T> {
   #buffer: T[] = [];
   #bufferSize: number;
 
-  constructor(bufferSize = Infinity) {
+  constructor(bufferSize = 1) {
     super();
     this.#bufferSize = bufferSize;
   }

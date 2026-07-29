@@ -527,7 +527,8 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
 
     for (const key of Object.keys(partial) as (keyof TProperties)[]) {
       const value = partial[key];
-      if (value === undefined) continue;
+      // no property is nullable, a null would be stored and rebroadcast as a real value
+      if (value === undefined || value === null) continue;
 
       const previousValue = this._propertiesStore[key];
       if (isEqual(previousValue, value, true)) continue;

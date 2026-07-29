@@ -16,6 +16,7 @@ from typing import (
 from typing_extensions import TypeVar as ExtTypeVar
 
 from ..sensor import ClassifierDetection, Detection, FaceDetection, LicensePlateDetection
+from ..sensor.audio import AudioFrameData
 from ..sensor.clip import ClipEmbedding
 from ..sensor.motion import VideoFrameData
 from .api import PluginAPI
@@ -345,6 +346,12 @@ class AudioDetectionInterface(Protocol):
         self, audio_data: bytes, metadata: AudioMetadata, config: dict[str, Any]
     ) -> AudioDetectionPluginResponse | None:
         """Run detection on an audio buffer captured by the UI test panel; ``metadata`` carries the input MIME type."""
+        ...
+
+    async def detectAudio(
+        self, audio: AudioFrameData, config: dict[str, Any] | None = None
+    ) -> AudioDetectionPluginResponse | None:
+        """Run detection on a pre-decoded audio frame. Called from automation / benchmark pipelines."""
         ...
 
     async def audioDetectionSettings(self) -> list[JsonSchema] | None:

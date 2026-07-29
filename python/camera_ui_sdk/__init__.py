@@ -252,6 +252,8 @@ from .storage import (
     JsonSchemaWithoutKey,
     JsonStringSchema,
     PluginConfig,
+    SchemaCondition,
+    SchemaConditionOperator,
     SchemaConfig,
     StringFormat,
     ToastMessage,
@@ -414,6 +416,8 @@ __all__ = [
     # Storage
     "PluginConfig",
     "JsonSchemaType",
+    "SchemaConditionOperator",
+    "SchemaCondition",
     "StringFormat",
     "ButtonColor",
     # Base schemas

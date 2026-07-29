@@ -37,8 +37,8 @@ class SecuritySystemProperty(StrEnum):
 class SecuritySystemProperties(TypedDict):
     """Property values of a security system control."""
 
-    currentState: int
-    targetState: int
+    currentState: SecuritySystemState
+    targetState: SecuritySystemState
 
 
 class SecuritySystemPropertyChangeData(TypedDict):

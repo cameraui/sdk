@@ -419,15 +419,15 @@ field rendered in the UI; the discriminator is the ``type`` property.
 """
 
 JsonSchemaWithoutKey = (
-    JsonSchemaStringWithoutCallbacks
-    | JsonSchemaNumberWithoutCallbacks
-    | JsonSchemaBooleanWithoutCallbacks
-    | JsonSchemaEnumWithoutCallbacks
+    JsonSchemaString
+    | JsonSchemaNumber
+    | JsonSchemaBoolean
+    | JsonSchemaEnum
+    | JsonSchemaArray
+    | JsonSchemaButton
+    | JsonSchemaSubmit
 )
-"""Schema variant without the ``key`` field.
-
-Used when the key is provided externally (e.g. as a dict property).
-"""
+"""Schema accepted where the key is supplied externally, e.g. as a dict property."""
 
 JsonSchemaWithoutCallbacks = (
     JsonSchemaStringWithoutCallbacks
@@ -705,6 +705,8 @@ __all__ = [
     "OnGetCallback",
     # Schema type literals
     "JsonSchemaType",
+    "SchemaConditionOperator",
+    "SchemaCondition",
     "StringFormat",
     "ButtonColor",
     # Type variables

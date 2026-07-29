@@ -342,7 +342,7 @@ export interface DeviceStorage<T extends Record<string, any> = Record<string, an
    *
    * @returns Value or undefined
    */
-  getValue<U = string>(key: string): Promise<U> | undefined;
+  getValue<U = string>(key: string): Promise<U | undefined>;
 
   /**
    * Get a configuration value with default.

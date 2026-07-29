@@ -43,7 +43,7 @@ class PTZProperty(StrEnum):
     Velocity = "velocity"
     """Current movement velocity (continuous move), None until one was issued."""
     TargetPreset = "targetPreset"
-    """Target preset to move to."""
+    """Target preset to move to, None until a preset was requested."""
     RelativeMove = "relativeMove"
     """Relative displacement move command (write-only)."""
     Home = "home"

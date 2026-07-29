@@ -38,7 +38,7 @@ export enum PTZProperty {
   Presets = 'presets',
   /** Current movement velocity (continuous move). Undefined until a continuous move was issued. */
   Velocity = 'velocity',
-  /** Target preset to move to. */
+  /** Target preset to move to. Undefined until a preset was requested. */
   TargetPreset = 'targetPreset',
   /** Relative displacement move command (write-only). */
   RelativeMove = 'relativeMove',

@@ -90,6 +90,8 @@ export interface SensorSemantics {
   readonly states?: Readonly<Record<string, number>>;
   /** Property carrying brightness, plus the scale factor a consumer applies to it. */
   readonly brightness?: { readonly property: string; readonly scale: number };
+  /** Property carrying volume, plus the scale factor a consumer applies to it. */
+  readonly volume?: { readonly property: string; readonly scale: number };
 }
 
 /**
