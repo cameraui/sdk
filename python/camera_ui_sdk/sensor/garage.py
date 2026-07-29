@@ -11,7 +11,7 @@ from .base import Sensor, SensorCategory, SensorLike, SensorType
 
 
 class GarageState(IntEnum):
-    """Garage door states (HomeKit-compatible values)."""
+    """Garage door states."""
 
     Open = 0
     """Door is fully open."""

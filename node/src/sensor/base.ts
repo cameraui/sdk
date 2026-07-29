@@ -54,8 +54,7 @@ export type SensorCapability = PTZCapability | LightCapability | SirenCapability
 
 /**
  * Type of sensor. "Sensor" is camera.ui's umbrella term for the smallest
- * smart-home unit, like Home Assistant's "entity" or HomeKit's "service":
- * it covers measuring devices and controllable ones alike. The concrete
+ * smart-home unit. It covers measuring devices and controllable ones alike. The concrete
  * classes carry the real meaning (`LightControl`, `MotionSensor`, ...).
  * Plugins create sensors of these types, either standalone via the sensor
  * manager or attached to a camera via `camera.addSensor()`.
@@ -164,7 +163,7 @@ export interface SensorLike {
   /** Get a read-only snapshot of all property values. */
   getValues(): Readonly<Record<string, unknown>>;
   /**
-   * Generic property write used by cross-process bridges (HomeKit, MQTT). The
+   * Generic property write used by cross-process bridges. The
    * owning sensor dispatches it to the matching semantic method, so plugin-side
    * hardware overrides still run. Plugin authors call the semantic methods
    * instead.
@@ -180,7 +179,7 @@ export interface SensorLike {
  *
  * Sensors are standalone entities: the plugin supplies the durable identity
  * (`nativeId`), everything else belongs to the user: camera assignments,
- * display name and whether the sensor is exported to HomeKit/HA/MQTT. A plugin
+ * display name and whether the sensor is exported or not. A plugin
  * never decides where its sensor is used and never handles the export itself.
  *
  * State changes go through the semantic methods on the concrete class. Writing a

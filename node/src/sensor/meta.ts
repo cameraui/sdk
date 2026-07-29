@@ -78,7 +78,7 @@ export interface SensorSemantics {
   readonly stateProperty: string;
   /** Property that takes commands. */
   readonly commandProperty: string;
-  /** Home Assistant device class, where one applies. */
+  /** Device class, where one applies. */
   readonly deviceClass?: string;
   /** Unit of the state value, e.g. `%` or `°C`. */
   readonly unit?: string;

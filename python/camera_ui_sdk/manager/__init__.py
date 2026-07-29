@@ -1,6 +1,14 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal, NotRequired, Protocol, TypedDict, runtime_checkable
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Literal,
+    NotRequired,
+    Protocol,
+    TypedDict,
+    runtime_checkable,
+)
 
 if TYPE_CHECKING:
     from ..camera import CameraDevice
@@ -128,7 +136,7 @@ class SensorManager(Protocol):
     camera's hardware (smart plugs, imported smart-home devices, hubs).
 
     The host persists each sensor as its own entity: the user assigns it to
-    cameras, renames it and decides whether it is exported to HomeKit/HA/MQTT.
+    cameras, renames it and decides whether it is exported or not.
     Sensors that belong to a camera's hardware are registered via
     ``camera.addSensor()`` instead.
 

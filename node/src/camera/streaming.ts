@@ -270,7 +270,7 @@ export interface RtpSessionBackchannelOptions {
 }
 
 /**
- * RTP streaming session for HomeKit and other RTP-based integrations.
+ * RTP streaming session for RTP-based integrations.
  * Provides raw RTP packet access for video and audio streams.
  */
 export interface RtpSession extends Subscribed {

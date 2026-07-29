@@ -11,7 +11,7 @@ from .base import Sensor, SensorCategory, SensorLike, SensorType
 
 
 class LockState(IntEnum):
-    """Lock states (HomeKit-compatible values)."""
+    """Lock states."""
 
     Secured = 0
     """Locked."""

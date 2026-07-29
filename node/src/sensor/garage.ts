@@ -1,10 +1,10 @@
-import { Sensor, SensorType, SensorCategory } from './base.js';
+import { Sensor, SensorCategory, SensorType } from './base.js';
 import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/** Garage door states (HomeKit-compatible values). */
+/** Garage door states. */
 export enum GarageState {
   /** Door is fully open. */
   Open = 0,

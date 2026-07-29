@@ -1,10 +1,10 @@
-import { Sensor, SensorType, SensorCategory } from './base.js';
+import { Sensor, SensorCategory, SensorType } from './base.js';
 import { defineSensor, SensorDomain } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/** Security system arm/disarm states (HomeKit-compatible values). */
+/** Security system arm/disarm states. */
 export enum SecuritySystemState {
   /** Armed, occupants home. */
   StayArm = 0,

@@ -11,7 +11,7 @@ from .base import Sensor, SensorCategory, SensorLike, SensorType
 
 
 class SecuritySystemState(IntEnum):
-    """Security system arm/disarm states (HomeKit-compatible values)."""
+    """Security system arm/disarm states."""
 
     StayArm = 0
     """Armed, occupants home."""
