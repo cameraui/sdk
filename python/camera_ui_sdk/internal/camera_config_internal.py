@@ -20,7 +20,7 @@ class CameraInputSettings(TypedDict):
     hotMode: bool
     """Keep connection always active."""
     preload: bool
-    """Buffer the last keyframe group so new viewers get a picture faster."""
+    """Keep a keyframe cache for this source, so the view opens faster. Use ``hotMode`` to keep the stream connected."""
     muted: NotRequired[bool]
     """Strip the audio track from this source (defaults to False)."""
     urls: list[str]

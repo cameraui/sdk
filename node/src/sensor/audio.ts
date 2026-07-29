@@ -25,11 +25,11 @@ export const BASE_AUDIO_LABELS = [
 /** Union of the built-in audio label strings. */
 export type BaseAudioLabel = (typeof BASE_AUDIO_LABELS)[number];
 
-/** Audio label — one of the built-in labels or any custom string emitted by an audio detector. */
+/** Audio label: one of the built-in labels, or any custom string emitted by an audio detector. */
 export type AudioLabel = BaseAudioLabel | (string & {});
 
 /**
- * Property names of an audio detection sensor.
+ * Property names of an audio sensor.
  *
  * @internal
  */
@@ -45,7 +45,7 @@ export enum AudioProperty {
 }
 
 /**
- * Property shape carried by an {@link AudioSensor}.
+ * Property values of an audio sensor.
  *
  * @internal
  */
@@ -57,9 +57,7 @@ export interface AudioSensorProperties {
 
 /** Read-only proxy interface for an audio sensor. */
 export interface AudioSensorLike extends SensorLike {
-  /** Sensor type discriminant. */
   readonly type: SensorType.Audio;
-  /** Property change observable narrowed to audio properties. */
   readonly onPropertyChanged: Observable<PropertyChangeOf<AudioSensorProperties>>;
 
   getValue(property: AudioProperty.Detected): boolean | undefined;
@@ -90,17 +88,14 @@ export class AudioSensor<TStorage extends object = Record<string, any>> extends 
     });
   }
 
-  /** Whether an audio event is currently detected. */
   get detected(): boolean {
     return this.props.detected;
   }
 
-  /** Current detection list. */
   get detections(): Detection[] {
     return this.props.detections;
   }
 
-  /** Current audio level in decibels. */
   get decibels(): number {
     return this.props.decibels;
   }
@@ -108,10 +103,10 @@ export class AudioSensor<TStorage extends object = Record<string, any>> extends 
   /**
    * Report detected audio events.
    *
-   * - `reportDetections(true)` — audio detected without specifics. The SDK
+   * - `reportDetections(true)`: audio detected without specifics. The SDK
    *   synthesizes a single full-frame `'audio'` detection.
-   * - `reportDetections(true, [...])` — audio detected with explicit detections.
-   * - `reportDetections(false)` — clear.
+   * - `reportDetections(true, [...])`: audio detected with explicit detections.
+   * - `reportDetections(false)`: clear.
    *
    * @param detected - Whether an audio event is currently detected.
    *
@@ -161,21 +156,11 @@ export class AudioSensor<TStorage extends object = Record<string, any>> extends 
   }
 
   /**
-   * Read-only sensor: external writes are ignored. State is reported via `reportDetections`/`setDecibels`.
-   *
-   * Called by the cross-process plugin host when a generic property write is received.
-   * Audio sensors have no externally writable properties, so the parameters are
-   * unused (underscore-prefixed) and the call is a no-op.
-   *
-   * @param _property - Unused — audio sensors expose no writable properties.
-   *
-   * @param _value - Unused — audio sensors expose no writable properties.
+   * Read-only sensor: external writes are ignored.
    *
    * @internal
    */
-  updateValue(_property: string, _value: unknown): void {
-    // No-op — audio state is reported by the plugin, not set externally.
-  }
+  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Audio frame data delivered to audio detector sensors by the backend pipeline. */
@@ -215,7 +200,6 @@ export interface AudioResult {
 export abstract class AudioDetectorSensor<TStorage extends object = Record<string, any>> extends AudioSensor<TStorage> {
   override _requiresFrames = true;
 
-  /** Declares the expected audio input format. The backend resamples to match. */
   abstract readonly modelSpec: AudioModelSpec;
 
   /** Analyze a single audio frame for events. Called by the backend at the configured cadence. */

@@ -4,39 +4,30 @@ from typing import Any
 
 
 def is_equal(first: Any, second: Any, ignore_order: bool = False) -> bool:
-    """
-    Deep equality check for arbitrary values.
-
-    Recursively compares primitives, lists, and dicts. Dict comparison
-    ignores key declaration order (only key/value pairs matter). Set
-    ``ignore_order`` to ``True`` to compare lists as multisets, i.e.
-    ignoring element order.
-
-    Typically used for property-change detection on sensors: a property
-    update is only emitted when the new value is not deeply equal to the
-    previous value, which avoids redundant events for unchanged data.
+    """Deep equality for primitives, lists, and dicts. Dict key order never matters.
 
     Args:
         first: First value to compare.
         second: Second value to compare.
-        ignore_order: If ``True``, lists are compared ignoring element order.
+        ignore_order: Compare lists as multisets instead of position by position.
 
     Returns:
         ``True`` if the values are deeply equal.
+
+    Example:
+        ```python
+        is_equal({"a": 1, "b": 2}, {"b": 2, "a": 1})  # True
+        ```
     """
-    # Same reference or both primitive and equal
     if first is second:
         return True
 
-    # Handle None
     if first is None or second is None:
         return first is second
 
-    # Different types
     if type(first) is not type(second):
         return False
 
-    # List comparison
     if isinstance(first, list):
         if len(first) != len(second):  # pyright: ignore[reportUnknownArgumentType]
             return False
@@ -58,7 +49,6 @@ def is_equal(first: Any, second: Any, ignore_order: bool = False) -> bool:
                 for i, item in enumerate(first)  # pyright: ignore[reportUnknownArgumentType,reportUnknownVariableType]
             )
 
-    # Dict comparison
     if isinstance(first, dict):
         if len(first) != len(second):  # pyright: ignore[reportUnknownArgumentType]
             return False
@@ -69,5 +59,4 @@ def is_equal(first: Any, second: Any, ignore_order: bool = False) -> bool:
                 return False
         return True
 
-    # Primitive comparison (fallback)
     return bool(first == second)

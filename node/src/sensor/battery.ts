@@ -4,42 +4,42 @@ import { defineSensor, SensorDomain } from './meta.js';
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/** Optional capabilities for battery info sensors */
+/** Optional capabilities of a battery info sensor. */
 export enum BatteryCapability {
-  /** Sensor reports low-battery alerts */
+  /** Sensor reports low-battery alerts. */
   LowBattery = 'lowBattery',
-  /** Sensor reports charging state */
+  /** Sensor reports charging state. */
   Charging = 'charging',
 }
 
 /**
- * Properties for battery info sensors
+ * Property names of a battery info sensor.
  *
  * @internal
  */
 export enum BatteryProperty {
-  /** Battery level percentage (0-100) */
+  /** Battery level percentage (0-100). */
   Level = 'level',
-  /** Current charging state */
+  /** Current charging state. */
   Charging = 'charging',
-  /** Whether battery is critically low */
+  /** Whether the battery is critically low. */
   Low = 'low',
 }
 
-/** Battery charging state */
+/** Battery charging state. */
 export enum ChargingState {
-  /** Device has no rechargeable battery */
+  /** Device has no rechargeable battery. */
   NotChargeable = 'NOT_CHARGEABLE',
-  /** Battery is not charging */
+  /** Battery is not charging. */
   NotCharging = 'NOT_CHARGING',
-  /** Battery is currently charging */
+  /** Battery is currently charging. */
   Charging = 'CHARGING',
-  /** Battery is fully charged */
+  /** Battery is fully charged. */
   Full = 'FULL',
 }
 
 /**
- * Property value map for battery info sensors.
+ * Property values of a battery info sensor.
  *
  * @internal
  */
@@ -49,7 +49,7 @@ export interface BatteryInfoProperties {
   [BatteryProperty.Low]: boolean;
 }
 
-/** Read-only proxy interface for a battery info sensor */
+/** Read-only proxy interface for a battery info sensor. */
 export interface BatteryInfoLike extends SensorLike {
   readonly type: SensorType.Battery;
   readonly onPropertyChanged: Observable<PropertyChangeOf<BatteryInfoProperties>>;
@@ -67,8 +67,6 @@ export interface BatteryInfoLike extends SensorLike {
  * Plugin authors call `setLevel(value)`, `setCharging(state)`, and `setLow(value)`
  * to push updates from the device.
  */
-// prettier-ignore
-
 export class BatteryInfo<TStorage extends object = Record<string, any>> extends Sensor<BatteryInfoProperties, TStorage, BatteryCapability> {
   readonly type = SensorType.Battery;
   readonly category = SensorCategory.Info;
@@ -139,21 +137,11 @@ export class BatteryInfo<TStorage extends object = Record<string, any>> extends 
   }
 
   /**
-   * Read-only sensor: external writes are ignored. State is reported via `setLevel`/`setCharging`/`setLow`.
-   *
-   * Called by the cross-process plugin host when a generic property write is received.
-   * Battery sensors have no externally writable properties, so the parameters are
-   * unused (underscore-prefixed) and the call is a no-op.
-   *
-   * @param _property - Unused — battery sensors expose no writable properties.
-   *
-   * @param _value - Unused — battery sensors expose no writable properties.
+   * Read-only sensor: external writes are ignored.
    *
    * @internal
    */
-  updateValue(_property: string, _value: unknown): void {
-    // No-op — battery state is reported by the plugin, not set externally.
-  }
+  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Registry metadata for {@link BatteryInfo}. */

@@ -4,26 +4,26 @@ import { defineSensor, SensorDomain } from './meta.js';
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/** Optional capabilities for siren controls */
+/** Optional capabilities of a siren control. */
 export enum SirenCapability {
-  /** Siren supports volume adjustment (0-100) */
+  /** Siren supports volume adjustment (0-100). */
   Volume = 'volume',
 }
 
 /**
- * Properties for siren controls
+ * Property names of a siren control.
  *
  * @internal
  */
 export enum SirenProperty {
-  /** Whether the siren is currently active */
+  /** Whether the siren is currently active. */
   Active = 'active',
-  /** Volume level (0-100) */
+  /** Volume level (0-100). */
   Volume = 'volume',
 }
 
 /**
- * Property value map for siren controls.
+ * Property values of a siren control.
  *
  * @internal
  */
@@ -32,7 +32,7 @@ export interface SirenControlProperties {
   [SirenProperty.Volume]: number;
 }
 
-/** Read-only proxy interface for a siren control */
+/** Read-only proxy interface for a siren control. */
 export interface SirenControlLike extends SensorLike {
   readonly type: SensorType.Siren;
   readonly onPropertyChanged: Observable<PropertyChangeOf<SirenControlProperties>>;
@@ -47,7 +47,7 @@ export interface SirenControlLike extends SensorLike {
  * Siren control sensor. Override `setActive()`/`setInactive()` to drive your
  * hardware, then `await super.setActive()` / `await super.setInactive()` to sync
  * the SDK state. For hardware-pushed updates, call the `super` methods from your
- * event handler — that bypasses any plugin override and only syncs state.
+ * event handler. That bypasses any plugin override and only syncs state.
  */
 export class SirenControl<TStorage extends object = Record<string, any>> extends Sensor<SirenControlProperties, TStorage, SirenCapability> {
   readonly type = SensorType.Siren;
@@ -112,13 +112,7 @@ export class SirenControl<TStorage extends object = Record<string, any>> extends
   }
 
   /**
-   * Cross-process consumer entry point. Dispatches writable properties
-   * to semantic methods so plugin overrides (hardware actions) are honored.
-   * Unknown properties are ignored — only `Active` and `Volume` are externally writable.
-   *
-   * @param property - Property name to write.
-   *
-   * @param value - New value for the property.
+   * Routes generic property writes to the semantic setters.
    *
    * @internal
    */
@@ -132,7 +126,6 @@ export class SirenControl<TStorage extends object = Record<string, any>> extends
         await this.setVolume(value as number);
         return;
     }
-    // Unknown / non-writable property — ignored.
   }
 }
 

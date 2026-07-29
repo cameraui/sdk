@@ -1,13 +1,11 @@
 import type { DetectionLabel } from '../sensor/detection.js';
 import type { LineDirection, MotionResolution, Point, ZoneFilter, ZoneType } from './enums.js';
 
-/**
- * Sensor trigger settings (contact, doorbell, switch, light, etc.).
- */
+/** Sensor trigger settings (contact, doorbell, switch, light, etc.). */
 export interface SensorTriggerSettings {
-  /** Sensor trigger timeout in seconds */
+  /** Sensor trigger timeout in seconds. */
   timeout: number;
-  /** Persistent sensor ids that also trigger the detection cascade (in addition to motion/audio) */
+  /** Sensor entity ids that also trigger the detection cascade (in addition to motion/audio). */
   triggers: string[];
 }
 
@@ -18,15 +16,15 @@ export interface SensorTriggerSettings {
  * is perpendicular through their midpoint.
  */
 export interface DetectionLine {
-  /** Line display name */
+  /** Line display name. */
   name: string;
-  /** Grab-handle positions (0–100%). Crossing line is perpendicular through midpoint. */
+  /** Grab-handle positions (0-100%). Crossing line is perpendicular through midpoint. */
   points: [Point, Point];
-  /** Which crossing direction(s) trigger events */
+  /** Which crossing direction(s) trigger events. */
   direction: LineDirection;
-  /** Labels to filter (empty = all labels) */
+  /** Labels to filter (empty = all labels). */
   labels: DetectionLabel[];
-  /** Line display color (hex) */
+  /** Line display color (hex). */
   color: string;
 }
 
@@ -35,65 +33,55 @@ export interface DetectionLine {
  * Defines areas that restrict or drop detections.
  */
 export interface DetectionZone {
-  /** Zone display name */
+  /** Zone display name. */
   name: string;
-  /** Polygon points (0-100 percentage coordinates) */
+  /** Polygon points (0-100 percentage coordinates). */
   points: Point[];
-  /** Intersection detection type */
+  /** Intersection detection type. */
   type: ZoneType;
-  /** Include/exclude filter mode */
+  /** Include/exclude filter mode. */
   filter: ZoneFilter;
-  /** Labels to filter (empty = all labels) */
+  /** Labels to filter (empty = all labels). */
   labels: DetectionLabel[];
   /** Whether this is an ignore zone: detections fully inside it are dropped. */
   isPrivacyMask: boolean;
-  /** Zone display color (hex) */
+  /** Zone display color (hex). */
   color: string;
 }
 
-/**
- * Motion detection settings.
- */
+/** Motion detection settings. */
 export interface MotionDetectionSettings {
-  /** Detection resolution quality */
+  /** Detection resolution quality. */
   resolution: MotionResolution;
-  /** Motion dwell time in seconds */
+  /** Motion dwell time in seconds. */
   timeout: number;
 }
 
-/**
- * Object detection settings.
- */
+/** Object detection settings. */
 export interface ObjectDetectionSettings {
-  /** Minimum confidence threshold (0.3 - 1.0) */
+  /** Minimum confidence threshold (0.3 - 1.0). */
   confidence: number;
   /** Suppress events from objects that stay stationary across events (e.g. parked cars). Defaults to true. */
   suppressStatic?: boolean;
 }
 
-/**
- * Audio detection settings.
- */
+/** Audio detection settings. */
 export interface AudioDetectionSettings {
   /** Minimum volume threshold in dBFS (-100 to 0). Audio below this level is skipped. */
   minDecibels: number;
-  /** Audio dwell time in seconds */
+  /** Audio dwell time in seconds. */
   timeout: number;
   /** Minimum confidence threshold (0 - 1) for a labelled audio detection to count. */
   confidence?: number;
 }
 
-/**
- * Face detection settings.
- */
+/** Face detection settings. */
 export interface FaceDetectionSettings {
   /** Minimum confidence threshold (0 - 1) for a face to count. */
   confidence?: number;
 }
 
-/**
- * License plate detection settings.
- */
+/** License plate detection settings. */
 export interface LicensePlateDetectionSettings {
   /** Minimum text recognition confidence (0 - 1) for a plate read to count. */
   confidence?: number;
@@ -101,64 +89,57 @@ export interface LicensePlateDetectionSettings {
   minLength?: number;
 }
 
-/**
- * PTZ autotracking settings — automatically follow detected objects.
- */
+/** PTZ autotracking settings: the camera follows detected objects automatically. */
 export interface PtzAutotrackSettings {
-  /** Whether PTZ autotracking is enabled */
+  /** Whether PTZ autotracking is enabled. */
   enabled: boolean;
-  /** Object labels to track (e.g. 'person', 'vehicle') */
+  /** Object labels to track (e.g. 'person', 'vehicle'). */
   targetLabels: string[];
-  /** Minimum detection confidence to track (0.3 - 1.0) */
+  /** Minimum detection confidence to track (0.3 - 1.0). */
   minConfidence: number;
-  /**
-   * Dead zone around frame center. While the target is inside this zone,
-   * no motor command is issued. Range 0 - 0.3.
-   */
+  /** Dead zone around frame center (0 - 0.3). No motor command while the target is inside this zone. */
   triggerDeadZone: number;
   /**
-   * How aggressively the camera moves to re-center the target. Higher reaches
-   * full pan/tilt speed at a smaller off-center error. Range 1 - 5.
+   * How aggressively the camera moves to re-center the target (1 - 5). Higher
+   * reaches full pan/tilt speed at a smaller off-center error.
    */
   trackingSpeed: number;
   /**
-   * Motion prediction: aim this many milliseconds ahead along the target's
-   * measured velocity, covering the time the camera needs to move and settle.
-   * 0 disables prediction. Range 0 - 4000.
+   * Motion prediction (0 - 4000): aim this many milliseconds ahead along the
+   * target's measured velocity, covering the time the camera needs to move and
+   * settle. 0 disables prediction.
    */
   leadMs: number;
   /**
-   * Camera pan-rate calibration — assumed pan travel at full motor speed, in
-   * normalized frame-widths per second. Lower it if the camera stops short of
-   * the target, raise it if it overshoots. Range 0.1 - 3.
+   * Camera pan-rate calibration (0.1 - 3): assumed pan travel at full motor
+   * speed in normalized frame-widths per second. Lower it if the camera stops
+   * short of the target, raise it if it overshoots.
    */
   panRate: number;
-  /** Return to home position when no target is found for homeWaitMs */
+  /** Return to home position when no target is found for homeWaitMs. */
   returnToHome: boolean;
-  /** How long to wait (ms) without a target before returning home */
+  /** How long to wait (ms) without a target before returning home. */
   homeWaitMs: number;
 }
 
-/**
- * Combined detection settings for a camera.
- */
+/** Combined detection settings for a camera. */
 export interface CameraDetectionSettings {
-  /** Motion detection settings */
+  /** Motion detection settings. */
   motion: MotionDetectionSettings;
-  /** Object detection settings */
+  /** Object detection settings. */
   object: ObjectDetectionSettings;
-  /** Audio detection settings */
+  /** Audio detection settings. */
   audio: AudioDetectionSettings;
-  /** Face detection settings */
+  /** Face detection settings. */
   face?: FaceDetectionSettings;
-  /** License plate detection settings */
+  /** License plate detection settings. */
   licensePlate?: LicensePlateDetectionSettings;
-  /** Sensor trigger settings */
+  /** Sensor trigger settings. */
   sensor: SensorTriggerSettings;
-  /** Whether the detection cascade is enabled */
+  /** Whether the detection cascade is enabled. */
   cascadeDetection?: boolean;
-  /** Cascade hold-open window in seconds */
+  /** Cascade hold-open window in seconds. */
   cascadeTimeout?: number;
-  /** Whether detections are snoozed (paused) */
+  /** Whether detections are snoozed (paused). */
   snooze?: boolean;
 }

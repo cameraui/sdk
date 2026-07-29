@@ -12,23 +12,25 @@ from .base import Sensor, SensorCategory, SensorLike, SensorType
 
 
 class DoorbellProperty(StrEnum):
-    """Properties for doorbell triggers."""
+    """Property names of a doorbell trigger."""
 
     Ring = "ring"
     """Whether the doorbell is currently ringing."""
 
 
 class DoorbellTriggerProperties(TypedDict):
-    """Property value map for doorbell triggers."""
+    """Property values of a doorbell trigger."""
 
     ring: bool
 
 
 class DoorbellPropertyChangeData(TypedDict):
-    """Emitted on DoorbellTriggerLike.onPropertyChanged."""
+    """Property change payload emitted on DoorbellTriggerLike.onPropertyChanged."""
 
-    property: str  # DoorbellProperty value
+    property: str
+    """Name of the changed property, a DoorbellProperty value."""
     value: bool
+    """New value of the property."""
 
 
 TStorage = TypeVar("TStorage", bound=Mapping[str, Any], default=dict[str, Any])
@@ -42,26 +44,26 @@ class DoorbellTriggerLike(SensorLike, Protocol):
     def type(self) -> SensorType:
         return SensorType.Doorbell
 
+    @property
+    def onPropertyChanged(self) -> Observable[DoorbellPropertyChangeData]: ...
+
     @overload
     def getValue(self, property: Literal[DoorbellProperty.Ring]) -> bool | None: ...
     @overload
     def getValue(self, property: str) -> object | None: ...
 
-    @property
-    def onPropertyChanged(self) -> Observable[DoorbellPropertyChangeData]: ...
 
-
-#: Auto-reset duration after `trigger()` is called (ms).
+#: Auto-reset duration after ``trigger()`` is called (ms).
 RING_AUTO_RESET_MS = 2000
 
 
 class DoorbellTrigger(Sensor[DoorbellTriggerProperties, TStorage, str], Generic[TStorage]):
     """Doorbell trigger sensor.
 
-    Plugin authors call `trigger()` to fire a doorbell event. The `ring` property
-    is set to True and automatically reset to False after a short delay
-    (``RING_AUTO_RESET_MS``). Calling `trigger()` again while still ringing
-    resets the timer (extends the ring phase).
+    Plugin authors call ``trigger()`` to fire a doorbell event. The ``ring``
+    property is set to True and automatically reset to False after a short
+    delay (``RING_AUTO_RESET_MS``). Calling ``trigger()`` again while still
+    ringing resets the timer (extends the ring phase).
     """
 
     _requires_frames = False
@@ -107,11 +109,9 @@ class DoorbellTrigger(Sensor[DoorbellTriggerProperties, TStorage, str], Generic[
         self._ring_reset_timer.start()
 
     async def updateValue(self, property: str, value: Any) -> None:
-        """Cross-process consumer entry point. Writing ``ring=true`` (any
-        truthy value) dispatches to ``trigger()`` so a UI test button or
-        external automation can fire the doorbell using the same flow as a
-        real hardware ring (auto-reset included). Writing ``ring=false`` is
-        ignored — the auto-reset timer owns the off transition.
+        """Routes generic property writes to the semantic setters.
+
+        Writing ring=false is ignored, the auto-reset timer owns the off transition.
         """
         if property == DoorbellProperty.Ring.value and value:
             self.trigger()

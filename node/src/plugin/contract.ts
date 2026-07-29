@@ -2,49 +2,29 @@ import type { SensorType } from '../sensor/base.js';
 
 /**
  * Python interpreter major.minor version a Python plugin requires. The host
- *  ensures a matching interpreter exists in its venv pool before launching
- *  the plugin; Node and Go plugins ignore this field.
+ * ensures a matching interpreter exists in its venv pool before launching the
+ * plugin; Node and Go plugins ignore this field.
  */
 export type PythonVersion = '3.11' | '3.12';
 
 /**
  * Role a plugin plays in the system. The role decides which lifecycle hooks
- * the host invokes and which contract validations apply (see helper.ts).
+ * the host invokes and which contract validations apply.
  */
 export enum PluginRole {
-  /**
-   * System-wide aggregator that attaches to cameras owned by *other* plugins
-   * to provide a cross-camera service (e.g. bridging cameras and sensors into a
-   * smart-home platform, or recording and notifications). A hub creates no
-   * cameras of its own and provides no sensors (`provides` must be empty); it
-   * attaches to cameras via the `hub` assignment and typically reads camera and
-   * sensor state through `consumes`.
-   */
+  /** Cross-camera aggregator (smart-home bridge, recorder). Owns no cameras and provides no sensors. */
   Hub = 'hub',
-  /**
-   * Adds sensors to existing cameras without owning the camera itself.
-   * Typical use: a detection plugin that consumes another plugin's video
-   * frames and emits motion / object / face detections back into the system.
-   */
+  /** Adds sensors to cameras owned by other plugins, for example a detector running on foreign video frames. */
   SensorProvider = 'sensorProvider',
-  /**
-   * Manages cameras and their media streams (ONVIF, RTSP, generic IP, ...).
-   * The plugin is responsible for stream URLs, PTZ, snapshots, and the
-   * lifecycle hooks in BasePlugin. It does not produce sensors for foreign
-   * cameras.
-   */
+  /** Manages cameras and their media streams: stream URLs, PTZ, snapshots. Provides no sensors for foreign cameras. */
   CameraController = 'cameraController',
-  /**
-   * Combined role: plugin both manages cameras and exposes sensors (its own
-   * cameras and, when consumes is set, also foreign cameras). Used by
-   * integrations that ship a complete camera + detection stack.
-   */
+  /** Manages cameras and exposes sensors, on its own cameras and, with `consumes` set, on foreign ones. */
   CameraAndSensorProvider = 'cameraAndSensorProvider',
 }
 
 /**
  * Capability flags a plugin advertises in its contract. The host uses these
- *  to decide which RPC handlers to wire up and which UI affordances to show.
+ * to decide which RPC handlers to wire up and which UI affordances to show.
  */
 export enum PluginInterface {
   /** Implements MotionDetectionInterface (video-based motion detection). */
@@ -53,46 +33,21 @@ export enum PluginInterface {
   ObjectDetection = 'ObjectDetection',
   /** Implements AudioDetectionInterface (event/keyword audio detection). */
   AudioDetection = 'AudioDetection',
-  /**
-   * Implements FaceDetectionInterface (face localisation + embeddings). The
-   *  NVR owns matching against enrolled faces; the plugin only emits
-   *  detections + embeddings.
-   */
+  /** Implements FaceDetectionInterface (face localisation + embeddings). Matching against enrolled faces happens in the NVR. */
   FaceDetection = 'FaceDetection',
   /** Implements LicensePlateDetectionInterface (plate localisation + OCR). */
   LicensePlateDetection = 'LicensePlateDetection',
-  /**
-   * Implements ClassifierDetectionInterface (generic image classification
-   *  emitting attribute/label pairs).
-   */
+  /** Implements ClassifierDetectionInterface (generic image classification emitting attribute/label pairs). */
   ClassifierDetection = 'ClassifierDetection',
-  /**
-   * Implements ClipDetectionInterface (CLIP image and text embeddings used
-   *  for semantic search).
-   */
+  /** Implements ClipDetectionInterface (CLIP image and text embeddings used for semantic search). */
   ClipDetection = 'ClipDetection',
-  /**
-   * Implements DiscoveryProvider — plugin can scan the network for new
-   *  cameras and adopt them. Only valid for camera-controlling roles.
-   */
+  /** Implements DiscoveryProvider (network scan + adoption). Only valid for camera-controlling roles. */
   DiscoveryProvider = 'DiscoveryProvider',
-  /**
-   * Implements NVRInterface — persists events and recordings, and serves
-   *  them back to the UI / mobile clients. Exactly one plugin per host
-   *  fills this role at runtime.
-   */
+  /** Implements NVRInterface (events and recordings). Exactly one plugin per host fills this role at runtime. */
   NVR = 'NVR',
-  /**
-   * Implements NotifierInterface (getDevices, sendNotification, ...). Lets
-   * the central NotificationManager dispatch notifications to this plugin
-   * regardless of role — see notifier.ts.
-   */
+  /** Implements NotifierInterface, so the NotificationManager can dispatch notifications to this plugin. */
   Notifier = 'Notifier',
-  /**
-   * Implements the OAuthCapable base interface (getOAuthMetadata,
-   * getOAuthState, disconnect) plus at least one flow sub-interface below —
-   * see oauth.ts.
-   */
+  /** Implements the OAuthCapable base interface plus at least one of the flow sub-interfaces below. */
   OAuthCapable = 'OAuthCapable',
   /** Implements OAuthDeviceFlowCapable (RFC 8628 Device Authorization Grant). */
   OAuthDeviceFlow = 'OAuthDeviceFlow',
@@ -104,65 +59,40 @@ export enum PluginInterface {
 
 /**
  * Permission a plugin requests so it can call a host-provided system feature.
- * Each capability gates one outgoing SDK call — calls without the matching
+ * Each capability gates one outgoing SDK call. Calls without the matching
  * capability are rejected by the host.
  */
 export enum PluginCapability {
-  /**
-   * Grants the plugin permission to call `api.notificationManager.publish`.
-   * Without this capability the host silently drops published notifications
-   * and logs an error.
-   */
+  /** Allows `api.notificationManager.publish`. Without it the host drops published notifications and logs an error. */
   PublishNotifications = 'publishNotifications',
 }
 
 /**
- * Manifest contract a plugin declares so the host knows what it does and
- * what it needs at load time. Validated by helper.ts before the plugin is
- * started.
+ * Manifest contract a plugin declares so the host knows what it does and what
+ * it needs at load time. Validated before the plugin is started.
  */
 export interface PluginContract {
-  /**
-   * Stable, unique identifier for the plugin instance — used as the
-   *  registry key, log prefix and the storage namespace.
-   */
+  /** Stable, unique identifier: registry key, log prefix and storage namespace. */
   name: string;
   /** Role of the plugin (see {@link PluginRole}). */
   role: PluginRole;
-  /**
-   * Sensor types the plugin produces. Empty for hubs and pure
-   *  camera-controllers; required for sensor providers.
-   */
+  /** Sensor types the plugin produces. Empty for hubs and pure camera-controllers, required for sensor providers. */
   provides: SensorType[];
-  /**
-   * Sensor types the plugin reads from other plugins (e.g. a face plugin
-   *  consumes camera video frames).
-   */
+  /** Sensor types the plugin reads from other plugins (e.g. a face plugin consuming camera video frames). */
   consumes: SensorType[];
   /** Capability flags the plugin implements (see {@link PluginInterface}). */
   interfaces: PluginInterface[];
-  /**
-   * Permissions the plugin requests to call host system features (see
-   *  {@link PluginCapability}). The host enforces these — calls without a
-   *  matching capability are rejected.
-   */
+  /** Permissions the plugin requests to call host system features (see {@link PluginCapability}). */
   capabilities?: PluginCapability[];
-  /**
-   * Required Python interpreter version for Python plugins. Ignored by
-   *  Node / Go plugins.
-   */
+  /** Required Python interpreter version for Python plugins. Ignored by Node and Go plugins. */
   pythonVersion?: PythonVersion;
-  /**
-   * Extra package dependencies installed into the plugin's runtime (Go
-   *  module paths for Go plugins; PyPI / npm names for Python and Node
-   *  plugins).
-   */
+  /** Extra dependencies installed into the plugin's runtime (Go module paths, PyPI or npm names). */
   dependencies?: string[];
 }
 
 /**
- * Lightweight handle identifying an installed plugin — used in RPC payloads
- *  and managers to refer to the plugin without shipping its full state.
+ * Lightweight handle identifying an installed plugin, used in RPC payloads
+ * and managers to refer to the plugin without shipping its full state.
  */
 export interface PluginInfo {
   /** Unique runtime ID assigned by the host (stable across restarts). */

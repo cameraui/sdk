@@ -22,7 +22,7 @@ export enum MotionProperty {
 }
 
 /**
- * Property shape carried by a {@link MotionSensor}.
+ * Property values of a motion sensor.
  *
  * @internal
  */
@@ -34,9 +34,7 @@ export interface MotionSensorProperties {
 
 /** Read-only proxy interface for a motion sensor. */
 export interface MotionSensorLike extends SensorLike {
-  /** Sensor type discriminant. */
   readonly type: SensorType.Motion;
-  /** Property change observable narrowed to motion properties. */
   readonly onPropertyChanged: Observable<PropertyChangeOf<MotionSensorProperties>>;
 
   getValue(property: MotionProperty.Detected): boolean | undefined;
@@ -49,9 +47,8 @@ export interface MotionSensorLike extends SensorLike {
  * Motion sensor that reports motion state and detection results.
  *
  * Plugin authors call `reportDetections(list)` to push detection results.
- * `detected` is auto-derived from the detection list. `blocked` is read-only
- * and is set by the backend (dwell logic) — `reportDetections()` becomes a
- * no-op while the sensor is blocked.
+ * `detected` is auto-derived from the detection list. `blocked` is read-only and
+ * set by the backend dwell logic, `reportDetections()` is a no-op while it is set.
  */
 export class MotionSensor<TStorage extends object = Record<string, any>> extends Sensor<MotionSensorProperties, TStorage> {
   readonly type = SensorType.Motion;
@@ -69,17 +66,14 @@ export class MotionSensor<TStorage extends object = Record<string, any>> extends
     });
   }
 
-  /** Whether motion is currently detected. */
   get detected(): boolean {
     return this.props.detected;
   }
 
-  /** Current detection list. */
   get detections(): Detection[] {
     return this.props.detections;
   }
 
-  /** Whether the sensor is currently blocked. Read-only — set by the backend dwell logic, not by plugin code. */
   get blocked(): boolean {
     return this.props.blocked;
   }
@@ -87,10 +81,10 @@ export class MotionSensor<TStorage extends object = Record<string, any>> extends
   /**
    * Report a motion detection result.
    *
-   * - `reportDetections(true)` — motion detected without bbox (e.g. Ring camera).
+   * - `reportDetections(true)`: motion detected without bbox (e.g. Ring camera).
    *   The SDK synthesizes a single full-frame `'motion'` detection.
-   * - `reportDetections(true, [...])` — motion detected with explicit detections.
-   * - `reportDetections(false)` — no motion (clears detections).
+   * - `reportDetections(true, [...])`: motion detected with explicit detections.
+   * - `reportDetections(false)`: no motion (clears detections).
    *
    * No-op while the sensor is blocked by backend dwell logic.
    *
@@ -129,21 +123,11 @@ export class MotionSensor<TStorage extends object = Record<string, any>> extends
   }
 
   /**
-   * Read-only sensor: external writes are ignored. State is reported via `reportDetections`.
-   *
-   * Called by the cross-process plugin host when a generic property write is received.
-   * Motion sensors have no externally writable properties, so the parameters are
-   * unused (underscore-prefixed) and the call is a no-op.
-   *
-   * @param _property - Unused — motion sensors expose no writable properties.
-   *
-   * @param _value - Unused — motion sensors expose no writable properties.
+   * Read-only sensor: external writes are ignored.
    *
    * @internal
    */
-  updateValue(_property: string, _value: unknown): void {
-    // No-op — motion state is reported by the plugin, not set externally.
-  }
+  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Return type for {@link MotionDetectorSensor.detectMotion}. */

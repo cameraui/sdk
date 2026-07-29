@@ -5,19 +5,9 @@ import type { CoreManager, DeviceManager, DownloadManager, NotificationManager, 
  * with `api.on(API_EVENT.X, handler)` to react to host-driven phase changes.
  */
 export enum API_EVENT {
-  /**
-   * Emitted exactly once after the plugin has been constructed, all assigned
-   * cameras have been wired up, and `configureCameras()` has returned. Use
-   * this to start background work that must wait until the camera set is
-   * stable (timers, model warm-up, outbound connections).
-   */
+  /** Emitted once after every assigned camera is wired up and `configureCameras()` returned. Start timers and warm-ups here. */
   FINISH_LAUNCHING = 'finishLaunching',
-  /**
-   * Emitted when the host is tearing the plugin down (graceful stop, reload
-   * or process exit). Listeners must release resources synchronously enough
-   * to finish before the host kills the process — open files, sockets,
-   * timers, child processes.
-   */
+  /** Emitted when the host tears the plugin down. Release files, sockets, timers and child processes now. */
   SHUTDOWN = 'shutdown',
 }
 
@@ -32,44 +22,23 @@ export enum API_EVENT {
  *
  * export default class MyPlugin extends BasePlugin {
  *   async configureCameras() {
- *     // Access FFmpeg path
  *     const ffmpeg = await this.api.coreManager.getFFmpegPath();
  *   }
  * }
  * ```
  */
 export interface PluginAPI {
-  /**
-   * System-level operations such as the FFmpeg path and the server addresses
-   *  used for media URLs (HTTP/RTSP).
-   */
+  /** System-level operations: the FFmpeg path and the server addresses used for media URLs (HTTP/RTSP). */
   readonly coreManager: CoreManager;
-  /**
-   * Owns the camera devices assigned to this plugin and publishes
-   *  camera-state changes.
-   */
+  /** Owns the camera devices assigned to this plugin and publishes camera-state changes. */
   readonly deviceManager: DeviceManager;
-  /**
-   * Registers standalone sensors: entities of their own, persisted across
-   *  restarts, assignable to cameras by the user. `camera.addSensor()`
-   *  delegates here with an automatic assignment.
-   */
+  /** Registers standalone sensors: entities of their own, persisted across restarts, assignable to cameras by the user. */
   readonly sensorManager: SensorManager;
-  /**
-   * Mints token-protected download URLs for files the plugin wants to
-   *  expose to the UI (e.g. clip exports, snapshots).
-   */
+  /** Mints token-protected download URLs for files the plugin exposes to the UI (clip exports, snapshots). */
   readonly downloadManager: DownloadManager;
-  /**
-   * Publishes notifications into the host so they fan out to every installed
-   * Notifier-plugin and the in-app UI. Requires
-   * `PluginCapability.PublishNotifications` in the plugin contract.
-   */
+  /** Publishes notifications to every installed notifier and the in-app UI. Requires `PluginCapability.PublishNotifications`. */
   readonly notificationManager: NotificationManager;
-  /**
-   * Absolute path to the plugin's writable storage directory. Created and
-   *  cleaned up by the host. Use it for caches, models, sqlite/bolt files.
-   */
+  /** Absolute path to the plugin's writable storage directory, created and cleaned up by the host. */
   readonly storagePath: string;
 
   /** Subscribe to a lifecycle event. Returns `this` for chaining. */
@@ -80,9 +49,6 @@ export interface PluginAPI {
   off(event: API_EVENT, listener: () => void): this;
   /** Remove a previously registered listener. */
   removeListener(event: API_EVENT, listener: () => void): this;
-  /**
-   * Remove every listener for `event`, or every listener entirely if no
-   *  event is given.
-   */
+  /** Remove every listener for `event`, or every listener when no event is given. */
   removeAllListeners(event?: API_EVENT): this;
 }

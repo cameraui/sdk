@@ -3,209 +3,179 @@ import type { Subscribed } from '../internal/streaming-internal.js';
 import type { ReplaySubject, Subject } from '../observable/index.js';
 import type { AudioCodec, AudioFFmpegCodec, ProbeAudioCodec, RTSPAudioCodec, StreamDirection, VideoCodec, VideoFFmpegCodec } from './enums.js';
 
-/**
- * WebSocket streaming URLs from go2rtc.
- */
+/** WebSocket streaming URLs from go2rtc. */
 export interface Go2RtcWSSource {
-  /** WebRTC signaling endpoint */
+  /** WebRTC signaling endpoint. */
   webrtc: string;
-  /** MSE streaming endpoint */
+  /** MSE streaming endpoint. */
   mse: string;
 }
 
-/**
- * RTSP streaming URLs from go2rtc.
- */
+/** RTSP streaming URLs from go2rtc. */
 export interface Go2RtcRTSPSource {
-  /** Base RTSP URL */
+  /** Base RTSP URL. */
   base: string;
-  /** Default stream (video + audio) */
+  /** Default stream (video + audio). */
   default: string;
-  /** Video only (muted) */
+  /** Video only (muted). */
   muted: string;
-  /** Audio only (no video) */
+  /** Audio only (no video). */
   audioOnly: string;
-  /** Stream with AAC audio URL */
+  /** Stream with AAC audio URL. */
   aac: string;
-  /** Stream with Opus audio URL */
+  /** Stream with Opus audio URL. */
   opus: string;
-  /** Stream with PCMA audio URL */
+  /** Stream with PCMA audio URL. */
   pcma: string;
-  /** ONVIF URL */
+  /** ONVIF URL. */
   onvif: string;
-  /** Stream URL with GOP cache disabled */
+  /** Stream URL with GOP cache disabled. */
   noGop: string;
 }
 
-/**
- * Snapshot/image URLs from go2rtc.
- */
+/** Snapshot/image URLs from go2rtc. */
 export interface Go2RtcSnapshotSource {
-  /** MP4 single-frame video URL */
+  /** MP4 single-frame video URL. */
   mp4: string;
-  /** JPEG snapshot URL */
+  /** JPEG snapshot URL. */
   jpeg: string;
-  /** MJPEG stream URL */
+  /** MJPEG stream URL. */
   mjpeg: string;
 }
 
-/**
- * Collection of all streaming URLs for a camera source.
- */
+/** Collection of all streaming URLs for a camera source. */
 export interface StreamUrls {
-  /** WebSocket URLs */
+  /** WebSocket URLs. */
   ws: Go2RtcWSSource;
-  /** RTSP URLs */
+  /** RTSP URLs. */
   rtsp: Go2RtcRTSPSource;
-  /** Snapshot URLs */
+  /** Snapshot URLs. */
   snapshot: Go2RtcSnapshotSource;
 }
 
-/**
- * Configuration for stream probing.
- */
+/** Configuration for stream probing. */
 export interface ProbeConfig {
-  /** Include video track info */
+  /** Include video track info. */
   video?: boolean;
-  /** Include audio track info (true, 'all', or specific codecs) */
+  /** Include audio track info (true, 'all', or specific codecs). */
   audio?: boolean | 'all' | ProbeAudioCodec[];
-  /** Include microphone/backchannel info */
+  /** Include microphone/backchannel info. */
   microphone?: boolean;
 }
 
-/**
- * Format parameters (fmtp) from SDP.
- */
+/** Format parameters (fmtp) from SDP. */
 export interface FMTPInfo {
-  /** RTP payload type number */
+  /** RTP payload type number. */
   payload: number;
-  /** Codec-specific configuration string */
+  /** Codec-specific configuration string. */
   config: string;
 }
 
-/**
- * RTP stream information.
- */
+/** RTP stream information. */
 export interface RTPInfo {
-  /** RTP payload type number */
+  /** RTP payload type number. */
   payload?: number;
-  /** Codec name */
+  /** Codec name. */
   codec: string;
-  /** Codec profile */
+  /** Codec profile. */
   profile?: string;
-  /** Codec clock rate */
+  /** Codec clock rate. */
   rate?: number;
-  /** Encoding parameters */
+  /** Encoding parameters. */
   encoding?: number;
-  /** Codec level */
+  /** Codec level. */
   level?: number;
 }
 
-/**
- * Audio codec properties from stream probe.
- */
+/** Audio codec properties from stream probe. */
 export interface AudioCodecProperties {
-  /** Audio sample rate in Hz */
+  /** Audio sample rate in Hz. */
   sampleRate: number;
-  /** Number of audio channels */
+  /** Number of audio channels. */
   channels: number;
-  /** RTP payload type */
+  /** RTP payload type. */
   payloadType: number;
-  /** Optional format parameters */
+  /** Optional format parameters. */
   fmtpInfo?: FMTPInfo;
 }
 
-/**
- * Video codec properties from stream probe.
- */
+/** Video codec properties from stream probe. */
 export interface VideoCodecProperties {
-  /** Video clock rate */
+  /** Video clock rate. */
   clockRate: number;
-  /** RTP payload type */
+  /** RTP payload type. */
   payloadType: number;
-  /** Optional format parameters */
+  /** Optional format parameters. */
   fmtpInfo?: FMTPInfo;
 }
 
-/**
- * Audio stream information from probe.
- */
+/** Audio stream information from probe. */
 export interface AudioStreamInfo {
-  /** Audio codec */
+  /** Audio codec. */
   codec: AudioCodec;
-  /** FFmpeg codec name */
+  /** FFmpeg codec name. */
   ffmpegCodec: AudioFFmpegCodec;
-  /** Codec properties */
+  /** Codec properties. */
   properties: AudioCodecProperties;
-  /** Stream direction */
+  /** Stream direction. */
   direction: StreamDirection;
 }
 
-/**
- * Video stream information from probe.
- */
+/** Video stream information from probe. */
 export interface VideoStreamInfo {
-  /** Video codec */
+  /** Video codec. */
   codec: VideoCodec;
-  /** FFmpeg codec name */
+  /** FFmpeg codec name. */
   ffmpegCodec: VideoFFmpegCodec;
-  /** Codec properties */
+  /** Codec properties. */
   properties: VideoCodecProperties;
-  /** Stream direction */
+  /** Stream direction. */
   direction: StreamDirection;
 }
 
-/**
- * Stream probe result containing SDP and track information.
- */
+/** Stream probe result containing SDP and track information. */
 export interface ProbeStream {
-  /** Raw SDP string */
+  /** Raw SDP string. */
   sdp: string;
-  /** Available audio tracks */
+  /** Available audio tracks. */
   audio: AudioStreamInfo[];
-  /** Available video tracks */
+  /** Available video tracks. */
   video: VideoStreamInfo[];
 }
 
-/**
- * Options for generating RTSP URLs.
- */
+/** Options for generating RTSP URLs. */
 export interface RTSPUrlOptions {
-  /** Include video track */
+  /** Include video track. */
   video?: boolean;
-  /** Include audio track(s) */
+  /** Include audio track(s). */
   audio?: boolean | RTSPAudioCodec | RTSPAudioCodec[];
-  /** Request keyframe at start (GOP) */
+  /** Request keyframe at start (GOP). */
   gop?: boolean;
-  /** Combine audio tracks into single track */
+  /** Combine audio tracks into single track. */
   audioSingleTrack?: boolean;
-  /** Enable backchannel (two-way audio) */
+  /** Enable backchannel (two-way audio). */
   backchannel?: boolean;
-  /** Connection timeout in s */
+  /** Connection timeout in s. */
   timeout?: number;
 }
 
-/**
- * Options for generating snapshot URLs.
- */
+/** Options for generating snapshot URLs. */
 export interface SnapshotUrlOptions {
-  /** Output width in pixels */
+  /** Output width in pixels. */
   width?: number;
-  /** Output height in pixels */
+  /** Output height in pixels. */
   height?: number;
-  /** Rotation in degrees */
+  /** Rotation in degrees. */
   rotate?: 90 | 180 | 270 | -90;
-  /** Cache key/strategy */
+  /** Cache key/strategy. */
   cache?: string;
-  /** Hardware acceleration backend */
+  /** Hardware acceleration backend. */
   hw?: 'vaapi' | 'v4l2m2m' | 'cuda' | 'dxva2' | 'videotoolbox' | 'rkmpp';
-  /** Request keyframe at start (GOP) */
+  /** Request keyframe at start (GOP). */
   gop?: boolean;
 }
 
-/**
- * Hardware acceleration options.
- */
+/** Hardware acceleration options. */
 export type HardwareAcceleration =
   | 'auto'
   | 'amf'
@@ -224,78 +194,74 @@ export type HardwareAcceleration =
   | 'videotoolbox'
   | 'vulkan';
 
-/**
- * RTP streaming session configuration.
- */
+/** RTP streaming session configuration. */
 export interface RtpSessionOptions {
-  /** Hardware acceleration method */
+  /** Hardware acceleration method. */
   hardware?: HardwareAcceleration;
 
-  /** Stream input options */
+  /** Stream input options. */
   input?: {
     options?: Record<string, string | number | boolean | null | undefined>;
   };
 
-  /** Video encoding options */
+  /** Video encoding options. */
   video?: {
-    /** Maximum transmission unit */
+    /** Maximum transmission unit. */
     mtu?: number;
-    /** Synchronization source identifier */
+    /** Synchronization source identifier. */
     ssrc?: number;
-    /** RTP payload type */
+    /** RTP payload type. */
     payloadType?: number;
-    /** Video codec */
+    /** Video codec. */
     codec?: 'h264' | 'hevc';
-    /** Target framerate */
+    /** Target framerate. */
     fps?: number;
-    /** Output width */
+    /** Output width. */
     width?: number;
-    /** Output height */
+    /** Output height. */
     height?: number;
-    /** Maximum output bitrate in bits per second */
+    /** Maximum output bitrate in bits per second. */
     bitrate?: number;
-    /** Additional encoder options */
+    /** Additional encoder options. */
     encoderOptions?: Record<string, string | number | boolean | undefined | null>;
   };
 
-  /** Audio encoding options */
+  /** Audio encoding options. */
   audio?: {
-    /** Maximum transmission unit */
+    /** Maximum transmission unit. */
     mtu?: number;
-    /** Synchronization source identifier */
+    /** Synchronization source identifier. */
     ssrc?: number;
-    /** RTP payload type */
+    /** RTP payload type. */
     payloadType?: number;
-    /** Audio codec */
+    /** Audio codec. */
     codec?: 'aac' | 'opus' | 'pcma' | 'pcmu';
-    /** Audio sample rate */
+    /** Audio sample rate. */
     sampleRate?: number;
-    /** Audio channels */
+    /** Audio channels. */
     channels?: number;
-    /** Frame duration in ms */
+    /** Frame duration in ms. */
     frameDuration?: number;
-    /** Additional encoder options */
+    /** Additional encoder options. */
     encoderOptions?: Record<string, string | number | boolean | undefined | null>;
   };
 }
 
-/**
- * Backchannel (two-way audio) configuration for RTP sessions.
- */
+/** Backchannel (two-way audio) configuration for RTP sessions. */
 export interface RtpSessionBackchannelOptions {
-  /** Audio decoder codec */
+  /** Audio decoder codec. */
   decoderCodec: 'libfdk_aac' | 'libopus' | 'pcm_alaw' | 'pcm_mulaw';
-  /** RTP payload type */
+  /** RTP payload type. */
   payloadType: number;
-  /** Audio clock rate */
+  /** Audio clock rate. */
   clockRate: number;
-  /** PCM sample format */
+  /** PCM sample format. */
   sampleFormat?: string;
-  /** Audio channels */
+  /** Audio channels. */
   channels?: number;
-  /** Format parameters */
+  /** Format parameters. */
   fmtp?: string;
-  /** SRTP encryption configuration */
+  /** SRTP encryption configuration. */
   srtp?: {
     key: Buffer;
     salt: Buffer;
@@ -308,17 +274,17 @@ export interface RtpSessionBackchannelOptions {
  * Provides raw RTP packet access for video and audio streams.
  */
 export interface RtpSession extends Subscribed {
-  /** Emits when stream successfully starts */
+  /** Emits when stream successfully starts. */
   readonly onStarted: ReplaySubject<void>;
-  /** Emits on stream errors */
+  /** Emits on stream errors. */
   readonly onError: Subject<Error>;
-  /** Emits when stream ends */
+  /** Emits when stream ends. */
   readonly onEnded: ReplaySubject<void>;
-  /** Emits video RTP packets */
+  /** Emits video RTP packets. */
   readonly onVideoRtp: Subject<RtpPacket>;
-  /** Emits audio RTP packets */
+  /** Emits audio RTP packets. */
   readonly onAudioRtp: Subject<RtpPacket>;
-  /** Whether backchannel is available */
+  /** Whether backchannel is available. */
   readonly hasBackchannel: boolean;
 
   /**
@@ -342,49 +308,47 @@ export interface RtpSession extends Subscribed {
    */
   sendAudioPacket(rtp: RtpPacket | Buffer): Promise<void>;
 
-  /** Stop the stream and cleanup resources */
+  /** Stop the stream and cleanup resources. */
   stop(): Promise<void>;
 }
 
-/**
- * FMP4 streaming session configuration.
- */
+/** FMP4 streaming session configuration. */
 export interface Fmp4SessionOptions {
-  /** Hardware acceleration method */
+  /** Hardware acceleration method. */
   hardware?: HardwareAcceleration;
 
-  /** Stream input options */
+  /** Stream input options. */
   input?: {
     options?: Record<string, string | number | boolean | null | undefined>;
   };
 
-  /** Use box mode for streaming */
+  /** Use box mode for streaming. */
   boxMode?: boolean;
-  /** Fragment duration in microseconds */
+  /** Fragment duration in microseconds. */
   fragDuration?: number;
 
-  /** Supported audio codecs (skip transcode if match) */
+  /** Supported audio codecs (skip transcode if match). */
   supportedAudioCodecs?: ('aac' | 'opus' | 'flac')[];
-  /** Supported video codecs (skip transcode if match) */
+  /** Supported video codecs (skip transcode if match). */
   supportedVideoCodecs?: ('h264' | 'hevc' | 'av1')[];
 
-  /** Video encoding options */
+  /** Video encoding options. */
   video?: {
-    /** Target framerate */
+    /** Target framerate. */
     fps?: number;
-    /** Output width */
+    /** Output width. */
     width?: number;
-    /** Output height */
+    /** Output height. */
     height?: number;
-    /** Maximum video bitrate in bits per second */
+    /** Maximum video bitrate in bits per second. */
     bitrate?: number;
-    /** Additional encoder options */
+    /** Additional encoder options. */
     encoderOptions?: Record<string, string | number | boolean | undefined | null>;
   };
 
-  /** Audio encoding options */
+  /** Audio encoding options. */
   audio?: {
-    /** Additional encoder options */
+    /** Additional encoder options. */
     encoderOptions?: Record<string, string | number | boolean | undefined | null>;
   };
 }
@@ -394,13 +358,13 @@ export interface Fmp4SessionOptions {
  * Produces FMP4 segments suitable for Media Source Extensions.
  */
 export interface Fmp4Session extends Subscribed {
-  /** Emits when stream successfully starts */
+  /** Emits when stream successfully starts. */
   readonly onStarted: ReplaySubject<void>;
-  /** Emits on stream errors */
+  /** Emits on stream errors. */
   readonly onError: Subject<Error>;
-  /** Emits when stream ends */
+  /** Emits when stream ends. */
   readonly onEnded: ReplaySubject<void>;
-  /** FMP4 initialization segment (moov box) */
+  /** FMP4 initialization segment (moov box). */
   readonly initSegment: Promise<Buffer>;
 
   /**
@@ -419,6 +383,6 @@ export interface Fmp4Session extends Subscribed {
    */
   streamBoxes(signal?: AbortSignal): AsyncGenerator<Buffer, void>;
 
-  /** Stop the stream and cleanup resources */
+  /** Stop the stream and cleanup resources. */
   stop(): Promise<void>;
 }

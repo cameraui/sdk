@@ -5,17 +5,17 @@ import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /**
- * Properties for humidity sensors
+ * Property names of a humidity sensor.
  *
  * @internal
  */
 export enum HumidityProperty {
-  /** Current relative humidity (0-100%) */
+  /** Current relative humidity (0-100%). */
   Current = 'current',
 }
 
 /**
- * Property value map for humidity info sensors.
+ * Property values of a humidity sensor.
  *
  * @internal
  */
@@ -23,7 +23,7 @@ export interface HumidityInfoProperties {
   [HumidityProperty.Current]: number;
 }
 
-/** Read-only proxy interface for a humidity sensor */
+/** Read-only proxy interface for a humidity sensor. */
 export interface HumidityInfoLike extends SensorLike {
   readonly type: SensorType.Humidity;
   readonly onPropertyChanged: Observable<PropertyChangeOf<HumidityInfoProperties>>;
@@ -62,21 +62,11 @@ export class HumidityInfo<TStorage extends object = Record<string, any>> extends
   }
 
   /**
-   * Read-only sensor: external writes are ignored. Reading via `setCurrent` is plugin-only.
-   *
-   * Called by the cross-process plugin host when a generic property write is received.
-   * Humidity sensors have no externally writable properties, so the parameters are
-   * unused (underscore-prefixed) and the call is a no-op.
-   *
-   * @param _property - Unused — humidity sensors expose no writable properties.
-   *
-   * @param _value - Unused — humidity sensors expose no writable properties.
+   * Read-only sensor: external writes are ignored.
    *
    * @internal
    */
-  updateValue(_property: string, _value: unknown): void {
-    // No-op — humidity is reported by the plugin, not set externally.
-  }
+  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Registry metadata for {@link HumidityInfo}. */

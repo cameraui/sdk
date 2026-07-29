@@ -42,16 +42,16 @@ StringFormat = Literal[
 
 Used on string-typed schemas to render a specialized UI control:
 
-- ``date-time`` — ISO 8601 date+time picker.
-- ``date`` — date-only picker.
-- ``time`` — time-only picker.
-- ``email`` — email input with format validation.
-- ``uuid`` — UUID input with format validation.
-- ``ipv4`` — IPv4 address input.
-- ``ipv6`` — IPv6 address input.
-- ``password`` — masked input that hides characters.
-- ``qrCode`` — value is rendered as a QR code (read-only display).
-- ``image`` — value is a data URL or path; rendered as a thumbnail.
+- ``date-time``: ISO 8601 date+time picker.
+- ``date``: date-only picker.
+- ``time``: time-only picker.
+- ``email``: email input with format validation.
+- ``uuid``: UUID input with format validation.
+- ``ipv4``: IPv4 address input.
+- ``ipv6``: IPv6 address input.
+- ``password``: masked input that hides characters.
+- ``qrCode``: value is rendered as a QR code (read-only display).
+- ``image``: value is a data URL or path; rendered as a thumbnail.
 """
 
 ButtonColor = Literal["success", "info", "warn", "danger"]
@@ -67,7 +67,7 @@ class SchemaCondition(TypedDict, total=False):
     The field is shown only when the condition evaluates to true against
     the current form values.
 
-    Combine multiple conditions on a field via a list — all must pass
+    Combine multiple conditions on a field via a list: all must pass
     (logical AND).
 
     Example:
@@ -90,7 +90,7 @@ class SchemaCondition(TypedDict, total=False):
     """Key of another field whose value drives visibility."""
 
     value: Required[Any]
-    """Expected value — single value, or list for ``in`` / ``nin``."""
+    """Expected value: a single value, or a list for ``in`` / ``nin``."""
 
     operator: SchemaConditionOperator
     """Comparison operator (default: ``eq``)."""
@@ -138,7 +138,7 @@ class JsonFactorySchema(TypedDict):
 
 class JsonBaseSchemaWithoutCallbacks(JsonFactorySchema, Generic[T], total=False):
     """
-    Base schema without callbacks - used for nested schemas.
+    Base schema without callbacks, used for nested schemas.
     Extends factory schema with common display options.
     """
 
@@ -166,7 +166,7 @@ class JsonBaseSchemaWithoutCallbacks(JsonFactorySchema, Generic[T], total=False)
 
 class JsonBaseSchema(JsonBaseSchemaWithoutCallbacks[T], Generic[T], total=False):
     """
-    Base schema with callbacks - full schema interface.
+    Base schema with callbacks, the full schema interface.
     Adds storage and callback options for dynamic behavior.
     """
 
@@ -185,21 +185,23 @@ class JsonStringSchema(TypedDict, total=False):
     """String-specific schema options."""
 
     type: Literal["string"]
+    """Schema type discriminator."""
 
     format: StringFormat
-    """String format for validation/display."""
+    """String format for validation/display. See ``StringFormat`` for behavior per format."""
 
     minLength: int
-    """Minimum string length."""
+    """Minimum string length (inclusive)."""
 
     maxLength: int
-    """Maximum string length."""
+    """Maximum string length (inclusive)."""
 
 
 class JsonNumberSchema(TypedDict, total=False):
     """Number-specific schema options."""
 
     type: Literal["number"]
+    """Schema type discriminator."""
 
     minimum: int | float
     """Minimum value."""
@@ -215,12 +217,14 @@ class JsonBooleanSchema(TypedDict):
     """Boolean-specific schema options."""
 
     type: Literal["boolean"]
+    """Schema type discriminator."""
 
 
 class JsonEnumSchema(TypedDict, total=False):
     """Enum/select schema options."""
 
     type: Literal["string"]
+    """Schema type discriminator."""
 
     enum: list[str]
     """Available options."""
@@ -233,6 +237,7 @@ class JsonArraySchema(TypedDict, total=False):
     """Array schema options."""
 
     type: Literal["array"]
+    """Schema type discriminator."""
 
     opened: bool
     """Whether array items are expanded by default."""
@@ -247,13 +252,13 @@ class JsonSchemaString(JsonBaseSchema[str], total=False):
     type: Required[Literal["string"]]  # type: ignore[misc]
 
     format: StringFormat
-    """String format for validation/display."""
+    """String format for validation/display. See ``StringFormat`` for behavior per format."""
 
     minLength: int
-    """Minimum string length."""
+    """Minimum string length (inclusive)."""
 
     maxLength: int
-    """Maximum string length."""
+    """Maximum string length (inclusive)."""
 
 
 class JsonSchemaStringWithoutCallbacks(JsonBaseSchemaWithoutCallbacks[str], total=False):
@@ -348,42 +353,53 @@ class JsonSchemaArrayWithoutCallbacks(
 
 
 class JsonSchemaButton(TypedDict, total=False):
-    """Button schema - triggers an action without storing a value."""
+    """Button schema: triggers an action without storing a value."""
 
     type: Required[Literal["button"]]
+    """Schema type discriminator."""
 
     key: Required[str]
+    """Unique field identifier."""
 
     title: Required[str]
+    """Display title."""
 
     description: Required[str]
+    """Field description/help text."""
 
     onSet: Callable[[], Awaitable[None]] | Callable[[], None]
     """Click handler."""
 
     group: str
+    """Optional group name for organizing fields."""
 
     color: ButtonColor
     """Button color variant."""
 
 
 class JsonSchemaSubmit(TypedDict, total=False):
-    """Submit button schema - submits form data and can return updated schema."""
+    """Submit button schema: submits form data and can return an updated schema."""
 
     type: Required[Literal["submit"]]
+    """Schema type discriminator."""
 
     key: Required[str]
+    """Unique field identifier."""
 
     title: Required[str]
+    """Display title."""
 
     description: Required[str]
+    """Field description/help text."""
 
     onClick: Required[Callable[[Any], Awaitable[FormSubmitResponse | None]]]
-    """Submit handler - receives form values, can return toast/schema updates."""
+    """Submit handler; receives form values, can return toast/schema updates."""
 
     group: str
+    """Optional group name for organizing fields."""
 
     color: ButtonColor
+    """Button color variant."""
 
 
 JsonSchema = (
@@ -428,12 +444,12 @@ class ToastMessage(TypedDict):
     Toast notification message.
 
     Returned from a submit handler (``JsonSchemaSubmit.onClick``) inside a
-    ``FormSubmitResponse`` to surface a transient banner in the UI — for
-    example to confirm that a credential check succeeded or failed.
+    ``FormSubmitResponse`` to surface a transient banner in the UI, for example
+    to confirm that a credential check succeeded or failed.
     """
 
     type: Literal["info", "success", "warning", "error"]
-    """Severity — controls the icon/color of the banner."""
+    """Severity, controls the icon and color of the banner."""
 
     message: str
     """Human-readable message text."""
@@ -448,7 +464,7 @@ class FormSubmitSchema(TypedDict):
 
 class FormSubmitResponse(TypedDict, total=False):
     """
-    Form submit response — returned by ``JsonSchemaSubmit.onClick``.
+    Form submit response, returned by ``JsonSchemaSubmit.onClick``.
 
     Used to react to a user-triggered submit (e.g. "Test connection",
     "Pair device") with optional UI feedback. Either field may be set:
@@ -541,7 +557,7 @@ class DeviceStorage(Protocol, Generic[V2]):
         Set a configuration value.
 
         Takes effect only if a schema exists for the key. Passing ``None``
-        deletes the key — it reads as never-set again and the schema default
+        deletes the key: it reads as never-set again and the schema default
         applies. For a field whose schema opts into storage (``store: True``)
         the value is durably persisted before the coroutine completes; the
         schema's ``onSet`` fires afterwards.
@@ -630,7 +646,7 @@ class DeviceStorage(Protocol, Generic[V2]):
         """
         Replace an existing schema field with a full schema.
 
-        The whole schema is replaced — individual fields are not merged. It is
+        The whole schema is replaced, individual fields are not merged. It is
         a no-op when no schema with that key is registered (use ``addSchema`` to
         add a new field). The passed key always wins.
 
@@ -666,7 +682,7 @@ class DeviceStorage(Protocol, Generic[V2]):
         Set a system-internal value (e.g. _displayName) without requiring a schema and persist it.
 
         When the coroutine completes, the value is durably persisted.
-        Passing ``None`` deletes the key — it reads as never-set again.
+        Passing ``None`` deletes the key; it reads as never-set again.
 
         Args:
             key: Internal key (typically prefixed with '_')

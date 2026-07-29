@@ -14,14 +14,19 @@ class GarageState(IntEnum):
     """Garage door states (HomeKit-compatible values)."""
 
     Open = 0
+    """Door is fully open."""
     Closed = 1
+    """Door is fully closed."""
     Opening = 2
+    """Door is moving towards open."""
     Closing = 3
+    """Door is moving towards closed."""
     Stopped = 4
+    """Door stopped part-way."""
 
 
 class GarageProperty(StrEnum):
-    """Properties for garage controls."""
+    """Property names of a garage control."""
 
     CurrentState = "currentState"
     """The actual current state of the garage door."""
@@ -32,7 +37,7 @@ class GarageProperty(StrEnum):
 
 
 class GarageControlProperties(TypedDict):
-    """Property value map for garage controls."""
+    """Property values of a garage control."""
 
     currentState: int
     targetState: int
@@ -40,10 +45,12 @@ class GarageControlProperties(TypedDict):
 
 
 class GaragePropertyChangeData(TypedDict):
-    """Emitted on GarageControlLike.onPropertyChanged."""
+    """Property change payload emitted on GarageControlLike.onPropertyChanged."""
 
-    property: str  # GarageProperty value
+    property: str
+    """Name of the changed property, a GarageProperty value."""
     value: GarageState | bool
+    """New value of the property."""
 
 
 TStorage = TypeVar("TStorage", bound=Mapping[str, Any], default=dict[str, Any])
@@ -57,6 +64,9 @@ class GarageControlLike(SensorLike, Protocol):
     def type(self) -> SensorType:
         return SensorType.Garage
 
+    @property
+    def onPropertyChanged(self) -> Observable[GaragePropertyChangeData]: ...
+
     @overload
     def getValue(self, property: Literal[GarageProperty.CurrentState]) -> GarageState | None: ...
     @overload
@@ -66,19 +76,16 @@ class GarageControlLike(SensorLike, Protocol):
     @overload
     def getValue(self, property: str) -> object | None: ...
 
-    @property
-    def onPropertyChanged(self) -> Observable[GaragePropertyChangeData]: ...
-
 
 class GarageControl(Sensor[GarageControlProperties, TStorage, str], Generic[TStorage]):
     """Garage door control.
 
-    Override `setTargetState()` to drive hardware and call
-    `await super().setTargetState(value)` once the hardware confirms — the base
-    implementation updates both `targetState` and `currentState`.
+    Override ``setTargetState()`` to drive hardware and call
+    ``await super().setTargetState(value)`` once the hardware confirms: the base
+    implementation updates both ``targetState`` and ``currentState``.
 
     For long-running transitions (Opening/Closing intermediate states) override
-    `setTargetState` and write `currentState` separately as the door moves.
+    ``setTargetState`` and write ``currentState`` separately as the door moves.
     """
 
     _requires_frames = False
@@ -117,8 +124,8 @@ class GarageControl(Sensor[GarageControlProperties, TStorage, str], Generic[TSto
 
     async def setTargetState(self, value: GarageState) -> None:
         """Set the target state. Override to drive hardware and call
-        `await super().setTargetState(value)` after success — the base implementation
-        syncs both `targetState` and `currentState` to the new value.
+        ``await super().setTargetState(value)`` after success: the base implementation
+        syncs both ``targetState`` and ``currentState`` to the new value.
 
         Args:
             value: Desired target state from the ``GarageState`` enum.
@@ -139,7 +146,7 @@ class GarageControl(Sensor[GarageControlProperties, TStorage, str], Generic[TSto
 
     def setCurrentState(self, value: GarageState) -> None:
         """Publish the actual door state. Use this to drive long-running
-        transitions (e.g. Open → Closing → Closed) independently of the
+        transitions (Open, then Closing, then Closed) independently of the
         user-requested target state. Read-only from cross-process consumers
         (``updateValue`` ignores it).
 
@@ -157,7 +164,7 @@ class GarageControl(Sensor[GarageControlProperties, TStorage, str], Generic[TSto
 
     def setObstructionDetected(self, value: bool) -> None:
         """Publish the obstruction-detected state. Read-only from the consumer
-        side (``updateValue`` ignores it) — plugin code calls this when its
+        side (``updateValue`` ignores it), plugin code calls this when its
         hardware reports an obstruction sensor change.
 
         Args:
@@ -171,7 +178,9 @@ class GarageControl(Sensor[GarageControlProperties, TStorage, str], Generic[TSto
         self._write_state({GarageProperty.ObstructionDetected.value: value})
 
     async def updateValue(self, property: str, value: Any) -> None:
-        """Routes generic property writes to semantic methods."""
+        """Routes generic property writes to the semantic setters.
+
+        Only targetState is externally writable.
+        """
         if property == GarageProperty.TargetState.value:
             await self.setTargetState(GarageState(value))
-        # Unknown / non-writable property (incl. currentState, obstructionDetected) — ignored.

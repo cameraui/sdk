@@ -16,10 +16,6 @@ from .base import (
     SensorPropertyChangeData,
     SensorType,
 )
-
-if TYPE_CHECKING:
-    from ..internal.sensor_rpc import SensorCapability, SensorPropertyType  # noqa: F401
-
 from .battery import (
     BatteryCapability,
     BatteryInfo,
@@ -128,6 +124,9 @@ from .switch import (
 from .temperature import (
     TemperatureInfo,
 )
+
+if TYPE_CHECKING:
+    from ..internal.sensor_rpc import SensorCapability, SensorPropertyType  # noqa: F401
 
 __all__ = [
     "Sensor",

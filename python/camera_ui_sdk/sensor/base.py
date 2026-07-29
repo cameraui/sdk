@@ -37,79 +37,124 @@ class SensorType(StrEnum):
     manager or attached to a camera via `camera.addSensor()`.
     """
 
-    Motion = "motion"  # Video-based motion detection
-    Object = "object"  # Object detection (person, vehicle, animal, etc.)
-    Audio = "audio"  # Audio event detection (glass break, scream, etc.)
-    Face = "face"  # Face detection and recognition
-    LicensePlate = "licensePlate"  # License plate detection and OCR
-    Classifier = "classifier"  # General-purpose image classifier
-    Clip = "clip"  # CLIP embedding sensor
-    ObjectAssist = "objectAssist"  # Object assist that locates objects in a frame so secondaries get real crops from camera-side detections
-    Contact = "contact"  # Contact/open-close sensor (door, window)
-    Humidity = "humidity"  # Humidity level sensor
-    Leak = "leak"  # Water leak detection sensor
-    Occupancy = "occupancy"  # Occupancy/presence detection sensor
-    Smoke = "smoke"  # Smoke detection sensor
-    Temperature = "temperature"  # Temperature sensor
-    Light = "light"  # Light on/off and brightness control
-    Siren = "siren"  # Siren on/off and volume control
-    Switch = "switch"  # Generic on/off switch
-    Lock = "lock"  # Lock/unlock control
-    Garage = "garage"  # Garage door open/close control
-    PTZ = "ptz"  # Pan-tilt-zoom camera control
-    SecuritySystem = "securitySystem"  # Security system arm/disarm control
-    Doorbell = "doorbell"  # Doorbell ring trigger
-    Battery = "battery"  # Battery level and charging state
+    Motion = "motion"
+    """Video-based motion detection."""
+    Object = "object"
+    """Object detection (person, vehicle, animal, etc.)."""
+    Audio = "audio"
+    """Audio event detection (glass break, scream, etc.)."""
+    Face = "face"
+    """Face detection and recognition."""
+    LicensePlate = "licensePlate"
+    """License plate detection and OCR."""
+    Classifier = "classifier"
+    """General-purpose image classifier."""
+    Clip = "clip"
+    """CLIP embedding generation for semantic search."""
+    ObjectAssist = "objectAssist"
+    """Locates objects in a frame so secondary detectors get real crops from camera-side detections."""
+    Contact = "contact"
+    """Contact/open-close sensor (door, window)."""
+    Humidity = "humidity"
+    """Humidity sensor (0-100%)."""
+    Leak = "leak"
+    """Water leak detector."""
+    Occupancy = "occupancy"
+    """Occupancy/presence sensor."""
+    Smoke = "smoke"
+    """Smoke detector."""
+    Temperature = "temperature"
+    """Temperature sensor (°C)."""
+    Light = "light"
+    """Light on/off and brightness control."""
+    Siren = "siren"
+    """Siren on/off and volume control."""
+    Switch = "switch"
+    """Generic on/off switch."""
+    Lock = "lock"
+    """Lock/unlock control."""
+    Garage = "garage"
+    """Garage door opener."""
+    PTZ = "ptz"
+    """Pan-tilt-zoom camera control."""
+    SecuritySystem = "securitySystem"
+    """Security system arm/disarm control."""
+    Doorbell = "doorbell"
+    """Doorbell ring trigger."""
+    Battery = "battery"
+    """Battery level and charging state."""
 
 
 class SensorCategory(StrEnum):
-    """Categorizes a sensor's role in the system."""
+    """Categorizes a sensor's role in the system.
 
-    Sensor = "sensor"  # Read-only detection sensor
-    Control = "control"  # Controllable sensor with set methods
-    Trigger = "trigger"  # Event trigger
-    Info = "info"  # Informational read-only state
+    Determines how the backend treats the sensor (read-only vs. controllable).
+    """
+
+    Sensor = "sensor"
+    """Read-only detection sensor (motion, object, audio, etc.)."""
+    Control = "control"
+    """Controllable sensor with set methods (light, siren, PTZ, etc.)."""
+    Trigger = "trigger"
+    """Event trigger (doorbell ring)."""
+    Info = "info"
+    """Informational read-only state (battery level)."""
 
 
 class SensorPropertyChangeData(TypedDict):
     """Emitted on the onPropertyChanged Observable."""
 
     property: str
+    """Name of the changed property."""
     value: object
+    """New value of the property."""
     timestamp: int
+    """Origin timestamp in milliseconds since epoch."""
 
 
 @runtime_checkable
 class SensorLike(Protocol):
-    """Read-only proxy interface for a sensor. Use this type when consuming sensors, not creating them.
+    """Read-only view of a sensor, as other plugins and the backend see it.
 
-    All state-modifying methods (`setOn`, `reportDetections`, etc.) live on the
+    Use this type when consuming sensors, not when creating them. All
+    state-modifying methods (`setOn`, `reportDetections`, etc.) live on the
     concrete sensor classes, not on `SensorLike`. Code that holds a `SensorLike`
-    reference can only READ state and observe changes.
+    reference can only read state and observe changes.
     """
 
     @property
     def id(self) -> str: ...
+
     @property
     def type(self) -> SensorType: ...
+
     @property
     def name(self) -> str: ...
+
     @property
     def nativeId(self) -> str | None: ...
+
     @property
     def pluginId(self) -> str | None: ...
+
     @property
     def capabilities(self) -> list[str]: ...
+
     @property
     def connected(self) -> bool: ...
+
     @property
     def displayName(self) -> str: ...
+
     @displayName.setter
     def displayName(self, value: str) -> None: ...
+
     @property
     def onPropertyChanged(self) -> Observable[Any]: ...
+
     @property
     def onCapabilitiesChanged(self) -> Observable[Any]: ...
+
     @property
     def onConnectedChanged(self) -> Observable[bool]: ...
 
@@ -122,20 +167,16 @@ class SensorLike(Protocol):
         ...
 
     async def updateValue(self, property: str, value: Any) -> None:
-        """Write a property generically. Cross-process bridges (e.g. HomeKit) bind
-        generic property names to UI characteristics and call this on a sensor
-        proxy — the proxy forwards via RPC to the owning sensor, where control
-        sensor classes (`Light`, `Siren`, etc.) override `updateValue` to dispatch
-        to the appropriate semantic method (`setOn`, `setActive`, ...). This means
-        plugin-side hardware-action overrides ARE honored end-to-end.
+        """Generic property write used by cross-process bridges (HomeKit, MQTT).
 
-        Plugin authors **must not** call this — they should call the semantic
-        methods directly on the concrete sensor class.
+        The owning sensor dispatches it to the matching semantic method, so
+        plugin-side hardware overrides still run. Plugin authors call the
+        semantic methods instead.
         """
         ...
 
     def hasCapability(self, capability: str) -> bool:
-        """Check whether this sensor has a given capability."""
+        """Whether the sensor advertises the given capability."""
         ...
 
 
@@ -145,9 +186,10 @@ TCapability = TypeVar("TCapability", bound=str)
 
 
 class PropertiesProxy(Generic[TProperties]):
-    """Read-only view over a sensor's property store. Subclasses use this to read
-    current state when implementing semantic methods (e.g. `if self.props.blocked: return`).
-    Writes go through `Sensor._write_state` — assignments through this proxy are not allowed.
+    """Read-only view over a sensor's property store.
+
+    Subclasses read current state from here when implementing semantic methods.
+    Writes go through `Sensor._write_state`, assignments through this proxy raise.
     """
 
     _store: dict[str, Any]
@@ -184,18 +226,21 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
     subclasses like MotionSensor, LightControl, etc.) to implement sensor logic.
 
     Sensors are standalone entities: the plugin supplies the durable identity
-    (``native_id``), everything else belongs to the user — camera assignments,
+    (``native_id``), everything else belongs to the user: camera assignments,
     display name and whether the sensor is exported to HomeKit/HA/MQTT. A plugin
     never decides where its sensor is used and never handles the export itself.
+
+    The ``id`` is provisional until registration, when the host swaps in the
+    persistent entity id. Reading ``storage`` before registration raises.
+    Override ``storage_schema`` to return a JSON schema and get a per-sensor
+    settings UI.
     """
 
     _requires_frames: bool = False
 
     def __init__(self, name: str, *, native_id: str | None = None) -> None:
         self._name = name
-        self._id = str(
-            uuid4()
-        )  # provisional id, replaced by the host's persistent id at registration
+        self._id = str(uuid4())  # provisional id, replaced by the host's persistent id at registration
         self._native_id = native_id
         self._display_name = name
         self._plugin_id: str | None = None
@@ -226,13 +271,10 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
 
     @property
     def id(self) -> str:
-        """The sensor's id. Provisional until registration; after ``addSensor``
-        the host replaces it with the persistent entity id, stable across restarts."""
         return self._id
 
     @property
     def nativeId(self) -> str | None:
-        """Plugin-supplied durable identity (e.g. an upstream device id), if any."""
         return self._native_id
 
     @property
@@ -245,16 +287,6 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
 
     @displayName.setter
     def displayName(self, value: str) -> None:
-        """Set the display name (the only mutable identifier on a sensor).
-
-        Args:
-            value: Human-readable label shown in the UI.
-
-        Example:
-            ```python
-            sensor.displayName = "Front Door Motion"
-            ```
-        """
         self._display_name = value
 
     @property
@@ -263,12 +295,10 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
 
     @property
     def assignedCameraIds(self) -> list[str]:
-        """Cameras this sensor is currently assigned to. Empty for unassigned standalone sensors."""
         return self._assigned_camera_ids.copy()
 
     @property
     def connected(self) -> bool:
-        """The owning side of a sensor is connected exactly while it is registered."""
         return self._registered
 
     @property
@@ -277,6 +307,7 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
 
     @capabilities.setter
     def capabilities(self, value: list[TCapability]) -> None:
+        """Set capabilities, deduplicated, and notify backend plus local listeners."""
         self._capabilities = list(dict.fromkeys(value))
         if self._capabilities_change_fn:
             caps_list: list[str] = [str(c) for c in self._capabilities]
@@ -289,20 +320,15 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
 
     @property
     def storage_schema(self) -> list[JsonSchema]:
-        """Override to provide a JSON schema for per-sensor storage settings UI."""
         return []
 
     @property
     def storage(self) -> DeviceStorage[TStorage]:
-        """Per-sensor persistent storage. Raises if not yet added to a camera."""
-        assert self._storage is not None, (
-            "Storage not initialized - sensor not registered yet"
-        )
+        assert self._storage is not None, "Storage not initialized - sensor not registered yet"
         return self._storage
 
     @property
     def isAssigned(self) -> bool:
-        """Whether this sensor is assigned to at least one camera."""
         return len(self._assigned_camera_ids) > 0
 
     @property
@@ -313,17 +339,126 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
     def rawProps(self) -> dict[str, Any]:
         return self._properties_store
 
+    @property
+    def onAssignmentChanged(self) -> Observable[list[str]]:
+        return self._assignment_changed_subject.as_observable()
+
+    @property
+    def onConnectedChanged(self) -> Observable[bool]:
+        return self._connected_changed_subject.as_observable()
+
+    @property
+    def onPropertyChanged(self) -> Observable[SensorPropertyChangeData]:
+        return self._property_changed_subject.as_observable()
+
+    @property
+    def onCapabilitiesChanged(self) -> Observable[list[TCapability]]:
+        return self._capabilities_changed_subject.as_observable()
+
+    def on_start(self) -> Any:
+        """Lifecycle hook, called once the sensor is registered and live.
+
+        Storage and RPC are wired up by then. Override it to start work whose
+        lifetime matches the sensor's: polling loops, event subscriptions, timers.
+
+        May be either a plain ``def`` or an ``async def``. If async, the SDK
+        schedules it on the running event loop (fire-and-forget). Errors are
+        swallowed, not logged, so handle failures inside the override. Paired
+        1:1 with ``on_stop``, which runs on removal, plugin shutdown or cleanup.
+
+        Example:
+            ```python
+            async def on_start(self) -> None:
+                self._task = asyncio.create_task(self._poll_loop())
+            ```
+        """
+        return None
+
+    def on_stop(self) -> Any:
+        """Counterpart of ``on_start``: tear down whatever it started, such as
+        timers, subscriptions and external resources.
+
+        May be either a plain ``def`` or an ``async def``. See ``on_start``
+        for scheduling semantics.
+
+        Example:
+            ```python
+            def on_stop(self) -> None:
+                if self._task:
+                    self._task.cancel()
+            ```
+        """
+        return None
+
+    def toJSON(self) -> SensorJSON:
+        """Serialize this sensor to a JSON-safe dict for RPC transport."""
+        result: SensorJSON = {
+            "id": self.id,
+            "type": self.type,
+            "name": self.name,
+            "displayName": self.displayName or self.name,
+            "category": self.category,
+            "properties": self._getProperties(),
+            "capabilities": [str(c) for c in self.capabilities],
+            "requiresFrames": self._requires_frames,
+        }
+        if self._native_id:
+            result["nativeId"] = self._native_id
+        if self._plugin_id:
+            result["pluginId"] = self._plugin_id
+        return result
+
+    def getValue(self, property: str) -> Any | None:
+        """Get the current value of a sensor property."""
+        return self._properties_store.get(property)
+
+    def getValues(self) -> dict[str, Any]:
+        """Get a read-only snapshot of all property values.
+
+        Returns:
+            Snapshot of every property currently held by the sensor.
+
+        Example:
+            ```python
+            snapshot = sensor.getValues()
+            print(snapshot)
+            ```
+        """
+        return self._properties_store.copy()
+
+    @abstractmethod
+    async def updateValue(self, property: str, value: Any) -> None:
+        """Generic property write coming from a consumer.
+
+        Read-only sensors implement it as a no-op, control sensors dispatch known
+        properties to their semantic methods (`setOn`, `setActive`,
+        `setTargetState`) so plugin overrides drive hardware. Unknown or
+        non-writable properties are ignored.
+
+        Plugin authors call the semantic methods on the concrete class instead.
+        """
+        ...
+
+    def hasCapability(self, capability: TCapability | str) -> bool:
+        """Check whether the sensor advertises a capability.
+
+        Args:
+            capability: Capability flag to look for.
+
+        Returns:
+            True if the sensor currently advertises it.
+
+        Example:
+            ```python
+            dimmable = sensor.hasCapability("brightness")
+            ```
+        """
+        return capability in self._capabilities
+
     def _write_state(self, partial: Mapping[str, Any]) -> None:
-        """SDK-internal state-write API. Performs deep-equal change detection over
-        the partial, writes changed properties to the store, fires a single batched
-        RPC update with the delta, and notifies local listeners per-property.
+        """Write changed properties, fire one batched RPC update and notify listeners.
 
-        Used by the semantic helper methods on each sensor type (`setOn`,
-        `reportDetections`, etc.) — **not for plugin authors**. Plugin code should
-        call the semantic helpers, not write state directly.
-
-        One `_write_state` call → one `_update_fn` invocation. The receiver sees an
-        atomic state transition for this sensor.
+        Used by the semantic helpers on each sensor type, not by plugin code.
         """
         delta: dict[str, Any] = {}
         changes: list[tuple[str, Any, Any]] = []
@@ -354,21 +489,18 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         fallback_label: str,
         fallback_extra: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
-        """Helper for `reportDetections(detected, detections?)` flows.
+        """Normalize the arguments of a `reportDetections(detected, detections)` call.
 
-        - If `detected` is False → returns `[]` (clear).
-        - If `detected` is True and `detections` has items → returns them, substituting a full-frame box where missing.
-        - If `detected` is True and `detections` is missing/empty → returns a single
-          synthesized full-frame detection with the given `fallback_label` and any
-          `fallback_extra` fields (used for type-specific properties like `attribute`,
-          `plateText`, etc.).
+        - `detected` is False: returns `[]` (clear).
+        - `detected` is True with detections: returns them, substituting a full-frame box where missing.
+        - `detected` is True without detections: returns one synthesized full-frame
+          detection carrying `fallback_label` and `fallback_extra`.
         """
         if not detected:
             return []
         if detections:
-            # Smart-camera plugins report labels without coordinates, while
-            # downstream consumers (detection coordinator, zone matching)
-            # require a box on every detection — substitute full-frame.
+            # smart-camera plugins report labels without coordinates, downstream
+            # consumers (coordinator, zone matching) require a box on every detection
             return [
                 detection
                 if detection.get("box")
@@ -387,49 +519,8 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
     def _setStorage(self, storage: DeviceStorage[TStorage]) -> None:
         self._storage = storage
 
-    def on_start(self) -> Any:
-        """Lifecycle hook: the sensor is registered and live (storage and RPC
-        are wired up). Override to start background work whose lifetime matches
-        the sensor's — polling loops, event subscriptions, timers. Sensors that
-        only receive writes from the plugin's own connections need no hook at all.
-
-        May be either a plain ``def`` or an ``async def``. If async, the SDK
-        schedules it on the running event loop (fire-and-forget). Errors are
-        caught and swallowed — they will NOT break lifecycle bookkeeping, but
-        nothing surfaces them either. If your work can fail, handle it inside
-        the override.
-
-        Paired 1:1 with ``on_stop`` — for every ``on_start`` call there is
-        exactly one matching ``on_stop`` later (on removal, plugin shutdown or
-        cleanup).
-
-        Example:
-            ```python
-            async def on_start(self) -> None:
-                self._task = asyncio.create_task(self._poll_loop())
-            ```
-        """
-        return None
-
-    def on_stop(self) -> Any:
-        """Counterpart of ``on_start``: tear down whatever it started — clear
-        timers, close subscriptions, release external resources.
-
-        May be either a plain ``def`` or an ``async def``. See ``on_start``
-        for scheduling semantics.
-
-        Example:
-            ```python
-            def on_stop(self) -> None:
-                if self._task:
-                    self._task.cancel()
-            ```
-        """
-        return None
-
     def _fire_lifecycle(self, active: bool) -> None:
-        """Internal helper — invoke the appropriate lifecycle hook and, if the
-        override returned a coroutine, schedule it on the running loop."""
+        """Invoke the lifecycle hook and schedule it if the override is async."""
         try:
             result = self.on_start() if active else self.on_stop()
         except Exception:  # noqa: BLE001 - lifecycle errors must not break bookkeeping
@@ -438,16 +529,12 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
             try:
                 loop = asyncio.get_running_loop()
             except RuntimeError:
-                # No loop running — the coroutine won't execute. Swallow so
-                # the coroutine isn't logged as "never awaited".
+                # no loop, close so the coroutine isn't logged as "never awaited"
                 result.close()
                 return
             task = loop.create_task(result)
-            # Swallow exceptions from async lifecycle work so they don't
-            # surface as "Task exception was never retrieved" warnings.
-            task.add_done_callback(
-                lambda t: t.exception() if not t.cancelled() else None
-            )
+            # swallow, otherwise "Task exception was never retrieved" warnings
+            task.add_done_callback(lambda t: t.exception() if not t.cancelled() else None)
 
     def _setActive(self, active: bool) -> None:
         if self._active == active:
@@ -456,86 +543,14 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         self._connected_changed_subject.next(active)
         self._fire_lifecycle(active)
 
-    @property
-    def onAssignmentChanged(self) -> Observable[list[str]]:
-        """Observable for assignment changes. Emits the current camera id list."""
-        return self._assignment_changed_subject.as_observable()
-
-    @property
-    def onConnectedChanged(self) -> Observable[bool]:
-        """Observable for connectivity changes of the owning plugin."""
-        return self._connected_changed_subject.as_observable()
-
-    def toJSON(self) -> SensorJSON:
-        """Serialize this sensor to a JSON-safe dict for RPC transport."""
-        result: SensorJSON = {
-            "id": self.id,
-            "type": self.type,
-            "name": self.name,
-            "displayName": self.displayName or self.name,
-            "category": self.category,
-            "properties": self._getProperties(),
-            "capabilities": [str(c) for c in self.capabilities],
-            "requiresFrames": self._requires_frames,
-        }
-        if self._native_id:
-            result["nativeId"] = self._native_id
-        if self._plugin_id:
-            result["pluginId"] = self._plugin_id
-        return result
-
-    def _setPropertyInternal(
-        self, key: str, value: Any, timestamp: int | None = None
-    ) -> None:
+    def _setPropertyInternal(self, key: str, value: Any, timestamp: int | None = None) -> None:
         old_value = self._properties_store.get(key)
         if old_value != value:
             self._properties_store[key] = value
             self._notifyListeners(key, value, old_value, timestamp)
 
-    def _onBackendPropertyChanged(
-        self, property: str, value: Any, timestamp: int | None = None
-    ) -> None:
+    def _onBackendPropertyChanged(self, property: str, value: Any, timestamp: int | None = None) -> None:
         self._setPropertyInternal(property, value, timestamp)
-
-    def getValue(self, property: str) -> Any | None:
-        """Get the current value of a sensor property."""
-        return self._properties_store.get(property)
-
-    def getValues(self) -> dict[str, Any]:
-        """Get a read-only snapshot of all property values.
-
-        Returns:
-            Snapshot of every property currently held by the sensor.
-
-        Example:
-            ```python
-            snapshot = sensor.getValues()
-            print(snapshot)
-            ```
-        """
-        return self._properties_store.copy()
-
-    @abstractmethod
-    async def updateValue(self, property: str, value: Any) -> None:
-        """External-consumer entry point that satisfies the `SensorLike.updateValue`
-        contract. Each concrete sensor class implements this — read-only sensors
-        leave it as a no-op, control sensors dispatch known properties to the
-        appropriate semantic methods (`setOn`, `setActive`, `setTargetState`, ...)
-        so plugin overrides drive hardware. Unknown / non-writable properties are
-        silently ignored.
-
-        **Plugin authors must not call this** — they should call the semantic
-        methods directly on the concrete sensor class.
-        """
-        ...
-
-    def hasCapability(self, capability: TCapability | str) -> bool:
-        return capability in self._capabilities
-
-    @property
-    def onPropertyChanged(self) -> Observable[SensorPropertyChangeData]:
-        """Observable for property changes."""
-        return self._property_changed_subject.as_observable()
 
     def _notifyListeners(
         self,
@@ -549,14 +564,7 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
             return
 
         ts = timestamp or int(time.time() * 1000)
-        self._property_changed_subject.next(
-            {"property": property, "value": value, "timestamp": ts}
-        )
-
-    @property
-    def onCapabilitiesChanged(self) -> Observable[list[TCapability]]:
-        """Observable for capability changes. Emits the full capabilities array when capabilities change."""
-        return self._capabilities_changed_subject.as_observable()
+        self._property_changed_subject.next({"property": property, "value": value, "timestamp": ts})
 
     def _setId(self, id: str) -> None:
         self._id = id
@@ -576,8 +584,7 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         self._capabilities_change_fn = update_fn
 
     def _cleanup(self) -> None:
-        # Trigger on_stop if still active — guarantees the hook is paired 1:1
-        # even when the sensor is force-removed without a proper teardown path.
+        # pair on_stop even when the sensor is force-removed without teardown
         if self._active:
             self._active = False
             self._fire_lifecycle(False)

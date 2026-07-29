@@ -22,7 +22,7 @@ class OAuthState(TypedDict):
     verificationUri: NotRequired[str]
     """Device-flow verification URI the user opens (set while ``awaiting_user``)."""
     verificationUriComplete: NotRequired[str]
-    """Verification URI with the user code embedded — rendered as a QR code."""
+    """Verification URI with the user code embedded, rendered as a QR code."""
     authUrl: NotRequired[str]
     """Authorization-code-flow URL the browser must open (set while ``awaiting_user``)."""
     userEmail: NotRequired[str]
@@ -84,9 +84,9 @@ class OAuthProviderDeclaration(TypedDict):
 
 @runtime_checkable
 class OAuthCapable(Protocol):
-    """Base interface every OAuth-capable plugin implements, alongside at least
-    one flow sub-interface. IdP-agnostic — the plugin brings its own endpoint
-    config and knows nothing about the host's internals.
+    """Base interface every OAuth-capable plugin implements, alongside at
+    least one flow sub-interface. IdP-agnostic: the plugin brings its own
+    endpoint config and knows nothing about the host's internals.
     """
 
     async def getOAuthMetadata(self) -> OAuthMetadata:

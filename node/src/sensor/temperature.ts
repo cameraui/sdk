@@ -5,17 +5,17 @@ import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /**
- * Properties for temperature sensors
+ * Property names of a temperature sensor.
  *
  * @internal
  */
 export enum TemperatureProperty {
-  /** Current temperature in degrees Celsius */
+  /** Current temperature in degrees Celsius. */
   Current = 'current',
 }
 
 /**
- * Property value map for temperature info sensors.
+ * Property values of a temperature sensor.
  *
  * @internal
  */
@@ -23,7 +23,7 @@ export interface TemperatureInfoProperties {
   [TemperatureProperty.Current]: number;
 }
 
-/** Read-only proxy interface for a temperature sensor */
+/** Read-only proxy interface for a temperature sensor. */
 export interface TemperatureInfoLike extends SensorLike {
   readonly type: SensorType.Temperature;
   readonly onPropertyChanged: Observable<PropertyChangeOf<TemperatureInfoProperties>>;
@@ -62,21 +62,11 @@ export class TemperatureInfo<TStorage extends object = Record<string, any>> exte
   }
 
   /**
-   * Read-only sensor: external writes are ignored. Reading via `setCurrent` is plugin-only.
-   *
-   * Called by the cross-process plugin host when a generic property write is received.
-   * Temperature sensors have no externally writable properties, so the parameters are
-   * unused (underscore-prefixed) and the call is a no-op.
-   *
-   * @param _property - Unused — temperature sensors expose no writable properties.
-   *
-   * @param _value - Unused — temperature sensors expose no writable properties.
+   * Read-only sensor: external writes are ignored.
    *
    * @internal
    */
-  updateValue(_property: string, _value: unknown): void {
-    // No-op — temperature is reported by the plugin, not set externally.
-  }
+  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Registry metadata for {@link TemperatureInfo}. */

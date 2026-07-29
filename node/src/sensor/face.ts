@@ -7,7 +7,7 @@ import type { Detection, VideoFrameData } from './detection.js';
 import type { ModelSpec } from './spec.js';
 
 /**
- * Property names of a face detection sensor.
+ * Property names of a face sensor.
  *
  * @internal
  */
@@ -31,7 +31,7 @@ export interface FaceDetection extends Detection {
 }
 
 /**
- * Property shape carried by a {@link FaceSensor}.
+ * Property values of a face sensor.
  *
  * @internal
  */
@@ -42,9 +42,7 @@ export interface FaceSensorProperties {
 
 /** Read-only proxy interface for a face sensor. */
 export interface FaceSensorLike extends SensorLike {
-  /** Sensor type discriminant. */
   readonly type: SensorType.Face;
-  /** Property change observable narrowed to face properties. */
   readonly onPropertyChanged: Observable<PropertyChangeOf<FaceSensorProperties>>;
 
   getValue(property: FaceProperty.Detected): boolean | undefined;
@@ -71,12 +69,10 @@ export class FaceSensor<TStorage extends object = Record<string, any>> extends S
     });
   }
 
-  /** Whether any face is currently detected. */
   get detected(): boolean {
     return this.props.detected;
   }
 
-  /** Current detection list. */
   get detections(): FaceDetection[] {
     return this.props.detections;
   }
@@ -84,12 +80,12 @@ export class FaceSensor<TStorage extends object = Record<string, any>> extends S
   /**
    * Report detected faces.
    *
-   * - `reportDetections(true)` — face detected without specifics (e.g. a
+   * - `reportDetections(true)`: face detected without specifics (e.g. a
    *   bare face-event from a discovery provider). The SDK synthesizes a
    *   single full-frame face detection without identity.
-   * - `reportDetections(true, [...])` — explicit face detections with
+   * - `reportDetections(true, [...])`: explicit face detections with
    *   identity, embedding, and/or thumbnail.
-   * - `reportDetections(false)` — clear.
+   * - `reportDetections(false)`: clear.
    *
    * @param detected - Whether any face is currently detected.
    *
@@ -131,21 +127,11 @@ export class FaceSensor<TStorage extends object = Record<string, any>> extends S
   }
 
   /**
-   * Read-only sensor: external writes are ignored. State is reported via `reportDetections`.
-   *
-   * Called by the cross-process plugin host when a generic property write is received.
-   * Face sensors have no externally writable properties, so the parameters are
-   * unused (underscore-prefixed) and the call is a no-op.
-   *
-   * @param _property - Unused — face sensors expose no writable properties.
-   *
-   * @param _value - Unused — face sensors expose no writable properties.
+   * Read-only sensor: external writes are ignored.
    *
    * @internal
    */
-  updateValue(_property: string, _value: unknown): void {
-    // No-op — face detection state is reported by the plugin, not set externally.
-  }
+  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Return type for {@link FaceDetectorSensor.detectFaces}. */
@@ -164,7 +150,6 @@ export interface FaceResult {
 export abstract class FaceDetectorSensor<TStorage extends object = Record<string, any>> extends FaceSensor<TStorage> {
   _requiresFrames = true;
 
-  /** Declares the expected input dimensions and trigger labels. The backend scales frames to match. */
   abstract get modelSpec(): ModelSpec;
 
   /**

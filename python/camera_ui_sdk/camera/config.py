@@ -86,6 +86,7 @@ class CameraConfigInputSettings(TypedDict):
     childSourceId: NotRequired[str]
     """Child source ID (for snapshot fallback)."""
     urls: NotRequired[list[str]]
+    """Raw source URLs, the server resolves them into streaming URLs."""
 
 
 class BaseCameraConfig(TypedDict):
@@ -132,8 +133,10 @@ class AssignedPlugin(TypedDict):
 
 class PluginAssignments(TypedDict, total=False):
     """
-    Plugin assignments for camera sensors/features.
-    Maps sensor types to their assigned plugin(s).
+    Plugin assignments for a camera, keyed by sensor type.
+
+    Single-provider sensors and the camera controller hold one plugin;
+    multi-provider sensors and the hub hold a list.
     """
 
     motion: AssignedPlugin

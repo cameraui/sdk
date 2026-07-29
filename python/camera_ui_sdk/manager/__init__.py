@@ -51,6 +51,18 @@ class CoreManager(Protocol):
         ```
     """
 
+    @property
+    def onEvent(self) -> Observable[CoreManagerEvent]:
+        """
+        Observable for core manager events (e.g. cloud account changes).
+
+        Example:
+            ```python
+            api.coreManager.onEvent.subscribe(lambda e: print(e["type"], e["data"]))
+            ```
+        """
+        ...
+
     async def connectToPlugin(self, pluginName: str) -> BasePlugin | None:
         """
         Connect to another plugin by name.
@@ -108,23 +120,11 @@ class CoreManager(Protocol):
         """
         ...
 
-    @property
-    def onEvent(self) -> Observable[CoreManagerEvent]:
-        """
-        Observable for core manager events (e.g. cloud account changes).
-
-        Example:
-            ```python
-            api.coreManager.onEvent.subscribe(lambda e: print(e["type"], e["data"]))
-            ```
-        """
-        ...
-
 
 @runtime_checkable
 class SensorManager(Protocol):
     """
-    Sensor manager for standalone sensors — devices that are not part of a
+    Sensor manager for standalone sensors: devices that are not part of a
     camera's hardware (smart plugs, imported smart-home devices, hubs).
 
     The host persists each sensor as its own entity: the user assigns it to
@@ -136,8 +136,8 @@ class SensorManager(Protocol):
 
     Example:
         ```python
-        light = LightControl("Hue Bloom", native_id="hue:00:17:88:01")
-        await api.sensorManager.addSensor(light)
+        lock = LockControl("Front Door", native_id="lock.front_door")
+        await api.sensorManager.addSensor(lock)
         ```
     """
 
@@ -146,8 +146,8 @@ class SensorManager(Protocol):
         Register a standalone sensor with the host.
 
         The host reconciles it against the persisted entity by
-        ``(pluginId, nativeId)`` — or ``(type, name)`` when no native_id is
-        set — and replaces the sensor's provisional ``id`` with the persistent
+        ``(pluginId, nativeId)``, or by ``(type, name)`` when no native_id is
+        set, and replaces the sensor's provisional ``id`` with the persistent
         entity id. Camera assignment is the user's decision and happens in the UI.
 
         Args:
@@ -179,7 +179,7 @@ class SensorManager(Protocol):
 class DeviceManager(Protocol):
     """
     Device manager interface for camera operations.
-    Provides methods to get cameras and push discovered cameras.
+    Provides methods to push discovered cameras and get camera devices.
 
     Accessed via `api.deviceManager` in plugins.
 
@@ -198,7 +198,8 @@ class DeviceManager(Protocol):
         """
         Push discovered cameras to the backend.
         Use this when cameras are discovered asynchronously (e.g., after cloud login).
-        Cameras will be immediately visible in the UI for adoption.
+        Cameras become visible in the UI without waiting for the next poll.
+        Only available for CameraController and CameraAndSensorProvider plugins.
 
         Args:
             cameras: List of discovered cameras to push
@@ -251,21 +252,21 @@ class CreateDownloadOptions(TypedDict):
     """Absolute path to the file on disk."""
 
     filename: NotRequired[str]
-    """Filename for Content-Disposition header."""
+    """Filename for Content-Disposition header (defaults to basename of filePath)."""
 
     mimeType: NotRequired[str]
-    """MIME type for Content-Type header."""
+    """MIME type for Content-Type header (defaults to application/octet-stream)."""
 
     ttlMs: NotRequired[int]
-    """Time-to-live in milliseconds."""
+    """Time-to-live in milliseconds (defaults to 10 minutes)."""
 
     cleanup: NotRequired[Literal["never", "on-expiry", "on-download"]]
     """When the file on disk is deleted (registry always expires at TTL).
 
     - ``never`` (default): file persists; caller manages it.
     - ``on-expiry``: deleted at TTL. Can be fetched N times during the
-      window — correct mode for notification images that fan out to
-      multiple devices/recipients.
+      window, the right mode for notification images that fan out to
+      multiple devices or recipients.
     - ``on-download``: deleted after first successful download OR on TTL,
       whichever first. One-shot mode for things like backup exports."""
 
@@ -290,10 +291,10 @@ class DownloadToken(TypedDict):
     publicUrl: str
     """Externally-reachable, session-less URL the server publishes for
     out-of-band fetchers (push-notification image attachments, FCM / APNs
-    payloads, share recipients). Shape: ``<externalUrl>/api/download/<token>``
-    — the token in the URL is the auth. Empty string when the server has
-    no external URL configured (LAN-only deployments); fall back to
-    ``url`` for in-app callers."""
+    payloads, share recipients). Shape: ``<externalUrl>/api/download/<token>``,
+    where the token is the auth. Empty string when the server has no external
+    URL configured (LAN-only deployments); fall back to ``url`` for in-app
+    callers."""
 
     expiresAt: int
     """Unix timestamp (ms) when the token expires."""
@@ -304,8 +305,8 @@ class DownloadManager(Protocol):
     """
     Download manager interface for token-based file downloads.
 
-    Allows plugins to register files for HTTP download via a token URL.
-    No JWT authentication is needed — the token itself is the auth.
+    Plugins register a file and get back a token URL. No JWT is involved, the
+    token itself is the auth.
 
     Accessed via ``api.downloadManager`` in plugins.
 
@@ -365,11 +366,10 @@ class NotificationManager(Protocol):
     """
     Notification manager interface for publishing notifications into the host.
 
-    Plugins call ``publish`` to ask the host to fan a Notification out to
-    every installed Notifier-plugin and the
-    in-app UI. The host applies user settings (master toggle, per-source
-    toggle, quiet hours) and the publishing plugin's declared capabilities;
-    calls from plugins without
+    Plugins call ``publish`` to ask the host to fan a Notification out to every
+    installed Notifier-plugin and the in-app UI. The host applies user settings
+    (master toggle, per-source toggle, quiet hours) and the publishing plugin's
+    declared capabilities; calls from plugins without
     :attr:`PluginCapability.PublishNotifications` are silently dropped.
 
     Accessed via ``api.notificationManager`` in plugins.
@@ -394,8 +394,7 @@ class NotificationManager(Protocol):
         Notifier-plugin and the in-app UI.
 
         Resolves once the publish was handed to the transport. Downstream
-        delivery is async and failures there never
-        propagate back here.
+        delivery is async and failures there never propagate back here.
 
         Args:
             notification: Notification payload to publish.
@@ -411,7 +410,6 @@ __all__ = [
     "DownloadManager",
     "NotificationManager",
     "SensorManager",
-    # Signed request
     # Download types
     "CreateDownloadOptions",
     "CreateStreamDownloadOptions",

@@ -4,14 +4,10 @@
  */
 export type PluginConfig<T = Record<string, any>> = T;
 
-/**
- * Available schema field types for configuration UI.
- */
+/** Available schema field types for configuration UI. */
 export type JsonSchemaType = 'string' | 'number' | 'boolean' | 'array' | 'button' | 'submit';
 
-/**
- * Condition operator for conditional field visibility.
- */
+/** Condition operator for conditional field visibility. */
 export type SchemaConditionOperator = 'eq' | 'neq' | 'gt' | 'lt' | 'in' | 'nin';
 
 /**
@@ -19,7 +15,7 @@ export type SchemaConditionOperator = 'eq' | 'neq' | 'gt' | 'lt' | 'in' | 'nin';
  * The field is shown only when the condition evaluates to true against
  * the current form values.
  *
- * Combine multiple conditions on a field via an array — all must pass
+ * Combine multiple conditions on a field via an array: all must pass
  * (logical AND).
  *
  * @example
@@ -35,7 +31,7 @@ export type SchemaConditionOperator = 'eq' | 'neq' | 'gt' | 'lt' | 'in' | 'nin';
 export interface SchemaCondition {
   /** Key of another field whose value drives visibility. */
   key: string;
-  /** Expected value — single value, or array for `'in'` / `'nin'`. */
+  /** Expected value: a single value, or an array for `'in'` / `'nin'`. */
   value: any;
   /** Comparison operator (default: `'eq'`). */
   operator?: SchemaConditionOperator;
@@ -46,39 +42,39 @@ export interface SchemaCondition {
  * Contains common fields like type, key, title, description.
  */
 export interface JsonFactorySchema {
-  /** Field type */
+  /** Field type. */
   type: JsonSchemaType;
-  /** Unique field identifier */
+  /** Unique field identifier. */
   key: string;
-  /** Display title */
+  /** Display title. */
   title: string;
-  /** Field description/help text */
+  /** Field description/help text. */
   description: string;
-  /** Optional group name for organizing fields */
+  /** Optional group name for organizing fields. */
   group?: string;
 }
 
 /**
- * Base schema without callbacks - used for nested schemas.
+ * Base schema without callbacks, used for nested schemas.
  * Extends factory schema with common display options.
  */
 export interface JsonBaseSchemaWithoutCallbacks<T extends string | string[] | number | number[] | boolean | boolean[] = any> extends JsonFactorySchema {
-  /** Hide field from UI */
+  /** Hide field from UI. */
   hidden?: boolean;
-  /** Mark field as required */
+  /** Mark field as required. */
   required?: boolean;
-  /** Make field read-only */
+  /** Make field read-only. */
   readonly?: boolean;
-  /** Placeholder text for empty fields */
+  /** Placeholder text for empty fields. */
   placeholder?: string;
-  /** Default value when not set */
+  /** Default value when not set. */
   defaultValue?: T;
   /** Condition for conditional field visibility. Array = all must be true (AND). */
   condition?: SchemaCondition | SchemaCondition[];
 }
 
 /**
- * Base schema with callbacks - full schema interface.
+ * Base schema with callbacks, the full schema interface.
  * Adds storage and callback options for dynamic behavior.
  *
  * @example
@@ -94,11 +90,11 @@ export interface JsonBaseSchemaWithoutCallbacks<T extends string | string[] | nu
  * ```
  */
 export interface JsonBaseSchema<T extends string | string[] | number | number[] | boolean | boolean[] = any> extends JsonBaseSchemaWithoutCallbacks<T> {
-  /** Whether to persist this field to storage */
+  /** Whether to persist this field to storage. */
   store?: boolean;
   /** Callback after a write. `setValue` fires it whether or not the value changed; `setConfig` fires it only for keys that changed. */
   onSet?: (newValue: any, oldValue: any) => Promise<void>;
-  /** Callback to get computed value */
+  /** Callback to get computed value. */
   onGet?: () => Promise<any>;
 }
 
@@ -106,18 +102,19 @@ export interface JsonBaseSchema<T extends string | string[] | number | number[] 
  * String-specific schema options.
  *
  * Use `format` to render the value with a specialized UI control:
- * - `'date-time'` — ISO 8601 date+time picker.
- * - `'date'` — date-only picker.
- * - `'time'` — time-only picker.
- * - `'email'` — email input with format validation.
- * - `'uuid'` — UUID input with format validation.
- * - `'ipv4'` — IPv4 address input.
- * - `'ipv6'` — IPv6 address input.
- * - `'password'` — masked input that hides characters.
- * - `'qrCode'` — value is rendered as a QR code (read-only display).
- * - `'image'` — value is a data URL or path; rendered as a thumbnail.
+ * - `'date-time'`: ISO 8601 date+time picker.
+ * - `'date'`: date-only picker.
+ * - `'time'`: time-only picker.
+ * - `'email'`: email input with format validation.
+ * - `'uuid'`: UUID input with format validation.
+ * - `'ipv4'`: IPv4 address input.
+ * - `'ipv6'`: IPv6 address input.
+ * - `'password'`: masked input that hides characters.
+ * - `'qrCode'`: value is rendered as a QR code (read-only display).
+ * - `'image'`: value is a data URL or path; rendered as a thumbnail.
  */
 export interface JsonStringSchema {
+  /** Schema type discriminator. */
   type: 'string';
   /** String format for validation/display. See type docs for behavior per format. */
   format?: 'date-time' | 'date' | 'time' | 'email' | 'uuid' | 'ipv4' | 'ipv6' | 'password' | 'qrCode' | 'image';
@@ -127,137 +124,111 @@ export interface JsonStringSchema {
   maxLength?: number;
 }
 
-/**
- * Number-specific schema options.
- */
+/** Number-specific schema options. */
 export interface JsonNumberSchema {
+  /** Schema type discriminator. */
   type: 'number';
-  /** Minimum value */
+  /** Minimum value. */
   minimum?: number;
-  /** Maximum value */
+  /** Maximum value. */
   maximum?: number;
-  /** Step increment for number input */
+  /** Step increment for number input. */
   step?: number;
 }
 
-/**
- * Boolean-specific schema options.
- */
+/** Boolean-specific schema options. */
 export interface JsonBooleanSchema {
+  /** Schema type discriminator. */
   type: 'boolean';
 }
 
-/**
- * Enum/select schema options.
- */
+/** Enum/select schema options. */
 export interface JsonEnumSchema {
+  /** Schema type discriminator. */
   type: 'string';
-  /** Available options */
+  /** Available options. */
   enum: string[];
-  /** Allow multiple selection */
+  /** Allow multiple selection. */
   multiple?: boolean;
 }
 
-/**
- * Array schema options.
- */
+/** Array schema options. */
 export interface JsonArraySchema {
+  /** Schema type discriminator. */
   type: 'array';
-  /** Whether array items are expanded by default */
+  /** Whether array items are expanded by default. */
   opened?: boolean;
-  /** Schema for array items */
+  /** Schema for array items. */
   items: Omit<JsonSchemaWithoutCallbacks, 'key'>;
 }
 
-/**
- * Complete string schema with callbacks.
- */
+/** Complete string schema with callbacks. */
 export interface JsonSchemaString extends JsonBaseSchema<string>, JsonStringSchema {
   type: 'string';
 }
 
-/**
- * String schema without callbacks (for nested use).
- */
+/** String schema without callbacks (for nested use). */
 export interface JsonSchemaStringWithoutCallbacks extends JsonBaseSchemaWithoutCallbacks<string>, JsonStringSchema {
   type: 'string';
 }
 
-/**
- * Complete number schema with callbacks.
- */
+/** Complete number schema with callbacks. */
 export interface JsonSchemaNumber extends JsonBaseSchema<number>, JsonNumberSchema {
   type: 'number';
 }
 
-/**
- * Number schema without callbacks (for nested use).
- */
+/** Number schema without callbacks (for nested use). */
 export interface JsonSchemaNumberWithoutCallbacks extends JsonBaseSchemaWithoutCallbacks<number>, JsonNumberSchema {
   type: 'number';
 }
 
-/**
- * Complete boolean schema with callbacks.
- */
+/** Complete boolean schema with callbacks. */
 export interface JsonSchemaBoolean extends JsonBaseSchema<boolean>, JsonBooleanSchema {
   type: 'boolean';
 }
 
-/**
- * Boolean schema without callbacks (for nested use).
- */
+/** Boolean schema without callbacks (for nested use). */
 export interface JsonSchemaBooleanWithoutCallbacks extends JsonBaseSchemaWithoutCallbacks<boolean>, JsonBooleanSchema {
   type: 'boolean';
 }
 
-/**
- * Complete enum schema with callbacks.
- */
+/** Complete enum schema with callbacks. */
 export interface JsonSchemaEnum extends JsonBaseSchema<string | string[]>, JsonEnumSchema {
   type: 'string';
 }
 
-/**
- * Enum schema without callbacks (for nested use).
- */
+/** Enum schema without callbacks (for nested use). */
 export interface JsonSchemaEnumWithoutCallbacks extends JsonBaseSchemaWithoutCallbacks<string | string[]>, JsonEnumSchema {
   type: 'string';
 }
 
-/**
- * Complete array schema with callbacks.
- */
+/** Complete array schema with callbacks. */
 export interface JsonSchemaArray extends JsonBaseSchema<string[] | number[] | boolean[]>, JsonArraySchema {
   type: 'array';
 }
 
-/**
- * Array schema without callbacks (for nested use).
- */
+/** Array schema without callbacks (for nested use). */
 export interface JsonSchemaArrayWithoutCallbacks extends JsonBaseSchemaWithoutCallbacks<string[] | number[] | boolean[]>, JsonArraySchema {
   type: 'array';
 }
 
-/**
- * Button schema - triggers an action without storing a value.
- */
+/** Button schema: triggers an action without storing a value. */
 export interface JsonSchemaButton extends JsonFactorySchema {
+  /** Schema type discriminator. */
   type: 'button';
-  /** Button color variant */
+  /** Button color variant. */
   color?: 'success' | 'info' | 'warn' | 'danger';
-  /** Click handler */
+  /** Click handler. */
   onSet: () => Promise<void>;
 }
 
-/**
- * Submit button schema - submits form data and can return updated schema.
- */
+/** Submit button schema: submits form data and can return an updated schema. */
 export interface JsonSchemaSubmit extends JsonFactorySchema {
+  /** Schema type discriminator. */
   type: 'submit';
-  /** Button color variant */
+  /** Button color variant. */
   color?: 'success' | 'info' | 'warn' | 'danger';
-  /** Submit handler - receives form values, can return toast/schema updates */
+  /** Submit handler; receives form values, can return toast/schema updates. */
   onClick: (value: any) => Promise<FormSubmitResponse | void>;
 }
 
@@ -291,26 +262,24 @@ export type JsonSchemaWithoutCallbacks =
  * Toast notification message.
  *
  * Returned from a submit handler (`JsonSchemaSubmit.onClick`) inside a
- * `FormSubmitResponse` to surface a transient banner in the UI — for
- * example to confirm that a credential check succeeded or failed.
+ * `FormSubmitResponse` to surface a transient banner in the UI, for example
+ * to confirm that a credential check succeeded or failed.
  */
 export interface ToastMessage {
-  /** Severity — controls the icon/color of the banner. */
+  /** Severity, controls the icon and color of the banner. */
   type: 'info' | 'success' | 'warning' | 'error';
   /** Human-readable message text. */
   message: string;
 }
 
-/**
- * Form submit input data.
- */
+/** Form submit input data. */
 export interface FormSubmitSchema {
-  /** Form configuration values */
+  /** Form configuration values. */
   config: Record<string, any>;
 }
 
 /**
- * Form submit response — returned by `JsonSchemaSubmit.onClick`.
+ * Form submit response, returned by `JsonSchemaSubmit.onClick`.
  *
  * Used to react to a user-triggered submit (e.g. "Test connection",
  * "Pair device") with optional UI feedback. Either field may be set:
@@ -330,9 +299,9 @@ export interface FormSubmitResponse {
  * Contains both schema definitions and current values.
  */
 export interface SchemaConfig {
-  /** Schema definitions */
+  /** Schema definitions. */
   schema: JsonSchema[];
-  /** Current configuration values */
+  /** Current configuration values. */
   config: Record<string, any>;
 }
 
@@ -357,9 +326,9 @@ export interface SchemaConfig {
  * ```
  */
 export interface DeviceStorage<T extends Record<string, any> = Record<string, any>> {
-  /** Current schema definitions */
+  /** Current schema definitions. */
   schemas: JsonSchema[];
-  /** Current configuration values */
+  /** Current configuration values. */
   values: T;
 
   /**
@@ -390,7 +359,7 @@ export interface DeviceStorage<T extends Record<string, any> = Record<string, an
    * Set a configuration value.
    *
    * Takes effect only if a schema exists for the key. Passing `null` or
-   * `undefined` deletes the key — it reads as never-set again and the schema
+   * `undefined` deletes the key: it reads as never-set again and the schema
    * default applies. For a field whose schema opts into storage (`store: true`)
    * the value is durably persisted before the returned promise resolves; the
    * schema's `onSet` fires afterwards.
@@ -464,7 +433,7 @@ export interface DeviceStorage<T extends Record<string, any> = Record<string, an
   /**
    * Replace an existing schema field with a full schema.
    *
-   * The whole schema is replaced — individual fields are not merged. It is a
+   * The whole schema is replaced, individual fields are not merged. It is a
    * no-op when no schema with that key is registered (use {@link addSchema} to
    * add a new field). The passed key always wins.
    *
@@ -494,7 +463,7 @@ export interface DeviceStorage<T extends Record<string, any> = Record<string, an
    * Set a system-internal value (e.g. _displayName) without requiring a schema and persist it.
    *
    * When the returned promise resolves, the value is durably persisted.
-   * Passing `null` or `undefined` deletes the key — it reads as never-set again.
+   * Passing `null` or `undefined` deletes the key; it reads as never-set again.
    *
    * @param key - Internal key (typically prefixed with '_')
    *

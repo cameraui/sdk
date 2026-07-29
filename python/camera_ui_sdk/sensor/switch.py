@@ -11,23 +11,25 @@ from .base import Sensor, SensorCategory, SensorLike, SensorType
 
 
 class SwitchProperty(StrEnum):
-    """Properties for switch controls."""
+    """Property names of a switch control."""
 
     On = "on"
     """Whether the switch is on."""
 
 
 class SwitchControlProperties(TypedDict):
-    """Property value map for switch controls."""
+    """Property values of a switch control."""
 
     on: bool
 
 
 class SwitchPropertyChangeData(TypedDict):
-    """Emitted on SwitchControlLike.onPropertyChanged."""
+    """Property change payload emitted on SwitchControlLike.onPropertyChanged."""
 
-    property: str  # SwitchProperty value
+    property: str
+    """Name of the changed property, a SwitchProperty value."""
     value: bool
+    """New value of the property."""
 
 
 TStorage = TypeVar("TStorage", bound=Mapping[str, Any], default=dict[str, Any])
@@ -41,20 +43,20 @@ class SwitchControlLike(SensorLike, Protocol):
     def type(self) -> SensorType:
         return SensorType.Switch
 
+    @property
+    def onPropertyChanged(self) -> Observable[SwitchPropertyChangeData]: ...
+
     @overload
     def getValue(self, property: Literal[SwitchProperty.On]) -> bool | None: ...
     @overload
     def getValue(self, property: str) -> object | None: ...
-
-    @property
-    def onPropertyChanged(self) -> Observable[SwitchPropertyChangeData]: ...
 
 
 class SwitchControl(Sensor[SwitchControlProperties, TStorage, str], Generic[TStorage]):
     """Generic on/off switch control. Override `setOn()` / `setOff()` to drive
     hardware and call `await super().setOn()` / `await super().setOff()` after
     success to sync the SDK state. For hardware-pushed updates, call the super
-    methods from your event handler — that bypasses any plugin override and only
+    methods from your event handler. That bypasses any plugin override and only
     syncs state.
     """
 
@@ -99,10 +101,9 @@ class SwitchControl(Sensor[SwitchControlProperties, TStorage, str], Generic[TSto
         self._write_state({SwitchProperty.On.value: False})
 
     async def updateValue(self, property: str, value: Any) -> None:
-        """Routes generic property writes to semantic methods."""
+        """Routes generic property writes to the semantic setters."""
         if property == SwitchProperty.On.value:
             if value:
                 await self.setOn()
             else:
                 await self.setOff()
-        # Unknown / non-writable property — ignored.

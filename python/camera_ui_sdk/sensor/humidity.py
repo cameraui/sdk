@@ -11,23 +11,25 @@ from .base import Sensor, SensorCategory, SensorLike, SensorType
 
 
 class HumidityProperty(StrEnum):
-    """Properties for humidity info sensors."""
+    """Property names of a humidity sensor."""
 
     Current = "current"
     """Current relative humidity (0-100%)."""
 
 
 class HumidityInfoProperties(TypedDict):
-    """Property value map for humidity info sensors."""
+    """Property values of a humidity sensor."""
 
     current: float
 
 
 class HumidityPropertyChangeData(TypedDict):
-    """Emitted on HumidityInfoLike.onPropertyChanged."""
+    """Property change payload emitted on HumidityInfoLike.onPropertyChanged."""
 
-    property: str  # HumidityProperty value
+    property: str
+    """Name of the changed property, a HumidityProperty value."""
     value: float
+    """New value of the property."""
 
 
 TStorage = TypeVar("TStorage", bound=Mapping[str, Any], default=dict[str, Any])
@@ -35,19 +37,19 @@ TStorage = TypeVar("TStorage", bound=Mapping[str, Any], default=dict[str, Any])
 
 @runtime_checkable
 class HumidityInfoLike(SensorLike, Protocol):
-    """Read-only proxy interface for a humidity info sensor."""
+    """Read-only proxy interface for a humidity sensor."""
 
     @property
     def type(self) -> SensorType:
         return SensorType.Humidity
 
+    @property
+    def onPropertyChanged(self) -> Observable[HumidityPropertyChangeData]: ...
+
     @overload
     def getValue(self, property: Literal[HumidityProperty.Current]) -> float | None: ...
     @overload
     def getValue(self, property: str) -> object | None: ...
-
-    @property
-    def onPropertyChanged(self) -> Observable[HumidityPropertyChangeData]: ...
 
 
 class HumidityInfo(Sensor[HumidityInfoProperties, TStorage, str], Generic[TStorage]):
@@ -72,9 +74,17 @@ class HumidityInfo(Sensor[HumidityInfoProperties, TStorage, str], Generic[TStora
         return float(self.props.current or 0.0)
 
     def setCurrent(self, value: float) -> None:
-        """Report a new humidity reading. Clamped to [0, 100] %."""
+        """Report a new humidity reading. Clamped to [0, 100] %.
+
+        Args:
+            value: Relative humidity percentage in the range 0-100.
+
+        Example:
+            ```python
+            humidity.setCurrent(63)
+            ```
+        """
         self._write_state({HumidityProperty.Current.value: max(0.0, min(100.0, value))})
 
     async def updateValue(self, property: str, value: Any) -> None:
         """Read-only sensor: external writes are ignored."""
-        # No-op — humidity is reported by the plugin, not set externally.

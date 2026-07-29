@@ -4,10 +4,9 @@ import { PluginCapability, PluginInterface, PluginRole } from './contract.js';
 import type { PluginContract } from './contract.js';
 
 /**
- * Check the structural validity of an unknown contract object — required
- * fields present, enum values inside the accepted sets — and return one
- * human-readable error per problem found. Returns an empty array when the
- * contract is valid.
+ * Check the structural validity of an unknown contract object: required
+ * fields present, enum values inside the accepted sets. Returns one
+ * human-readable error per problem found, empty when the contract is valid.
  *
  * @param contract - Untrusted candidate contract (e.g. from manifest JSON).
  *
@@ -33,7 +32,6 @@ export function getContractValidationErrors(contract: unknown): string[] {
   const validRoles = Object.values(PluginRole);
   const validSensorTypes = Object.values(SensorType) as string[];
 
-  // Check role
   if (c.role === undefined) {
     errors.push('Missing required field: "role"');
   } else if (typeof c.role !== 'string') {
@@ -42,7 +40,6 @@ export function getContractValidationErrors(contract: unknown): string[] {
     errors.push(`Invalid role "${c.role}". Valid roles: ${validRoles.join(', ')}`);
   }
 
-  // Check name
   if (c.name === undefined) {
     errors.push('Missing required field: "name"');
   } else if (typeof c.name !== 'string') {
@@ -51,7 +48,6 @@ export function getContractValidationErrors(contract: unknown): string[] {
     errors.push('Field "name" cannot be empty');
   }
 
-  // Check provides
   if (c.provides === undefined) {
     errors.push('Missing required field: "provides"');
   } else if (!Array.isArray(c.provides)) {
@@ -64,7 +60,6 @@ export function getContractValidationErrors(contract: unknown): string[] {
     }
   }
 
-  // Check consumes
   if (c.consumes === undefined) {
     errors.push('Missing required field: "consumes"');
   } else if (!Array.isArray(c.consumes)) {
@@ -77,7 +72,6 @@ export function getContractValidationErrors(contract: unknown): string[] {
     }
   }
 
-  // Check interfaces
   const validInterfaces = Object.values(PluginInterface);
   if (c.interfaces === undefined) {
     errors.push('Missing required field: "interfaces"');
@@ -91,7 +85,6 @@ export function getContractValidationErrors(contract: unknown): string[] {
     }
   }
 
-  // Check optional capabilities
   const validCapabilities = Object.values(PluginCapability);
   if (c.capabilities !== undefined) {
     if (!Array.isArray(c.capabilities)) {
@@ -105,14 +98,12 @@ export function getContractValidationErrors(contract: unknown): string[] {
     }
   }
 
-  // Check optional pythonVersion
   if (c.pythonVersion !== undefined) {
     if (!['3.11', '3.12'].includes(c.pythonVersion as string)) {
       errors.push(`Invalid pythonVersion "${c.pythonVersion as string}". Valid versions: 3.11, 3.12`);
     }
   }
 
-  // Check optional dependencies
   if (c.dependencies !== undefined && !Array.isArray(c.dependencies)) {
     errors.push(`Field "dependencies" must be an array. Got: ${typeof c.dependencies}`);
   }
@@ -161,8 +152,7 @@ export function validateContractConsistency(contract: PluginContract, pluginName
       break;
 
     case PluginRole.CameraController:
-      // CameraController can have empty or filled provides array
-      // (sensors are only for its own cameras)
+      // provides may be empty or filled, its sensors only ever attach to its own cameras
       break;
   }
 }
@@ -187,26 +177,6 @@ export function isHub(contract: PluginContract): boolean {
 }
 
 /**
- * Reports whether the plugin is allowed to add sensors to cameras owned by
- * other plugins (true for SensorProvider and CameraAndSensorProvider).
- * Hub and pure CameraController plugins only see their own cameras.
- *
- * @param contract - Plugin contract to inspect.
- *
- * @returns `true` if the plugin may attach sensors to any camera.
- *
- * @example
- * ```ts
- * import { canProvideSensorsToAnyCameras } from '@camera.ui/sdk';
- *
- * if (canProvideSensorsToAnyCameras(contract)) listAllCameras();
- * ```
- */
-export function canProvideSensorsToAnyCameras(contract: PluginContract): boolean {
-  return contract.role === PluginRole.SensorProvider || contract.role === PluginRole.CameraAndSensorProvider;
-}
-
-/**
  * Reports whether the plugin can create cameras (role is CameraController
  * or CameraAndSensorProvider). Used to gate camera-creating operations such
  * as DiscoveryProvider adoption.
@@ -224,6 +194,26 @@ export function canProvideSensorsToAnyCameras(contract: PluginContract): boolean
  */
 export function canCreateCameras(contract: PluginContract): boolean {
   return contract.role === PluginRole.CameraController || contract.role === PluginRole.CameraAndSensorProvider;
+}
+
+/**
+ * Reports whether the plugin is allowed to add sensors to cameras owned by
+ * other plugins (true for SensorProvider and CameraAndSensorProvider).
+ * Hub and pure CameraController plugins only see their own cameras.
+ *
+ * @param contract - Plugin contract to inspect.
+ *
+ * @returns `true` if the plugin may attach sensors to any camera.
+ *
+ * @example
+ * ```ts
+ * import { canProvideSensorsToAnyCameras } from '@camera.ui/sdk';
+ *
+ * if (canProvideSensorsToAnyCameras(contract)) listAllCameras();
+ * ```
+ */
+export function canProvideSensorsToAnyCameras(contract: PluginContract): boolean {
+  return contract.role === PluginRole.SensorProvider || contract.role === PluginRole.CameraAndSensorProvider;
 }
 
 /**

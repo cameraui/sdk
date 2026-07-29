@@ -16,29 +16,16 @@ class PluginRole(StrEnum):
     hooks the host invokes and which contract validations apply."""
 
     Hub = "hub"
-    """System-wide aggregator that attaches to cameras owned by *other* plugins
-    to provide a cross-camera service (e.g. bridging cameras and sensors into a
-    smart-home platform, or recording and notifications). A hub creates no
-    cameras of its own and provides no sensors (`provides` must be empty); it
-    attaches to cameras via the `hub` assignment and typically reads camera and
-    sensor state through `consumes`."""
+    """Cross-camera aggregator (smart-home bridge, recorder). Owns no cameras and provides no sensors."""
 
     SensorProvider = "sensorProvider"
-    """Adds sensors to existing cameras without owning the camera itself.
-    Typical use: a detection plugin that consumes another plugin's video
-    frames and emits motion / object / face detections back into the
-    system."""
+    """Adds sensors to cameras owned by other plugins, for example a detector running on foreign video frames."""
 
     CameraController = "cameraController"
-    """Manages cameras and their media streams (ONVIF, RTSP, generic IP, ...).
-    The plugin is responsible for stream URLs, PTZ, snapshots, and the
-    lifecycle hooks in BasePlugin. It does not produce sensors for foreign
-    cameras."""
+    """Manages cameras and their media streams: stream URLs, PTZ, snapshots. Provides no sensors for foreign cameras."""
 
     CameraAndSensorProvider = "cameraAndSensorProvider"
-    """Combined role: plugin both manages cameras and exposes sensors (its
-    own cameras and, when ``consumes`` is set, also foreign cameras). Used
-    by integrations that ship a complete camera + detection stack."""
+    """Manages cameras and exposes sensors, on its own cameras and, with ``consumes`` set, on foreign ones."""
 
 
 class PluginInterface(StrEnum):
@@ -58,39 +45,28 @@ class PluginInterface(StrEnum):
     """Implements AudioDetectionInterface (event/keyword audio detection)."""
 
     FaceDetection = "FaceDetection"
-    """Implements FaceDetectionInterface (face localisation + embeddings).
-    The NVR owns matching against enrolled faces; the plugin only emits
-    detections + embeddings."""
+    """Implements FaceDetectionInterface (face localisation + embeddings). Matching against enrolled faces happens in the NVR."""
 
     LicensePlateDetection = "LicensePlateDetection"
     """Implements LicensePlateDetectionInterface (plate localisation + OCR)."""
 
     ClassifierDetection = "ClassifierDetection"
-    """Implements ClassifierDetectionInterface (generic image classification
-    emitting attribute/label pairs)."""
+    """Implements ClassifierDetectionInterface (generic image classification emitting attribute/label pairs)."""
 
     ClipDetection = "ClipDetection"
-    """Implements ClipDetectionInterface (CLIP image and text embeddings used
-    for semantic search)."""
+    """Implements ClipDetectionInterface (CLIP image and text embeddings used for semantic search)."""
 
     DiscoveryProvider = "DiscoveryProvider"
-    """Implements DiscoveryProvider — plugin can scan the network for new
-    cameras and adopt them. Only valid for camera-controlling roles."""
+    """Implements DiscoveryProvider (network scan + adoption). Only valid for camera-controlling roles."""
 
     NVR = "NVR"
-    """Implements NVRInterface — persists events and recordings, and serves
-    them back to the UI / mobile clients. Exactly one plugin per host fills
-    this role at runtime."""
+    """Implements NVRInterface (events and recordings). Exactly one plugin per host fills this role at runtime."""
 
     Notifier = "Notifier"
-    """Implements NotifierInterface (get_devices, send_notification, ...).
-    Lets the central NotificationManager dispatch notifications to this
-    plugin regardless of role — see camera_ui_sdk/plugin/notifier.py."""
+    """Implements NotifierInterface, so the NotificationManager can dispatch notifications to this plugin."""
 
     OAuthCapable = "OAuthCapable"
-    """Implements the OAuthCapable base interface (getOAuthMetadata,
-    getOAuthState, disconnect) plus at least one flow sub-interface —
-    see camera_ui_sdk/plugin/oauth.py."""
+    """Implements the OAuthCapable base interface plus at least one of the flow sub-interfaces below."""
 
     OAuthDeviceFlow = "OAuthDeviceFlow"
     """Implements OAuthDeviceFlowCapable (RFC 8628 Device Authorization Grant)."""
@@ -104,55 +80,44 @@ class PluginInterface(StrEnum):
 
 class PluginCapability(StrEnum):
     """Permission a plugin requests so it can call a host-provided system
-    feature. Each capability gates one outgoing SDK call — calls without
-    the matching capability are rejected by the host."""
+    feature. Each capability gates one outgoing SDK call. Calls without the
+    matching capability are rejected by the host."""
 
     PublishNotifications = "publishNotifications"
-    """Grants the plugin permission to call
-    ``api.notificationManager.publish``. Without this capability the host
-    silently drops published notifications and logs an error."""
+    """Allows ``api.notificationManager.publish``. Without it the host drops published notifications and logs an error."""
 
 
 class PluginContract(TypedDict):
-    """Manifest contract a plugin declares so the host knows what it does
-    and what it needs at load time. Validated by ``helper.py`` before the
-    plugin is started."""
+    """Manifest contract a plugin declares so the host knows what it does and
+    what it needs at load time. Validated before the plugin is started."""
 
     name: str
-    """Stable, unique identifier for the plugin instance — used as the
-    registry key, log prefix and the storage namespace."""
+    """Stable, unique identifier: registry key, log prefix and storage namespace."""
 
     role: PluginRole
     """Role of the plugin (see :class:`PluginRole`)."""
 
     provides: list[SensorType]
-    """Sensor types the plugin produces. Empty for hubs and pure
-    camera-controllers; required for sensor providers."""
+    """Sensor types the plugin produces. Empty for hubs and pure camera-controllers, required for sensor providers."""
 
     consumes: list[SensorType]
-    """Sensor types the plugin reads from other plugins (e.g. a face plugin
-    consumes camera video frames)."""
+    """Sensor types the plugin reads from other plugins (e.g. a face plugin consuming camera video frames)."""
 
     interfaces: list[PluginInterface]
     """Capability flags the plugin implements (see :class:`PluginInterface`)."""
 
     capabilities: NotRequired[list[PluginCapability]]
-    """Permissions the plugin requests to call host system features (see
-    :class:`PluginCapability`). The host enforces these — calls without a
-    matching capability are rejected."""
+    """Permissions the plugin requests to call host system features (see :class:`PluginCapability`)."""
 
     pythonVersion: NotRequired[PythonVersion]
-    """Required Python interpreter version for Python plugins. Ignored by
-    Node / Go plugins."""
+    """Required Python interpreter version for Python plugins. Ignored by Node and Go plugins."""
 
     dependencies: NotRequired[list[str]]
-    """Extra package dependencies installed into the plugin's runtime (Go
-    module paths for Go plugins; PyPI / npm names for Python and Node
-    plugins)."""
+    """Extra dependencies installed into the plugin's runtime (Go module paths, PyPI or npm names)."""
 
 
 class PluginInfo(TypedDict):
-    """Lightweight handle identifying an installed plugin — used in RPC
+    """Lightweight handle identifying an installed plugin, used in RPC
     payloads and managers to refer to the plugin without shipping its full
     state."""
 

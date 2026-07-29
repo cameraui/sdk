@@ -92,7 +92,8 @@ class EventSegment(TypedDict):
     lastSeen: int
     """Segment end time (Unix ms)."""
     thumbnail: NotRequired[bytes]
-    """Best-selected JPEG scene thumbnail for this segment. Only present on 'segment-*' messages."""
+    """Best-selected JPEG scene thumbnail for this segment. Present on 'segment-start' and
+    'segment-end', plus once on a 'segment-update' if the start message had none."""
     detections: list[EventDetection]
     """Object detections in this segment."""
     attributes: list[EventAttribute]
@@ -130,7 +131,7 @@ class DetectionEvent(TypedDict):
     segmentIndex: NotRequired[int]
     """Index of the segment in segments[0] for segment-* messages."""
     expectedEndTime: NotRequired[int]
-    """Expected event end time (Unix ms) — the latest dwell expiry across all
+    """Expected event end time (Unix ms): the latest dwell expiry across all
     currently-active triggers. Monotonically non-decreasing during the event
     lifetime. Updated on each `update` / `segment-*` message."""
     thumbnail: NotRequired[bytes]

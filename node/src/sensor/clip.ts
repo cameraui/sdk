@@ -37,33 +37,23 @@ export abstract class ClipDetectorSensor<TStorage extends object = Record<string
     super(name, options);
   }
 
-  /** Declares the expected input dimensions and trigger labels. */
   abstract get modelSpec(): ModelSpec;
 
   /**
-   * Generate CLIP embeddings in batch. Each frame is a pre-cropped,
-   * pre-scaled trigger region produced by the upstream object detector.
-   * Must return exactly one ClipResult per input frame, in the same order.
-   * Use `frame.label` to tag the emitted embedding.
+   * Generate CLIP embeddings in batch. Each frame is pre-scaled to `modelSpec.input`:
+   * normally a trigger region cropped by the upstream object detector, but the
+   * whole scene when no decoded frame is available. Must return exactly one
+   * ClipResult per input frame, in the same order. Use `frame.label` to tag the
+   * emitted embedding.
    */
   abstract detectEmbeddings(frames: VideoFrameData[]): Promise<ClipResult[]>;
 
   /**
-   * Frame-only sensor: no externally writable properties.
-   *
-   * Called by the cross-process plugin host when a generic property write is received.
-   * CLIP detectors have no writable properties, so the parameters are unused
-   * (underscore-prefixed) and the call is a no-op.
-   *
-   * @param _property - Unused — CLIP detectors expose no writable properties.
-   *
-   * @param _value - Unused — CLIP detectors expose no writable properties.
+   * Read-only sensor: external writes are ignored.
    *
    * @internal
    */
-  updateValue(_property: string, _value: unknown): void {
-    // No-op — clip detector has no state.
-  }
+  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Registry metadata for {@link ClipDetectorSensor}. */

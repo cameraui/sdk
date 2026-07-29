@@ -5,17 +5,17 @@ import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /**
- * Properties for switch controls
+ * Property names of a switch control.
  *
  * @internal
  */
 export enum SwitchProperty {
-  /** Whether the switch is on */
+  /** Whether the switch is on. */
   On = 'on',
 }
 
 /**
- * Property value map for switch controls.
+ * Property values of a switch control.
  *
  * @internal
  */
@@ -23,7 +23,7 @@ export interface SwitchControlProperties {
   [SwitchProperty.On]: boolean;
 }
 
-/** Read-only proxy interface for a switch control */
+/** Read-only proxy interface for a switch control. */
 export interface SwitchControlLike extends SensorLike {
   readonly type: SensorType.Switch;
   readonly onPropertyChanged: Observable<PropertyChangeOf<SwitchControlProperties>>;
@@ -79,13 +79,7 @@ export class SwitchControl<TStorage extends object = Record<string, any>> extend
   }
 
   /**
-   * Cross-process consumer entry point. Dispatches writable properties
-   * to semantic methods so plugin overrides (hardware actions) are honored.
-   * Unknown properties are ignored — only `On` is externally writable.
-   *
-   * @param property - Property name to write.
-   *
-   * @param value - New value for the property.
+   * Routes generic property writes to the semantic setters.
    *
    * @internal
    */
@@ -94,7 +88,6 @@ export class SwitchControl<TStorage extends object = Record<string, any>> extend
       if (value) await this.setOn();
       else await this.setOff();
     }
-    // Unknown / non-writable property — ignored.
   }
 }
 

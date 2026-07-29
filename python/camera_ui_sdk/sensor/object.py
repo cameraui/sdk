@@ -16,17 +16,18 @@ from .spec import ObjectModelSpec
 class ObjectProperty(StrEnum):
     """Property names of an object detection sensor."""
 
-    Detected = "detected"  # Whether any object is currently detected
-    Detections = "detections"  # List of detected objects with labels and bounding boxes
-    Labels = "labels"  # Unique labels of the current detections (auto-derived when reporting detections)
+    Detected = "detected"
+    """Whether any object is currently detected."""
+    Detections = "detections"
+    """List of detected objects with labels and bounding boxes."""
+    Labels = "labels"
+    """Unique labels of the current detections (auto-derived when reporting detections)."""
 
 
 class TrackVelocity(TypedDict):
-    """Signed centroid velocity vector in normalized units per frame step.
-
-    Positive x = moving right, positive y = moving down. Consumers doing
-    motion prediction (PTZ autotrack, trajectory estimation) should use this
-    instead of deriving velocity from frame-to-frame position deltas.
+    """Signed centroid velocity in normalized units per frame. Positive x = moving
+    right, positive y = moving down. Prefer this over deriving velocity from
+    position deltas.
     """
 
     x: float
@@ -36,15 +37,20 @@ class TrackVelocity(TypedDict):
 class TrackedDetection(Detection, total=False):
     """Detection enriched with tracking metadata (stable IDs, velocity)."""
 
-    trackId: int  # Stable sequential ID for this object across frames
-    trackAge: int  # Number of frames this object has been continuously tracked
-    trackSpeed: float  # Velocity magnitude in normalized units per frame; 0 = stationary
-    trackVelocity: TrackVelocity  # Signed centroid velocity vector in normalized units per frame
-    trackLost: bool  # True if the object was not matched in the current frame
+    trackId: int
+    """Stable sequential ID for this object across frames."""
+    trackAge: int
+    """Number of frames this object has been continuously tracked."""
+    trackSpeed: float
+    """Velocity magnitude in normalized units per frame. 0 = stationary."""
+    trackVelocity: TrackVelocity
+    """Signed centroid velocity in normalized units per frame."""
+    trackLost: bool
+    """True if the object was not matched in the current frame."""
 
 
 class ObjectSensorProperties(TypedDict):
-    """Property shape carried by an ObjectSensor."""
+    """Property values of an object detection sensor."""
 
     detected: bool
     detections: list[TrackedDetection]
@@ -54,8 +60,10 @@ class ObjectSensorProperties(TypedDict):
 class ObjectPropertyChangeData(TypedDict):
     """Property change payload emitted on ObjectSensorLike.onPropertyChanged."""
 
-    property: str  # ObjectProperty value
+    property: str
+    """Name of the changed property, an ObjectProperty value."""
     value: bool | list[Detection] | list[DetectionLabel]
+    """New value of the property."""
 
 
 TStorage = TypeVar("TStorage", bound=Mapping[str, Any], default=dict[str, Any])
@@ -69,6 +77,9 @@ class ObjectSensorLike(SensorLike, Protocol):
     def type(self) -> SensorType:
         return SensorType.Object
 
+    @property
+    def onPropertyChanged(self) -> Observable[ObjectPropertyChangeData]: ...
+
     @overload
     def getValue(self, property: Literal[ObjectProperty.Detected]) -> bool | None: ...
     @overload
@@ -77,9 +88,6 @@ class ObjectSensorLike(SensorLike, Protocol):
     def getValue(self, property: Literal[ObjectProperty.Labels]) -> list[DetectionLabel] | None: ...
     @overload
     def getValue(self, property: str) -> object | None: ...
-
-    @property
-    def onPropertyChanged(self) -> Observable[ObjectPropertyChangeData]: ...
 
 
 class ObjectSensor(Sensor[ObjectSensorProperties, TStorage, str], Generic[TStorage]):
@@ -111,17 +119,14 @@ class ObjectSensor(Sensor[ObjectSensorProperties, TStorage, str], Generic[TStora
 
     @property
     def detected(self) -> bool:
-        """Whether any object is currently detected."""
         return bool(self.props.detected)
 
     @property
     def detections(self) -> list[TrackedDetection]:
-        """Current detection list."""
         return self.props.detections or []
 
     @property
     def labels(self) -> list[DetectionLabel]:
-        """Unique labels of the current detections."""
         return self.props.labels or []
 
     def reportDetections(
@@ -132,11 +137,11 @@ class ObjectSensor(Sensor[ObjectSensorProperties, TStorage, str], Generic[TStora
         """Report detected objects. Auto-derives ``detected`` and ``labels``
         from the list.
 
-        - ``reportDetections(True)`` — something detected without specific data.
+        - ``reportDetections(True)``: something detected without specific data.
           The SDK synthesizes a single full-frame ``'motion'`` detection as a
           generic fallback.
-        - ``reportDetections(True, [...])`` — explicit detections (typical case).
-        - ``reportDetections(False)`` — clear.
+        - ``reportDetections(True, [...])``: explicit detections (typical case).
+        - ``reportDetections(False)``: clear.
 
         Args:
             detected: Whether any object is currently detected.
@@ -177,15 +182,16 @@ class ObjectSensor(Sensor[ObjectSensorProperties, TStorage, str], Generic[TStora
         self.reportDetections(False)
 
     async def updateValue(self, property: str, value: Any) -> None:
-        """Read-only sensor: external writes are ignored. State is reported via `reportDetections`."""
-        # No-op — object detection state is reported by the plugin, not set externally.
+        """Read-only sensor: external writes are ignored."""
 
 
 class ObjectResult(TypedDict):
     """Return type for ObjectDetectorSensor.detectObjects()."""
 
-    detected: bool  # Whether any object is detected in this frame
-    detections: list[TrackedDetection]  # Detections emitted for this frame
+    detected: bool
+    """Whether any object is detected in this frame."""
+    detections: list[TrackedDetection]
+    """Detections emitted for this frame."""
 
 
 class ObjectDetectorSensor(ObjectSensor[TStorage], Generic[TStorage]):
@@ -200,9 +206,7 @@ class ObjectDetectorSensor(ObjectSensor[TStorage], Generic[TStorage]):
 
     @property
     @abstractmethod
-    def modelSpec(self) -> ObjectModelSpec:
-        """Declares the expected input dimensions. The backend scales frames to match."""
-        ...
+    def modelSpec(self) -> ObjectModelSpec: ...
 
     @abstractmethod
     async def detectObjects(self, frame: VideoFrameData) -> ObjectResult:

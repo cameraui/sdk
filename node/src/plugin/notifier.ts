@@ -1,26 +1,18 @@
-/**
- * Generic notification types — domain-agnostic. The NotificationManager and
- * notifier plugins talk over RPC and JSON-encode these types directly.
- */
-
 import type { JsonSchema } from '../storage/index.js';
 
 /**
  * Severity classifies how urgent a Notification is. Notifiers map this to
- * platform-specific delivery characteristics; the host bypasses user-configured
- * Quiet Hours for `critical`.
+ * platform-specific delivery characteristics; the host bypasses
+ * user-configured Quiet Hours for `critical`.
  */
 export enum Severity {
-  /** Standard notification — default delivery (sound + banner). */
+  /** Standard notification, default delivery (sound + banner). */
   Info = 'info',
-  /** Heightened attention; notifiers may use a different sound/colour. */
+  /** Heightened attention; notifiers may use a different sound or colour. */
   Warn = 'warn',
   /** Failure or action-required notification. */
   Error = 'error',
-  /**
-   * Highest-priority delivery on supporting notifiers; bypasses user-configured
-   * Quiet Hours on the host.
-   */
+  /** Highest-priority delivery on supporting notifiers; bypasses Quiet Hours. */
   Critical = 'critical',
 }
 
@@ -30,111 +22,80 @@ export enum Severity {
  * plugins for their device list rather than maintaining a shared registry.
  */
 export interface NotifierDevice {
+  /** Plugin-assigned device id, unique within the notifier. */
   id: string;
+  /** User the device belongs to. */
   ownerUserId: string;
+  /** Display name shown in the UI. */
   name: string;
+  /** False while the user has muted this device; the manager skips it. */
   active: boolean;
+  /** Plugin-specific extras (push tokens, chat ids, platform hints). */
   metadata?: Record<string, unknown>;
 }
 
 /**
  * Payload published via `api.notificationManager.publish` or routed by the
- * host. Plugins fill the user-visible fields; the host stamps the message
- * id, timestamp and source identifier on receive — plugins do not set those.
+ * host. Plugins fill the user-visible fields; the host stamps the message id,
+ * timestamp and source identifier on receive.
  */
 export interface Notification {
   /** Headline shown by every notifier. */
   title: string;
-  /**
-   * Optional second bold line between title and body. Honoured natively on
-   * iOS (APNs `alert.subtitle`); other notifiers may fold it into the body
-   * or ignore it.
-   */
+  /** Optional second bold line, honoured natively on iOS; other notifiers may fold it into the body. */
   subtitle?: string;
   /** Optional secondary text. */
   body?: string;
-  /**
-   * Drives DND / Critical-Alerts behaviour and Quiet-Hours bypass. Defaults
-   * to {@link Severity.Info} if omitted.
-   */
+  /** Drives DND / Critical-Alerts behaviour and Quiet-Hours bypass. Defaults to {@link Severity.Info}. */
   severity?: Severity;
   /**
-   * Collapse-key (e.g. 'motion:cam-1'). The host uses it to replace an older
-   * entry with the same tag in the in-app notification list. Delivery is not
-   * throttled: every publish is sent. Notifiers may map it to a platform
-   * collapse-id.
+   * Collapse-key (e.g. 'motion:cam-1'). The host replaces an older entry with
+   * the same tag in the in-app list. Delivery is not throttled: every publish
+   * is sent. Notifiers may map it to a platform collapse-id.
    */
   tag?: string;
   /** Optional inline JPEG attached to the notification. */
   thumbnail?: Uint8Array;
   /**
    * Publicly-fetchable URL to a rich image (e.g. a detection snapshot).
-   * Notifier-agnostic: FCM/APNs and other notifiers fetch it to render the
-   * image. Preferred over inline {@link Notification.thumbnail} bytes when a
-   * URL is available; empty renders text-only.
+   * Preferred over inline {@link Notification.thumbnail} bytes when a URL is
+   * available; empty renders text-only.
    */
   imageUrl?: string;
-  /**
-   * Router-relative path consumed by mobile / web tap-handlers (e.g.
-   * '/cameras/cam-1?startTs=…'). No host, no scheme.
-   */
+  /** Router-relative path for mobile / web tap-handlers (e.g. '/cameras/cam-1'). No host, no scheme. */
   deepLink?: string;
-  /**
-   * Plugin-specific context (cameraId, eventId, plugin-defined keys). String
-   * values keep the wire format predictable across notifier implementations.
-   */
+  /** Plugin-specific context (cameraId, eventId, plugin-defined keys), string values only. */
   data?: Record<string, string>;
   /**
    * Restricts delivery to users with the master or admin role. Use it for
-   * operational alerts that concern whoever runs the instance — camera
-   * offline, disk full, plugin failures — so they don't reach guests the
-   * instance is merely shared with. Defaults to `false` (every user of the
-   * instance receives it, subject to their own notification settings).
+   * operational alerts (camera offline, disk full, plugin failures) so they
+   * don't reach guests the instance is merely shared with. Defaults to `false`.
    */
   adminOnly?: boolean;
 }
 
 /**
  * Implemented by plugins that deliver notifications. The NotificationManager
- * invokes these methods over RPC. Plugins own their device storage — the
+ * invokes these methods over RPC. Plugins own their device storage, the
  * manager never persists devices itself.
  */
 export interface NotifierInterface {
   /**
-   * Returns every device this notifier knows about for the given users. Each
-   *  device carries its `ownerUserId` so the caller can map results back. May
-   *  return [] when the notifier is unavailable (e.g. license invalid). Called
-   *  frequently — keep cheap.
+   * Returns the devices this notifier knows for the given users, each
+   * carrying its `ownerUserId`. Returns [] when the notifier is unavailable
+   * (e.g. invalid license). Called often, keep it cheap.
    */
   getDevices(ownerUserIds: string[]): Promise<NotifierDevice[]>;
   /** Returns a single device by id, or null if not found. */
   getDevice(deviceId: string): Promise<NotifierDevice | null>;
-  /**
-   * Delivers a notification to the given devices in one call. Errors are
-   *  logged; the manager never aborts a fan-out because one notifier failed.
-   */
+  /** Delivers a notification to the given devices in one call. Errors are logged, a failing notifier never aborts the fan-out. */
   sendNotification(deviceIds: string[], n: Notification): Promise<void>;
-  /**
-   * Creates a new device on this notifier. `input` is plugin-specific JSON
-   *  whose schema the notifier defines; the NotificationManager forwards it
-   *  opaquely.
-   */
+  /** Creates a new device. `input` is plugin-specific JSON the manager forwards opaquely. */
   registerDevice(ownerUserId: string, input: Record<string, unknown>): Promise<NotifierDevice>;
-  /**
-   * Permanently removes a device. Called when the user revokes the device
-   *  through their notifier-specific UI.
-   */
+  /** Permanently removes a device. Called when the user revokes it through their notifier-specific UI. */
   revokeDevice(deviceId: string): Promise<void>;
-  /**
-   * Mutates a subset of fields on an existing device. `patch` is
-   *  plugin-agnostic (`name`, `active`); plugins ignore unknown keys.
-   *  Returns the updated device, or null if the id isn't ours so the
-   *  manager can probe the next plugin.
-   */
+  /** Mutates `name` / `active` on an existing device. Returns null if the id isn't ours so the manager can probe the next plugin. */
   updateDevice(deviceId: string, patch: Record<string, unknown>): Promise<NotifierDevice | null>;
-  /**
-   * Returns the JSON schema used to render the notifier's settings form in
-   *  the UI, or undefined for no schema.
-   */
+  /** Returns the JSON schema used to render the notifier's settings form in the UI, or undefined for no schema. */
   notificationSettings?(): Promise<JsonSchema[] | undefined>;
 }

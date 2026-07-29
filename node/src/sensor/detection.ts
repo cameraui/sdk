@@ -45,8 +45,8 @@ export interface Detection {
 
 /**
  * Video frame data delivered to detector sensors by the backend pipeline.
- * The backend handles capture, decoding, and scaling — detectors only need
- * to process the pixel payload.
+ * The backend handles capture, decoding and scaling. Detectors only process
+ * the pixel payload.
  */
 export interface VideoFrameData {
   /** Unique frame or crop identifier used to map batch results back to inputs. */

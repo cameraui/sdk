@@ -11,23 +11,25 @@ from .base import Sensor, SensorCategory, SensorLike, SensorType
 
 
 class LeakProperty(StrEnum):
-    """Properties for leak sensors."""
+    """Property names of a leak sensor."""
 
     Detected = "detected"
     """Whether a leak is detected."""
 
 
 class LeakSensorProperties(TypedDict):
-    """Property value map for leak sensors."""
+    """Property values of a leak sensor."""
 
     detected: bool
 
 
 class LeakPropertyChangeData(TypedDict):
-    """Emitted on LeakSensorLike.onPropertyChanged."""
+    """Property change payload emitted on LeakSensorLike.onPropertyChanged."""
 
-    property: str  # LeakProperty value
+    property: str
+    """Name of the changed property, a LeakProperty value."""
     value: bool
+    """New value of the property."""
 
 
 TStorage = TypeVar("TStorage", bound=Mapping[str, Any], default=dict[str, Any])
@@ -41,17 +43,17 @@ class LeakSensorLike(SensorLike, Protocol):
     def type(self) -> SensorType:
         return SensorType.Leak
 
+    @property
+    def onPropertyChanged(self) -> Observable[LeakPropertyChangeData]: ...
+
     @overload
     def getValue(self, property: Literal[LeakProperty.Detected]) -> bool | None: ...
     @overload
     def getValue(self, property: str) -> object | None: ...
 
-    @property
-    def onPropertyChanged(self) -> Observable[LeakPropertyChangeData]: ...
-
 
 class LeakSensor(Sensor[LeakSensorProperties, TStorage, str], Generic[TStorage]):
-    """Leak sensor for water leak detection."""
+    """Water leak detector sensor."""
 
     _requires_frames = False
 
@@ -86,4 +88,3 @@ class LeakSensor(Sensor[LeakSensorProperties, TStorage, str], Generic[TStorage])
 
     async def updateValue(self, property: str, value: Any) -> None:
         """Read-only sensor: external writes are ignored."""
-        # No-op — leak state is reported by the plugin, not set externally.

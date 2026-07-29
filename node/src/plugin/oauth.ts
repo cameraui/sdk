@@ -15,7 +15,7 @@ export interface OAuthState {
   userCode?: string;
   /** Device-flow verification URI the user opens (set while `awaiting_user`). */
   verificationUri?: string;
-  /** Verification URI with the user code embedded — rendered as a QR code. */
+  /** Verification URI with the user code embedded, rendered as a QR code. */
   verificationUriComplete?: string;
   /** Authorization-code-flow URL the browser must open (set while `awaiting_user`). */
   authUrl?: string;
@@ -72,9 +72,9 @@ export interface OAuthProviderDeclaration {
 }
 
 /**
- * Base interface every OAuth-capable plugin implements, alongside at least one
- * flow sub-interface. IdP-agnostic — the plugin brings its own endpoint config
- * and knows nothing about the host's internals.
+ * Base interface every OAuth-capable plugin implements, alongside at least
+ * one flow sub-interface. IdP-agnostic: the plugin brings its own endpoint
+ * config and knows nothing about the host's internals.
  */
 export interface OAuthCapable {
   /** Return IdP display info, scope descriptions and the implemented flow sub-interfaces. */

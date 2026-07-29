@@ -1,10 +1,3 @@
-"""Lightweight reactive primitives for camera.ui.
-
-Provides cold Observables, multicast Subjects (Subject, BehaviorSubject,
-ReplaySubject) and a small set of composable operators for building
-property-change notifications and event streams throughout the SDK.
-"""
-
 from __future__ import annotations
 
 import asyncio
@@ -36,15 +29,25 @@ class Disposable:
 
     @property
     def closed(self) -> bool:
+        """Whether the subscription has already been disposed."""
         return self._closed
 
     def dispose(self) -> None:
+        """Detach the listener and run the producer teardown. Disposing twice is a no-op.
+
+        Example:
+            ```python
+            sub = sensor.onPropertyChanged.subscribe(handle)
+            sub.dispose()
+            ```
+        """
         if self._closed:
             return
         self._closed = True
         self._teardown()
 
     def unsubscribe(self) -> None:
+        """Alias for :meth:`dispose`, for rxjs-shaped call sites."""
         self.dispose()
 
 
@@ -61,10 +64,38 @@ class Observable(Generic[T]):
         self._subscribe_fn = subscribe_fn
 
     def subscribe(self, callback: Callable[[T], None]) -> Disposable:
-        """Start the producer for this subscriber and route emitted values to ``callback``. Returns a :class:`Disposable` for stopping the stream."""
+        """Start the producer for this subscriber and route emitted values to ``callback``.
+
+        Args:
+            callback: Receiver invoked once per emitted value.
+
+        Returns:
+            Disposable that stops the stream and runs the producer teardown.
+
+        Example:
+            ```python
+            sub = sensor.onPropertyChanged.subscribe(handle)
+            ```
+        """
         return self._subscribe_fn(callback)
 
     def pipe(self, *operators: OperatorFn) -> Observable[Any]:
+        """Chain operators into a new Observable, each one fed by the previous.
+
+        Args:
+            operators: Operators applied left to right.
+
+        Returns:
+            Observable emitting the transformed values.
+
+        Example:
+            ```python
+            sensor.onPropertyChanged.pipe(
+                filter_op(lambda e: e["property"] == "detected"),
+                map_op(lambda e: e["value"]),
+            ).subscribe(handle)
+            ```
+        """
         result: Observable[Any] = self
         for op in operators:
             result = op(result)
@@ -75,7 +106,23 @@ class Observable(Generic[T]):
         on_next: Callable[[T], Awaitable[Any]] | None = None,
         on_error: Callable[[Exception], Awaitable[Any]] | None = None,
     ) -> Disposable:
-        """Subscribe asynchronously to the observable sequence."""
+        """Subscribe with coroutine handlers. Each value spawns a task running ``on_next``.
+
+        A failing ``on_next`` disposes the subscription and hands the exception to
+        ``on_error``.
+
+        Args:
+            on_next: Coroutine invoked per emitted value.
+            on_error: Coroutine invoked once with the first exception raised.
+
+        Returns:
+            Disposable that cancels the pending tasks and the subscription.
+
+        Example:
+            ```python
+            sub = camera.onDetection.asubscribe(handle_detection)
+            ```
+        """
         error_future: asyncio.Future[Exception] = asyncio.Future()
         next_task: asyncio.Task[Any] | None = None
         error_task: asyncio.Task[Any] | None = None
@@ -113,7 +160,7 @@ class Observable(Generic[T]):
         return Disposable(cancel_subscription)
 
     async def __aiter__(self) -> AsyncIterator[T]:
-        """Async iterator implementation."""
+        """Iterate emitted values. Values are buffered in a queue of 100; overflow is dropped."""
         queue: asyncio.Queue[T | None] = asyncio.Queue(maxsize=100)
         done = False
 
@@ -152,15 +199,27 @@ class Subject(Generic[T]):
 
     @property
     def closed(self) -> bool:
+        """Whether :meth:`complete` has already run."""
         return self._completed
 
     def next(self, value: T) -> None:
+        """Dispatch a value to every current subscriber, synchronously. No-op once completed.
+
+        Args:
+            value: Value to multicast.
+
+        Example:
+            ```python
+            subject.next("armed")
+            ```
+        """
         if self._completed:
             return
         for cb in list(self._subscribers):
             cb(value)
 
     def complete(self) -> None:
+        """Release every subscriber and lock the Subject. Later :meth:`next` calls are ignored."""
         if self._completed:
             return
         self._completed = True
@@ -170,28 +229,52 @@ class Subject(Generic[T]):
         for handler in handlers:
             handler()
 
-    def _on_complete(self, handler: Callable[[], None]) -> Disposable:
-        """Register a handler invoked once when this Subject completes. Runs
-        immediately if already completed. Used by :func:`first_value_from`.
-        """
-        if self._completed:
-            handler()
-            return Disposable(lambda: None)
-        self._complete_handlers.add(handler)
-        return Disposable(lambda: self._complete_handlers.discard(handler))
-
     def subscribe(self, callback: Callable[[T], None]) -> Disposable:
+        """Register ``callback`` for every following value.
+
+        Args:
+            callback: Receiver invoked once per emitted value.
+
+        Returns:
+            Disposable that unregisters the callback.
+        """
         if self._completed:
             return Disposable(lambda: None)
         self._subscribers.add(callback)
         return Disposable(lambda: self._subscribers.discard(callback))
 
     def pipe(self, *operators: OperatorFn) -> Observable[Any]:
+        """Chain operators onto this Subject's read-only view.
+
+        Args:
+            operators: Operators applied left to right.
+
+        Returns:
+            Observable emitting the transformed values.
+        """
         return self.as_observable().pipe(*operators)
 
     def as_observable(self) -> Observable[T]:
-        """Return a read-only :class:`Observable` that mirrors this Subject without exposing :meth:`next` or :meth:`complete`."""
+        """Return a read-only :class:`Observable` that mirrors this Subject without exposing :meth:`next` or :meth:`complete`.
+
+        Returns:
+            Read-only view of this Subject.
+
+        Example:
+            ```python
+            def on_event(self) -> Observable[Event]:
+                return self._events.as_observable()
+            ```
+        """
         return Observable(lambda cb: self.subscribe(cb))
+
+    def _on_complete(self, handler: Callable[[], None]) -> Disposable:
+        """Register a handler run once on completion, immediately if already completed."""
+        if self._completed:
+            handler()
+            return Disposable(lambda: None)
+        self._complete_handlers.add(handler)
+        return Disposable(lambda: self._complete_handlers.discard(handler))
 
 
 class BehaviorSubject(Subject[T]):
@@ -207,18 +290,37 @@ class BehaviorSubject(Subject[T]):
         super().__init__()
         self._value = initial_value
 
+    @property
+    def value(self) -> T:
+        """The most recently emitted value."""
+        return self._value
+
     def next(self, value: T) -> None:
+        """Store ``value`` as the current one and dispatch it to every subscriber.
+
+        Args:
+            value: New current value.
+        """
         self._value = value
         super().next(value)
 
     def get_value(self) -> T:
-        return self._value
+        """Read the current value without subscribing.
 
-    @property
-    def value(self) -> T:
+        Returns:
+            The most recently emitted value.
+        """
         return self._value
 
     def subscribe(self, callback: Callable[[T], None]) -> Disposable:
+        """Register ``callback`` and invoke it immediately with the current value.
+
+        Args:
+            callback: Receiver invoked once per emitted value.
+
+        Returns:
+            Disposable that unregisters the callback.
+        """
         disposable = super().subscribe(callback)
         if not self.closed:
             callback(self._value)
@@ -226,11 +328,10 @@ class BehaviorSubject(Subject[T]):
 
 
 class ReplaySubject(Subject[T]):
-    """Subject that buffers up to the last ``buffer_size`` values
-    (configurable, defaults to ``1``).
+    """Subject that buffers the last ``buffer_size`` values, 1 by default.
 
-    New subscribers immediately receive every buffered value in order
-    before continuing with live emissions.
+    New subscribers immediately receive every buffered value in order before
+    continuing with live emissions.
     """
 
     def __init__(self, buffer_size: int = 1) -> None:
@@ -239,6 +340,11 @@ class ReplaySubject(Subject[T]):
         self._buffer_size = buffer_size
 
     def next(self, value: T) -> None:
+        """Append ``value`` to the buffer, dropping the oldest entry past ``buffer_size``, then dispatch it.
+
+        Args:
+            value: Value to buffer and multicast.
+        """
         if self.closed:
             return
         self._buffer.append(value)
@@ -247,12 +353,17 @@ class ReplaySubject(Subject[T]):
         super().next(value)
 
     def subscribe(self, callback: Callable[[T], None]) -> Disposable:
+        """Replay the buffered values in order, then register ``callback`` for live emissions.
+
+        Args:
+            callback: Receiver invoked once per emitted value.
+
+        Returns:
+            Disposable that unregisters the callback.
+        """
         for value in self._buffer:
             callback(value)
         return super().subscribe(callback)
-
-
-# ── Operators ──────────────────────────────────────────────────────
 
 
 def _default_comparator(a: Any, b: Any) -> bool:
@@ -479,17 +590,14 @@ def merge_map(project: Callable[[Any, int], list[Any]]) -> OperatorFn:
     return operator
 
 
-# ── Utilities ──────────────────────────────────────────────────────
-
-
 async def first_value_from(observable: Observable[T] | Subject[T]) -> T:
     """Subscribe to the source and return its first emitted value as a
     coroutine, then dispose the subscription.
 
     Raises ``RuntimeError`` if the source completes before emitting (Subject,
     BehaviorSubject, ReplaySubject). A bare :class:`Observable` has no
-    completion signal, so the coroutine stays pending until it emits — guard
-    such calls with :func:`asyncio.wait_for` (or a timeout).
+    completion signal, so the coroutine stays pending until it emits; guard
+    such calls with :func:`asyncio.wait_for` or another timeout.
 
     Args:
         observable: Source observable or subject to read once.
@@ -530,7 +638,7 @@ async def first_value_from(observable: Observable[T] | Subject[T]) -> T:
 
     sub = observable.subscribe(on_next)
 
-    # Already resolved synchronously (BehaviorSubject / ReplaySubject)
+    # already resolved synchronously (BehaviorSubject / ReplaySubject)
     if future.done():
         cleanup()
         return await future

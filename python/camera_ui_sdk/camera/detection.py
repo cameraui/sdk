@@ -62,7 +62,6 @@ class ObjectDetectionSettings(TypedDict):
 
     confidence: float
     """Minimum confidence threshold (0.3 - 1.0)."""
-
     suppressStatic: NotRequired[bool]
     """Suppress events from objects that stay stationary across events (e.g. parked cars). Defaults to True."""
 
@@ -104,7 +103,7 @@ class SensorTriggerSettings(TypedDict):
 
 
 class PtzAutotrackSettings(TypedDict):
-    """PTZ autotracking settings — automatically follow detected objects."""
+    """PTZ autotracking settings: the camera follows detected objects automatically."""
 
     enabled: bool
     """Whether PTZ autotracking is enabled."""
@@ -148,8 +147,8 @@ class CameraDetectionSettings(TypedDict):
     sensor: SensorTriggerSettings
     """Sensor trigger settings."""
     cascadeDetection: NotRequired[bool]
-    """Whether the detection cascade is enabled"""
+    """Whether the detection cascade is enabled."""
     cascadeTimeout: NotRequired[int]
-    """Cascade hold-open window in seconds"""
+    """Cascade hold-open window in seconds."""
     snooze: NotRequired[bool]
     """Whether detections are snoozed (paused)."""

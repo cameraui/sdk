@@ -11,23 +11,25 @@ from .base import Sensor, SensorCategory, SensorLike, SensorType
 
 
 class ContactProperty(StrEnum):
-    """Properties for contact sensors."""
+    """Property names of a contact sensor."""
 
     Detected = "detected"
     """Whether the contact is open (true = open, false = closed)."""
 
 
 class ContactSensorProperties(TypedDict):
-    """Property value map for contact sensors."""
+    """Property values of a contact sensor."""
 
     detected: bool
 
 
 class ContactPropertyChangeData(TypedDict):
-    """Emitted on ContactSensorLike.onPropertyChanged."""
+    """Property change payload emitted on ContactSensorLike.onPropertyChanged."""
 
-    property: str  # ContactProperty value
+    property: str
+    """Name of the changed property, a ContactProperty value."""
     value: bool
+    """New value of the property."""
 
 
 TStorage = TypeVar("TStorage", bound=Mapping[str, Any], default=dict[str, Any])
@@ -41,13 +43,13 @@ class ContactSensorLike(SensorLike, Protocol):
     def type(self) -> SensorType:
         return SensorType.Contact
 
+    @property
+    def onPropertyChanged(self) -> Observable[ContactPropertyChangeData]: ...
+
     @overload
     def getValue(self, property: Literal[ContactProperty.Detected]) -> bool | None: ...
     @overload
     def getValue(self, property: str) -> object | None: ...
-
-    @property
-    def onPropertyChanged(self) -> Observable[ContactPropertyChangeData]: ...
 
 
 class ContactSensor(Sensor[ContactSensorProperties, TStorage, str], Generic[TStorage]):
@@ -86,4 +88,3 @@ class ContactSensor(Sensor[ContactSensorProperties, TStorage, str], Generic[TSto
 
     async def updateValue(self, property: str, value: Any) -> None:
         """Read-only sensor: external writes are ignored."""
-        # No-op — contact state is reported by the plugin, not set externally.

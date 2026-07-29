@@ -29,7 +29,7 @@ export interface ClassifierDetection extends Detection {
 }
 
 /**
- * Property shape carried by a {@link ClassifierSensor}.
+ * Property values of a classifier sensor.
  *
  * @internal
  */
@@ -41,9 +41,7 @@ export interface ClassifierSensorProperties {
 
 /** Read-only proxy interface for a classifier sensor. */
 export interface ClassifierSensorLike extends SensorLike {
-  /** Sensor type discriminant. */
   readonly type: SensorType.Classifier;
-  /** Property change observable narrowed to classifier properties. */
   readonly onPropertyChanged: Observable<PropertyChangeOf<ClassifierSensorProperties>>;
 
   getValue(property: ClassifierProperty.Detected): boolean | undefined;
@@ -74,17 +72,14 @@ export class ClassifierSensor<TStorage extends object = Record<string, any>> ext
     });
   }
 
-  /** Whether any classification result is active. */
   get detected(): boolean {
     return this.props.detected;
   }
 
-  /** Current detection list. */
   get detections(): ClassifierDetection[] {
     return this.props.detections;
   }
 
-  /** Unique labels of the current detections. */
   get labels(): string[] {
     return this.props.labels;
   }
@@ -92,10 +87,10 @@ export class ClassifierSensor<TStorage extends object = Record<string, any>> ext
   /**
    * Report classification results. Auto-derives `detected` and `labels` from the list.
    *
-   * - `reportDetections(true)` — generic classification trigger. The SDK
-   *   synthesizes a single full-frame detection with empty attribute/subAttribute.
-   * - `reportDetections(true, [...])` — explicit classifier detections.
-   * - `reportDetections(false)` — clear.
+   * - `reportDetections(true)`: generic classification trigger. The SDK
+   *   synthesizes a single full-frame detection with empty attribute and sub-attribute.
+   * - `reportDetections(true, [...])`: explicit classifier detections.
+   * - `reportDetections(false)`: clear.
    *
    * @param detected - Whether any classification result is active.
    *
@@ -139,21 +134,11 @@ export class ClassifierSensor<TStorage extends object = Record<string, any>> ext
   }
 
   /**
-   * Read-only sensor: external writes are ignored. State is reported via `reportDetections`.
-   *
-   * Called by the cross-process plugin host when a generic property write is received.
-   * Classifier sensors have no externally writable properties, so the parameters are
-   * unused (underscore-prefixed) and the call is a no-op.
-   *
-   * @param _property - Unused — classifier sensors expose no writable properties.
-   *
-   * @param _value - Unused — classifier sensors expose no writable properties.
+   * Read-only sensor: external writes are ignored.
    *
    * @internal
    */
-  updateValue(_property: string, _value: unknown): void {
-    // No-op — classifier state is reported by the plugin, not set externally.
-  }
+  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Return type for {@link ClassifierDetectorSensor.detectClassifications}. */
@@ -172,13 +157,13 @@ export interface ClassifierResult {
 export abstract class ClassifierDetectorSensor<TStorage extends object = Record<string, any>> extends ClassifierSensor<TStorage> {
   override _requiresFrames = true;
 
-  /** Declares the expected input dimensions and trigger labels. The backend scales frames to match. */
   abstract get modelSpec(): ModelSpec;
 
   /**
-   * Classify frames in batch. Each frame is a pre-cropped, pre-scaled
-   * trigger region produced by the upstream object detector. Must return
-   * exactly one ClassifierResult per input frame, in the same order.
+   * Classify frames in batch. Each frame is pre-scaled to `modelSpec.input`:
+   * normally a trigger region cropped by the upstream object detector, but the
+   * whole scene when no decoded frame is available. Must return exactly one
+   * ClassifierResult per input frame, in the same order.
    */
   abstract detectClassifications(frames: VideoFrameData[]): Promise<ClassifierResult[]>;
 }

@@ -4,34 +4,34 @@ import { defineSensor, SensorDomain } from './meta.js';
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/** Security system arm/disarm states (HomeKit-compatible values) */
+/** Security system arm/disarm states (HomeKit-compatible values). */
 export enum SecuritySystemState {
-  /** Armed, occupants home */
+  /** Armed, occupants home. */
   StayArm = 0,
-  /** Armed, occupants away */
+  /** Armed, occupants away. */
   AwayArm = 1,
-  /** Armed for night mode */
+  /** Armed for night mode. */
   NightArm = 2,
-  /** System disarmed */
+  /** System disarmed. */
   Disarmed = 3,
-  /** Alarm is triggered */
+  /** Alarm is triggered. */
   AlarmTriggered = 4,
 }
 
 /**
- * Properties for security system controls
+ * Property names of a security system control.
  *
  * @internal
  */
 export enum SecuritySystemProperty {
-  /** The actual current state of the security system */
+  /** The actual current state of the security system. */
   CurrentState = 'currentState',
-  /** The desired target state (set by user, transitions to currentState) */
+  /** The desired target state (set by user, transitions to currentState). Never `AlarmTriggered`. */
   TargetState = 'targetState',
 }
 
 /**
- * Property value map for security system controls.
+ * Property values of a security system control.
  *
  * @internal
  */
@@ -40,7 +40,7 @@ export interface SecuritySystemProperties {
   [SecuritySystemProperty.TargetState]: SecuritySystemState;
 }
 
-/** Read-only proxy interface for a security system control */
+/** Read-only proxy interface for a security system control. */
 export interface SecuritySystemLike extends SensorLike {
   readonly type: SensorType.SecuritySystem;
   readonly onPropertyChanged: Observable<PropertyChangeOf<SecuritySystemProperties>>;
@@ -52,7 +52,7 @@ export interface SecuritySystemLike extends SensorLike {
 
 /**
  * Security system control. Override `setTargetState()` to drive hardware and call
- * `await super.setTargetState(value)` once the hardware confirms — the base
+ * `await super.setTargetState(value)` once the hardware confirms. The base
  * implementation updates both `targetState` and `currentState`.
  */
 export class SecuritySystem<TStorage extends object = Record<string, any>> extends Sensor<SecuritySystemProperties, TStorage, string> {
@@ -78,7 +78,7 @@ export class SecuritySystem<TStorage extends object = Record<string, any>> exten
 
   /**
    * Set the target state. Override to drive hardware and call
-   * `await super.setTargetState(value)` after success — the base implementation
+   * `await super.setTargetState(value)` after success. The base implementation
    * syncs both `targetState` and `currentState` to the new value.
    *
    * @param value - Desired armed/disarmed state from {@link SecuritySystemState}.
@@ -97,11 +97,10 @@ export class SecuritySystem<TStorage extends object = Record<string, any>> exten
   }
 
   /**
-   * Publish the actual security system state. Use this to drive transitions
-   * that diverge from the user-requested target — most notably the
-   * `AlarmTriggered` state when an intruder is detected, or arming-delay
-   * intermediate states. Read-only from cross-process consumers
-   * (`updateValue` ignores it).
+   * Publish the actual security system state. Use this for transitions that
+   * diverge from the user-requested target: `AlarmTriggered` when an intruder
+   * is detected, or arming-delay intermediate states. Read-only from
+   * cross-process consumers (`updateValue` ignores it).
    *
    * @param value - Current security system state from {@link SecuritySystemState}.
    *
@@ -116,13 +115,7 @@ export class SecuritySystem<TStorage extends object = Record<string, any>> exten
   }
 
   /**
-   * Cross-process consumer entry point. Dispatches writable properties
-   * to semantic methods so plugin overrides (hardware actions) are honored.
-   * `currentState` is observed-only and not externally writable; only `targetState` may be set.
-   *
-   * @param property - Property name to write.
-   *
-   * @param value - New value for the property.
+   * Routes generic property writes to the semantic setters.
    *
    * @internal
    */
@@ -130,7 +123,6 @@ export class SecuritySystem<TStorage extends object = Record<string, any>> exten
     if ((property as SecuritySystemProperty) === SecuritySystemProperty.TargetState) {
       await this.setTargetState(value as SecuritySystemState);
     }
-    // Unknown / non-writable property (incl. currentState) — ignored.
   }
 }
 

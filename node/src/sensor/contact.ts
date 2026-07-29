@@ -5,17 +5,17 @@ import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /**
- * Properties for contact sensors
+ * Property names of a contact sensor.
  *
  * @internal
  */
 export enum ContactProperty {
-  /** Whether the contact is open (true = open, false = closed) */
+  /** Whether the contact is open (true = open, false = closed). */
   Detected = 'detected',
 }
 
 /**
- * Property value map for contact sensors.
+ * Property values of a contact sensor.
  *
  * @internal
  */
@@ -23,7 +23,7 @@ export interface ContactSensorProperties {
   [ContactProperty.Detected]: boolean;
 }
 
-/** Read-only proxy interface for a contact sensor */
+/** Read-only proxy interface for a contact sensor. */
 export interface ContactSensorLike extends SensorLike {
   readonly type: SensorType.Contact;
   readonly onPropertyChanged: Observable<PropertyChangeOf<ContactSensorProperties>>;
@@ -32,7 +32,7 @@ export interface ContactSensorLike extends SensorLike {
   getValue(property: string): unknown;
 }
 
-/** Contact sensor for door/window open-close state */
+/** Contact sensor for door/window open-close state. */
 export class ContactSensor<TStorage extends object = Record<string, any>> extends Sensor<ContactSensorProperties, TStorage> {
   readonly type = SensorType.Contact;
   readonly category = SensorCategory.Sensor;
@@ -62,21 +62,11 @@ export class ContactSensor<TStorage extends object = Record<string, any>> extend
   }
 
   /**
-   * Read-only sensor: external writes are ignored. State is reported via `setDetected`.
-   *
-   * Called by the cross-process plugin host when a generic property write is received.
-   * Contact sensors have no externally writable properties, so the parameters are
-   * unused (underscore-prefixed) and the call is a no-op.
-   *
-   * @param _property - Unused — contact sensors expose no writable properties.
-   *
-   * @param _value - Unused — contact sensors expose no writable properties.
+   * Read-only sensor: external writes are ignored.
    *
    * @internal
    */
-  updateValue(_property: string, _value: unknown): void {
-    // No-op — contact state is reported by the plugin, not set externally.
-  }
+  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Registry metadata for {@link ContactSensor}. */

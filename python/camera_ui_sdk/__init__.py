@@ -70,8 +70,6 @@ from .camera import (
     ZoneFilter,
     ZoneType,
 )
-
-# Manager module
 from .manager import (
     CoreManager,
     CoreManagerEvent,
@@ -98,8 +96,6 @@ from .observable import (
     pairwise,
     share,
 )
-
-# Plugin module
 from .plugin import (
     API_EVENT,
     APIListener,
@@ -225,8 +221,6 @@ from .sensor import (
     VideoFrameData,
     VideoInputSpec,
 )
-
-# Storage module
 from .storage import (
     V1,
     ButtonColor,
@@ -262,8 +256,6 @@ from .storage import (
     StringFormat,
     ToastMessage,
 )
-
-# Types module
 from .types import LoggerService
 
 __all__ = [
@@ -472,6 +464,7 @@ __all__ = [
     "CreateDownloadOptions",
     "CreateStreamDownloadOptions",
     "DownloadToken",
+    "NotificationManager",
     # Plugin
     "API_EVENT",
     "APIListener",
@@ -515,8 +508,6 @@ __all__ = [
     "can_provide_sensors_to_any_cameras",
     "has_interface",
     "has_capability",
-    # Manager
-    "NotificationManager",
     # Notifier
     "Notification",
     "NotifierDevice",

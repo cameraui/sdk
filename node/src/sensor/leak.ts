@@ -5,17 +5,17 @@ import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /**
- * Properties for leak sensors
+ * Property names of a leak sensor.
  *
  * @internal
  */
 export enum LeakProperty {
-  /** Whether a leak is detected */
+  /** Whether a leak is detected. */
   Detected = 'detected',
 }
 
 /**
- * Property value map for leak sensors.
+ * Property values of a leak sensor.
  *
  * @internal
  */
@@ -23,7 +23,7 @@ export interface LeakSensorProperties {
   [LeakProperty.Detected]: boolean;
 }
 
-/** Read-only proxy interface for a leak sensor */
+/** Read-only proxy interface for a leak sensor. */
 export interface LeakSensorLike extends SensorLike {
   readonly type: SensorType.Leak;
   readonly onPropertyChanged: Observable<PropertyChangeOf<LeakSensorProperties>>;
@@ -32,7 +32,7 @@ export interface LeakSensorLike extends SensorLike {
   getValue(property: string): unknown;
 }
 
-/** Water leak detector sensor */
+/** Water leak detector sensor. */
 export class LeakSensor<TStorage extends object = Record<string, any>> extends Sensor<LeakSensorProperties, TStorage> {
   readonly type = SensorType.Leak;
   readonly category = SensorCategory.Sensor;
@@ -62,21 +62,11 @@ export class LeakSensor<TStorage extends object = Record<string, any>> extends S
   }
 
   /**
-   * Read-only sensor: external writes are ignored. State is reported via `setDetected`.
-   *
-   * Called by the cross-process plugin host when a generic property write is received.
-   * Leak sensors have no externally writable properties, so the parameters are
-   * unused (underscore-prefixed) and the call is a no-op.
-   *
-   * @param _property - Unused — leak sensors expose no writable properties.
-   *
-   * @param _value - Unused — leak sensors expose no writable properties.
+   * Read-only sensor: external writes are ignored.
    *
    * @internal
    */
-  updateValue(_property: string, _value: unknown): void {
-    // No-op — leak state is reported by the plugin, not set externally.
-  }
+  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Registry metadata for {@link LeakSensor}. */

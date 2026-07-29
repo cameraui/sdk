@@ -11,23 +11,25 @@ from .base import Sensor, SensorCategory, SensorLike, SensorType
 
 
 class OccupancyProperty(StrEnum):
-    """Properties for occupancy sensors."""
+    """Property names of an occupancy sensor."""
 
     Detected = "detected"
     """Whether occupancy is detected (true = occupied)."""
 
 
 class OccupancySensorProperties(TypedDict):
-    """Property value map for occupancy sensors."""
+    """Property values of an occupancy sensor."""
 
     detected: bool
 
 
 class OccupancyPropertyChangeData(TypedDict):
-    """Emitted on OccupancySensorLike.onPropertyChanged."""
+    """Property change payload emitted on OccupancySensorLike.onPropertyChanged."""
 
-    property: str  # OccupancyProperty value
+    property: str
+    """Name of the changed property, an OccupancyProperty value."""
     value: bool
+    """New value of the property."""
 
 
 TStorage = TypeVar("TStorage", bound=Mapping[str, Any], default=dict[str, Any])
@@ -41,13 +43,13 @@ class OccupancySensorLike(SensorLike, Protocol):
     def type(self) -> SensorType:
         return SensorType.Occupancy
 
+    @property
+    def onPropertyChanged(self) -> Observable[OccupancyPropertyChangeData]: ...
+
     @overload
     def getValue(self, property: Literal[OccupancyProperty.Detected]) -> bool | None: ...
     @overload
     def getValue(self, property: str) -> object | None: ...
-
-    @property
-    def onPropertyChanged(self) -> Observable[OccupancyPropertyChangeData]: ...
 
 
 class OccupancySensor(Sensor[OccupancySensorProperties, TStorage, str], Generic[TStorage]):
@@ -86,4 +88,3 @@ class OccupancySensor(Sensor[OccupancySensorProperties, TStorage, str], Generic[
 
     async def updateValue(self, property: str, value: Any) -> None:
         """Read-only sensor: external writes are ignored."""
-        # No-op — occupancy state is reported by the plugin, not set externally.

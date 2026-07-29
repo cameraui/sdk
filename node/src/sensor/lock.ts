@@ -4,27 +4,30 @@ import { defineSensor, SensorDomain } from './meta.js';
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/** Lock states (HomeKit-compatible values) */
+/** Lock states (HomeKit-compatible values). */
 export enum LockState {
+  /** Locked. */
   Secured = 0,
+  /** Unlocked. */
   Unsecured = 1,
+  /** State cannot be determined, e.g. while a motorized lock is moving. */
   Unknown = 2,
 }
 
 /**
- * Properties for lock controls
+ * Property names of a lock control.
  *
  * @internal
  */
 export enum LockProperty {
-  /** The actual current state of the lock */
+  /** The actual current state of the lock. */
   CurrentState = 'currentState',
-  /** The desired target state (set by user, transitions to currentState) */
+  /** The desired target state (set by user, transitions to currentState). */
   TargetState = 'targetState',
 }
 
 /**
- * Property value map for lock controls.
+ * Property values of a lock control.
  *
  * @internal
  */
@@ -33,7 +36,7 @@ export interface LockControlProperties {
   [LockProperty.TargetState]: LockState;
 }
 
-/** Read-only proxy interface for a lock control */
+/** Read-only proxy interface for a lock control. */
 export interface LockControlLike extends SensorLike {
   readonly type: SensorType.Lock;
   readonly onPropertyChanged: Observable<PropertyChangeOf<LockControlProperties>>;
@@ -45,7 +48,7 @@ export interface LockControlLike extends SensorLike {
 
 /**
  * Lock control. Override `setTargetState()` to drive hardware and call
- * `await super.setTargetState(value)` once the hardware confirms — the base
+ * `await super.setTargetState(value)` once the hardware confirms. The base
  * implementation updates both `targetState` and `currentState` to the new value.
  *
  * For asymmetric flows (long-running unlock with intermediate state) override
@@ -74,7 +77,7 @@ export class LockControl<TStorage extends object = Record<string, any>> extends 
 
   /**
    * Set the target state. Override to drive hardware and call
-   * `await super.setTargetState(value)` after success — the base implementation
+   * `await super.setTargetState(value)` after success. The base implementation
    * syncs both `targetState` and `currentState` to the new value.
    *
    * @param value - Desired lock state from the {@link LockState} enum.
@@ -93,10 +96,9 @@ export class LockControl<TStorage extends object = Record<string, any>> extends 
   }
 
   /**
-   * Publish the actual lock state. Use this to drive transitions where the
-   * physical state diverges from the user-requested target — e.g. motorized
-   * smart locks that take time to rotate (publish `Unknown` while moving),
-   * or hardware reporting an out-of-band state change. Read-only from
+   * Publish the actual lock state. Use it when the physical state diverges from the
+   * requested target: motorized locks that take time to rotate (publish `Unknown`
+   * while moving), or hardware reporting an out-of-band state change. Read-only from
    * cross-process consumers (`updateValue` ignores it).
    *
    * @param value - Current physical lock state from the {@link LockState} enum.
@@ -112,13 +114,7 @@ export class LockControl<TStorage extends object = Record<string, any>> extends 
   }
 
   /**
-   * Cross-process consumer entry point. Dispatches writable properties
-   * to semantic methods so plugin overrides (hardware actions) are honored.
-   * `currentState` is observed-only and not externally writable; only `targetState` may be set.
-   *
-   * @param property - Property name to write.
-   *
-   * @param value - New value for the property.
+   * Routes generic property writes to the semantic setters. Only `targetState` is externally writable, `currentState` is observed-only.
    *
    * @internal
    */
@@ -126,7 +122,6 @@ export class LockControl<TStorage extends object = Record<string, any>> extends 
     if ((property as LockProperty) === LockProperty.TargetState) {
       await this.setTargetState(value as LockState);
     }
-    // Unknown / non-writable property (incl. currentState) — ignored.
   }
 }
 

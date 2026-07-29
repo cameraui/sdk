@@ -1,14 +1,3 @@
-"""Internal SDK symbols.
-
-This subpackage exposes symbols used by the camera.ui server runtime and
-SDK internals but NOT part of the public plugin API. Plugin authors should
-not import from ``camera_ui_sdk.internal``; the contents may change without
-deprecation.
-
-Symbols are re-exported lazily via ``__getattr__`` to avoid circular imports
-during SDK bootstrap. Consumers can still ``from camera_ui_sdk.internal import X``.
-"""
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -29,7 +18,7 @@ if TYPE_CHECKING:
     from .streaming_internal import IceServer
 
 __all__ = [
-    # AsyncEventEmitter
+    # Events
     "AsyncEventEmitter",
     # Manager
     "ConnectionStatus",
@@ -53,7 +42,7 @@ __all__ = [
     "is_equal",
 ]
 
-# Map of public name -> (submodule, attribute_name) for lazy loading.
+# public name → (submodule, attribute), resolved lazily to avoid circular imports during SDK bootstrap
 _LAZY: dict[str, tuple[str, str]] = {
     "AsyncEventEmitter": (".event_emitter", "AsyncEventEmitter"),
     "ConnectionStatus": (".manager_rpc", "ConnectionStatus"),

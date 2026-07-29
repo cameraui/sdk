@@ -11,14 +11,14 @@ from .base import Sensor, SensorCategory, SensorLike, SensorType
 
 
 class SirenCapability(StrEnum):
-    """Optional capabilities for siren controls."""
+    """Optional capabilities of a siren control."""
 
     Volume = "volume"
     """Siren supports volume adjustment (0-100)."""
 
 
 class SirenProperty(StrEnum):
-    """Properties for siren controls."""
+    """Property names of a siren control."""
 
     Active = "active"
     """Whether the siren is currently active."""
@@ -27,17 +27,19 @@ class SirenProperty(StrEnum):
 
 
 class SirenControlProperties(TypedDict):
-    """Property value map for siren controls."""
+    """Property values of a siren control."""
 
     active: bool
     volume: int
 
 
 class SirenPropertyChangeData(TypedDict):
-    """Emitted on SirenControlLike.onPropertyChanged."""
+    """Property change payload emitted on SirenControlLike.onPropertyChanged."""
 
-    property: str  # SirenProperty value
+    property: str
+    """Name of the changed property, a SirenProperty value."""
     value: bool | int
+    """New value of the property."""
 
 
 TStorage = TypeVar("TStorage", bound=Mapping[str, Any], default=dict[str, Any])
@@ -51,6 +53,12 @@ class SirenControlLike(SensorLike, Protocol):
     def type(self) -> SensorType:
         return SensorType.Siren
 
+    @property
+    def onPropertyChanged(self) -> Observable[SirenPropertyChangeData]: ...
+
+    @property
+    def onCapabilitiesChanged(self) -> Observable[list[SirenCapability]]: ...
+
     @overload
     def getValue(self, property: Literal[SirenProperty.Active]) -> bool | None: ...
     @overload
@@ -58,18 +66,12 @@ class SirenControlLike(SensorLike, Protocol):
     @overload
     def getValue(self, property: str) -> object | None: ...
 
-    @property
-    def onPropertyChanged(self) -> Observable[SirenPropertyChangeData]: ...
-
-    @property
-    def onCapabilitiesChanged(self) -> Observable[list[SirenCapability]]: ...
-
 
 class SirenControl(Sensor[SirenControlProperties, TStorage, SirenCapability], Generic[TStorage]):
     """Siren control sensor. Override `setActive()`/`setInactive()` to drive
     your hardware, then `await super().setActive()` / `await super().setInactive()`
     to sync the SDK state. For hardware-pushed updates, call the super methods
-    from your event handler — that bypasses any plugin override and only syncs
+    from your event handler. That bypasses any plugin override and only syncs
     state.
     """
 
@@ -139,7 +141,7 @@ class SirenControl(Sensor[SirenControlProperties, TStorage, SirenCapability], Ge
         self._write_state({SirenProperty.Volume.value: max(0, min(100, value))})
 
     async def updateValue(self, property: str, value: Any) -> None:
-        """Routes generic property writes to semantic methods."""
+        """Routes generic property writes to the semantic setters."""
         if property == SirenProperty.Active.value:
             if value:
                 await self.setActive()
@@ -149,4 +151,3 @@ class SirenControl(Sensor[SirenControlProperties, TStorage, SirenCapability], Ge
         if property == SirenProperty.Volume.value:
             await self.setVolume(int(value))
             return
-        # Unknown / non-writable property — ignored.

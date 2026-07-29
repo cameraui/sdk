@@ -14,24 +14,27 @@ from .spec import ModelSpec
 
 
 class LicensePlateProperty(StrEnum):
-    """Property names of a license plate detection sensor."""
+    """Property names of a license plate sensor."""
 
-    Detected = "detected"  # Whether any license plate is currently detected
-    Detections = "detections"  # List of detected plates with OCR text
+    Detected = "detected"
+    """Whether any license plate is currently detected."""
+    Detections = "detections"
+    """List of detected plates with OCR text."""
 
 
 class LicensePlateDetection(Detection):
     """A license plate detection result, extending Detection with OCR fields."""
 
-    attribute: Literal["license_plate"]  # type: ignore[misc]  # Sub-detection attribute, fixed to "license_plate"
-    plateText: str  # Recognized plate text (e.g. "ABC 1234")
-    ocrConfidence: NotRequired[
-        float
-    ]  # Average text recognition confidence (0-1), separate from the box confidence
+    attribute: Literal["license_plate"]  # type: ignore[misc]
+    """Sub-detection attribute, fixed to ``"license_plate"``."""
+    plateText: str
+    """Recognized plate text (e.g. ``"ABC 1234"``)."""
+    ocrConfidence: NotRequired[float]
+    """Average text recognition confidence (0-1), separate from the box confidence."""
 
 
 class LicensePlateSensorProperties(TypedDict):
-    """Property shape carried by a LicensePlateSensor."""
+    """Property values of a license plate sensor."""
 
     detected: bool
     detections: list[LicensePlateDetection]
@@ -40,8 +43,10 @@ class LicensePlateSensorProperties(TypedDict):
 class LicensePlatePropertyChangeData(TypedDict):
     """Property change payload emitted on LicensePlateSensorLike.onPropertyChanged."""
 
-    property: str  # LicensePlateProperty value
+    property: str
+    """Name of the changed property, a LicensePlateProperty value."""
     value: bool | list[LicensePlateDetection]
+    """New value of the property."""
 
 
 TStorage = TypeVar("TStorage", bound=Mapping[str, Any], default=dict[str, Any])
@@ -55,6 +60,9 @@ class LicensePlateSensorLike(SensorLike, Protocol):
     def type(self) -> SensorType:
         return SensorType.LicensePlate
 
+    @property
+    def onPropertyChanged(self) -> Observable[LicensePlatePropertyChangeData]: ...
+
     @overload
     def getValue(self, property: Literal[LicensePlateProperty.Detected]) -> bool | None: ...
     @overload
@@ -63,9 +71,6 @@ class LicensePlateSensorLike(SensorLike, Protocol):
     ) -> list[LicensePlateDetection] | None: ...
     @overload
     def getValue(self, property: str) -> object | None: ...
-
-    @property
-    def onPropertyChanged(self) -> Observable[LicensePlatePropertyChangeData]: ...
 
 
 class LicensePlateSensor(Sensor[LicensePlateSensorProperties, TStorage, str], Generic[TStorage]):
@@ -96,12 +101,10 @@ class LicensePlateSensor(Sensor[LicensePlateSensorProperties, TStorage, str], Ge
 
     @property
     def detected(self) -> bool:
-        """Whether any license plate is currently detected."""
         return bool(self.props.detected)
 
     @property
     def detections(self) -> list[LicensePlateDetection]:
-        """Current detection list."""
         return self.props.detections or []
 
     def reportDetections(
@@ -111,10 +114,10 @@ class LicensePlateSensor(Sensor[LicensePlateSensorProperties, TStorage, str], Ge
     ) -> None:
         """Report detected license plates.
 
-        - ``reportDetections(True)`` — plate detected without specifics. The SDK
+        - ``reportDetections(True)``: plate detected without specifics. The SDK
           synthesizes a single full-frame detection with empty plateText.
-        - ``reportDetections(True, [...])`` — explicit plate detections with OCR text.
-        - ``reportDetections(False)`` — clear.
+        - ``reportDetections(True, [...])``: explicit plate detections with OCR text.
+        - ``reportDetections(False)``: clear.
 
         Args:
             detected: Whether any license plate is currently detected.
@@ -155,36 +158,37 @@ class LicensePlateSensor(Sensor[LicensePlateSensorProperties, TStorage, str], Ge
         self.reportDetections(False)
 
     async def updateValue(self, property: str, value: Any) -> None:
-        """Read-only sensor: external writes are ignored. State is reported via `reportDetections`."""
-        # No-op — license plate state is reported by the plugin, not set externally.
+        """Read-only sensor: external writes are ignored."""
 
 
 class LicensePlateResult(TypedDict):
     """Return type for LicensePlateDetectorSensor.detectLicensePlates()."""
 
-    detected: bool  # Whether any license plate is detected in this frame
-    detections: list[LicensePlateDetection]  # Detections emitted for this frame
+    detected: bool
+    """Whether any license plate is detected in this frame."""
+    detections: list[LicensePlateDetection]
+    """Detections emitted for this frame."""
 
 
 class LicensePlateDetectorSensor(LicensePlateSensor[TStorage], Generic[TStorage]):
     """License plate detector that receives video frames from the backend pipeline.
 
     Extend this class and implement ``detectLicensePlates`` for plate detection
-    and OCR.
+    and OCR. The backend scales frames to match ``modelSpec.input`` dimensions
+    before each call.
     """
 
     _requires_frames = True
 
     @property
     @abstractmethod
-    def modelSpec(self) -> ModelSpec:
-        """Declares the expected input dimensions and trigger labels. The backend scales frames to match."""
-        ...
+    def modelSpec(self) -> ModelSpec: ...
 
     @abstractmethod
     async def detectLicensePlates(self, frames: list[VideoFrameData]) -> list[LicensePlateResult]:
         """Detect license plates in batch. Each frame is pre-scaled to ``modelSpec['input']``:
-        normally a vehicle region cropped by the upstream object detector, but the whole scene
-        when no decoded frame is available. Must return exactly one LicensePlateResult per
-        input frame, in the same order."""
+        normally a vehicle region cropped by the upstream object detector, but the whole
+        scene when no decoded frame is available. Must return exactly one result per input
+        frame, in the same order.
+        """
         ...

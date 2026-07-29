@@ -6,25 +6,23 @@ import type { AudioCodec, CameraAspectRatio, CameraRole, CameraType, StreamingRo
 import type { CameraFrameWorkerSettings, SnapshotSettings } from './frames.js';
 import type { StreamUrls } from './streaming.js';
 
-/**
- * Camera video input/source with resolved URLs.
- */
+/** Camera video input/source with resolved URLs. */
 export interface CameraInput {
-  /** Unique source ID */
+  /** Unique source ID. */
   readonly _id: string;
-  /** Source display name */
+  /** Source display name. */
   name: string;
-  /** Resolution role */
+  /** Resolution role. */
   role: CameraRole;
-  /** Use this source for snapshots */
+  /** Use this source for snapshots. */
   useForSnapshot: boolean;
-  /** Keep connection always active */
+  /** Keep connection always active. */
   hotMode: boolean;
   /** Keep a keyframe cache for this source, so the view opens faster. Use `hotMode` to keep the stream connected. */
   preload: boolean;
-  /** Strip the audio track from this source (defaults to false) */
+  /** Strip the audio track from this source (defaults to false). */
   muted?: boolean;
-  /** Generated streaming URLs */
+  /** Generated streaming URLs. */
   urls: StreamUrls;
   /** Probed video codec of this source. Filled by the server once the stream has been probed; absent until then. */
   videoCodec?: VideoCodec;
@@ -32,75 +30,64 @@ export interface CameraInput {
   audioCodecs?: AudioCodec[];
   /** Probed talkback audio codec (client to camera). Present only when the probed source has a backchannel. */
   backchannelAudioCodec?: AudioCodec;
-  /** Child source ID (for snapshot fallback) */
+  /** Child source ID (for snapshot fallback). */
   childSourceId?: string;
 }
 
-/**
- * Camera input settings for config.
- */
+/** Camera input settings for config. */
 export interface CameraConfigInputSettings extends Omit<CameraInputSettings, '_id' | 'urls'> {
+  /** Raw source URLs, the server resolves them into streaming URLs. */
   urls?: string[];
 }
 
-/**
- * Base camera configuration (shared fields).
- */
+/** Base camera configuration (shared fields). */
 export interface BaseCameraConfig {
-  /** Camera display name */
+  /** Camera display name. */
   name: string;
-  /** Native device ID from plugin */
+  /** Native device ID from plugin. */
   nativeId?: string;
-  /** Whether camera streams from cloud */
+  /** Whether camera streams from cloud. */
   isCloud?: boolean;
-  /** Disable this camera */
+  /** Disable this camera. */
   disabled?: boolean;
-  /** Camera hardware information */
+  /** Camera hardware information. */
   info?: Partial<CameraInformation>;
 }
 
-/**
- * Camera hardware/firmware information.
- */
+/** Camera hardware/firmware information. */
 export interface CameraInformation {
-  /** Camera model name */
+  /** Camera model name. */
   model?: string;
-  /** Manufacturer name */
+  /** Manufacturer name. */
   manufacturer?: string;
-  /** Hardware version/revision */
+  /** Hardware version/revision. */
   hardware?: string;
-  /** Device serial number */
+  /** Device serial number. */
   serialNumber?: string;
-  /** Current firmware version */
+  /** Current firmware version. */
   firmwareVersion?: string;
-  /** Manufacturer support URL */
+  /** Manufacturer support URL. */
   supportUrl?: string;
 }
 
-/**
- * Full camera configuration with sources.
- */
+/** Full camera configuration with sources. */
 export type CameraConfig = BaseCameraConfig & { sources: CameraConfigInputSettings[] };
 
-/**
- * UI display settings for a camera.
- */
+/** UI display settings for a camera. */
 export interface CameraUiSettings {
-  /** Preferred streaming method */
+  /** Preferred streaming method. */
   streamingMode: VideoStreamingMode;
-  /** Preferred stream quality */
+  /** Preferred stream quality. */
   streamingSource: StreamingRole;
-  /** Display aspect ratio */
+  /** Display aspect ratio. */
   aspectRatio: CameraAspectRatio;
 }
 
-/**
- * Plugin assignment info.
- */
+/** Plugin assignment info. */
 export interface AssignedPlugin {
-  /** Plugin ID */
+  /** Plugin ID. */
   id: string;
-  /** Plugin display name */
+  /** Plugin display name. */
   name: string;
 }
 
@@ -121,64 +108,58 @@ export type PluginAssignments = Partial<Record<SingleProviderAssignmentKey, Assi
     hub?: AssignedPlugin[];
   };
 
-/**
- * Camera source plugin information.
- */
+/** Camera source plugin information. */
 export interface CameraPluginInfo {
-  /** Plugin ID */
+  /** Plugin ID. */
   id: string;
-  /** Plugin display name */
+  /** Plugin display name. */
   name: string;
 }
 
-/**
- * Base camera data structure (stored in database).
- */
+/** Base camera data structure (stored in database). */
 export interface BaseCamera {
-  /** Unique camera ID */
+  /** Unique camera ID. */
   readonly _id: string;
-  /** Native device ID from plugin */
+  /** Native device ID from plugin. */
   nativeId?: string;
-  /** Source plugin information */
+  /** Source plugin information. */
   pluginInfo?: CameraPluginInfo;
-  /** Camera display name */
+  /** Camera display name. */
   name: string;
-  /** Room this camera belongs to */
+  /** Room this camera belongs to. */
   room: string;
-  /** Whether camera is disabled */
+  /** Whether camera is disabled. */
   disabled: boolean;
-  /** Whether camera streams from cloud */
+  /** Whether camera streams from cloud. */
   isCloud: boolean;
-  /** Camera hardware information */
+  /** Camera hardware information. */
   info: CameraInformation;
-  /** Camera type (camera/doorbell) */
+  /** Camera type (camera/doorbell). */
   type: CameraType;
-  /** Snapshot settings */
+  /** Snapshot settings. */
   snapshotSettings: SnapshotSettings;
-  /** Detection zone configurations */
+  /** Detection zone configurations. */
   detectionZones: DetectionZone[];
-  /** Detection line configurations (virtual tripwires) */
+  /** Detection line configurations (virtual tripwires). */
   detectionLines: DetectionLine[];
-  /** Detection settings */
+  /** Detection settings. */
   detectionSettings: CameraDetectionSettings;
-  /** PTZ autotracking settings */
+  /** PTZ autotracking settings. */
   ptzAutotrack: PtzAutotrackSettings;
-  /** Recording settings */
+  /** Recording settings. */
   recordingSettings: CameraRecordingSettings;
-  /** Frame worker settings */
+  /** Frame worker settings. */
   frameWorkerSettings: CameraFrameWorkerSettings;
-  /** UI display settings */
+  /** UI display settings. */
   interfaceSettings: CameraUiSettings;
-  /** Installed plugins */
+  /** Installed plugins. */
   plugins: AssignedPlugin[];
-  /** Sensor-to-plugin assignments */
+  /** Sensor-to-plugin assignments. */
   assignments: PluginAssignments;
 }
 
-/**
- * Camera with resolved video sources.
- */
+/** Camera with resolved video sources. */
 export interface Camera extends BaseCamera {
-  /** Video input sources */
+  /** Video input sources. */
   sources: CameraInput[];
 }

@@ -7,45 +7,42 @@ class LoggerService(Protocol):
     """
     Logger interface used throughout the SDK.
 
-    Each method accepts an arbitrary list of arguments (joined with spaces by
-    the host) and emits a log entry at the corresponding severity:
+    Every method takes an arbitrary list of arguments, joined with spaces by the
+    host, and writes one log entry at the matching severity. ``debug`` and
+    ``trace`` are dropped unless that level is enabled for the plugin.
 
-      - log:       general informational message (default level).
-      - warn:      potential problem that does not stop execution.
-      - error:     a failure or unexpected condition.
-      - success:   confirmation of a completed operation.
-      - debug:     diagnostic detail; only emitted when debug logging is enabled.
-      - trace:     very fine-grained diagnostic detail; only emitted when trace
-                   logging is enabled.
-      - attention: highlighted message that should stand out in the log stream.
+    Example:
+        ```python
+        self.logger.log("connected to", host)
+        ```
     """
 
     def log(self, *args: Any) -> None:
-        """Log an info message."""
+        """Log an informational entry."""
         ...
 
     def error(self, *args: Any) -> None:
-        """Log an error message."""
+        """Log a failure or unexpected condition."""
         ...
 
     def warn(self, *args: Any) -> None:
-        """Log a warning message."""
+        """Log a problem that does not stop execution."""
         ...
 
     def success(self, *args: Any) -> None:
-        """Log a success message (confirmation of a completed operation)."""
+        """Log a confirmation of a completed operation."""
         ...
 
     def debug(self, *args: Any) -> None:
-        """Log a debug message (diagnostic detail; only emitted when debug logging is enabled)."""
+        """Log a diagnostic entry, dropped unless debug logging is enabled."""
         ...
 
     def trace(self, *args: Any) -> None:
-        """Log a trace message (very fine-grained detail; only emitted when trace logging is enabled)."""
+        """Log a fine-grained diagnostic entry, dropped unless trace logging is enabled."""
         ...
 
     def attention(self, *args: Any) -> None:
-        """Log an attention message (highlighted message that should stand out in the log stream)."""
+        """Log a highlighted entry that stands out in the log stream."""
         ...
 
 

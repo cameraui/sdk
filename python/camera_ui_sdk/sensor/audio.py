@@ -44,23 +44,25 @@ BaseAudioLabel = Literal[
     "smoke_alarm",
 ]
 
-#: Audio label — one of the built-in labels or any custom string emitted by an audio detector.
+#: Audio label: one of the built-in labels, or any custom string emitted by an audio detector.
 AudioLabel = BaseAudioLabel | str
 
 
 class AudioProperty(StrEnum):
-    """Property names of an audio detection sensor."""
+    """Property names of an audio sensor."""
 
-    Detected = "detected"  # Whether an audio event is currently detected
-    Detections = "detections"  # List of detected audio events (e.g. glass break, scream)
-    Decibels = "decibels"  # Current audio level in decibels
-    LastTriggered = (
-        "lastTriggered"  # Timestamp in milliseconds of the last detection trigger, set by the backend
-    )
+    Detected = "detected"
+    """Whether an audio event is currently detected."""
+    Detections = "detections"
+    """List of detected audio events (e.g. glass break, scream)."""
+    Decibels = "decibels"
+    """Current audio level in decibels."""
+    LastTriggered = "lastTriggered"
+    """Timestamp in milliseconds of the last detection trigger, set by the backend."""
 
 
 class AudioSensorProperties(TypedDict):
-    """Property shape carried by an AudioSensor."""
+    """Property values of an audio sensor."""
 
     detected: bool
     detections: list[Detection]
@@ -70,8 +72,10 @@ class AudioSensorProperties(TypedDict):
 class AudioPropertyChangeData(TypedDict):
     """Property change payload emitted on AudioSensorLike.onPropertyChanged."""
 
-    property: str  # AudioProperty value
+    property: str
+    """Name of the changed property, an AudioProperty value."""
     value: bool | list[Detection] | float
+    """New value of the property."""
 
 
 TStorage = TypeVar("TStorage", bound=Mapping[str, Any], default=dict[str, Any])
@@ -85,6 +89,9 @@ class AudioSensorLike(SensorLike, Protocol):
     def type(self) -> SensorType:
         return SensorType.Audio
 
+    @property
+    def onPropertyChanged(self) -> Observable[AudioPropertyChangeData]: ...
+
     @overload
     def getValue(self, property: Literal[AudioProperty.Detected]) -> bool | None: ...
     @overload
@@ -94,15 +101,12 @@ class AudioSensorLike(SensorLike, Protocol):
     @overload
     def getValue(self, property: str) -> object | None: ...
 
-    @property
-    def onPropertyChanged(self) -> Observable[AudioPropertyChangeData]: ...
-
 
 class AudioSensor(Sensor[AudioSensorProperties, TStorage, str], Generic[TStorage]):
     """Audio sensor that reports audio events and decibel levels.
 
-    Plugin authors call `reportDetections(list)` to push detected audio events
-    (auto-derives `detected`) and `setDecibels(value)` to update the audio level.
+    Plugin authors call ``reportDetections(list)`` to push detected audio events
+    (auto-derives ``detected``) and ``setDecibels(value)`` to update the audio level.
     """
 
     _requires_frames = False
@@ -127,26 +131,23 @@ class AudioSensor(Sensor[AudioSensorProperties, TStorage, str], Generic[TStorage
 
     @property
     def detected(self) -> bool:
-        """Whether an audio event is currently detected."""
         return bool(self.props.detected)
 
     @property
     def detections(self) -> list[Detection]:
-        """Current detection list."""
         return self.props.detections or []
 
     @property
     def decibels(self) -> float:
-        """Current audio level in decibels."""
         return float(self.props.decibels or 0.0)
 
     def reportDetections(self, detected: bool, detections: list[Detection] | None = None) -> None:
         """Report detected audio events.
 
-        - ``reportDetections(True)`` — audio detected without specifics. The SDK
+        - ``reportDetections(True)``: audio detected without specifics. The SDK
           synthesizes a single full-frame ``'audio'`` detection.
-        - ``reportDetections(True, [...])`` — audio detected with explicit detections.
-        - ``reportDetections(False)`` — clear.
+        - ``reportDetections(True, [...])``: audio detected with explicit detections.
+        - ``reportDetections(False)``: clear.
 
         Args:
             detected: Whether an audio event is currently detected.
@@ -194,29 +195,36 @@ class AudioSensor(Sensor[AudioSensorProperties, TStorage, str], Generic[TStorage
 
     async def updateValue(self, property: str, value: Any) -> None:
         """Read-only sensor: external writes are ignored."""
-        # No-op — audio state is reported by the plugin, not set externally.
 
 
 class AudioFrameData(TypedDict):
     """Audio frame data delivered to audio detector sensors by the backend pipeline."""
 
-    cameraId: NotRequired[str]  # Camera the frame originated from
-    data: bytes  # Raw audio sample buffer
-    sampleRate: int  # Sample rate of the buffer in Hz
-    channels: int  # Channel count of the buffer (typically 1 = mono)
-    format: Literal[
-        "pcm16", "float32"
-    ]  # Sample format: pcm16=16-bit signed integer PCM, float32=32-bit float
-    decibels: NotRequired[float]  # Pre-computed decibel level for this frame, if available
-    timestamp: NotRequired[int]  # Capture timestamp in milliseconds since epoch
+    cameraId: NotRequired[str]
+    """Camera the frame originated from."""
+    data: bytes
+    """Raw audio sample buffer."""
+    sampleRate: int
+    """Sample rate of the buffer in Hz."""
+    channels: int
+    """Channel count of the buffer (typically 1 = mono)."""
+    format: Literal["pcm16", "float32"]
+    """Sample format: pcm16 = 16-bit signed integer PCM, float32 = 32-bit float."""
+    decibels: NotRequired[float]
+    """Pre-computed decibel level for this frame, if available."""
+    timestamp: NotRequired[int]
+    """Capture timestamp in milliseconds since epoch."""
 
 
 class AudioResult(TypedDict):
     """Return type for AudioDetectorSensor.detectAudio()."""
 
-    detected: bool  # Whether an audio event is detected in this frame
-    detections: list[Detection]  # Detections emitted for this frame
-    decibels: NotRequired[float]  # Optional decibel level computed for this frame
+    detected: bool
+    """Whether an audio event is detected in this frame."""
+    detections: list[Detection]
+    """Detections emitted for this frame."""
+    decibels: NotRequired[float]
+    """Optional decibel level computed for this frame."""
 
 
 class AudioDetectorSensor(AudioSensor[TStorage], Generic[TStorage]):
@@ -231,9 +239,7 @@ class AudioDetectorSensor(AudioSensor[TStorage], Generic[TStorage]):
 
     @property
     @abstractmethod
-    def modelSpec(self) -> AudioModelSpec:
-        """Declares the expected audio input format. The backend resamples to match."""
-        ...
+    def modelSpec(self) -> AudioModelSpec: ...
 
     @abstractmethod
     async def detectAudio(self, audio: AudioFrameData) -> AudioResult:

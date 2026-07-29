@@ -14,12 +14,15 @@ class LockState(IntEnum):
     """Lock states (HomeKit-compatible values)."""
 
     Secured = 0
+    """Locked."""
     Unsecured = 1
+    """Unlocked."""
     Unknown = 2
+    """State cannot be determined, e.g. while a motorized lock is moving."""
 
 
 class LockProperty(StrEnum):
-    """Properties for lock controls."""
+    """Property names of a lock control."""
 
     CurrentState = "currentState"
     """The actual current state of the lock."""
@@ -28,17 +31,19 @@ class LockProperty(StrEnum):
 
 
 class LockControlProperties(TypedDict):
-    """Property value map for lock controls."""
+    """Property values of a lock control."""
 
     currentState: int
     targetState: int
 
 
 class LockPropertyChangeData(TypedDict):
-    """Emitted on LockControlLike.onPropertyChanged."""
+    """Property change payload emitted on LockControlLike.onPropertyChanged."""
 
-    property: str  # LockProperty value
+    property: str
+    """Name of the changed property, a LockProperty value."""
     value: LockState
+    """New value of the property."""
 
 
 TStorage = TypeVar("TStorage", bound=Mapping[str, Any], default=dict[str, Any])
@@ -52,6 +57,9 @@ class LockControlLike(SensorLike, Protocol):
     def type(self) -> SensorType:
         return SensorType.Lock
 
+    @property
+    def onPropertyChanged(self) -> Observable[LockPropertyChangeData]: ...
+
     @overload
     def getValue(self, property: Literal[LockProperty.CurrentState]) -> LockState | None: ...
     @overload
@@ -59,15 +67,12 @@ class LockControlLike(SensorLike, Protocol):
     @overload
     def getValue(self, property: str) -> object | None: ...
 
-    @property
-    def onPropertyChanged(self) -> Observable[LockPropertyChangeData]: ...
-
 
 class LockControl(Sensor[LockControlProperties, TStorage, str], Generic[TStorage]):
     """Lock control.
 
     Override `setTargetState()` to drive hardware and call
-    `await super().setTargetState(value)` once the hardware confirms — the base
+    `await super().setTargetState(value)` once the hardware confirms. The base
     implementation updates both `targetState` and `currentState` to the new value.
 
     For asymmetric flows (long-running unlock with intermediate state) override
@@ -105,7 +110,7 @@ class LockControl(Sensor[LockControlProperties, TStorage, str], Generic[TStorage
 
     async def setTargetState(self, value: LockState) -> None:
         """Set the target state. Override to drive hardware and call
-        `await super().setTargetState(value)` after success — the base implementation
+        `await super().setTargetState(value)` after success. The base implementation
         syncs both `targetState` and `currentState` to the new value.
 
         Args:
@@ -126,11 +131,11 @@ class LockControl(Sensor[LockControlProperties, TStorage, str], Generic[TStorage
         )
 
     def setCurrentState(self, value: LockState) -> None:
-        """Publish the actual lock state. Use this to drive transitions where
-        the physical state diverges from the user-requested target — e.g.
-        motorized smart locks that take time to rotate (publish ``Unknown``
-        while moving), or hardware reporting an out-of-band state change.
-        Read-only from cross-process consumers (``updateValue`` ignores it).
+        """Publish the actual lock state. Use it when the physical state diverges
+        from the requested target: motorized locks that take time to rotate
+        (publish ``Unknown`` while moving), or hardware reporting an out-of-band
+        state change. Read-only from cross-process consumers (``updateValue``
+        ignores it).
 
         Args:
             value: Current physical lock state from the ``LockState`` enum.
@@ -145,7 +150,9 @@ class LockControl(Sensor[LockControlProperties, TStorage, str], Generic[TStorage
         self._write_state({LockProperty.CurrentState.value: int(value)})
 
     async def updateValue(self, property: str, value: Any) -> None:
-        """Routes generic property writes to semantic methods."""
+        """Routes generic property writes to the semantic setters.
+
+        Only targetState is externally writable, currentState is observed-only.
+        """
         if property == LockProperty.TargetState.value:
             await self.setTargetState(LockState(value))
-        # Unknown / non-writable property (incl. currentState) — ignored.

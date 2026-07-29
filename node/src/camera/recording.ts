@@ -6,21 +6,17 @@
  */
 export type RecordingMode = 'continuous' | 'event' | 'adhoc';
 
-/**
- * Stream tier to record.
- */
+/** Stream tier to record. */
 export type RecordingSource = 'high' | 'mid' | 'low';
 
-/**
- * Recording settings for a camera.
- */
+/** Recording settings for a camera. */
 export interface CameraRecordingSettings {
-  /** Whether recording is enabled */
+  /** Whether recording is enabled. */
   enabled: boolean;
-  /** Recording mode */
+  /** Recording mode. */
   mode: RecordingMode;
-  /** Seconds of video kept before an event (event mode, 0 - 60) */
+  /** Seconds of video kept before an event (event mode, 0 - 60). */
   preBuffer: number;
-  /** Stream tiers to record */
+  /** Stream tiers to record. */
   sources: RecordingSource[];
 }

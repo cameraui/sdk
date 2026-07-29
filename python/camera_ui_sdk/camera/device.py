@@ -245,18 +245,6 @@ class CameraDevice(Protocol):
         """Snapshot source (if available)."""
         ...
 
-    def getSourceById(self, id: str) -> CameraDeviceSource | None:
-        """
-        Get a source by its ID.
-
-        Args:
-            id: The source ID.
-
-        Returns:
-            The matching source, or None if not found.
-        """
-        ...
-
     @property
     def connected(self) -> bool:
         """Whether camera is connected."""
@@ -278,8 +266,43 @@ class CameraDevice(Protocol):
         ...
 
     @property
+    def onDetectionEvent(self) -> Observable[DetectionEventPayload]:
+        """
+        Observable for detection events.
+
+        Emits 'start', 'update', 'end', 'segment-start', 'segment-update' and 'segment-end'.
+        Segments ride on the segment-* messages only, thumbnails on 'segment-start'
+        and 'segment-end'.
+        """
+        ...
+
+    @property
     def logger(self) -> LoggerService:
         """Logger service for this camera."""
+        ...
+
+    def getSourceById(self, id: str) -> CameraDeviceSource | None:
+        """
+        Get a source by its ID.
+
+        Args:
+            id: The source ID.
+
+        Returns:
+            The matching source, or None if not found.
+        """
+        ...
+
+    def createStorage(self, schemas: list[JsonSchema]) -> DeviceStorage:
+        """
+        Create storage for plugin-specific camera configuration.
+
+        Args:
+            schemas: Schema definitions for the storage.
+
+        Returns:
+            Typed device storage instance.
+        """
         ...
 
     async def connect(self) -> None:
@@ -333,16 +356,6 @@ class CameraDevice(Protocol):
         """
         ...
 
-    @property
-    def onDetectionEvent(self) -> Observable[DetectionEventPayload]:
-        """
-        Observable for detection events.
-
-        Emits 'start', 'update', 'end', 'segment-start', 'segment-update' and 'segment-end'.
-        Segments only ride on the segment-* events, start/update/end carry an empty segment list.
-        """
-        ...
-
     async def implement(self, impl: CameraImplementation) -> None:
         """
         Register a camera implementation for streaming and/or snapshot.
@@ -351,52 +364,45 @@ class CameraDevice(Protocol):
         or both.
 
         Args:
-            impl: Object or class implementing camera interfaces
-        """
-        ...
-
-    def createStorage(self, schemas: list[JsonSchema]) -> DeviceStorage:
-        """
-        Create storage for plugin-specific camera configuration.
-
-        Args:
-            schemas: Schema definitions for the storage
-
-        Returns:
-            Typed device storage instance
+            impl: Object or class implementing camera interfaces.
         """
         ...
 
 
 @runtime_checkable
 class StreamingInterface(Protocol):
+    """Optional implementation that provides stream URLs."""
+
     async def streamUrl(self, source_id: str) -> str:
         """
         Get the streaming URL for a source.
 
         Args:
-            source_id: The ID of the source
+            source_id: The ID of the source.
 
         Returns:
-            The streaming URL (e.g., rtsp://, rtmp://, or custom protocol)
+            The streaming URL (e.g. rtsp://, rtmp://, or custom protocol).
         """
         ...
 
 
 @runtime_checkable
 class SnapshotInterface(Protocol):
+    """Optional implementation that provides snapshots."""
+
     async def snapshot(self, source_id: str, force_new: bool = False) -> bytes | None:
         """
         Get a snapshot image from the camera.
 
         Args:
-            source_id: The source ID to get the snapshot from
-            force_new: If True, bypass cache and get a fresh snapshot
+            source_id: The source ID to get the snapshot from.
+            force_new: If True, bypass cache and get a fresh snapshot.
 
         Returns:
-            Image data as bytes, or None if unavailable
+            Image data as bytes, or None if unavailable.
         """
         ...
 
 
 CameraImplementation: TypeAlias = StreamingInterface | SnapshotInterface
+"""Value accepted by CameraDevice.implement: streaming, snapshot, or both."""

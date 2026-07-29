@@ -11,23 +11,25 @@ from .base import Sensor, SensorCategory, SensorLike, SensorType
 
 
 class TemperatureProperty(StrEnum):
-    """Properties for temperature info sensors."""
+    """Property names of a temperature sensor."""
 
     Current = "current"
     """Current temperature in degrees Celsius."""
 
 
 class TemperatureInfoProperties(TypedDict):
-    """Property value map for temperature info sensors."""
+    """Property values of a temperature sensor."""
 
     current: float
 
 
 class TemperaturePropertyChangeData(TypedDict):
-    """Emitted on TemperatureInfoLike.onPropertyChanged."""
+    """Property change payload emitted on TemperatureInfoLike.onPropertyChanged."""
 
-    property: str  # TemperatureProperty value
+    property: str
+    """Name of the changed property, a TemperatureProperty value."""
     value: float
+    """New value of the property."""
 
 
 TStorage = TypeVar("TStorage", bound=Mapping[str, Any], default=dict[str, Any])
@@ -35,19 +37,19 @@ TStorage = TypeVar("TStorage", bound=Mapping[str, Any], default=dict[str, Any])
 
 @runtime_checkable
 class TemperatureInfoLike(SensorLike, Protocol):
-    """Read-only proxy interface for a temperature info sensor."""
+    """Read-only proxy interface for a temperature sensor."""
 
     @property
     def type(self) -> SensorType:
         return SensorType.Temperature
 
+    @property
+    def onPropertyChanged(self) -> Observable[TemperaturePropertyChangeData]: ...
+
     @overload
     def getValue(self, property: Literal[TemperatureProperty.Current]) -> float | None: ...
     @overload
     def getValue(self, property: str) -> object | None: ...
-
-    @property
-    def onPropertyChanged(self) -> Observable[TemperaturePropertyChangeData]: ...
 
 
 class TemperatureInfo(Sensor[TemperatureInfoProperties, TStorage, str], Generic[TStorage]):
@@ -73,9 +75,17 @@ class TemperatureInfo(Sensor[TemperatureInfoProperties, TStorage, str], Generic[
         return float(value) if value is not None else 0.0
 
     def setCurrent(self, value: float) -> None:
-        """Report a new temperature reading. Clamped to [-270, 100] degrees Celsius."""
+        """Report a new temperature reading. Clamped to [-270, 100] degrees Celsius.
+
+        Args:
+            value: Temperature reading in degrees Celsius.
+
+        Example:
+            ```python
+            temperature.setCurrent(21.5)
+            ```
+        """
         self._write_state({TemperatureProperty.Current.value: max(-270, min(100, value))})
 
     async def updateValue(self, property: str, value: Any) -> None:
         """Read-only sensor: external writes are ignored."""
-        # No-op — temperature is reported by the plugin, not set externally.

@@ -26,26 +26,28 @@ class SecuritySystemState(IntEnum):
 
 
 class SecuritySystemProperty(StrEnum):
-    """Properties for security system controls."""
+    """Property names of a security system control."""
 
     CurrentState = "currentState"
     """The actual current state of the security system."""
     TargetState = "targetState"
-    """The desired target state (set by user, transitions to currentState)."""
+    """The desired target state (set by user, transitions to currentState), never AlarmTriggered."""
 
 
 class SecuritySystemProperties(TypedDict):
-    """Property value map for security system controls."""
+    """Property values of a security system control."""
 
     currentState: int
     targetState: int
 
 
 class SecuritySystemPropertyChangeData(TypedDict):
-    """Emitted on SecuritySystemLike.onPropertyChanged."""
+    """Property change payload emitted on SecuritySystemLike.onPropertyChanged."""
 
-    property: str  # SecuritySystemProperty value
+    property: str
+    """Name of the changed property, a SecuritySystemProperty value."""
     value: SecuritySystemState
+    """New value of the property."""
 
 
 TStorage = TypeVar("TStorage", bound=Mapping[str, Any], default=dict[str, Any])
@@ -59,6 +61,9 @@ class SecuritySystemLike(SensorLike, Protocol):
     def type(self) -> SensorType:
         return SensorType.SecuritySystem
 
+    @property
+    def onPropertyChanged(self) -> Observable[SecuritySystemPropertyChangeData]: ...
+
     @overload
     def getValue(
         self, property: Literal[SecuritySystemProperty.CurrentState]
@@ -70,15 +75,12 @@ class SecuritySystemLike(SensorLike, Protocol):
     @overload
     def getValue(self, property: str) -> object | None: ...
 
-    @property
-    def onPropertyChanged(self) -> Observable[SecuritySystemPropertyChangeData]: ...
-
 
 class SecuritySystem(Sensor[SecuritySystemProperties, TStorage, str], Generic[TStorage]):
     """Security system control.
 
     Override `setTargetState()` to drive hardware and call
-    `await super().setTargetState(value)` once the hardware confirms — the base
+    `await super().setTargetState(value)` once the hardware confirms. The base
     implementation updates both `targetState` and `currentState`.
     """
 
@@ -113,7 +115,7 @@ class SecuritySystem(Sensor[SecuritySystemProperties, TStorage, str], Generic[TS
 
     async def setTargetState(self, value: SecuritySystemState) -> None:
         """Set the target state. Override to drive hardware and call
-        `await super().setTargetState(value)` after success — the base implementation
+        `await super().setTargetState(value)` after success. The base implementation
         syncs both `targetState` and `currentState` to the new value.
 
         Args:
@@ -134,11 +136,10 @@ class SecuritySystem(Sensor[SecuritySystemProperties, TStorage, str], Generic[TS
         )
 
     def setCurrentState(self, value: SecuritySystemState) -> None:
-        """Publish the actual security system state. Use this to drive
-        transitions that diverge from the user-requested target — most notably
-        the ``AlarmTriggered`` state when an intruder is detected, or
-        arming-delay intermediate states. Read-only from cross-process
-        consumers (``updateValue`` ignores it).
+        """Publish the actual security system state. Use this for transitions
+        that diverge from the user-requested target: ``AlarmTriggered`` when an
+        intruder is detected, or arming-delay intermediate states. Read-only
+        from cross-process consumers (``updateValue`` ignores it).
 
         Args:
             value: Current security system state from ``SecuritySystemState``.
@@ -153,7 +154,6 @@ class SecuritySystem(Sensor[SecuritySystemProperties, TStorage, str], Generic[TS
         self._write_state({SecuritySystemProperty.CurrentState.value: int(value)})
 
     async def updateValue(self, property: str, value: Any) -> None:
-        """Routes generic property writes to semantic methods."""
+        """Routes generic property writes to the semantic setters."""
         if property == SecuritySystemProperty.TargetState.value:
             await self.setTargetState(SecuritySystemState(value))
-        # Unknown / non-writable property (incl. currentState) — ignored.

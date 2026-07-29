@@ -14,16 +14,21 @@ from .spec import ModelSpec
 class ClipEmbedding(TypedDict):
     """A CLIP embedding result for a detected region."""
 
-    label: str  # Detection label this embedding was computed for (e.g. "person", "vehicle")
-    box: BoundingBox  # Bounding box of the detected region in normalized coordinates
-    embedding: list[float]  # CLIP embedding vector
+    label: str
+    """Detection label this embedding was computed for (e.g. "person", "vehicle")."""
+    box: BoundingBox
+    """Bounding box of the detected region in normalized coordinates."""
+    embedding: list[float]
+    """CLIP embedding vector."""
 
 
 class ClipResult(TypedDict):
     """Return type for ClipDetectorSensor.detectEmbeddings()."""
 
-    embeddings: list[ClipEmbedding]  # Embeddings emitted for this frame
-    embeddingModel: str  # Identifier of the embedding model used to produce the vectors
+    embeddings: list[ClipEmbedding]
+    """Embeddings emitted for this frame."""
+    embeddingModel: str
+    """Identifier of the embedding model used to produce the vectors."""
 
 
 TStorage = TypeVar("TStorage", bound=Mapping[str, Any], default=dict[str, Any])
@@ -51,9 +56,7 @@ class ClipDetectorSensor(Sensor[dict[str, Any], TStorage, str], Generic[TStorage
 
     @property
     @abstractmethod
-    def modelSpec(self) -> ModelSpec:
-        """Declares the expected input dimensions and trigger labels."""
-        ...
+    def modelSpec(self) -> ModelSpec: ...
 
     @abstractmethod
     async def detectEmbeddings(self, frames: list[VideoFrameData]) -> list[ClipResult]:
@@ -64,5 +67,4 @@ class ClipDetectorSensor(Sensor[dict[str, Any], TStorage, str], Generic[TStorage
         ...
 
     async def updateValue(self, property: str, value: Any) -> None:
-        """Frame-only sensor: no externally writable properties."""
-        # No-op — clip detector has no state.
+        """Read-only sensor: external writes are ignored."""

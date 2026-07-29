@@ -11,23 +11,25 @@ from .base import Sensor, SensorCategory, SensorLike, SensorType
 
 
 class SmokeProperty(StrEnum):
-    """Properties for smoke sensors."""
+    """Property names of a smoke sensor."""
 
     Detected = "detected"
     """Whether smoke is detected."""
 
 
 class SmokeSensorProperties(TypedDict):
-    """Property value map for smoke sensors."""
+    """Property values of a smoke sensor."""
 
     detected: bool
 
 
 class SmokePropertyChangeData(TypedDict):
-    """Emitted on SmokeSensorLike.onPropertyChanged."""
+    """Property change payload emitted on SmokeSensorLike.onPropertyChanged."""
 
-    property: str  # SmokeProperty value
+    property: str
+    """Name of the changed property, a SmokeProperty value."""
     value: bool
+    """New value of the property."""
 
 
 TStorage = TypeVar("TStorage", bound=Mapping[str, Any], default=dict[str, Any])
@@ -41,13 +43,13 @@ class SmokeSensorLike(SensorLike, Protocol):
     def type(self) -> SensorType:
         return SensorType.Smoke
 
+    @property
+    def onPropertyChanged(self) -> Observable[SmokePropertyChangeData]: ...
+
     @overload
     def getValue(self, property: Literal[SmokeProperty.Detected]) -> bool | None: ...
     @overload
     def getValue(self, property: str) -> object | None: ...
-
-    @property
-    def onPropertyChanged(self) -> Observable[SmokePropertyChangeData]: ...
 
 
 class SmokeSensor(Sensor[SmokeSensorProperties, TStorage, str], Generic[TStorage]):
@@ -86,4 +88,3 @@ class SmokeSensor(Sensor[SmokeSensorProperties, TStorage, str], Generic[TStorage
 
     async def updateValue(self, property: str, value: Any) -> None:
         """Read-only sensor: external writes are ignored."""
-        # No-op — smoke state is reported by the plugin, not set externally.

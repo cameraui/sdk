@@ -11,7 +11,7 @@ from .base import Sensor, SensorCategory, SensorLike, SensorType
 
 
 class PTZCapability(StrEnum):
-    """Optional capabilities for PTZ controls."""
+    """Optional capabilities of a PTZ control."""
 
     Pan = "pan"
     """Camera supports panning (horizontal movement)."""
@@ -32,16 +32,16 @@ class PTZCapability(StrEnum):
 
 
 class PTZProperty(StrEnum):
-    """Properties for PTZ controls."""
+    """Property names of a PTZ control."""
 
     Position = "position"
     """Current pan/tilt/zoom position."""
     Moving = "moving"
     """Whether the camera is currently moving."""
     Presets = "presets"
-    """List of available preset names."""
+    """List of available preset names, empty until `setPresets()` runs."""
     Velocity = "velocity"
-    """Current movement velocity (continuous move)."""
+    """Current movement velocity (continuous move), None until one was issued."""
     TargetPreset = "targetPreset"
     """Target preset to move to."""
     RelativeMove = "relativeMove"
@@ -93,7 +93,7 @@ class PTZRelativeMove(TypedDict):
 
 
 class PTZControlProperties(TypedDict):
-    """Property value map for PTZ controls."""
+    """Property values of a PTZ control."""
 
     position: PTZPosition
     moving: bool
@@ -104,10 +104,12 @@ class PTZControlProperties(TypedDict):
 
 
 class PTZPropertyChangeData(TypedDict):
-    """Emitted on PTZControlLike.onPropertyChanged."""
+    """Property change payload emitted on PTZControlLike.onPropertyChanged."""
 
-    property: str  # PTZProperty value
+    property: str
+    """Name of the changed property, a PTZProperty value."""
     value: PTZPosition | bool | list[str] | PTZDirection | PTZRelativeMove | str | None
+    """New value of the property."""
 
 
 TStorage = TypeVar("TStorage", bound=Mapping[str, Any], default=dict[str, Any])
@@ -120,6 +122,12 @@ class PTZControlLike(SensorLike, Protocol):
     @property
     def type(self) -> SensorType:
         return SensorType.PTZ
+
+    @property
+    def onPropertyChanged(self) -> Observable[PTZPropertyChangeData]: ...
+
+    @property
+    def onCapabilitiesChanged(self) -> Observable[list[PTZCapability]]: ...
 
     @overload
     def getValue(self, property: Literal[PTZProperty.Position]) -> PTZPosition | None: ...
@@ -136,12 +144,6 @@ class PTZControlLike(SensorLike, Protocol):
     @overload
     def getValue(self, property: str) -> object | None: ...
 
-    @property
-    def onPropertyChanged(self) -> Observable[PTZPropertyChangeData]: ...
-
-    @property
-    def onCapabilitiesChanged(self) -> Observable[list[PTZCapability]]: ...
-
 
 class PTZControl(Sensor[PTZControlProperties, TStorage, PTZCapability], Generic[TStorage]):
     """Pan-tilt-zoom camera control.
@@ -149,7 +151,7 @@ class PTZControl(Sensor[PTZControlProperties, TStorage, PTZCapability], Generic[
     Override `setPosition()` / `setVelocity()` / `setTargetPreset()` to drive
     hardware, then call the corresponding `super().X()` method after success to
     sync the SDK state. For hardware-pushed state updates (e.g. PTZ position
-    change events), call the super methods from your event handler — that
+    change events), call the super methods from your event handler. That
     bypasses any plugin override and only syncs state.
 
     Set `capabilities` to advertise supported axes and features. Use
@@ -297,12 +299,7 @@ class PTZControl(Sensor[PTZControlProperties, TStorage, PTZCapability], Generic[
         await self.setPosition({"pan": 0, "tilt": 0, "zoom": 0})
 
     async def updateValue(self, property: str, value: Any) -> None:
-        """Routes generic property writes to semantic methods.
-
-        `moving` and `presets` are observed/discovered state and not externally
-        writable; only `Position`, `Velocity`, `TargetPreset`, `RelativeMove`
-        and `Home` may be set.
-        """
+        """Routes generic property writes to the semantic setters."""
         if property == PTZProperty.Position.value:
             await self.setPosition(value)
             return
@@ -318,4 +315,3 @@ class PTZControl(Sensor[PTZControlProperties, TStorage, PTZCapability], Generic[
         if property == PTZProperty.Home.value:
             await self.goHome()
             return
-        # Unknown / non-writable property (incl. moving, presets) — ignored.

@@ -4,26 +4,26 @@ import { defineSensor, SensorDomain } from './meta.js';
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/** Optional capabilities for light controls */
+/** Optional capabilities of a light control. */
 export enum LightCapability {
-  /** Light supports brightness adjustment (0-100) */
+  /** Light supports brightness adjustment (0-100). */
   Brightness = 'brightness',
 }
 
 /**
- * Properties for light controls
+ * Property names of a light control.
  *
  * @internal
  */
 export enum LightProperty {
-  /** Whether the light is on */
+  /** Whether the light is on. */
   On = 'on',
-  /** Brightness level (0-100) */
+  /** Brightness level (0-100). */
   Brightness = 'brightness',
 }
 
 /**
- * Property value map for light controls.
+ * Property values of a light control.
  *
  * @internal
  */
@@ -32,7 +32,7 @@ export interface LightControlProperties {
   [LightProperty.Brightness]: number;
 }
 
-/** Read-only proxy interface for a light control */
+/** Read-only proxy interface for a light control. */
 export interface LightControlLike extends SensorLike {
   readonly type: SensorType.Light;
   readonly onPropertyChanged: Observable<PropertyChangeOf<LightControlProperties>>;
@@ -47,12 +47,12 @@ export interface LightControlLike extends SensorLike {
  * Light control sensor. Override `setOn()`/`setOff()` to drive your hardware,
  * then `await super.setOn()` / `await super.setOff()` to sync the SDK state.
  *
- * Plugins that have no hardware-action use case can leave the methods unoverridden —
+ * Plugins with no hardware-action use case can leave the methods unoverridden,
  * the base implementation just updates the state.
  *
  * For hardware-pushed updates (someone manually flipped the switch), call
- * `super.setOn()` / `super.setOff()` from your event handler — that bypasses
- * any plugin override and only syncs state.
+ * `super.setOn()` / `super.setOff()` from your event handler. That bypasses any
+ * plugin override and only syncs state.
  */
 export class LightControl<TStorage extends object = Record<string, any>> extends Sensor<LightControlProperties, TStorage, LightCapability> {
   readonly type = SensorType.Light;
@@ -117,13 +117,7 @@ export class LightControl<TStorage extends object = Record<string, any>> extends
   }
 
   /**
-   * Cross-process consumer entry point. Dispatches writable properties
-   * to semantic methods so plugin overrides (hardware actions) are honored.
-   * Unknown properties are ignored — only `On` and `Brightness` are externally writable.
-   *
-   * @param property - Property name to write.
-   *
-   * @param value - New value for the property.
+   * Routes generic property writes to the semantic setters. Only `on` and `brightness` are externally writable.
    *
    * @internal
    */
@@ -137,7 +131,6 @@ export class LightControl<TStorage extends object = Record<string, any>> extends
         await this.setBrightness(value as number);
         return;
     }
-    // Unknown / non-writable property — ignored.
   }
 }
 

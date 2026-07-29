@@ -5,17 +5,17 @@ import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /**
- * Properties for smoke sensors
+ * Property names of a smoke sensor.
  *
  * @internal
  */
 export enum SmokeProperty {
-  /** Whether smoke is detected */
+  /** Whether smoke is detected. */
   Detected = 'detected',
 }
 
 /**
- * Property value map for smoke sensors.
+ * Property values of a smoke sensor.
  *
  * @internal
  */
@@ -23,7 +23,7 @@ export interface SmokeSensorProperties {
   [SmokeProperty.Detected]: boolean;
 }
 
-/** Read-only proxy interface for a smoke sensor */
+/** Read-only proxy interface for a smoke sensor. */
 export interface SmokeSensorLike extends SensorLike {
   readonly type: SensorType.Smoke;
   readonly onPropertyChanged: Observable<PropertyChangeOf<SmokeSensorProperties>>;
@@ -32,7 +32,7 @@ export interface SmokeSensorLike extends SensorLike {
   getValue(property: string): unknown;
 }
 
-/** Smoke detector sensor */
+/** Smoke detector sensor. */
 export class SmokeSensor<TStorage extends object = Record<string, any>> extends Sensor<SmokeSensorProperties, TStorage> {
   readonly type = SensorType.Smoke;
   readonly category = SensorCategory.Sensor;
@@ -62,21 +62,11 @@ export class SmokeSensor<TStorage extends object = Record<string, any>> extends 
   }
 
   /**
-   * Read-only sensor: external writes are ignored. State is reported via `setDetected`.
-   *
-   * Called by the cross-process plugin host when a generic property write is received.
-   * Smoke sensors have no externally writable properties, so the parameters are
-   * unused (underscore-prefixed) and the call is a no-op.
-   *
-   * @param _property - Unused — smoke sensors expose no writable properties.
-   *
-   * @param _value - Unused — smoke sensors expose no writable properties.
+   * Read-only sensor: external writes are ignored.
    *
    * @internal
    */
-  updateValue(_property: string, _value: unknown): void {
-    // No-op — smoke state is reported by the plugin, not set externally.
-  }
+  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Registry metadata for {@link SmokeSensor}. */

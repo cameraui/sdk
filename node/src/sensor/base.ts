@@ -26,7 +26,7 @@ import type { SmokeProperty } from './smoke.js';
 import type { SwitchProperty } from './switch.js';
 import type { TemperatureProperty } from './temperature.js';
 
-/** Union of all sensor-specific property enums */
+/** Union of all sensor-specific property enums. */
 export type SensorPropertyType =
   | AudioProperty
   | BatteryProperty
@@ -49,7 +49,7 @@ export type SensorPropertyType =
   | SwitchProperty
   | TemperatureProperty;
 
-/** Union of all sensor-specific capability enums */
+/** Union of all sensor-specific capability enums. */
 export type SensorCapability = PTZCapability | LightCapability | SirenCapability | BatteryCapability;
 
 /**
@@ -61,60 +61,60 @@ export type SensorCapability = PTZCapability | LightCapability | SirenCapability
  * manager or attached to a camera via `camera.addSensor()`.
  */
 export enum SensorType {
-  // Detection Sensors — analyze frames and report detections
-  /** Video-based motion detection */
+  // detection sensors: analyze frames and report detections
+  /** Video-based motion detection. */
   Motion = 'motion',
-  /** Object detection (person, vehicle, animal, etc.) */
+  /** Object detection (person, vehicle, animal, etc.). */
   Object = 'object',
-  /** Audio event detection (glass break, scream, etc.) */
+  /** Audio event detection (glass break, scream, etc.). */
   Audio = 'audio',
-  /** Face detection and recognition */
+  /** Face detection and recognition. */
   Face = 'face',
-  /** License plate detection and OCR */
+  /** License plate detection and OCR. */
   LicensePlate = 'licensePlate',
-  /** General-purpose image classifier */
+  /** General-purpose image classifier. */
   Classifier = 'classifier',
-  /** CLIP embedding generation for semantic search */
+  /** CLIP embedding generation for semantic search. */
   Clip = 'clip',
-  /** Object assist that locates objects in a frame so secondaries get real crops from camera-side detections */
+  /** Locates objects in a frame so secondary detectors get real crops from camera-side detections. */
   ObjectAssist = 'objectAssist',
 
-  // Sensors — read-only state/environment sensors
-  /** Contact/open-close sensor (door, window) */
+  // sensors: read-only state and environment
+  /** Contact/open-close sensor (door, window). */
   Contact = 'contact',
-  /** Temperature sensor (°C) */
+  /** Temperature sensor (°C). */
   Temperature = 'temperature',
-  /** Humidity sensor (0-100%) */
+  /** Humidity sensor (0-100%). */
   Humidity = 'humidity',
-  /** Occupancy/presence sensor */
+  /** Occupancy/presence sensor. */
   Occupancy = 'occupancy',
-  /** Smoke detector */
+  /** Smoke detector. */
   Smoke = 'smoke',
-  /** Water leak detector */
+  /** Water leak detector. */
   Leak = 'leak',
 
-  // Controls — writable sensors the user can toggle from UI
-  /** Light on/off and brightness control */
+  // controls: writable sensors the user can toggle from the UI
+  /** Light on/off and brightness control. */
   Light = 'light',
-  /** Siren on/off and volume control */
+  /** Siren on/off and volume control. */
   Siren = 'siren',
-  /** Generic on/off switch */
+  /** Generic on/off switch. */
   Switch = 'switch',
-  /** Lock/unlock control */
+  /** Lock/unlock control. */
   Lock = 'lock',
-  /** Pan-tilt-zoom camera control */
+  /** Pan-tilt-zoom camera control. */
   PTZ = 'ptz',
-  /** Security system arm/disarm control */
+  /** Security system arm/disarm control. */
   SecuritySystem = 'securitySystem',
-  /** Garage door opener */
+  /** Garage door opener. */
   Garage = 'garage',
 
-  // Triggers
-  /** Doorbell ring trigger */
+  // triggers
+  /** Doorbell ring trigger. */
   Doorbell = 'doorbell',
 
-  // Info
-  /** Battery level and charging state */
+  // info
+  /** Battery level and charging state. */
   Battery = 'battery',
 }
 
@@ -123,28 +123,28 @@ export enum SensorType {
  * Determines how the backend treats the sensor (read-only vs. controllable).
  */
 export enum SensorCategory {
-  /** Read-only detection sensor (motion, object, audio, etc.) */
+  /** Read-only detection sensor (motion, object, audio, etc.). */
   Sensor = 'sensor',
-  /** Controllable sensor with set methods (light, siren, PTZ, etc.) */
+  /** Controllable sensor with set methods (light, siren, PTZ, etc.). */
   Control = 'control',
-  /** Event trigger (doorbell ring) */
+  /** Event trigger (doorbell ring). */
   Trigger = 'trigger',
-  /** Informational read-only state (battery level) */
+  /** Informational read-only state (battery level). */
   Info = 'info',
 }
 
-/** Creates a discriminated union of property change events from a properties interface */
+/** Creates a discriminated union of property change events from a properties interface. The timestamp is the origin time in ms. */
 export type PropertyChangeOf<TProps> = {
   [K in keyof TProps & string]: { property: K; value: TProps[K]; timestamp: number };
 }[keyof TProps & string];
 
 /**
- * Read-only proxy interface for a sensor. This is what other plugins
- * and the backend see — use this type when consuming sensors, not creating them.
+ * Read-only view of a sensor, as other plugins and the backend see it. Use this
+ * type when consuming sensors, not when creating them.
  *
  * All state-modifying methods (`setOn`, `reportDetections`, etc.) live on the
  * concrete sensor classes, not on `SensorLike`. Code that holds a `SensorLike`
- * reference can only READ state and observe changes.
+ * reference can only read state and observe changes.
  */
 export interface SensorLike {
   readonly id: string;
@@ -159,22 +159,18 @@ export interface SensorLike {
   readonly onCapabilitiesChanged: Observable<string[]>;
   readonly onConnectedChanged: Observable<boolean>;
 
-  /** Get the current value of a sensor property */
+  /** Get the current value of a sensor property. */
   getValue(property: string): unknown;
-  /** Get a read-only snapshot of all property values */
+  /** Get a read-only snapshot of all property values. */
   getValues(): Readonly<Record<string, unknown>>;
   /**
-   * Write a property generically. Cross-process bridges (e.g. HomeKit) bind
-   * generic property names to UI characteristics and call this on a sensor
-   * proxy — the proxy forwards via RPC to the owning sensor, where control
-   * sensor classes (`Light`, `Siren`, etc.) override `updateValue` to dispatch
-   * to the appropriate semantic method (`setOn`, `setActive`, ...). This means
-   * plugin-side hardware-action overrides ARE honored end-to-end.
-   *
-   * Plugin authors **must not** call this — they should call the semantic
-   * methods directly on the concrete sensor class.
+   * Generic property write used by cross-process bridges (HomeKit, MQTT). The
+   * owning sensor dispatches it to the matching semantic method, so plugin-side
+   * hardware overrides still run. Plugin authors call the semantic methods
+   * instead.
    */
   updateValue(property: string, value: unknown): void | Promise<void>;
+  /** Whether the sensor advertises the given capability. */
   hasCapability(capability: string): boolean;
 }
 
@@ -183,12 +179,16 @@ export interface SensorLike {
  * subclasses like `MotionSensor`, `LightControl`, etc.) to implement sensor logic.
  *
  * Sensors are standalone entities: the plugin supplies the durable identity
- * (`nativeId`), everything else belongs to the user — camera assignments,
+ * (`nativeId`), everything else belongs to the user: camera assignments,
  * display name and whether the sensor is exported to HomeKit/HA/MQTT. A plugin
  * never decides where its sensor is used and never handles the export itself.
  *
- * Properties are managed through a reactive proxy — setting a property via `this.props`
- * automatically notifies the backend and local listeners if the value changed.
+ * State changes go through the semantic methods on the concrete class. Writing a
+ * changed value notifies the backend and local listeners.
+ *
+ * The `id` is provisional until registration, when the host swaps in the
+ * persistent entity id. Reading `storage` before registration throws. Override
+ * `storageSchema` to return a JSON schema and get a per-sensor settings UI.
  *
  * @template TProperties - Sensor-specific property interface (e.g., MotionSensorProperties)
  * @template TStorage - Persistent storage schema for per-sensor config
@@ -199,6 +199,9 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   abstract readonly category: SensorCategory;
 
   readonly name: string;
+
+  /** @internal */
+  _requiresFrames?: boolean;
 
   private _id: string;
   private _nativeId?: string;
@@ -212,7 +215,6 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   readonly #capabilitiesChangedSubject = new Subject<TCapability[]>();
   readonly onCapabilitiesChanged: Observable<TCapability[]> = this.#capabilitiesChangedSubject.asObservable();
 
-  /** Per-sensor persistent storage (available after the sensor is registered) */
   private _storage?: DeviceStorage<TStorage>;
   private _capabilities: TCapability[] = [];
   private _capabilitiesUpdateFn?: CapabilityUpdateFn;
@@ -227,35 +229,18 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
 
   private _displayName = '';
 
-  /** Override to provide a JSON schema for per-sensor storage settings UI */
-  get storageSchema(): JsonSchema[] {
-    return [];
-  }
-
-  /*
-   * @internal
-   */
-  _requiresFrames?: boolean;
-
   constructor(name: string, options?: SensorOptions) {
     // provisional id, replaced by the host's persistent id at registration
     this._id = crypto.randomUUID();
     this.name = name;
     this._nativeId = options?.nativeId;
-
-    // Initialize empty storage
     this._propertiesStore = {} as TProperties;
   }
 
-  /**
-   * The sensor's id. Provisional until registration; after `addSensor` the host
-   * replaces it with the persistent entity id, stable across restarts.
-   */
   get id(): string {
     return this._id;
   }
 
-  /** Plugin-supplied durable identity (e.g. an upstream device id), if any */
   get nativeId(): string | undefined {
     return this._nativeId;
   }
@@ -278,17 +263,14 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     this._displayName = value;
   }
 
-  /** Whether this sensor is assigned to at least one camera */
   get isAssigned(): boolean {
     return this._assignedCameraIds.length > 0;
   }
 
-  /** The owning side of a sensor is connected exactly while it is registered */
   get connected(): boolean {
     return this._registered;
   }
 
-  /** Cameras this sensor is currently assigned to. Empty for unassigned standalone sensors. */
   get assignedCameraIds(): readonly string[] {
     return this._assignedCameraIds;
   }
@@ -297,7 +279,6 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     return this._pluginId;
   }
 
-  /** Per-sensor persistent storage. Throws if the sensor is not registered yet. */
   get storage(): DeviceStorage<TStorage> {
     if (!this._storage) {
       throw new Error('Storage not initialized - sensor not registered yet');
@@ -305,32 +286,24 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     return this._storage;
   }
 
-  /** Optional feature flags advertised by this sensor (e.g., PTZ pan/tilt/zoom) */
+  get storageSchema(): JsonSchema[] {
+    return [];
+  }
+
   get capabilities(): TCapability[] {
     return this._capabilities;
   }
 
-  /** Set capabilities and notify the backend. Automatically deduplicates. */
+  /** Set capabilities, deduplicated, and notify backend plus local listeners. */
   protected set capabilities(value: TCapability[]) {
-    // Deduplicate capabilities
     this._capabilities = [...new Set(value)];
-    // Broadcast to SensorController (for RPC propagation)
     this._capabilitiesUpdateFn?.(this._capabilities);
-    // Notify local listeners
     this.#capabilitiesChangedSubject.next(this._capabilities);
   }
 
   /**
-   * Read-only access to the internal property store. Subclasses use this to
-   * read current state when implementing semantic methods (e.g., `if (this.blocked) return`).
-   */
-  protected get props(): Readonly<TProperties> {
-    return this._propertiesStore;
-  }
-
-  /**
-   * Get the current value of a sensor property. Type-safe via the generic
-   * overload — call with a property enum value to get a properly typed result.
+   * Get the current value of a sensor property. Calling the generic overload
+   * with a property enum value gives a properly typed result.
    */
   getValue<K extends keyof TProperties>(property: K): TProperties[K] | undefined;
   getValue(property: string): unknown;
@@ -354,117 +327,33 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   }
 
   /**
-   * External-consumer entry point that satisfies the `SensorLike.updateValue`
-   * contract. Each concrete sensor class implements this — read-only sensors
-   * leave it as a no-op, control sensors dispatch known properties to the
-   * appropriate semantic methods (`setOn`, `setActive`, `setTargetState`, etc.)
-   * so plugin overrides drive hardware. Unknown / non-writable properties are
-   * silently ignored.
+   * Generic property write coming from a consumer. Read-only sensors implement
+   * it as a no-op, control sensors dispatch known properties to their semantic
+   * methods (`setOn`, `setActive`, `setTargetState`) so plugin overrides drive
+   * hardware. Unknown or non-writable properties are ignored.
    *
-   * **Plugin authors must not call this** — they should call the semantic
-   * methods directly on the concrete sensor class.
+   * Plugin authors call the semantic methods on the concrete class instead.
    */
   abstract updateValue(property: string, value: unknown): void | Promise<void>;
 
   /**
-   * Iterates over the partial, writes changed properties to the store, fires a **single
-   * batched** RPC update with the delta, and notifies local listeners per-property.
+   * Check whether the sensor advertises a capability.
    *
-   * Used by the semantic helper methods on each sensor type (`setOn`, `setLow`,
-   * `reportDetections`, etc.) — **not for plugin authors**. Plugin code should
-   * call the semantic helpers, not write state directly.
+   * @param capability - Capability flag to look for.
    *
-   * One `_writeState` call → one `_updateFn` invocation. The receiver sees an
-   * atomic state transition for this sensor.
+   * @returns True if the sensor currently advertises it.
    *
-   * @param partial - Partial property delta to apply to the sensor's state store.
-   *
-   * @internal
+   * @example
+   * ```ts
+   * const dimmable = sensor.hasCapability('brightness');
+   * ```
    */
-  protected _writeState(partial: Partial<TProperties>): void {
-    const delta: Record<string, unknown> = {};
-    const changes: { property: SensorPropertyType; value: unknown }[] = [];
-
-    for (const key of Object.keys(partial) as (keyof TProperties)[]) {
-      const value = partial[key];
-      if (value === undefined) continue;
-
-      const previousValue = this._propertiesStore[key];
-      // Only update if value changed (deep compare for objects/arrays)
-      if (isEqual(previousValue, value, true)) continue;
-
-      this._propertiesStore[key] = value;
-      delta[key as string] = value;
-      changes.push({ property: key as SensorPropertyType, value });
-    }
-
-    if (Object.keys(delta).length === 0) return;
-
-    // Fire-and-forget batched RPC update — one callback for the whole delta
-    this._updateFn?.(delta);
-
-    // Notify local listeners per-property (existing observable contract)
-    for (const change of changes) {
-      this._notifyListeners(change.property, change.value);
-    }
-  }
-
-  /**
-   * Helper for `reportDetections(detected, detections?)` flows.
-   *
-   * - If `detected === false` → returns `[]` (clear).
-   * - If `detected === true` and `detections` has items → returns them, substituting a full-frame box where missing.
-   * - If `detected === true` and `detections` is missing/empty → returns a single
-   *   synthesized full-frame detection with the given `fallbackLabel` and any
-   *   `fallbackExtra` fields (used for type-specific properties like `attribute`,
-   *   `plateText`, etc.).
-   *
-   * Generic over `T extends Detection` so each sensor's `reportDetections` can
-   * use its specific Detection subtype.
-   *
-   * @param detected - Whether the caller is reporting an active detection.
-   *
-   * @param detections - Caller-provided detections (may be empty/undefined).
-   *
-   * @param fallbackLabel - Label used when synthesizing a fallback detection.
-   *
-   * @param fallbackExtra - Additional fields merged into the synthesized fallback.
-   *
-   * @returns Normalized detection list ready to write into the sensor's state.
-   *
-   * @internal
-   */
-  protected _normalizeReportedDetections<T extends Detection>(
-    detected: boolean,
-    detections: T[] | undefined,
-    fallbackLabel: T['label'],
-    fallbackExtra?: Omit<T, 'label' | 'confidence' | 'box'>,
-  ): T[] {
-    if (!detected) return [];
-    if (detections && detections.length > 0) {
-      // Smart-camera plugins (Ring, Reolink, ...) report labels without
-      // coordinates, while downstream consumers (detection coordinator, zone
-      // matching) require a box on every detection — substitute full-frame.
-      return detections.map((detection) => (detection.box ? detection : { ...detection, box: { x: 0, y: 0, width: 1, height: 1 } }));
-    }
-    return [
-      {
-        label: fallbackLabel,
-        confidence: 1,
-        box: { x: 0, y: 0, width: 1, height: 1 },
-        ...(fallbackExtra ?? {}),
-      } as unknown as T,
-    ];
-  }
-
   hasCapability(capability: string): boolean {
     return this._capabilities.includes(capability as TCapability);
   }
 
   /**
    * Serialize this sensor to a JSON-safe object for RPC transport.
-   *
-   * @returns The wire representation used to mirror the sensor across processes.
    *
    * @internal
    */
@@ -484,42 +373,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   }
 
   /**
-   * Lifecycle hook: the sensor is registered and live (storage and RPC are
-   * wired up). Override to start background work whose lifetime matches the
-   * sensor's — polling loops, event subscriptions, timers. Sensors that only
-   * receive writes from the plugin's own connections need no hook at all.
-   *
-   * Errors thrown here are caught and swallowed, not logged. They will NOT
-   * break lifecycle bookkeeping, but nothing surfaces them either. If your
-   * work can fail, handle it inside the override.
-   *
-   * Paired 1:1 with `onStop` — for every `onStart` call there is exactly one
-   * matching `onStop` later (on removal, plugin shutdown or cleanup).
-   *
-   * @example
-   * ```ts
-   * protected override onStart(): void {
-   *   this._timer = setInterval(() => this.poll(), 5_000);
-   * }
-   * ```
-   */
-  protected onStart(): void | Promise<void> {}
-
-  /**
-   * Counterpart of `onStart`: tear down whatever it started — clear timers,
-   * close subscriptions, release external resources.
-   *
-   * @example
-   * ```ts
-   * protected override onStop(): void {
-   *   if (this._timer) clearInterval(this._timer);
-   * }
-   * ```
-   */
-  protected onStop(): void | Promise<void> {}
-
-  /**
-   * @param updateFn - Receiver invoked with each batched property delta.
+   * Wires up RPC propagation and marks the sensor registered.
    *
    * @internal
    */
@@ -529,26 +383,20 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   }
 
   /**
-   * @param property - Property key to update on the internal store.
-   *
-   * @param value - New value to assign to the property.
-   *
-   * @param timestamp - Origin timestamp of the change, defaults to now.
+   * Writes a property without broadcasting it back over RPC.
    *
    * @internal
    */
   _setPropertyInternal<K extends keyof TProperties>(property: K, value: TProperties[K], timestamp?: number): void {
     const previousValue = this._propertiesStore[property];
-    // Deep compare for objects/arrays
     if (!isEqual(previousValue, value)) {
       this._propertiesStore[property] = value;
-      // property is always a valid property enum value (K extends keyof TProperties)
       this._notifyListeners(property as SensorPropertyType, value, timestamp);
     }
   }
 
   /**
-   * @returns A shallow copy of the sensor's current property store.
+   * Shallow copy of the sensor's current property store.
    *
    * @internal
    */
@@ -557,7 +405,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   }
 
   /**
-   * @param id - Persistent entity id assigned by the host at registration.
+   * Replaces the provisional id with the host's persistent one.
    *
    * @internal
    */
@@ -566,7 +414,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   }
 
   /**
-   * @param cameraIds - Cameras this sensor is currently assigned to.
+   * Applies the user's camera assignment and notifies subscribers.
    *
    * @internal
    */
@@ -576,7 +424,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   }
 
   /**
-   * @param pluginId - Plugin ID owning this sensor.
+   * Records the owning plugin.
    *
    * @internal
    */
@@ -585,7 +433,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   }
 
   /**
-   * @param storage - Per-sensor persistent storage handle.
+   * Attaches the per-sensor storage handle.
    *
    * @internal
    */
@@ -594,7 +442,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   }
 
   /**
-   * @param updateFn - Receiver invoked with the deduplicated capability list when capabilities change.
+   * Wires capability changes to RPC propagation.
    *
    * @internal
    */
@@ -603,7 +451,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   }
 
   /**
-   * @param active - True right after registration, false on teardown.
+   * Flips the lifecycle state and runs the matching lifecycle hook.
    *
    * @internal
    */
@@ -611,40 +459,34 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     if (this._active === active) return;
     this._active = active;
     this.#connectedChangedSubject.next(active);
-    // Fire-and-forget the lifecycle hook. Plugin authors who need error
-    // handling can wrap their onStart/onStop body in try/catch.
     try {
       const result = active ? this.onStart() : this.onStop();
       if (result && typeof result.catch === 'function') {
         result.catch(() => {
-          // swallow — lifecycle errors must not break bookkeeping
+          // swallow, lifecycle errors must not break bookkeeping
         });
       }
     } catch {
-      // swallow synchronous errors for the same reason
+      // swallow, same reason
     }
   }
 
   /**
-   * @param property - Property name pushed by the backend.
-   *
-   * @param value - New value for the property.
-   *
-   * @param timestamp - Server-side timestamp of the change, defaults to now.
+   * Applies a property change pushed by the backend, without re-broadcasting it.
    *
    * @internal
    */
   _onBackendPropertyChanged(property: string, value: unknown, timestamp?: number): void {
-    // Update internal state (bypasses proxy to avoid re-broadcast)
     this._setPropertyInternal(property as keyof TProperties, value as TProperties[keyof TProperties], timestamp);
   }
 
   /**
+   * Tears the sensor down and detaches it from the host.
+   *
    * @internal
    */
   _cleanup(): void {
-    // Trigger onStop if still active — guarantees the hook is paired 1:1 even
-    // when the sensor is force-removed without a proper teardown path.
+    // pair onStop even when the sensor is force-removed without teardown
     if (this._active) {
       this._active = false;
       try {
@@ -667,6 +509,105 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     this.#assignmentChangedSubject.complete();
     this.#connectedChangedSubject.complete();
   }
+
+  protected get props(): Readonly<TProperties> {
+    return this._propertiesStore;
+  }
+
+  /**
+   * Writes changed properties to the store, fires one batched RPC update with
+   * the delta and notifies local listeners per property. Used by the semantic
+   * helpers on each sensor type, not by plugin code.
+   *
+   * @internal
+   */
+  protected _writeState(partial: Partial<TProperties>): void {
+    const delta: Record<string, unknown> = {};
+    const changes: { property: SensorPropertyType; value: unknown }[] = [];
+
+    for (const key of Object.keys(partial) as (keyof TProperties)[]) {
+      const value = partial[key];
+      if (value === undefined) continue;
+
+      const previousValue = this._propertiesStore[key];
+      if (isEqual(previousValue, value, true)) continue;
+
+      this._propertiesStore[key] = value;
+      delta[key as string] = value;
+      changes.push({ property: key as SensorPropertyType, value });
+    }
+
+    if (Object.keys(delta).length === 0) return;
+
+    this._updateFn?.(delta);
+
+    for (const change of changes) {
+      this._notifyListeners(change.property, change.value);
+    }
+  }
+
+  /**
+   * Normalizes the arguments of a `reportDetections(detected, detections?)` call.
+   *
+   * - `detected === false`: returns `[]` (clear).
+   * - `detected === true` with detections: returns them, substituting a full-frame box where missing.
+   * - `detected === true` without detections: returns one synthesized full-frame
+   *   detection carrying `fallbackLabel` and `fallbackExtra`.
+   *
+   * @internal
+   */
+  protected _normalizeReportedDetections<T extends Detection>(
+    detected: boolean,
+    detections: T[] | undefined,
+    fallbackLabel: T['label'],
+    fallbackExtra?: Omit<T, 'label' | 'confidence' | 'box'>,
+  ): T[] {
+    if (!detected) return [];
+    if (detections && detections.length > 0) {
+      // smart-camera plugins report labels without coordinates, downstream
+      // consumers (coordinator, zone matching) require a box on every detection
+      return detections.map((detection) => (detection.box ? detection : { ...detection, box: { x: 0, y: 0, width: 1, height: 1 } }));
+    }
+    return [
+      {
+        label: fallbackLabel,
+        confidence: 1,
+        box: { x: 0, y: 0, width: 1, height: 1 },
+        ...(fallbackExtra ?? {}),
+      } as unknown as T,
+    ];
+  }
+
+  /**
+   * Lifecycle hook, called once the sensor is registered and live (storage and
+   * RPC are wired up). Override it to start work whose lifetime matches the
+   * sensor's: polling loops, event subscriptions, timers.
+   *
+   * Errors thrown here are swallowed, not logged. Handle failures inside the
+   * override. Paired 1:1 with `onStop`, which runs on removal, plugin shutdown
+   * or cleanup.
+   *
+   * @example
+   * ```ts
+   * protected override onStart(): void {
+   *   this._timer = setInterval(() => this.poll(), 5_000);
+   * }
+   * ```
+   */
+  protected onStart(): void | Promise<void> {}
+
+  /**
+   * Counterpart of `onStart`: tear down whatever it started, such as timers,
+   * subscriptions and external resources.
+   *
+   * @example
+   * ```ts
+   * protected override onStop(): void {
+   *   if (this._timer) clearInterval(this._timer);
+   * }
+   * ```
+   */
+  protected onStop(): void | Promise<void> {}
 
   private _notifyListeners(property: SensorPropertyType, value: unknown, timestamp?: number): void {
     // skip constructor-time writes, listeners only matter once registered

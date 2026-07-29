@@ -1,11 +1,3 @@
-/**
- * Lightweight reactive primitives for camera.ui.
- *
- * Provides cold Observables, multicast Subjects (Subject, BehaviorSubject,
- * ReplaySubject) and a small set of composable operators for building
- * property-change notifications and event streams throughout the SDK.
- */
-
 /** A function that transforms one Observable into another. Used as a building block for `pipe()` operator chains. */
 export type OperatorFn<T, R> = (source: Observable<T>) => Observable<R>;
 
@@ -24,16 +16,35 @@ export class Disposable {
     this.#teardown = teardown;
   }
 
+  /** Whether the subscription has already been disposed. */
   get closed(): boolean {
     return this.#closed;
   }
 
+  /**
+   * Detach the listener and run the producer teardown. Disposing twice is a no-op.
+   *
+   * @example
+   * ```ts
+   * const sub = sensor.onPropertyChanged.subscribe(handleChange);
+   * sub.dispose();
+   * ```
+   */
   dispose(): void {
     if (this.#closed) return;
     this.#closed = true;
     this.#teardown();
   }
 
+  /**
+   * Alias for {@link Disposable.dispose}, for rxjs-shaped call sites.
+   *
+   * @example
+   * ```ts
+   * const sub = sensor.onPropertyChanged.subscribe(handleChange);
+   * sub.unsubscribe();
+   * ```
+   */
   unsubscribe(): void {
     this.dispose();
   }
@@ -75,6 +86,18 @@ export class Observable<T> {
     return this._subscribe(callback);
   }
 
+  /**
+   * Chain operators into a new Observable, each one fed by the previous.
+   *
+   * @returns Observable emitting the transformed values.
+   *
+   * @example
+   * ```ts
+   * sensor.onPropertyChanged
+   *   .pipe(filter((c) => c.property === 'detected'), map((c) => c.value))
+   *   .subscribe((detected) => console.log(detected));
+   * ```
+   */
   pipe(): Observable<T>;
   pipe<A>(op1: OperatorFn<T, A>): Observable<A>;
   pipe<A, B>(op1: OperatorFn<T, A>, op2: OperatorFn<A, B>): Observable<B>;
@@ -103,10 +126,22 @@ export class Subject<T> {
   #completeHandlers = new Set<() => void>();
   #completed = false;
 
+  /** Whether `complete()` has already run. */
   get closed(): boolean {
     return this.#completed;
   }
 
+  /**
+   * Dispatch a value to every current subscriber, synchronously. No-op once completed.
+   *
+   * @param value - Value to multicast.
+   *
+   * @example
+   * ```ts
+   * const subject = new Subject<string>();
+   * subject.next('armed');
+   * ```
+   */
   next(value: T): void {
     if (this.#completed) return;
     for (const cb of this.#subscribers) {
@@ -114,6 +149,14 @@ export class Subject<T> {
     }
   }
 
+  /**
+   * Release every subscriber and lock the Subject. Later `next()` calls are ignored.
+   *
+   * @example
+   * ```ts
+   * subject.complete();
+   * ```
+   */
   complete(): void {
     if (this.#completed) return;
     this.#completed = true;
@@ -126,14 +169,9 @@ export class Subject<T> {
   }
 
   /**
-   * Register a handler invoked once when this Subject completes. Runs
-   * immediately if already completed. Used by {@link firstValueFrom}.
+   * Registers a handler invoked once when this Subject completes, immediately if already completed.
    *
    * @internal
-   *
-   * @param handler - Completion callback.
-   *
-   * @returns Disposable that cancels the registration.
    */
   _onComplete(handler: () => void): Disposable {
     if (this.#completed) {
@@ -146,6 +184,18 @@ export class Subject<T> {
     });
   }
 
+  /**
+   * Register `callback` for every following value.
+   *
+   * @param callback - Receiver invoked once per emitted value.
+   *
+   * @returns Disposable that unregisters the callback.
+   *
+   * @example
+   * ```ts
+   * const sub = subject.subscribe((state) => console.log(state));
+   * ```
+   */
   subscribe(callback: (value: T) => void): Disposable {
     if (this.#completed) {
       return new Disposable(() => {});
@@ -156,6 +206,16 @@ export class Subject<T> {
     });
   }
 
+  /**
+   * Chain operators onto this Subject's read-only view.
+   *
+   * @returns Observable emitting the transformed values.
+   *
+   * @example
+   * ```ts
+   * subject.pipe(distinctUntilChanged()).subscribe((state) => console.log(state));
+   * ```
+   */
   pipe(): Observable<T>;
   pipe<A>(op1: OperatorFn<T, A>): Observable<A>;
   pipe<A, B>(op1: OperatorFn<T, A>, op2: OperatorFn<A, B>): Observable<B>;
@@ -202,19 +262,53 @@ export class BehaviorSubject<T> extends Subject<T> {
     this.#value = initialValue;
   }
 
+  /**
+   * Store `value` as the current one and dispatch it to every subscriber.
+   *
+   * @param value - New current value.
+   *
+   * @example
+   * ```ts
+   * const state$ = new BehaviorSubject('idle');
+   * state$.next('recording');
+   * ```
+   */
   override next(value: T): void {
     this.#value = value;
     super.next(value);
   }
 
+  /**
+   * Read the current value without subscribing.
+   *
+   * @returns The most recently emitted value.
+   *
+   * @example
+   * ```ts
+   * const current = state$.getValue();
+   * ```
+   */
   getValue(): T {
     return this.#value;
   }
 
+  /** The most recently emitted value. */
   get value(): T {
     return this.#value;
   }
 
+  /**
+   * Register `callback` and invoke it immediately with the current value.
+   *
+   * @param callback - Receiver invoked once per emitted value.
+   *
+   * @returns Disposable that unregisters the callback.
+   *
+   * @example
+   * ```ts
+   * const sub = state$.subscribe((state) => console.log(state));
+   * ```
+   */
   override subscribe(callback: (value: T) => void): Disposable {
     const disposable = super.subscribe(callback);
     if (!this.closed) {
@@ -238,6 +332,17 @@ export class ReplaySubject<T> extends Subject<T> {
     this.#bufferSize = bufferSize;
   }
 
+  /**
+   * Append `value` to the buffer, dropping the oldest entry past `bufferSize`, then dispatch it.
+   *
+   * @param value - Value to buffer and multicast.
+   *
+   * @example
+   * ```ts
+   * const last$ = new ReplaySubject<number>(1);
+   * last$.next(42);
+   * ```
+   */
   override next(value: T): void {
     if (this.closed) return;
     this.#buffer.push(value);
@@ -247,8 +352,19 @@ export class ReplaySubject<T> extends Subject<T> {
     super.next(value);
   }
 
+  /**
+   * Replay the buffered values in order, then register `callback` for live emissions.
+   *
+   * @param callback - Receiver invoked once per emitted value.
+   *
+   * @returns Disposable that unregisters the callback.
+   *
+   * @example
+   * ```ts
+   * const sub = last$.subscribe((value) => console.log(value));
+   * ```
+   */
   override subscribe(callback: (value: T) => void): Disposable {
-    // Replay buffered values before subscribing to live values
     for (const value of this.#buffer) {
       callback(value);
     }
@@ -470,9 +586,9 @@ export function share<T>(config?: { connector: () => Subject<T> }): OperatorFn<T
 export function firstValueFrom<T>(observable: Observable<T> | Subject<T> | ReplaySubject<T> | BehaviorSubject<T>): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     let settled = false;
-    // Callbacks may fire synchronously during subscribe()/_onComplete()
-    // (BehaviorSubject/ReplaySubject/already-completed), so declare the
-    // handles up front and clean up both on settle.
+    // callbacks may fire synchronously during subscribe()/_onComplete()
+    // (BehaviorSubject/ReplaySubject/already-completed), so the handles must
+    // exist before either call
     let valueSub: Disposable | undefined = undefined;
     let completeSub: Disposable | undefined = undefined;
     const cleanup = (): void => {

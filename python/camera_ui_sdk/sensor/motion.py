@@ -19,7 +19,7 @@ from .detection import (
     VideoFrameData,
 )
 
-# Re-exports kept for backward compatibility — original public surface of this module.
+# detection types are re-exported here, plugins import them from this module
 __all__ = [
     "BoundingBox",
     "DETECTION_ATTRIBUTES",
@@ -41,16 +41,18 @@ __all__ = [
 class MotionProperty(StrEnum):
     """Property names of a motion sensor."""
 
-    Detected = "detected"  # Whether motion is currently detected
-    Detections = "detections"  # List of detection results with bounding boxes
-    Blocked = "blocked"  # When true, detection updates are suppressed (set by the backend dwell logic)
-    LastTriggered = (
-        "lastTriggered"  # Timestamp in milliseconds of the last detection trigger, set by the backend
-    )
+    Detected = "detected"
+    """Whether motion is currently detected."""
+    Detections = "detections"
+    """List of detection results with bounding boxes."""
+    Blocked = "blocked"
+    """When true, detection updates are suppressed (set by the backend dwell logic)."""
+    LastTriggered = "lastTriggered"
+    """Timestamp in milliseconds of the last detection trigger, set by the backend."""
 
 
 class MotionSensorProperties(TypedDict):
-    """Property shape carried by a MotionSensor."""
+    """Property values of a motion sensor."""
 
     detected: bool
     detections: list[Detection]
@@ -60,8 +62,10 @@ class MotionSensorProperties(TypedDict):
 class MotionPropertyChangeData(TypedDict):
     """Property change payload emitted on MotionSensorLike.onPropertyChanged."""
 
-    property: str  # MotionProperty value
+    property: str
+    """Name of the changed property, a MotionProperty value."""
     value: bool | list[Detection]
+    """New value of the property."""
 
 
 TStorage = TypeVar("TStorage", bound=Mapping[str, Any], default=dict[str, Any])
@@ -75,6 +79,9 @@ class MotionSensorLike(SensorLike, Protocol):
     def type(self) -> SensorType:
         return SensorType.Motion
 
+    @property
+    def onPropertyChanged(self) -> Observable[MotionPropertyChangeData]: ...
+
     @overload
     def getValue(self, property: Literal[MotionProperty.Detected]) -> bool | None: ...
     @overload
@@ -84,17 +91,13 @@ class MotionSensorLike(SensorLike, Protocol):
     @overload
     def getValue(self, property: str) -> object | None: ...
 
-    @property
-    def onPropertyChanged(self) -> Observable[MotionPropertyChangeData]: ...
-
 
 class MotionSensor(Sensor[MotionSensorProperties, TStorage, str], Generic[TStorage]):
     """Motion sensor that reports motion state and detection results.
 
     Plugin authors call `reportDetections(list)` to push detection results.
-    `detected` is auto-derived from the detection list. `blocked` is read-only
-    and is set by the backend (dwell logic) — `reportDetections()` becomes a
-    no-op while the sensor is blocked.
+    `detected` is auto-derived from the detection list. `blocked` is read-only and
+    set by the backend dwell logic, `reportDetections()` is a no-op while it is set.
     """
 
     _requires_frames = False
@@ -119,26 +122,23 @@ class MotionSensor(Sensor[MotionSensorProperties, TStorage, str], Generic[TStora
 
     @property
     def detected(self) -> bool:
-        """Whether motion is currently detected."""
         return bool(self.props.detected)
 
     @property
     def detections(self) -> list[Detection]:
-        """Current detection list."""
         return self.props.detections or []
 
     @property
     def blocked(self) -> bool:
-        """Whether the sensor is currently blocked. Read-only — set by the backend dwell logic, not by plugin code."""
         return bool(self.props.blocked)
 
     def reportDetections(self, detected: bool, detections: list[Detection] | None = None) -> None:
         """Report a motion detection result.
 
-        - ``reportDetections(True)`` — motion detected without bbox (e.g. Ring camera).
+        - ``reportDetections(True)``: motion detected without bbox (e.g. Ring camera).
           The SDK synthesizes a single full-frame ``'motion'`` detection.
-        - ``reportDetections(True, [...])`` — motion detected with explicit detections.
-        - ``reportDetections(False)`` — no motion (clears detections).
+        - ``reportDetections(True, [...])``: motion detected with explicit detections.
+        - ``reportDetections(False)``: no motion (clears detections).
 
         No-op while the sensor is blocked by backend dwell logic.
 
@@ -176,15 +176,16 @@ class MotionSensor(Sensor[MotionSensorProperties, TStorage, str], Generic[TStora
         self.reportDetections(False)
 
     async def updateValue(self, property: str, value: Any) -> None:
-        """Read-only sensor: external writes are ignored. State is reported via `reportDetections`."""
-        # No-op — motion state is reported by the plugin, not set externally.
+        """Read-only sensor: external writes are ignored."""
 
 
 class MotionResult(TypedDict):
     """Return type for MotionDetectorSensor.detectMotion()."""
 
-    detected: bool  # Ignored by the backend, which re-derives it from the detections
-    detections: list[Detection]  # Detections emitted for this frame
+    detected: bool
+    """Whether motion is detected in this frame. Ignored by the backend, which re-derives it from the detections."""
+    detections: list[Detection]
+    """Detections emitted for this frame."""
 
 
 class MotionDetectorSensor(MotionSensor[TStorage], Generic[TStorage]):

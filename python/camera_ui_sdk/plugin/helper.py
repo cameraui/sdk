@@ -9,10 +9,9 @@ from .contract import PluginCapability, PluginContract, PluginInterface, PluginR
 
 
 def get_contract_validation_errors(contract: object) -> list[str]:
-    """Check the structural validity of an unknown contract object —
-    required fields present, enum values inside the accepted sets — and
-    return one human-readable error per problem found. Returns an empty list
-    when the contract is valid.
+    """Check the structural validity of an unknown contract object: required
+    fields present, enum values inside the accepted sets. Returns one
+    human-readable error per problem found, empty when the contract is valid.
 
     Args:
         contract: Untrusted candidate contract (e.g. parsed manifest JSON).
@@ -39,7 +38,6 @@ def get_contract_validation_errors(contract: object) -> list[str]:
     valid_roles = [r.value for r in PluginRole]
     valid_sensor_types = [s.value for s in SensorType]
 
-    # Check role
     if "role" not in c:
         errors.append('Missing required field: "role"')
     elif not isinstance(c.get("role"), str):
@@ -48,7 +46,6 @@ def get_contract_validation_errors(contract: object) -> list[str]:
     elif c["role"] not in valid_roles:
         errors.append(f'Invalid role "{c["role"]}". Valid roles: {", ".join(valid_roles)}')
 
-    # Check name
     if "name" not in c:
         errors.append('Missing required field: "name"')
     elif not isinstance(c["name"], str):
@@ -56,7 +53,6 @@ def get_contract_validation_errors(contract: object) -> list[str]:
     elif len(c["name"]) == 0:
         errors.append('Field "name" cannot be empty')
 
-    # Check provides
     if "provides" not in c:
         errors.append('Missing required field: "provides"')
     elif not isinstance(c["provides"], list):
@@ -68,7 +64,6 @@ def get_contract_validation_errors(contract: object) -> list[str]:
                     f'Invalid sensor type in "provides": "{sensor_type}". Valid types: {", ".join(valid_sensor_types)}'
                 )
 
-    # Check consumes
     if "consumes" not in c:
         errors.append('Missing required field: "consumes"')
     elif not isinstance(c["consumes"], list):
@@ -80,7 +75,6 @@ def get_contract_validation_errors(contract: object) -> list[str]:
                     f'Invalid sensor type in "consumes": "{sensor_type}". Valid types: {", ".join(valid_sensor_types)}'
                 )
 
-    # Check interfaces
     valid_interfaces = [i.value for i in PluginInterface]
     if "interfaces" not in c:
         errors.append('Missing required field: "interfaces"')
@@ -93,7 +87,6 @@ def get_contract_validation_errors(contract: object) -> list[str]:
                     f'Invalid interface in "interfaces": "{iface}". Valid interfaces: {", ".join(valid_interfaces)}'
                 )
 
-    # Check optional capabilities
     valid_capabilities = [cap.value for cap in PluginCapability]
     if "capabilities" in c:
         if not isinstance(c["capabilities"], list):
@@ -105,11 +98,9 @@ def get_contract_validation_errors(contract: object) -> list[str]:
                         f'Invalid capability in "capabilities": "{cap}". Valid capabilities: {", ".join(valid_capabilities)}'
                     )
 
-    # Check optional pythonVersion
     if "pythonVersion" in c and c["pythonVersion"] not in ["3.11", "3.12"]:
         errors.append(f'Invalid pythonVersion "{c["pythonVersion"]}". Valid versions: 3.11, 3.12')
 
-    # Check optional dependencies
     if "dependencies" in c and not isinstance(c["dependencies"], list):
         errors.append(f'Field "dependencies" must be an array. Got: {type(c["dependencies"]).__name__}')
 

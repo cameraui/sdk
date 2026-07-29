@@ -1,4 +1,3 @@
-/* eslint-disable @stylistic/max-len */
 import type { Observable } from '../observable/index.js';
 import type { Sensor } from '../sensor/base.js';
 import type { DeviceStorage, JsonSchema } from '../storage/index.js';
@@ -11,9 +10,7 @@ import type { DetectionEvent } from './events.js';
 import type { CameraFrameWorkerSettings, SnapshotSettings } from './frames.js';
 import type { Fmp4Session, ProbeConfig, ProbeStream, RTSPUrlOptions, RtpSession, SnapshotUrlOptions } from './streaming.js';
 
-/**
- * Camera source with snapshot and probe capabilities.
- */
+/** Camera source with snapshot and probe capabilities. */
 export interface CameraSource extends CameraInput {
   /**
    * Get camera snapshot image.
@@ -52,9 +49,7 @@ export interface CameraSource extends CameraInput {
   generateSnapshotUrl(options?: SnapshotUrlOptions): string;
 }
 
-/**
- * Camera source with full streaming capabilities.
- */
+/** Camera source with full streaming capabilities. */
 export interface CameraDeviceSource extends CameraSource {
   /**
    * Generate RTSP URL with specified options.
@@ -89,55 +84,66 @@ export interface CameraDeviceSource extends CameraSource {
  * Provides access to camera streams, sensors, and services.
  */
 export interface CameraDevice {
-  /** Unique camera ID */
+  /** Unique camera ID. */
   readonly id: string;
-  /** Native device ID from plugin */
+  /** Native device ID from plugin. */
   readonly nativeId: string | undefined;
-  /** Source plugin information */
+  /** Source plugin information. */
   readonly pluginInfo: CameraPluginInfo | undefined;
-  /** Whether camera is disabled */
+  /** Whether camera is disabled. */
   readonly disabled: boolean;
-  /** Camera display name */
+  /** Camera display name. */
   readonly name: string;
-  /** Room this camera belongs to */
+  /** Room this camera belongs to. */
   readonly room: string;
-  /** Camera type (camera/doorbell) */
+  /** Camera type (camera/doorbell). */
   readonly type: CameraType;
-  /** Snapshot settings */
+  /** Snapshot settings. */
   readonly snapshotSettings: SnapshotSettings;
-  /** Camera hardware information */
+  /** Camera hardware information. */
   readonly info: CameraInformation;
-  /** Whether camera streams from cloud */
+  /** Whether camera streams from cloud. */
   readonly isCloud: boolean;
-  /** Detection zone configurations */
+  /** Detection zone configurations. */
   readonly detectionZones: DetectionZone[];
-  /** Detection line configurations (virtual tripwires) */
+  /** Detection line configurations (virtual tripwires). */
   readonly detectionLines: DetectionLine[];
-  /** Detection settings */
+  /** Detection settings. */
   readonly detectionSettings: CameraDetectionSettings;
-  /** PTZ autotracking settings */
+  /** PTZ autotracking settings. */
   readonly ptzAutotrack: PtzAutotrackSettings;
-  /** Recording settings */
+  /** Recording settings. */
   readonly recordingSettings: CameraRecordingSettings;
-  /** Whether detections are snoozed (paused) */
+  /** Whether detections are snoozed (paused). */
   readonly snooze: boolean;
-  /** Frame worker settings */
+  /** Frame worker settings. */
   readonly frameWorkerSettings: CameraFrameWorkerSettings;
-  /** UI display settings */
+  /** UI display settings. */
   readonly interfaceSettings: CameraUiSettings;
-
-  /** All video sources */
+  /** All video sources. */
   readonly sources: CameraDeviceSource[];
-  /** Primary streaming source */
+  /** Primary streaming source. */
   readonly streamSource: CameraDeviceSource;
-  /** High resolution source (if available) */
+  /** High resolution source (if available). */
   readonly highResolutionSource: CameraDeviceSource | undefined;
-  /** Mid resolution source (if available) */
+  /** Mid resolution source (if available). */
   readonly midResolutionSource: CameraDeviceSource | undefined;
-  /** Low resolution source (if available) */
+  /** Low resolution source (if available). */
   readonly lowResolutionSource: CameraDeviceSource | undefined;
-  /** Snapshot source (if available) */
+  /** Snapshot source (if available). */
   readonly snapshotSource: CameraSource | undefined;
+  /** Whether camera is connected. */
+  readonly connected: boolean;
+  /** Whether frame worker is connected. */
+  readonly frameWorkerConnected: boolean;
+  /** Observable for connection state changes. */
+  readonly onConnected: Observable<boolean>;
+  /** Observable for frame worker state changes. */
+  readonly onFrameWorkerConnected: Observable<boolean>;
+  /** Observable for detection events. Segments ride on the 'segment-*' messages only, thumbnails on 'segment-start' and 'segment-end'. */
+  readonly onDetectionEvent: Observable<{ type: DetectionEventType; event: DetectionEvent }>;
+  /** Logger service for this camera. */
+  readonly logger: LoggerService;
 
   /**
    * Get a source by its ID.
@@ -147,18 +153,6 @@ export interface CameraDevice {
    * @returns The matching source, or undefined if not found
    */
   getSourceById(id: string): CameraDeviceSource | undefined;
-
-  /** Whether camera is connected */
-  readonly connected: boolean;
-  /** Whether frame worker is connected */
-  readonly frameWorkerConnected: boolean;
-  /** Observable for connection state changes */
-  readonly onConnected: Observable<boolean>;
-  /** Observable for frame worker state changes */
-  readonly onFrameWorkerConnected: Observable<boolean>;
-
-  /** Logger service for this camera */
-  readonly logger: LoggerService;
 
   /**
    * Create storage for plugin-specific camera configuration.
@@ -174,6 +168,7 @@ export interface CameraDevice {
    * Only the plugin that owns this camera (via pluginInfo) may connect it.
    */
   connect(): Promise<void>;
+
   /**
    * Tell the server this camera is offline.
    * Only the plugin that owns this camera (via pluginInfo) may disconnect it.
@@ -190,21 +185,20 @@ export interface CameraDevice {
   onPropertyChange<T extends keyof Camera>(property: T | T[]): Observable<{ property: T; oldData: Camera[T]; newData: Camera[T] }>;
 
   /**
-   * Add a sensor to this camera.
+   * Register a sensor that belongs to this camera's hardware (spotlight, siren, PTZ, battery, ...).
+   * The host assigns it to this camera and reconciles it across restarts like a standalone sensor.
    *
-   * @param sensor - Sensor instance to add
+   * @param sensor - Sensor instance to register
    */
   addSensor<T extends object>(sensor: Sensor<T>): Promise<void>;
 
   /**
-   * Remove a sensor from this camera.
+   * Unregister a sensor this plugin registered on this camera.
+   * The persisted entity stays (shows disconnected) unless the user deletes it.
    *
-   * @param sensorId - ID of sensor to remove
+   * @param sensorId - ID of sensor to unregister
    */
   removeSensor(sensorId: string): Promise<void>;
-
-  /** Observable for detection events (start/update/end/segment-*). Segments are only present on 'segment-*' messages; thumbnails are populated on 'segment-start' and 'segment-end'. */
-  readonly onDetectionEvent: Observable<{ type: DetectionEventType; event: DetectionEvent }>;
 
   /**
    * Register a camera implementation for streaming and/or snapshot.
@@ -215,6 +209,7 @@ export interface CameraDevice {
   implement(impl: CameraImplementation): Promise<void>;
 }
 
+/** Optional implementation that provides stream URLs. */
 export interface StreamingInterface {
   /**
    * Get the streaming URL for a source.
@@ -226,6 +221,7 @@ export interface StreamingInterface {
   streamUrl(sourceId: string): Promise<string>;
 }
 
+/** Optional implementation that provides snapshots. */
 export interface SnapshotInterface {
   /**
    * Get a snapshot image from the camera.
@@ -239,4 +235,5 @@ export interface SnapshotInterface {
   snapshot(sourceId: string, forceNew?: boolean): Promise<ArrayBuffer | undefined>;
 }
 
+/** Value accepted by CameraDevice.implement: streaming, snapshot, or both. */
 export type CameraImplementation = StreamingInterface | SnapshotInterface | (StreamingInterface & SnapshotInterface);

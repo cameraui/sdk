@@ -11,14 +11,14 @@ from .base import Sensor, SensorCategory, SensorLike, SensorType
 
 
 class LightCapability(StrEnum):
-    """Optional capabilities for light controls."""
+    """Optional capabilities of a light control."""
 
     Brightness = "brightness"
     """Light supports brightness adjustment (0-100)."""
 
 
 class LightProperty(StrEnum):
-    """Properties for light controls."""
+    """Property names of a light control."""
 
     On = "on"
     """Whether the light is on."""
@@ -27,17 +27,19 @@ class LightProperty(StrEnum):
 
 
 class LightControlProperties(TypedDict):
-    """Property value map for light controls."""
+    """Property values of a light control."""
 
     on: bool
     brightness: int
 
 
 class LightPropertyChangeData(TypedDict):
-    """Emitted on LightControlLike.onPropertyChanged."""
+    """Property change payload emitted on LightControlLike.onPropertyChanged."""
 
-    property: str  # LightProperty value
+    property: str
+    """Name of the changed property, a LightProperty value."""
     value: bool | int
+    """New value of the property."""
 
 
 TStorage = TypeVar("TStorage", bound=Mapping[str, Any], default=dict[str, Any])
@@ -51,6 +53,12 @@ class LightControlLike(SensorLike, Protocol):
     def type(self) -> SensorType:
         return SensorType.Light
 
+    @property
+    def onPropertyChanged(self) -> Observable[LightPropertyChangeData]: ...
+
+    @property
+    def onCapabilitiesChanged(self) -> Observable[list[LightCapability]]: ...
+
     @overload
     def getValue(self, property: Literal[LightProperty.On]) -> bool | None: ...
     @overload
@@ -58,23 +66,17 @@ class LightControlLike(SensorLike, Protocol):
     @overload
     def getValue(self, property: str) -> object | None: ...
 
-    @property
-    def onPropertyChanged(self) -> Observable[LightPropertyChangeData]: ...
-
-    @property
-    def onCapabilitiesChanged(self) -> Observable[list[LightCapability]]: ...
-
 
 class LightControl(Sensor[LightControlProperties, TStorage, LightCapability], Generic[TStorage]):
     """Light control sensor. Override ``setOn()``/``setOff()`` to drive your
     hardware, then ``await super().setOn()`` / ``await super().setOff()`` to
     sync the SDK state.
 
-    Plugins that have no hardware-action use case can leave the methods
-    unoverridden — the base implementation just updates the state.
+    Plugins with no hardware-action use case can leave the methods unoverridden,
+    the base implementation just updates the state.
 
     For hardware-pushed updates (someone manually flipped the switch), call
-    ``super().setOn()`` / ``super().setOff()`` from your event handler — that
+    ``super().setOn()`` / ``super().setOff()`` from your event handler. That
     bypasses any plugin override and only syncs state.
     """
 
@@ -146,7 +148,10 @@ class LightControl(Sensor[LightControlProperties, TStorage, LightCapability], Ge
         self._write_state({LightProperty.Brightness.value: max(0, min(100, value))})
 
     async def updateValue(self, property: str, value: Any) -> None:
-        """Routes generic property writes to semantic methods."""
+        """Routes generic property writes to the semantic setters.
+
+        Only on and brightness are externally writable.
+        """
         if property == LightProperty.On.value:
             if value:
                 await self.setOn()
@@ -156,4 +161,3 @@ class LightControl(Sensor[LightControlProperties, TStorage, LightCapability], Ge
         if property == LightProperty.Brightness.value:
             await self.setBrightness(int(value))
             return
-        # Unknown / non-writable property — ignored.

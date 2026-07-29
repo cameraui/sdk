@@ -1,14 +1,3 @@
-"""Generic event-listener registry for camera.ui.
-
-Provides :class:`AsyncEventEmitter`, an event-name keyed listener
-registry that supports both sync and async handlers. Handlers are
-registered via :meth:`AsyncEventEmitter.on` /
-:meth:`AsyncEventEmitter.once`, removed via
-:meth:`AsyncEventEmitter.remove_listener` /
-:meth:`AsyncEventEmitter.remove_all_listeners`, and invoked through
-:meth:`AsyncEventEmitter.emit`.
-"""
-
 from __future__ import annotations
 
 import asyncio
@@ -18,17 +7,11 @@ from typing import Any
 
 
 class AsyncEventEmitter:
-    """Generic event-listener registry that accepts sync and async handlers.
+    """Event-listener registry that accepts sync and async handlers.
 
-    Listeners are keyed by event name and invoked in registration order
-    by :meth:`emit`. Async handlers are scheduled via ``ensure_future``
-    (fire-and-forget) and tracked so they can be cancelled with
-    :meth:`cancel`.
+    Listeners are keyed by event name and invoked in registration order. Async
+    handlers are scheduled fire-and-forget and tracked so :meth:`cancel` can stop them.
     """
-
-    @staticmethod
-    def _normalize_event(event: Any) -> str:
-        return event.value if hasattr(event, "value") else str(event)
 
     def __init__(self) -> None:
         self._events: dict[str, OrderedDict[Callable[..., Any], Callable[..., Any]]] = {}
@@ -45,7 +28,7 @@ class AsyncEventEmitter:
         return f
 
     def once(self, event: str, f: Callable[..., Any]) -> Callable[..., Any]:
-        """Register a one-shot listener that is invoked the next time *event* is emitted and then removed automatically."""
+        """Register a one-shot listener that runs on the next emission of *event*, then removes itself."""
         event = self._normalize_event(event)
 
         def wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -89,11 +72,10 @@ class AsyncEventEmitter:
     ) -> bool:
         """Invoke every listener registered for *event* and wait for async handlers to settle.
 
-        Handler exceptions are passed to *on_error* instead of propagating,
-        so one failing listener never blocks the others. Returns ``True``
-        when every handler settled within *timeout* seconds, ``False`` if
-        some were still pending when the timeout elapsed (they keep running
-        and remain cancellable via :meth:`cancel`).
+        Handler exceptions go to *on_error* instead of propagating, so one failing
+        listener never blocks the others. Returns ``False`` if handlers were still
+        pending after *timeout* seconds, they keep running and stay cancellable
+        via :meth:`cancel`.
         """
         event = self._normalize_event(event)
         listeners = self._events.get(event)
@@ -145,3 +127,8 @@ class AsyncEventEmitter:
         for future in self._waiting:
             future.cancel()
         self._waiting.clear()
+
+    @staticmethod
+    def _normalize_event(event: Any) -> str:
+        """Accept both plain event names and enum members."""
+        return event.value if hasattr(event, "value") else str(event)

@@ -65,12 +65,18 @@ export default [
           },
         },
       ],
+      'jsdoc/require-param': [
+        'warn',
+        {
+          exemptedBy: ['inheritdoc', 'internal'],
+        },
+      ],
       'jsdoc/require-returns': [
         'warn',
         {
-          // Require a return tag for all functions
           checkGetters: false,
           forceRequireReturn: false,
+          exemptedBy: ['inheritdoc', 'internal'],
         },
       ],
       'jsdoc/require-example': [

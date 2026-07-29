@@ -37,8 +37,8 @@ export interface ModelSpec {
 }
 
 /**
- * Model spec for object detectors. Only declares input dimensions —
- * the output label set is dynamic and comes from the model itself.
+ * Model spec for object detectors. Only declares input dimensions, the output
+ * label set is dynamic and comes from the model itself.
  */
 export interface ObjectModelSpec {
   /** Required input frame dimensions and pixel format. */

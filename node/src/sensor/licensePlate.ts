@@ -7,7 +7,7 @@ import type { Detection, VideoFrameData } from './detection.js';
 import type { ModelSpec } from './spec.js';
 
 /**
- * Property names of a license plate detection sensor.
+ * Property names of a license plate sensor.
  *
  * @internal
  */
@@ -29,7 +29,7 @@ export interface LicensePlateDetection extends Detection {
 }
 
 /**
- * Property shape carried by a {@link LicensePlateSensor}.
+ * Property values of a license plate sensor.
  *
  * @internal
  */
@@ -40,9 +40,7 @@ export interface LicensePlateSensorProperties {
 
 /** Read-only proxy interface for a license plate sensor. */
 export interface LicensePlateSensorLike extends SensorLike {
-  /** Sensor type discriminant. */
   readonly type: SensorType.LicensePlate;
-  /** Property change observable narrowed to license plate properties. */
   readonly onPropertyChanged: Observable<PropertyChangeOf<LicensePlateSensorProperties>>;
 
   getValue(property: LicensePlateProperty.Detected): boolean | undefined;
@@ -69,12 +67,10 @@ export class LicensePlateSensor<TStorage extends object = Record<string, any>> e
     });
   }
 
-  /** Whether any license plate is currently detected. */
   get detected(): boolean {
     return this.props.detected;
   }
 
-  /** Current detection list. */
   get detections(): LicensePlateDetection[] {
     return this.props.detections;
   }
@@ -82,10 +78,10 @@ export class LicensePlateSensor<TStorage extends object = Record<string, any>> e
   /**
    * Report detected license plates.
    *
-   * - `reportDetections(true)` — plate detected without specifics. The SDK
+   * - `reportDetections(true)`: plate detected without specifics. The SDK
    *   synthesizes a single full-frame detection with empty plateText.
-   * - `reportDetections(true, [...])` — explicit plate detections with OCR text.
-   * - `reportDetections(false)` — clear.
+   * - `reportDetections(true, [...])`: explicit plate detections with OCR text.
+   * - `reportDetections(false)`: clear.
    *
    * @param detected - Whether any license plate is currently detected.
    *
@@ -127,21 +123,11 @@ export class LicensePlateSensor<TStorage extends object = Record<string, any>> e
   }
 
   /**
-   * Read-only sensor: external writes are ignored. State is reported via `reportDetections`.
-   *
-   * Called by the cross-process plugin host when a generic property write is received.
-   * License plate sensors have no externally writable properties, so the parameters are
-   * unused (underscore-prefixed) and the call is a no-op.
-   *
-   * @param _property - Unused — license plate sensors expose no writable properties.
-   *
-   * @param _value - Unused — license plate sensors expose no writable properties.
+   * Read-only sensor: external writes are ignored.
    *
    * @internal
    */
-  updateValue(_property: string, _value: unknown): void {
-    // No-op — license plate state is reported by the plugin, not set externally.
-  }
+  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Return type for {@link LicensePlateDetectorSensor.detectLicensePlates}. */
@@ -160,13 +146,13 @@ export interface LicensePlateResult {
 export abstract class LicensePlateDetectorSensor<TStorage extends object = Record<string, any>> extends LicensePlateSensor<TStorage> {
   _requiresFrames = true;
 
-  /** Declares the expected input dimensions and trigger labels. The backend scales frames to match. */
   abstract get modelSpec(): ModelSpec;
 
   /**
-   * Detect license plates in batch. Each frame is a pre-cropped, pre-scaled
-   * vehicle region produced by the upstream object detector. Must return
-   * exactly one LicensePlateResult per input frame, in the same order.
+   * Detect license plates in batch. Each frame is pre-scaled to `modelSpec.input`:
+   * normally a vehicle region cropped by the upstream object detector, but the whole
+   * scene when no decoded frame is available. Must return exactly one result per input
+   * frame, in the same order.
    */
   abstract detectLicensePlates(frames: VideoFrameData[]): Promise<LicensePlateResult[]>;
 }

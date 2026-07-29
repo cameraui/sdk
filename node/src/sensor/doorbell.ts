@@ -5,17 +5,17 @@ import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /**
- * Properties for doorbell triggers
+ * Property names of a doorbell trigger.
  *
  * @internal
  */
 export enum DoorbellProperty {
-  /** Whether the doorbell is currently ringing */
+  /** Whether the doorbell is currently ringing. */
   Ring = 'ring',
 }
 
 /**
- * Property value map for doorbell triggers.
+ * Property values of a doorbell trigger.
  *
  * @internal
  */
@@ -23,7 +23,7 @@ export interface DoorbellTriggerProperties {
   [DoorbellProperty.Ring]: boolean;
 }
 
-/** Read-only proxy interface for a doorbell trigger */
+/** Read-only proxy interface for a doorbell trigger. */
 export interface DoorbellTriggerLike extends SensorLike {
   readonly type: SensorType.Doorbell;
   readonly onPropertyChanged: Observable<PropertyChangeOf<DoorbellTriggerProperties>>;
@@ -80,15 +80,7 @@ export class DoorbellTrigger<TStorage extends object = Record<string, any>> exte
   }
 
   /**
-   * Cross-process consumer entry point. Writing `ring=true` (any truthy value)
-   * dispatches to `trigger()` so a UI test button or external automation can
-   * fire the doorbell using the same flow as a real hardware ring (auto-reset
-   * included). Writing `ring=false` is ignored — the auto-reset timer owns
-   * the off transition.
-   *
-   * @param property - Property name to write.
-   *
-   * @param value - New value for the property.
+   * Routes generic property writes to the semantic setters. Writing `ring=false` is ignored, the auto-reset timer owns the off transition.
    *
    * @internal
    */

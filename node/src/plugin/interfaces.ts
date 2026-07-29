@@ -12,70 +12,87 @@ import type { LoggerService } from '../types.js';
 import type { PluginAPI } from './api.js';
 import type { NotifierInterface } from './notifier.js';
 
-/** Image metadata for detection test requests */
+/** Image metadata passed to detector test methods. */
 export interface ImageMetadata {
+  /** Image width in pixels. */
   width: number;
+  /** Image height in pixels. */
   height: number;
 }
 
-/** Audio metadata for detection test requests */
+/** Audio metadata passed to audio detector test methods. */
 export interface AudioMetadata {
+  /** Container format of the audio buffer. */
   mimeType: 'audio/mpeg' | 'audio/wav' | 'audio/ogg';
 }
 
-/** Response from a motion detection test */
+/** Result of a motion detection run. */
 export interface MotionDetectionPluginResponse {
+  /** True when the run produced at least one detection. */
   detected: boolean;
+  /** Motion regions found in the input. */
   detections: Detection[];
-  /** Annotated video data with detection overlays, if available */
+  /** Annotated re-encoded clip for the UI test panel, when the plugin renders one. */
   videoData?: Buffer;
 }
 
-/** Response from an object detection test */
+/** Result of an object detection run. */
 export interface ObjectDetectionPluginResponse {
+  /** True when the run produced at least one detection. */
   detected: boolean;
+  /** Detected objects with label, score and bounding box. */
   detections: Detection[];
 }
 
-/** Response from an audio detection test */
+/** Result of an audio detection run. */
 export interface AudioDetectionPluginResponse {
+  /** True when the run produced at least one detection. */
   detected: boolean;
+  /** Detected audio events. */
   detections: Detection[];
+  /** Loudness of the analysed buffer in dBFS. */
   decibels?: number;
 }
 
-/** Response from a face detection test */
+/** Result of a face detection run. */
 export interface FaceDetectionPluginResponse {
+  /** True when the run produced at least one detection. */
   detected: boolean;
+  /** Detected faces, each with its embedding. */
   detections: FaceDetection[];
+  /** Model that produced the embeddings; consumers must not mix models. */
   embeddingModel?: string;
 }
 
-/** Response from a license plate detection test */
+/** Result of a license plate detection run. */
 export interface LicensePlateDetectionPluginResponse {
+  /** True when the run produced at least one detection. */
   detected: boolean;
+  /** Detected plates with their OCR text. */
   detections: LicensePlateDetection[];
 }
 
-/** Response from a classifier detection test */
+/** Result of a classifier detection run. */
 export interface ClassifierDetectionPluginResponse {
+  /** True when the run produced at least one classification. */
   detected: boolean;
+  /** Attribute/label pairs the classifier emitted. */
   detections: ClassifierDetection[];
 }
 
-/** Response from a CLIP embedding generation test */
+/** Result of a CLIP image embedding run. */
 export interface ClipDetectionPluginResponse {
+  /** Embedding vectors generated for the input. */
   embeddings: ClipEmbedding[];
+  /** Model that produced the embeddings; consumers must not mix models. */
   embeddingModel: string;
 }
 
-/**
- * Result of a CLIP text embedding request — a single embedding vector plus
- * the model name used to produce it, so downstream code can refuse to mix
- * embeddings from different models.
- */
+/** Result of a CLIP text embedding request. */
 export interface ClipTextEmbeddingResult {
+  /** Embedding vector for the query text. */
   embedding: number[];
+  /** Model that produced the embedding; consumers must not mix models. */
   embeddingModel: string;
 }
 
@@ -84,12 +101,10 @@ export interface ClipTextEmbeddingResult {
  * host injects (logger, PluginAPI, DeviceStorage) and declares the lifecycle
  * methods the host calls on the plugin.
  *
- * Lifecycle order: the host calls `configureCameras()` once at startup with
- * every camera already assigned to this plugin, then calls `onCameraAdded()`
- * / `onCameraReleased()` as the user adds or removes cameras at runtime.
- *
- * The generic `T` types `storage.values` so plugin code gets autocompletion
- * for its own settings shape.
+ * The host calls `configureCameras()` once at startup with every camera
+ * already assigned to this plugin, then `onCameraAdded()` / `onCameraReleased()`
+ * as the user adds or removes cameras at runtime. The generic `T` types
+ * `storage.values` so plugin code gets autocompletion for its own settings shape.
  *
  * @example
  * ```typescript
@@ -106,7 +121,6 @@ export interface ClipTextEmbeddingResult {
  *
  *   async onCameraReleased(cameraId: string): Promise<void> {
  *     this.state.get(cameraId)?.dispose();
- *     this.state.delete(cameraId);
  *   }
  * }
  * ```
@@ -118,37 +132,34 @@ export abstract class BasePlugin<T extends Record<string, any> = Record<string, 
     public storage: DeviceStorage<T>,
   ) {}
 
-  /**
-   * Override to register a JSON schema for the plugin-level settings form
-   *  rendered in the UI. Default: no schema.
-   */
+  /** Override to register a JSON schema for the plugin-level settings form rendered in the UI. Default: no schema. */
   get storageSchema(): JsonSchema[] {
     return [];
   }
 
   /**
    * Called once on startup with every camera that is already assigned to
-   * this plugin. The plugin should attach handlers, open vendor sessions,
-   * and warm up models. A rejection aborts plugin startup.
+   * this plugin. Attach handlers, open vendor sessions, warm up models here.
+   * A rejection aborts plugin startup.
    *
    * @param cameras - Cameras already assigned to this plugin.
    */
   abstract configureCameras(cameras: CameraDevice[]): Promise<void>;
 
   /**
-   * Called whenever a camera is assigned to this plugin at runtime — after
-   * a discovery adoption (DiscoveryProvider.onAdoptCamera) or after the
-   * user re-assigns an existing camera in the UI. The plugin should set up
-   * the same per-camera state as in `configureCameras()`.
+   * Called whenever a camera is assigned to this plugin at runtime, after a
+   * discovery adoption (DiscoveryProvider.onAdoptCamera) or after the user
+   * re-assigns an existing camera. Set up the same per-camera state as in
+   * `configureCameras()`.
    *
    * @param camera - The camera device that was added.
    */
   abstract onCameraAdded(camera: CameraDevice): Promise<void>;
 
   /**
-   * Called when a camera is unassigned from this plugin or deleted from
-   * the system. The plugin must release per-camera resources (sessions,
-   * timers, decoders) before resolving.
+   * Called when a camera is unassigned from this plugin or deleted from the
+   * system. Release per-camera resources (sessions, timers, decoders) before
+   * resolving.
    *
    * @param cameraId - ID of the camera that was released.
    */
@@ -159,7 +170,7 @@ export abstract class BasePlugin<T extends Record<string, any> = Record<string, 
    * whose type is listed in `contract.consumes` and that are exposed. Each
    * sensor carries `type`, `assignedCameraIds`, `exposed` and `connected`, so
    * consumers decide rendering purely from that data. Optional, only bridge
-   * plugins implement this.
+   * plugins implement it.
    *
    * @param sensors - Consumable sensors known at startup.
    */
@@ -167,8 +178,7 @@ export abstract class BasePlugin<T extends Record<string, any> = Record<string, 
 
   /**
    * Called when a sensor enters this plugin's consumable view at runtime: it
-   * was created, became exposed, or its type became consumable. Counterpart
-   * of `configureSensors` for single sensors.
+   * was created, became exposed, or its type became consumable.
    *
    * @param sensor - The sensor that appeared.
    */
@@ -176,7 +186,7 @@ export abstract class BasePlugin<T extends Record<string, any> = Record<string, 
 
   /**
    * Called when a sensor permanently leaves the consumable view: it was
-   * deleted or unexposed. Plugin connectivity does NOT fire this — watch
+   * deleted or unexposed. Plugin connectivity does NOT fire this, watch
    * `sensor.onConnectedChanged` for that.
    *
    * @param sensorId - Persistent id of the sensor that left.
@@ -185,9 +195,9 @@ export abstract class BasePlugin<T extends Record<string, any> = Record<string, 
 }
 
 /**
- * Implemented by plugins that can scan the network for new cameras and
- * adopt them. Only plugins with a camera-controlling role
- * (CameraController or CameraAndSensorProvider) are queried for discovery.
+ * Implemented by plugins that can scan the network for new cameras and adopt
+ * them. Only plugins with a camera-controlling role (CameraController or
+ * CameraAndSensorProvider) are queried for discovery.
  */
 export interface DiscoveryProvider {
   /**
@@ -200,9 +210,8 @@ export interface DiscoveryProvider {
   onDiscoverCameras(): Promise<DiscoveredCamera[]>;
 
   /**
-   * Return a JSON schema describing the form fields (credentials,
-   * transport options, ...) the user must fill in to adopt this specific
-   * discovered camera.
+   * Return a JSON schema describing the form fields (credentials, transport
+   * options, ...) the user must fill in to adopt this discovered camera.
    *
    * @param camera - The discovered camera the user is about to adopt.
    *
@@ -211,9 +220,9 @@ export interface DiscoveryProvider {
   onGetCameraSettings(camera: DiscoveredCamera): Promise<JsonSchemaWithoutCallbacks[]>;
 
   /**
-   * Probe the device with the user-provided settings and return the
-   * camera configuration the host should persist. The host then creates
-   * the camera and invokes `onCameraAdded()` on the plugin.
+   * Probe the device with the user-provided settings and return the camera
+   * configuration the host should persist. The host then creates the camera
+   * and invokes `onCameraAdded()` on the plugin.
    *
    * @param camera - The discovered camera being adopted.
    *
@@ -225,109 +234,100 @@ export interface DiscoveryProvider {
 }
 
 /**
- * Interface for plugins that provide motion detection.
- * Implement `testMotionDetection()` to handle detection test requests from the UI.
+ * Implemented by plugins that perform video-based motion detection. The host
+ * invokes `testMotionDetection()` from the UI test panel and `detectMotion()`
+ * from automation / benchmark pipelines.
  */
 export interface MotionDetectionInterface {
-  /** Run motion detection on video data. Used by the UI for testing/previewing. */
+  /** Run detection on a raw video buffer captured by the UI test panel and return the result for preview rendering. */
   testMotionDetection(videoData: Buffer | Uint8Array, config: Record<string, unknown>): Promise<MotionDetectionPluginResponse | undefined>;
-  /** Run motion detection on pre-processed video frames. Used by automations/benchmarks. */
+  /** Run detection on already-decoded frames, supplied by automation / benchmark pipelines to avoid re-encoding. */
   detectMotion?(frames: VideoFrameData[], config?: Record<string, unknown>): Promise<MotionDetectionPluginResponse | undefined>;
-  /** Optional settings schema for motion detection configuration UI */
+  /** Return the JSON schema used to render the motion-detection settings form in the UI, or undefined for no schema. */
   motionDetectionSettings?(): Promise<JsonSchema[] | undefined>;
 }
 
-/**
- * Interface for plugins that provide object detection.
- * Implement `testObjectDetection()` to handle detection test requests from the UI.
- */
+/** Implemented by plugins that perform object detection (person, vehicle, animal, ...). */
 export interface ObjectDetectionInterface {
-  /** Run object detection on image data. Used by the UI for testing/previewing. */
+  /** Run detection on a single image captured by the UI test panel; `metadata` carries the image dimensions. */
   testObjectDetection(imageData: Buffer | Uint8Array, metadata: ImageMetadata, config: Record<string, unknown>): Promise<ObjectDetectionPluginResponse | undefined>;
-  /** Run object detection on a pre-processed frame. Used by automations/benchmarks. */
+  /** Run detection on a pre-decoded video frame. Called from automation / benchmark pipelines. */
   detectObjects?(frame: VideoFrameData, config?: Record<string, unknown>): Promise<ObjectDetectionPluginResponse | undefined>;
-  /** Optional settings schema for object detection configuration UI */
+  /** Return the JSON schema used to render the object-detection settings form in the UI, or undefined for no schema. */
   objectDetectionSettings?(): Promise<JsonSchema[] | undefined>;
 }
 
-/**
- * Interface for plugins that provide audio detection.
- * Implement `testAudioDetection()` to handle detection test requests from the UI.
- */
+/** Implemented by plugins that perform audio event or keyword detection. */
 export interface AudioDetectionInterface {
-  /** Run audio detection on audio data. Used by the UI for testing/previewing. */
+  /** Run detection on an audio buffer captured by the UI test panel; `metadata` carries the input MIME type. */
   testAudioDetection(audioData: Buffer | Uint8Array, metadata: AudioMetadata, config: Record<string, unknown>): Promise<AudioDetectionPluginResponse | undefined>;
-  /** Run audio detection on pre-processed audio frames. Used by automations/benchmarks. */
+  /** Run detection on a pre-decoded audio frame. Called from automation / benchmark pipelines. */
   detectAudio?(audio: AudioFrameData, config?: Record<string, unknown>): Promise<AudioDetectionPluginResponse | undefined>;
-  /** Optional settings schema for audio detection configuration UI */
+  /** Return the JSON schema used to render the audio-detection settings form in the UI, or undefined for no schema. */
   audioDetectionSettings?(): Promise<JsonSchema[] | undefined>;
 }
 
 /**
- * Interface for plugins that provide face detection.
- * Implement `testFaceDetection()` to handle detection test requests from the UI.
- * The NVR owns matching against enrolled faces; the plugin only emits raw
- * detections + embeddings.
+ * Implemented by plugins that locate faces and emit per-face embeddings. The
+ * NVR owns matching against enrolled faces, the plugin only emits raw
+ * detections and embeddings.
  */
 export interface FaceDetectionInterface {
-  /** Run face detection on image data. Used by the UI for testing/previewing. */
+  /** Run face detection on a single image captured by the UI test panel and return the result for preview rendering. */
   testFaceDetection(imageData: Buffer | Uint8Array, metadata: ImageMetadata, config: Record<string, unknown>): Promise<FaceDetectionPluginResponse | undefined>;
-  /** Run face detection on a pre-processed frame. Used by automations/benchmarks. */
+  /** Run face detection on a pre-decoded video frame. */
   detectFaces?(frame: VideoFrameData, config?: Record<string, unknown>): Promise<FaceDetectionPluginResponse | undefined>;
-  /** Optional settings schema for face detection configuration UI */
+  /** Return the JSON schema for the face-detection settings form in the UI, or undefined for no schema. */
   faceDetectionSettings?(): Promise<JsonSchema[] | undefined>;
 }
 
-/**
- * Interface for plugins that provide license plate detection.
- * Implement `testLicensePlateDetection()` to handle detection test requests from the UI.
- */
+/** Implemented by plugins that locate license plates and run OCR on them. */
 export interface LicensePlateDetectionInterface {
-  /** Run license plate detection on image data. Used by the UI for testing/previewing. */
+  /** Run detection on a single image captured by the UI test panel and return the result for preview rendering. */
   testLicensePlateDetection(
     imageData: Buffer | Uint8Array,
     metadata: ImageMetadata,
     config: Record<string, unknown>,
   ): Promise<LicensePlateDetectionPluginResponse | undefined>;
-  /** Run license plate detection on a pre-processed frame. Used by automations/benchmarks. */
+  /** Run detection on a pre-decoded video frame. */
   detectLicensePlates?(frame: VideoFrameData, config?: Record<string, unknown>): Promise<LicensePlateDetectionPluginResponse | undefined>;
-  /** Optional settings schema for license plate detection configuration UI */
+  /** Return the JSON schema for the license-plate-detection settings form in the UI, or undefined for no schema. */
   licensePlateDetectionSettings?(): Promise<JsonSchema[] | undefined>;
 }
 
 /**
- * Interface for plugins that provide classifier detection.
- * Implement `testClassifierDetection()` to handle detection test requests from the UI.
+ * Implemented by plugins that run a generic image classifier and emit
+ * attribute/label pairs (e.g. weather, scene, activity).
  */
 export interface ClassifierDetectionInterface {
-  /** Run classifier detection on image data. Used by the UI for testing/previewing. */
+  /** Run classification on a single image captured by the UI test panel and return the result for preview rendering. */
   testClassifierDetection(
     imageData: Buffer | Uint8Array,
     metadata: ImageMetadata,
     config: Record<string, unknown>,
   ): Promise<ClassifierDetectionPluginResponse | undefined>;
-  /** Run classifier detection on a pre-processed frame. Used by automations/benchmarks. */
+  /** Run classification on a pre-decoded video frame. */
   detectClassifications?(frame: VideoFrameData, config?: Record<string, unknown>): Promise<ClassifierDetectionPluginResponse | undefined>;
-  /** Optional settings schema for classifier detection configuration UI */
+  /** Return the JSON schema for the classifier-detection settings form in the UI, or undefined for no schema. */
   classifierDetectionSettings?(): Promise<JsonSchema[] | undefined>;
 }
 
 /**
- * Interface for plugins that provide CLIP embedding generation.
- * Implement `testClipEmbedding()` to handle detection test requests from the UI.
+ * Implemented by plugins that generate CLIP image and text embeddings used
+ * for semantic search over recorded events.
  */
 export interface ClipDetectionInterface {
-  /** Generate CLIP embeddings for an image. Used by the UI for testing/previewing. */
+  /** Run the CLIP image branch on a single image captured by the UI test panel. */
   testClipEmbedding(imageData: Buffer | Uint8Array, metadata: ImageMetadata, config: Record<string, unknown>): Promise<ClipDetectionPluginResponse | undefined>;
-  /** Generate CLIP embeddings from a pre-processed frame. Used by automations/benchmarks. */
+  /** Run the CLIP image branch on a pre-decoded video frame. */
   detectClipEmbedding?(frame: VideoFrameData, config?: Record<string, unknown>): Promise<ClipDetectionPluginResponse | undefined>;
-  /** Generate a CLIP text embedding for semantic search. */
+  /** Run the CLIP text branch and return a vector usable for semantic-search queries against stored image embeddings. */
   getTextEmbedding(text: string): Promise<ClipTextEmbeddingResult>;
-  /** Optional settings schema for CLIP detection configuration UI */
+  /** Return the JSON schema for the CLIP settings form in the UI, or undefined for no schema. */
   clipSettings?(): Promise<JsonSchema[] | undefined>;
 }
 
-/** Union of all optional plugin interfaces */
+/** Union of all optional plugin interfaces. */
 // prettier-ignore
 export type PluginInterfaces = Partial<
   MotionDetectionInterface &

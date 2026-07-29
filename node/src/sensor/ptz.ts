@@ -1,52 +1,52 @@
-import { Sensor, SensorCategory, SensorType } from './base.js';
+import { Sensor, SensorType, SensorCategory } from './base.js';
 import { defineSensor } from './meta.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/** Optional capabilities for PTZ controls. Add to `capabilities` to enable features. */
+/** Optional capabilities of a PTZ control. */
 export enum PTZCapability {
-  /** Camera supports panning (horizontal movement) */
+  /** Camera supports panning (horizontal movement). */
   Pan = 'pan',
-  /** Camera supports tilting (vertical movement) */
+  /** Camera supports tilting (vertical movement). */
   Tilt = 'tilt',
-  /** Camera supports zoom */
+  /** Camera supports zoom. */
   Zoom = 'zoom',
-  /** Camera supports named position presets */
+  /** Camera supports named position presets. */
   Presets = 'presets',
-  /** Camera supports a home position */
+  /** Camera supports a home position. */
   Home = 'home',
-  /** Camera executes relative displacement moves */
+  /** Camera executes relative displacement moves. */
   RelativeMove = 'relativeMove',
-  /** Camera accepts absolute position writes via `setPosition()` */
+  /** Camera accepts absolute position writes via `setPosition()`. */
   AbsolutePosition = 'absolutePosition',
-  /** Camera accepts continuous-move commands via `setVelocity()` */
+  /** Camera accepts continuous-move commands via `setVelocity()`. */
   VelocityControl = 'velocityControl',
 }
 
 /**
- * Properties for PTZ controls
+ * Property names of a PTZ control.
  *
  * @internal
  */
 export enum PTZProperty {
-  /** Current pan/tilt/zoom position */
+  /** Current pan/tilt/zoom position. */
   Position = 'position',
-  /** Whether the camera is currently moving */
+  /** Whether the camera is currently moving. */
   Moving = 'moving',
-  /** List of available preset names */
+  /** List of available preset names. Empty until `setPresets()` runs. */
   Presets = 'presets',
-  /** Current movement velocity (continuous move) */
+  /** Current movement velocity (continuous move). Undefined until a continuous move was issued. */
   Velocity = 'velocity',
-  /** Target preset to move to */
+  /** Target preset to move to. */
   TargetPreset = 'targetPreset',
-  /** Relative displacement move command (write-only) */
+  /** Relative displacement move command (write-only). */
   RelativeMove = 'relativeMove',
-  /** Move to the home position (write-only command, carries no state) */
+  /** Move to the home position (write-only command, carries no state). */
   Home = 'home',
 }
 
-/** Absolute PTZ position */
+/** Absolute PTZ position. */
 export interface PTZPosition {
   pan: number;
   tilt: number;
@@ -87,7 +87,7 @@ export interface PTZRelativeMove {
 }
 
 /**
- * Property value map for PTZ controls.
+ * Property values of a PTZ control.
  *
  * @internal
  */
@@ -100,7 +100,7 @@ export interface PTZControlProperties {
   [PTZProperty.RelativeMove]?: PTZRelativeMove;
 }
 
-/** Read-only proxy interface for a PTZ control */
+/** Read-only proxy interface for a PTZ control. */
 export interface PTZControlLike extends SensorLike {
   readonly type: SensorType.PTZ;
   readonly onPropertyChanged: Observable<PropertyChangeOf<PTZControlProperties>>;
@@ -120,7 +120,7 @@ export interface PTZControlLike extends SensorLike {
  * `setTargetPreset()` to drive hardware, then call the corresponding `super.X()`
  * method after success to sync the SDK state. For hardware-pushed state updates
  * (e.g. PTZ position change events), call the `super` methods from your event
- * handler — that bypasses any plugin override and only syncs state.
+ * handler. That bypasses any plugin override and only syncs state.
  *
  * Set `capabilities` to advertise supported axes and features. Use `setPresets()`
  * to publish the discovered preset list and `setMoving()` to publish movement state.
@@ -266,14 +266,7 @@ export class PTZControl<TStorage extends object = Record<string, any>> extends S
   }
 
   /**
-   * Cross-process consumer entry point. Dispatches writable properties
-   * to semantic methods so plugin overrides (hardware actions) are honored.
-   * `moving` and `presets` are observed/discovered state and not externally writable;
-   * only `Position`, `Velocity`, `TargetPreset`, `RelativeMove` and `Home` may be set.
-   *
-   * @param property - Property name to write.
-   *
-   * @param value - New value for the property.
+   * Routes generic property writes to the semantic setters.
    *
    * @internal
    */
@@ -295,7 +288,6 @@ export class PTZControl<TStorage extends object = Record<string, any>> extends S
         await this.goHome();
         return;
     }
-    // Unknown / non-writable property (incl. moving, presets) — ignored.
   }
 }
 

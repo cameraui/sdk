@@ -57,31 +57,48 @@ class PropertyChangedEvent(TypedDict):
     """Emitted when a sensor property value changes."""
 
     sensorId: str
+    """Sensor that changed."""
     sensorType: SensorType
+    """Type of the sensor that changed."""
     property: str
+    """Property key that changed."""
     value: object
+    """New value."""
     previousValue: NotRequired[object]
+    """Value before the change, absent on the first write."""
     timestamp: int
+    """Change time in epoch milliseconds."""
 
 
-# @internal Callback used to propagate property updates to the backend via RPC.
-# Receives a partial-state delta (only properties that actually changed). One callback
-# invocation per `_writeState` call — atomic from the receiver's perspective.
 PropertyUpdateFn = Callable[[dict[str, Any]], None]
+"""Receives a partial-state delta, one call per ``_write_state``."""
+
 CapabilityUpdateFn = Callable[[list[str]], None]
+"""Receives the full capability list whenever it changes."""
 
 
 class SensorJSON(TypedDict):
     """JSON-serializable representation of a sensor for RPC transport."""
 
     id: str
+    """Sensor ID."""
     type: SensorType
+    """Sensor type."""
     name: str
+    """Internal name."""
     displayName: str
+    """Name shown in the UI."""
     category: SensorCategory
+    """Category the sensor belongs to."""
     nativeId: NotRequired[str]
+    """Device ID assigned by the plugin."""
     pluginId: NotRequired[str]
+    """Plugin that owns the sensor."""
     properties: dict[str, Any]
+    """Current property values."""
     capabilities: NotRequired[list[str]]
+    """Capability keys the sensor reports."""
     requiresFrames: NotRequired[bool]
+    """Sensor needs a frame feed to work."""
     modelSpec: NotRequired[ModelSpec]
+    """Model the sensor runs, for ML-backed sensors."""

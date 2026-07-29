@@ -16,20 +16,25 @@ from .spec import ModelSpec
 class ClassifierProperty(StrEnum):
     """Property names of a classifier sensor."""
 
-    Detected = "detected"  # Whether any classification result is active
-    Detections = "detections"  # List of classification results with labels and confidence
-    Labels = "labels"  # Unique labels of the current detections (auto-derived when reporting detections)
+    Detected = "detected"
+    """Whether any classification result is active."""
+    Detections = "detections"
+    """List of classification results with labels and confidence."""
+    Labels = "labels"
+    """Unique labels of the current detections (auto-derived when reporting detections)."""
 
 
 class ClassifierDetection(Detection):
     """A classifier detection result with an open attribute for classifier categories."""
 
-    attribute: str  # type: ignore[misc]  # Classifier category (e.g. "bird", "delivery") — open string for any classifier
-    subAttribute: str  # Classifier sub-category (e.g. "woodpecker", "amazon")
+    attribute: str  # type: ignore[misc]
+    """Classifier category (e.g. "bird", "delivery"). Open string for any classifier."""
+    subAttribute: str
+    """Classifier sub-category (e.g. "woodpecker", "amazon")."""
 
 
 class ClassifierSensorProperties(TypedDict):
-    """Property shape carried by a ClassifierSensor."""
+    """Property values of a classifier sensor."""
 
     detected: bool
     detections: list[ClassifierDetection]
@@ -39,8 +44,10 @@ class ClassifierSensorProperties(TypedDict):
 class ClassifierPropertyChangeData(TypedDict):
     """Property change payload emitted on ClassifierSensorLike.onPropertyChanged."""
 
-    property: str  # ClassifierProperty value
+    property: str
+    """Name of the changed property, a ClassifierProperty value."""
     value: bool | list[ClassifierDetection] | list[str]
+    """New value of the property."""
 
 
 TStorage = TypeVar("TStorage", bound=Mapping[str, Any], default=dict[str, Any])
@@ -54,6 +61,9 @@ class ClassifierSensorLike(SensorLike, Protocol):
     def type(self) -> SensorType:
         return SensorType.Classifier
 
+    @property
+    def onPropertyChanged(self) -> Observable[ClassifierPropertyChangeData]: ...
+
     @overload
     def getValue(self, property: Literal[ClassifierProperty.Detected]) -> bool | None: ...
     @overload
@@ -65,15 +75,12 @@ class ClassifierSensorLike(SensorLike, Protocol):
     @overload
     def getValue(self, property: str) -> object | None: ...
 
-    @property
-    def onPropertyChanged(self) -> Observable[ClassifierPropertyChangeData]: ...
-
 
 class ClassifierSensor(Sensor[ClassifierSensorProperties, TStorage, str], Generic[TStorage]):
     """General-purpose image classifier sensor.
 
-    Plugin authors call `reportDetections(list)` to push classification results.
-    `detected` and `labels` are auto-derived from the detection list.
+    Plugin authors call ``reportDetections(list)`` to push classification results.
+    ``detected`` and ``labels`` are auto-derived from the detection list.
     """
 
     _requires_frames = False
@@ -98,28 +105,25 @@ class ClassifierSensor(Sensor[ClassifierSensorProperties, TStorage, str], Generi
 
     @property
     def detected(self) -> bool:
-        """Whether any classification result is active."""
         return bool(self.props.detected)
 
     @property
     def detections(self) -> list[ClassifierDetection]:
-        """Current detection list."""
         return self.props.detections or []
 
     @property
     def labels(self) -> list[str]:
-        """Unique labels of the current detections."""
         return self.props.labels or []
 
     def reportDetections(self, detected: bool, detections: list[ClassifierDetection] | None = None) -> None:
         """Report classification results. Auto-derives ``detected`` and
         ``labels`` from the list.
 
-        - ``reportDetections(True)`` — generic classification trigger. The SDK
+        - ``reportDetections(True)``: generic classification trigger. The SDK
           synthesizes a single full-frame detection with empty attribute and
           sub-attribute.
-        - ``reportDetections(True, [...])`` — explicit classifier detections.
-        - ``reportDetections(False)`` — clear.
+        - ``reportDetections(True, [...])``: explicit classifier detections.
+        - ``reportDetections(False)``: clear.
 
         Args:
             detected: Whether any classification result is active.
@@ -163,30 +167,30 @@ class ClassifierSensor(Sensor[ClassifierSensorProperties, TStorage, str], Generi
 
     async def updateValue(self, property: str, value: Any) -> None:
         """Read-only sensor: external writes are ignored."""
-        # No-op — classifier state is reported by the plugin, not set externally.
 
 
 class ClassifierResult(TypedDict):
     """Return type for ClassifierDetectorSensor.detectClassifications()."""
 
-    detected: bool  # Whether any classification result is emitted for this frame
-    detections: list[ClassifierDetection]  # Detections emitted for this frame
+    detected: bool
+    """Whether any classification result is emitted for this frame."""
+    detections: list[ClassifierDetection]
+    """Detections emitted for this frame."""
 
 
 class ClassifierDetectorSensor(ClassifierSensor[TStorage], Generic[TStorage]):
     """Classifier detector that receives video frames from the backend pipeline.
 
     Extend this class and implement ``detectClassifications`` to run image
-    classification models against trigger regions.
+    classification models against trigger regions. The backend scales frames
+    to match ``modelSpec.input`` dimensions before each call.
     """
 
     _requires_frames = True
 
     @property
     @abstractmethod
-    def modelSpec(self) -> ModelSpec:
-        """Declares the expected input dimensions and trigger labels. The backend scales frames to match."""
-        ...
+    def modelSpec(self) -> ModelSpec: ...
 
     @abstractmethod
     async def detectClassifications(self, frames: list[VideoFrameData]) -> list[ClassifierResult]:

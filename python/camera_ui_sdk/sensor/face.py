@@ -14,23 +14,29 @@ from .spec import ModelSpec
 
 
 class FaceProperty(StrEnum):
-    """Property names of a face detection sensor."""
+    """Property names of a face sensor."""
 
-    Detected = "detected"  # Whether any face is currently detected
-    Detections = "detections"  # List of detected faces with optional identity, embedding, and thumbnail
+    Detected = "detected"
+    """Whether any face is currently detected."""
+    Detections = "detections"
+    """List of detected faces with optional identity, embedding, and thumbnail."""
 
 
 class FaceDetection(Detection):
     """A face detection result, extending Detection with face-specific fields."""
 
-    attribute: Literal["face"]  # type: ignore[misc]  # Sub-detection attribute, fixed to "face"
-    identity: NotRequired[str]  # Recognized identity name, if matched against known faces
-    embedding: NotRequired[list[float]]  # Face embedding vector for recognition/comparison
-    thumbnail: NotRequired[bytes]  # JPEG thumbnail crop of the detected face
+    attribute: Literal["face"]  # type: ignore[misc]
+    """Sub-detection attribute, fixed to "face"."""
+    identity: NotRequired[str]
+    """Recognized identity name, if matched against known faces."""
+    embedding: NotRequired[list[float]]
+    """Face embedding vector for recognition/comparison."""
+    thumbnail: NotRequired[bytes]
+    """JPEG thumbnail crop of the detected face."""
 
 
 class FaceSensorProperties(TypedDict):
-    """Property shape carried by a FaceSensor."""
+    """Property values of a face sensor."""
 
     detected: bool
     detections: list[FaceDetection]
@@ -39,8 +45,10 @@ class FaceSensorProperties(TypedDict):
 class FacePropertyChangeData(TypedDict):
     """Property change payload emitted on FaceSensorLike.onPropertyChanged."""
 
-    property: str  # FaceProperty value
+    property: str
+    """Name of the changed property, a FaceProperty value."""
     value: bool | list[FaceDetection]
+    """New value of the property."""
 
 
 TStorage = TypeVar("TStorage", bound=Mapping[str, Any], default=dict[str, Any])
@@ -54,6 +62,9 @@ class FaceSensorLike(SensorLike, Protocol):
     def type(self) -> SensorType:
         return SensorType.Face
 
+    @property
+    def onPropertyChanged(self) -> Observable[FacePropertyChangeData]: ...
+
     @overload
     def getValue(self, property: Literal[FaceProperty.Detected]) -> bool | None: ...
     @overload
@@ -61,15 +72,12 @@ class FaceSensorLike(SensorLike, Protocol):
     @overload
     def getValue(self, property: str) -> object | None: ...
 
-    @property
-    def onPropertyChanged(self) -> Observable[FacePropertyChangeData]: ...
-
 
 class FaceSensor(Sensor[FaceSensorProperties, TStorage, str], Generic[TStorage]):
     """Face sensor that reports detected faces and optional identity matches.
 
-    Plugin authors call `reportDetections(list)` to push detected faces.
-    `detected` is auto-derived from the detection list.
+    Plugin authors call ``reportDetections(list)`` to push detected faces.
+    ``detected`` is auto-derived from the detection list.
     """
 
     _requires_frames = False
@@ -93,23 +101,21 @@ class FaceSensor(Sensor[FaceSensorProperties, TStorage, str], Generic[TStorage])
 
     @property
     def detected(self) -> bool:
-        """Whether any face is currently detected."""
         return bool(self.props.detected)
 
     @property
     def detections(self) -> list[FaceDetection]:
-        """Current detection list."""
         return self.props.detections or []
 
     def reportDetections(self, detected: bool, detections: list[FaceDetection] | None = None) -> None:
         """Report detected faces.
 
-        - ``reportDetections(True)`` — face detected without specifics (e.g. a
+        - ``reportDetections(True)``: face detected without specifics (e.g. a
           bare face-event from a discovery provider). The SDK synthesizes a
           single full-frame face detection without identity.
-        - ``reportDetections(True, [...])`` — explicit face detections with
+        - ``reportDetections(True, [...])``: explicit face detections with
           identity, embedding, and/or thumbnail.
-        - ``reportDetections(False)`` — clear.
+        - ``reportDetections(False)``: clear.
 
         Args:
             detected: Whether any face is currently detected.
@@ -151,30 +157,30 @@ class FaceSensor(Sensor[FaceSensorProperties, TStorage, str], Generic[TStorage])
 
     async def updateValue(self, property: str, value: Any) -> None:
         """Read-only sensor: external writes are ignored."""
-        # No-op — face detection state is reported by the plugin, not set externally.
 
 
 class FaceResult(TypedDict):
     """Return type for FaceDetectorSensor.detectFaces()."""
 
-    detected: bool  # Whether any face is detected in this frame
-    detections: list[FaceDetection]  # Detections emitted for this frame
+    detected: bool
+    """Whether any face is detected in this frame."""
+    detections: list[FaceDetection]
+    """Detections emitted for this frame."""
 
 
 class FaceDetectorSensor(FaceSensor[TStorage], Generic[TStorage]):
     """Face detector that receives video frames from the backend pipeline.
 
     Extend this class and implement ``detectFaces`` for face detection and
-    recognition.
+    recognition. The backend scales frames to match ``modelSpec.input``
+    dimensions before each call.
     """
 
     _requires_frames = True
 
     @property
     @abstractmethod
-    def modelSpec(self) -> ModelSpec:
-        """Declares the expected input dimensions and trigger labels. The backend scales frames to match."""
-        ...
+    def modelSpec(self) -> ModelSpec: ...
 
     @abstractmethod
     async def detectFaces(self, frames: list[VideoFrameData]) -> list[FaceResult]:

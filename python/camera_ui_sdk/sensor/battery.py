@@ -11,7 +11,7 @@ from .base import Sensor, SensorCategory, SensorLike, SensorType
 
 
 class BatteryCapability(StrEnum):
-    """Optional capabilities for battery info sensors."""
+    """Optional capabilities of a battery info sensor."""
 
     LowBattery = "lowBattery"
     """Sensor reports low-battery alerts."""
@@ -20,14 +20,14 @@ class BatteryCapability(StrEnum):
 
 
 class BatteryProperty(StrEnum):
-    """Properties for battery info sensors."""
+    """Property names of a battery info sensor."""
 
     Level = "level"
     """Battery level percentage (0-100)."""
     Charging = "charging"
     """Current charging state."""
     Low = "low"
-    """Whether battery is critically low."""
+    """Whether the battery is critically low."""
 
 
 class ChargingState(StrEnum):
@@ -44,7 +44,7 @@ class ChargingState(StrEnum):
 
 
 class BatteryInfoProperties(TypedDict):
-    """Property value map for battery info sensors."""
+    """Property values of a battery info sensor."""
 
     level: int
     charging: ChargingState
@@ -52,10 +52,12 @@ class BatteryInfoProperties(TypedDict):
 
 
 class BatteryPropertyChangeData(TypedDict):
-    """Emitted on BatteryInfoLike.onPropertyChanged."""
+    """Property change payload emitted on BatteryInfoLike.onPropertyChanged."""
 
-    property: str  # BatteryProperty value
+    property: str
+    """Name of the changed property, a BatteryProperty value."""
     value: int | ChargingState | bool
+    """New value of the property."""
 
 
 TStorage = TypeVar("TStorage", bound=Mapping[str, Any], default=dict[str, Any])
@@ -69,6 +71,12 @@ class BatteryInfoLike(SensorLike, Protocol):
     def type(self) -> SensorType:
         return SensorType.Battery
 
+    @property
+    def onPropertyChanged(self) -> Observable[BatteryPropertyChangeData]: ...
+
+    @property
+    def onCapabilitiesChanged(self) -> Observable[list[BatteryCapability]]: ...
+
     @overload
     def getValue(self, property: Literal[BatteryProperty.Level]) -> int | None: ...
     @overload
@@ -78,17 +86,11 @@ class BatteryInfoLike(SensorLike, Protocol):
     @overload
     def getValue(self, property: str) -> object | None: ...
 
-    @property
-    def onPropertyChanged(self) -> Observable[BatteryPropertyChangeData]: ...
-
-    @property
-    def onCapabilitiesChanged(self) -> Observable[list[BatteryCapability]]: ...
-
 
 class BatteryInfo(Sensor[BatteryInfoProperties, TStorage, BatteryCapability], Generic[TStorage]):
     """Battery info sensor. Reports battery level, charging state, and low-battery alerts.
 
-    Plugin authors call `setLevel(value)`, `setCharging(state)`, and `setLow(value)`
+    Plugin authors call ``setLevel(value)``, ``setCharging(state)``, and ``setLow(value)``
     to push updates from the device.
     """
 
@@ -167,4 +169,3 @@ class BatteryInfo(Sensor[BatteryInfoProperties, TStorage, BatteryCapability], Ge
 
     async def updateValue(self, property: str, value: Any) -> None:
         """Read-only sensor: external writes are ignored."""
-        # No-op — battery state is reported by the plugin, not set externally.

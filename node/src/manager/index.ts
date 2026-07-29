@@ -119,7 +119,7 @@ export interface DeviceManager {
   /**
    * Push discovered cameras to the backend.
    * Use this when cameras are discovered asynchronously (e.g., after cloud login).
-   * Cameras will be immediately visible in the UI without waiting for next poll.
+   * Cameras become visible in the UI without waiting for the next poll.
    * Only available for CameraController and CameraAndSensorProvider plugins.
    *
    * @param cameras - Array of discovered cameras to push
@@ -137,14 +137,13 @@ export interface DeviceManager {
 }
 
 /**
- * Sensor manager interface for standalone sensors.
+ * Sensor manager for standalone sensors: devices that are not part of a
+ * camera's hardware (smart plugs, imported smart-home devices, hubs).
  *
- * Registers sensors as entities of their own: they persist across restarts,
- * are assignable to any number of cameras by the user and exported once.
- * `camera.addSensor()` shares this model and only adds the automatic initial
- * assignment; use the manager directly for sensors that represent devices
- * which are not part of a camera (an imported lock, an external motion
- * sensor, ...).
+ * The host persists each sensor as its own entity: the user assigns it to
+ * cameras, renames it and decides whether it is exported to HomeKit/HA/MQTT.
+ * Sensors that belong to a camera's hardware are registered via
+ * `camera.addSensor()` instead.
  *
  * Accessed via `api.sensorManager` in plugins.
  *
@@ -159,7 +158,7 @@ export interface SensorManager {
    * Register a standalone sensor with the host.
    *
    * The host reconciles it against the persisted entity by
-   * `(pluginId, nativeId)` — or `(type, name)` when no nativeId is set — and
+   * `(pluginId, nativeId)`, or by `(type, name)` when no nativeId is set, and
    * replaces the sensor's provisional `id` with the persistent entity id.
    * Camera assignment is the user's decision and happens in the UI.
    *
@@ -186,8 +185,8 @@ export interface SensorManager {
 /**
  * Download manager interface for token-based file downloads.
  *
- * Allows plugins to register files for HTTP download via a token URL.
- * No JWT authentication is needed — the token itself is the auth.
+ * Plugins register a file and get back a token URL. No JWT is involved, the
+ * token itself is the auth.
  *
  * Accessed via `api.downloadManager` in plugins.
  *
@@ -198,7 +197,7 @@ export interface SensorManager {
  *   filename: 'recording.mp4',
  *   mimeType: 'video/mp4',
  *   ttlMs: 600000,
- *   deleteFileAfterDownload: true,
+ *   cleanup: 'on-download',
  * });
  * ```
  */
@@ -237,12 +236,12 @@ export interface CreateStreamDownloadOptions extends CreateDownloadOptions {
 }
 
 /**
- * When the file on disk gets deleted. Registry entry always expires at
- *  TTL — this only controls the file itself.
+ * When the file on disk gets deleted. The registry entry always expires at TTL,
+ * this only controls the file itself.
  *  - 'never' (default): file persists; caller manages it.
  *  - 'on-expiry': file deleted at TTL. Can be fetched N times during the
- *    window — correct mode for notification images that fan out to
- *    multiple devices/recipients.
+ *    window, the right mode for notification images that fan out to multiple
+ *    devices or recipients.
  *  - 'on-download': file deleted after first successful download OR on TTL,
  *    whichever first. One-shot mode for things like backup exports.
  */
@@ -250,18 +249,18 @@ export type DownloadCleanup = 'never' | 'on-expiry' | 'on-download';
 
 /** Options for creating a download. */
 export interface CreateDownloadOptions {
-  /** Absolute path to the file on disk */
+  /** Absolute path to the file on disk. */
   filePath: string;
-  /** Filename for Content-Disposition header (defaults to basename of filePath) */
+  /** Filename for Content-Disposition header (defaults to basename of filePath). */
   filename?: string;
-  /** MIME type for Content-Type header (defaults to application/octet-stream) */
+  /** MIME type for Content-Type header (defaults to application/octet-stream). */
   mimeType?: string;
-  /** Time-to-live in milliseconds (defaults to 10 minutes) */
+  /** Time-to-live in milliseconds (defaults to 10 minutes). */
   ttlMs?: number;
   /**
    * When the file on disk gets cleaned up. Defaults to 'never' (caller
-   *  manages lifecycle). Use 'on-expiry' for multi-recipient notification
-   *  images, 'on-download' for one-shot exports.
+   * manages lifecycle). Use 'on-expiry' for multi-recipient notification
+   * images, 'on-download' for one-shot exports.
    */
   cleanup?: DownloadCleanup;
 }
@@ -270,11 +269,10 @@ export interface CreateDownloadOptions {
  * Notification manager interface for publishing notifications into the host.
  *
  * Plugins call `publish` to ask the host to fan a Notification out to every
- * installed Notifier-plugin and the in-app
- * UI. The host applies user settings (master toggle, per-source toggle,
- * quiet hours) and the publishing plugin's declared capabilities; calls
- * from plugins without `PluginCapability.PublishNotifications` are silently
- * dropped.
+ * installed Notifier-plugin and the in-app UI. The host applies user settings
+ * (master toggle, per-source toggle, quiet hours) and the publishing plugin's
+ * declared capabilities; calls from plugins without
+ * `PluginCapability.PublishNotifications` are silently dropped.
  *
  * Accessed via `api.notificationManager` in plugins.
  *
@@ -296,32 +294,31 @@ export interface NotificationManager {
    *
    * @param notification - Notification payload to publish.
    *
-   * @returns Resolves once the publish was handed to the transport.
-   * Downstream delivery is async and failures there never
-   * propagate back here.
+   * @returns Resolves once the publish was handed to the transport. Downstream
+   * delivery is async and failures there never propagate back here.
    */
   publish(notification: Notification): Promise<void>;
 }
 
 /** Token returned after registering a download. */
 export interface DownloadToken {
-  /** Unique download token */
+  /** Unique download token. */
   token: string;
   /**
    * In-app, same-origin URL: `/api/download/<token>`. For callers already
-   *  authenticated against this server (UI, plugins via the proxy).
+   * authenticated against this server (UI, plugins via the proxy).
    */
   url: string;
   /**
    * Externally-reachable, session-less URL the server publishes for
-   *  out-of-band fetchers (push-notification image attachments, FCM /
-   *  APNs payloads, share recipients). Shape:
-   *  `<externalUrl>/api/download/<token>` — the token in the URL is the
-   *  auth. Empty string when the server has no external URL configured
-   *  (LAN-only deployments); fall back to `url` for in-app callers.
+   * out-of-band fetchers (push-notification image attachments, FCM / APNs
+   * payloads, share recipients). Shape: `<externalUrl>/api/download/<token>`,
+   * where the token is the auth. Empty string when the server has no external
+   * URL configured (LAN-only deployments); fall back to `url` for in-app
+   * callers.
    */
   publicUrl: string;
-  /** Unix timestamp (ms) when the token expires */
+  /** Unix timestamp (ms) when the token expires. */
   expiresAt: number;
 }
 
