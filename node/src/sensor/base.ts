@@ -155,6 +155,7 @@ export interface SensorLike {
   readonly capabilities: string[];
   readonly connected: boolean;
   readonly assignedCameraIds: readonly string[];
+  readonly assignmentLocked: boolean;
   readonly onPropertyChanged: Observable<{ property: string; value: unknown; timestamp: number }>;
   readonly onCapabilitiesChanged: Observable<string[]>;
   readonly onConnectedChanged: Observable<boolean>;
@@ -207,6 +208,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   private _id: string;
   private _nativeId?: string;
   private _assignedCameraIds: string[] = [];
+  private _assignmentLocked = false;
   private _pluginId?: string;
   private _propertiesStore: TProperties;
   private _registered = false;
@@ -250,20 +252,6 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     return this._displayName || this.name;
   }
 
-  /**
-   * Set the display name (the only mutable identifier on a sensor).
-   *
-   * @param value - Human-readable label shown in the UI.
-   *
-   * @example
-   * ```ts
-   * sensor.setDisplayName('Front Door Motion');
-   * ```
-   */
-  setDisplayName(value: string): void {
-    this._displayName = value;
-  }
-
   get isAssigned(): boolean {
     return this._assignedCameraIds.length > 0;
   }
@@ -274,6 +262,10 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
 
   get assignedCameraIds(): readonly string[] {
     return this._assignedCameraIds;
+  }
+
+  get assignmentLocked(): boolean {
+    return this._assignmentLocked;
   }
 
   get pluginId(): string | undefined {
@@ -300,6 +292,20 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     this._capabilities = [...new Set(value)];
     this._capabilitiesUpdateFn?.(this._capabilities);
     this.#capabilitiesChangedSubject.next(this._capabilities);
+  }
+
+  /**
+   * Set the display name (the only mutable identifier on a sensor).
+   *
+   * @param value - Human-readable label shown in the UI.
+   *
+   * @example
+   * ```ts
+   * sensor.setDisplayName('Front Door Motion');
+   * ```
+   */
+  setDisplayName(value: string): void {
+    this._displayName = value;
   }
 
   /**
@@ -422,6 +428,15 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   _setAssignedCameras(cameraIds: string[]): void {
     this._assignedCameraIds = [...cameraIds];
     this.#assignmentChangedSubject.next(this._assignedCameraIds);
+  }
+
+  /**
+   * Marks the assignment as locked to one camera (camera.addSensor registration).
+   *
+   * @internal
+   */
+  _setAssignmentLocked(): void {
+    this._assignmentLocked = true;
   }
 
   /**

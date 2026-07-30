@@ -146,6 +146,9 @@ class SensorLike(Protocol):
     def assignedCameraIds(self) -> list[str]: ...
 
     @property
+    def assignmentLocked(self) -> bool: ...
+
+    @property
     def displayName(self) -> str: ...
 
     @displayName.setter
@@ -250,6 +253,7 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         self._display_name = name
         self._plugin_id: str | None = None
         self._assigned_camera_ids: list[str] = []
+        self._assignment_locked = False
         self._capabilities: list[TCapability] = []
         self._property_changed_subject: Subject[SensorPropertyChangeData] = Subject()
         self._capabilities_changed_subject: Subject[list[TCapability]] = Subject()
@@ -301,6 +305,10 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
     @property
     def assignedCameraIds(self) -> list[str]:
         return self._assigned_camera_ids.copy()
+
+    @property
+    def assignmentLocked(self) -> bool:
+        return self._assignment_locked
 
     @property
     def connected(self) -> bool:
@@ -577,6 +585,9 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
     def _setAssignedCameras(self, camera_ids: list[str]) -> None:
         self._assigned_camera_ids = list(camera_ids)
         self._assignment_changed_subject.next(self._assigned_camera_ids.copy())
+
+    def _setAssignmentLocked(self) -> None:
+        self._assignment_locked = True
 
     def _setPluginId(self, plugin_id: str) -> None:
         self._plugin_id = plugin_id
