@@ -154,9 +154,11 @@ export interface SensorLike {
   readonly pluginId?: string;
   readonly capabilities: string[];
   readonly connected: boolean;
+  readonly assignedCameraIds: readonly string[];
   readonly onPropertyChanged: Observable<{ property: string; value: unknown; timestamp: number }>;
   readonly onCapabilitiesChanged: Observable<string[]>;
   readonly onConnectedChanged: Observable<boolean>;
+  readonly onAssignmentChanged: Observable<readonly string[]>;
 
   /** Get the current value of a sensor property. */
   getValue(property: string): unknown;

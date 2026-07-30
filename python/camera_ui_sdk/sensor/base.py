@@ -143,6 +143,9 @@ class SensorLike(Protocol):
     def connected(self) -> bool: ...
 
     @property
+    def assignedCameraIds(self) -> list[str]: ...
+
+    @property
     def displayName(self) -> str: ...
 
     @displayName.setter
@@ -156,6 +159,9 @@ class SensorLike(Protocol):
 
     @property
     def onConnectedChanged(self) -> Observable[bool]: ...
+
+    @property
+    def onAssignmentChanged(self) -> Observable[list[str]]: ...
 
     def getValue(self, property: str) -> Any | None:
         """Get the current value of a sensor property."""
