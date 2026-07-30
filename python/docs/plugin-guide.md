@@ -136,9 +136,16 @@ Things to internalize:
 - A `dict[str, X]` keyed by `camera.id` is the conventional pattern for per-camera state — cheap to look up, trivial to clean up.
 - `API_EVENT.SHUTDOWN` fires when the host tears the plugin down (reload, server stop). Listeners must release everything synchronously enough for the host to stop the process. There is also `API_EVENT.FINISH_LAUNCHING`, fired once after `configureCameras` returns — useful for kicking off background work that should wait until the camera set is stable.
 
-## 4. Adding sensors to cameras
+## 4. Sensors
 
-A sensor is the unit of state the host (and other plugins) sees on a camera. Detection sensors push results from analyzing video; control sensors expose user-toggleable hardware (lights, sirens, locks); event sensors fire one-shot triggers (doorbell).
+A sensor is the smallest smart-home unit in camera.ui. Detection sensors push results from analyzing video; control sensors expose user-toggleable hardware (lights, sirens, locks); event sensors fire one-shot triggers (doorbell).
+
+Every sensor is a persisted entity of its own. The plugin supplies the durable identity, everything else belongs to the user: camera assignments, display name and whether the sensor is exported to consumers. There are two ways to register one:
+
+- **`camera.addSensor(sensor)`** — the sensor belongs to this camera's hardware (spotlight, siren, battery, PTZ). The host locks the assignment to the camera; users cannot re-assign it.
+- **`api.sensorManager.addSensor(sensor)`** — standalone device (smart plug, hub, imported smart-home device). The user assigns it to zero or more cameras in the UI.
+
+Either way, pass a `native_id` (e.g. the upstream device id) in the constructor so the host can reconcile the sensor across restarts by `(pluginId, nativeId)`. Without it, identity falls back to `(type, name)` and a rename creates a new sensor.
 
 For detection, subclass the matching `*DetectorSensor` and implement the detect method. The host pushes one frame at the configured rate:
 
@@ -162,9 +169,29 @@ sensor = MyMotionSensor()
 await camera.addSensor(sensor)
 ```
 
-Other detector base classes follow the same shape. `ObjectDetectorSensor.detectObjects(frame)` takes a single frame; `FaceDetectorSensor.detectFaces(frames)`, `LicensePlateDetectorSensor.detectLicensePlates(frames)`, `ClassifierDetectorSensor.detectClassifications(frames)`, `ClipDetectorSensor.detectEmbeddings(frames)` all take a batch (`list[VideoFrameData]`); `AudioDetectorSensor.detectAudio(audio)` takes one `AudioFrameData`. The frame-based detectors also expose an abstract `modelSpec` property — return the input dimensions and (for classifier) the trigger labels. Smart-home sensors expose semantic methods instead — `LightControl` gives you `setOn()` / `setOff()` / `setBrightness(value)`, `ContactSensor` gives you `setDetected(value)`, `DoorbellTrigger` gives you `trigger()`. You construct them, call `camera.addSensor`, and then call those methods when your hardware reports a change.
+Other detector base classes follow the same shape. `ObjectDetectorSensor.detectObjects(frame)` takes a single frame; `FaceDetectorSensor.detectFaces(frames)`, `LicensePlateDetectorSensor.detectLicensePlates(frames)`, `ClassifierDetectorSensor.detectClassifications(frames)`, `ClipDetectorSensor.detectEmbeddings(frames)` all take a batch (`list[VideoFrameData]`); `AudioDetectorSensor.detectAudio(audio)` takes one `AudioFrameData`. The frame-based detectors also expose an abstract `modelSpec` property — return the input dimensions and (for classifier) the trigger labels. Smart-home sensors expose semantic methods instead — `LightControl` gives you `setOn()` / `setOff()` / `setBrightness(value)`, `ContactSensor` gives you `setDetected(value)`, `DoorbellTrigger` gives you `trigger()`. You construct them, register them, and then call those methods when your hardware reports a change.
 
-The host removes sensors automatically when a camera is released. Your `onCameraReleased` hook just needs to drop your reference to it.
+A standalone sensor works exactly the same, it just goes through the sensor manager instead of a camera:
+
+```python
+from camera_ui_sdk import LockControl
+
+lock = LockControl("Front Door", native_id="lock.front_door")
+await self.api.sensorManager.addSensor(lock)
+```
+
+Every sensor also has a lifecycle pair: `on_start()` runs once the sensor is registered and its storage is ready — start pollers, subscriptions, timers there. `on_stop()` is the counterpart and runs on removal, plugin shutdown and cleanup. Both may be plain `def` or `async def`:
+
+```python
+class PollingContact(ContactSensor):
+    def on_start(self) -> None:
+        self._task = asyncio.create_task(self._poll_loop())
+
+    def on_stop(self) -> None:
+        self._task.cancel()
+```
+
+`removeSensor` only unregisters the runtime instance — the persisted entity stays and shows as disconnected until the user deletes it in the UI. The host removes camera-bound sensors automatically when a camera is released; your `onCameraReleased` hook just needs to drop your reference.
 
 ## 5. Storage and configuration schema
 
@@ -491,11 +518,17 @@ async def onCameraAdded(self, camera: CameraDevice) -> None:
     camera.logger.log("attached")
 ```
 
-## 8. Inter-plugin communication
+## 8. Consuming sensors from other plugins
 
-The cleanest way for one plugin to react to another's sensors is `camera.onSensorProperty(sensor_type, property, callback)`. It auto-subscribes when a sensor of the requested type appears (now or later), unsubscribes when it goes away, and tears down everything when you dispose the returned handle. The callback receives `(value, timestamp_ms, sensor)`. This is the pattern Hub plugins (HomeKit, automations) use.
+Bridge plugins (HomeKit, MQTT, automations) don't look at cameras to find sensors — they receive a **consumable view**: every sensor whose type is listed in `contract["consumes"]` and that the user exported. The host delivers it through three optional `BasePlugin` hooks:
 
-A complete Hub consumer that listens to motion AND doorbell on every assigned camera:
+- `configureSensors(sensors)` — once at startup with the view known at that point.
+- `onSensorAdded(sensor)` — a sensor entered the view at runtime: it was created, became exposed, or its type became consumable.
+- `onSensorReleased(sensorId)` — a sensor permanently left the view: deleted or unexposed. Plugin connectivity does NOT fire this; watch `sensor.onConnectedChanged` for that.
+
+Each sensor arrives as a `SensorLike`: a read-only view with `type`, `displayName`, `connected`, `assignedCameraIds`, `assignmentLocked`, plus `getValue()` / `getValues()` and the observables `onPropertyChanged`, `onConnectedChanged`, `onAssignmentChanged`. Consumers decide rendering purely from that data — e.g. a light with `assignmentLocked` is camera hardware, an unassigned contact sensor is a standalone device.
+
+A complete Hub consumer that reacts to motion state and connectivity:
 
 ```python
 from typing import Any
@@ -512,29 +545,32 @@ class HubConsumer(BasePlugin):
         self.subs: dict[str, list[Disposable]] = {}
         self.api.on(API_EVENT.SHUTDOWN, self._dispose_all)
 
-    async def configureCameras(self, cameraDevices: list[CameraDevice]) -> None:
-        for camera in cameraDevices:
-            self._bind(camera)
+    async def configureCameras(self, cameraDevices: list[CameraDevice]) -> None: ...
+    async def onCameraAdded(self, camera: CameraDevice) -> None: ...
+    async def onCameraReleased(self, cameraId: str) -> None: ...
 
-    async def onCameraAdded(self, camera: CameraDevice) -> None:
-        self._bind(camera)
+    async def configureSensors(self, sensors: list[SensorLike]) -> None:
+        for sensor in sensors:
+            self._bind(sensor)
 
-    async def onCameraReleased(self, cameraId: str) -> None:
-        for sub in self.subs.pop(cameraId, []):
+    async def onSensorAdded(self, sensor: SensorLike) -> None:
+        self._bind(sensor)
+
+    async def onSensorReleased(self, sensorId: str) -> None:
+        for sub in self.subs.pop(sensorId, []):
             sub.dispose()
 
-    def _bind(self, camera: CameraDevice) -> None:
-        def on_motion(detected: Any, _ts: int, _sensor: SensorLike) -> None:
-            if detected:
-                camera.logger.log("motion started")
+    def _bind(self, sensor: SensorLike) -> None:
+        def on_property(event: dict[str, Any]) -> None:
+            if sensor.type == SensorType.Motion and event["property"] == "detected" and event["value"]:
+                self.logger.log(f"{sensor.displayName}: motion started")
 
-        def on_doorbell(ring: Any, _ts: int, _sensor: SensorLike) -> None:
-            if ring:
-                camera.logger.log("doorbell rang")
+        def on_connected(connected: bool) -> None:
+            self.logger.log(f"{sensor.displayName}: {'online' if connected else 'offline'}")
 
-        motion = camera.onSensorProperty(SensorType.Motion, "detected", on_motion)
-        doorbell = camera.onSensorProperty(SensorType.Doorbell, "ring", on_doorbell)
-        self.subs[camera.id] = [motion, doorbell]
+        props = sensor.onPropertyChanged.subscribe(on_property)
+        conn = sensor.onConnectedChanged.subscribe(on_connected)
+        self.subs[sensor.id] = [props, conn]
 
     def _dispose_all(self) -> None:
         for subs in self.subs.values():
@@ -545,8 +581,8 @@ class HubConsumer(BasePlugin):
 
 Two things to notice:
 
-- The bridge keeps one `list[Disposable]` per camera and disposes it in `onCameraReleased`. This is critical — `onSensorProperty` keeps an internal subscription alive until you call `.dispose()`.
-- The bind happens in both `configureCameras` AND `onCameraAdded` for cameras that show up after startup. Same shape as for sensor-providing plugins.
+- The bridge keeps one `list[Disposable]` per sensor and disposes it in `onSensorReleased`. `subscribe()` keeps the subscription alive until you call `.dispose()`.
+- The bind happens in both `configureSensors` AND `onSensorAdded` for sensors that show up after startup. Same shape as the camera lifecycle.
 
 For direct plugin-to-plugin RPC (e.g. asking a face plugin to compute embeddings on demand), use `api.coreManager.connectToPlugin(name)`. It returns a typed proxy of the target plugin including any optional interfaces it implements:
 
@@ -560,7 +596,7 @@ Use `await self.api.coreManager.getPluginsByInterface(PluginInterface.FaceDetect
 
 ## 9. Common pitfalls
 
-- **Always release per-camera state in `onCameraReleased`.** Timers, vendor sessions, RTP sockets, `Disposable`s from `onSensorProperty` — drop them all. Leaking them keeps the camera object alive forever and prevents reassignment from working.
+- **Always release per-camera state in `onCameraReleased`.** Timers, vendor sessions, RTP sockets, `Disposable`s from `subscribe()` — drop them all. Leaking them keeps the camera object alive forever and prevents reassignment from working.
 - **Don't block in `configureCameras`.** It runs on the host's startup path; a slow vendor handshake delays every other plugin. Do the network work in `API_EVENT.FINISH_LAUNCHING` instead.
 - **Don't import from `camera_ui_sdk.internal`.** The `internal` subpackage exposes types the host uses to talk to plugins via RPC. The shapes there are not part of the stable public surface and may change without notice.
 - **Don't construct sensors in `__init__`.** The host hasn't finished wiring up `api` / `storage` until `super().__init__()` returns and `configureCameras` is called. Construct sensors inside the lifecycle hooks.

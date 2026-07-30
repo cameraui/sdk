@@ -168,9 +168,9 @@ export abstract class BasePlugin<T extends Record<string, any> = Record<string, 
   /**
    * Called once on startup with every sensor this plugin may consume: sensors
    * whose type is listed in `contract.consumes` and that are exposed. Each
-   * sensor carries `type`, `assignedCameraIds`, `exposed` and `connected`, so
-   * consumers decide rendering purely from that data. Optional, only bridge
-   * plugins implement it.
+   * sensor carries `type`, `assignedCameraIds`, `assignmentLocked` and
+   * `connected`, so consumers decide rendering purely from that data.
+   * Optional, only bridge plugins implement it.
    *
    * @param sensors - Consumable sensors known at startup.
    */

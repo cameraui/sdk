@@ -120,9 +120,16 @@ Things to internalize:
 - A `Map<cameraId, X>` is the conventional pattern for per-camera state — cheap to look up, trivial to clean up.
 - `API_EVENT.SHUTDOWN` fires when the host tears the plugin down (reload, server stop). Listeners must release everything synchronously enough for the host to stop the process. There is also `API_EVENT.FINISH_LAUNCHING`, fired once after `configureCameras` returns — useful for kicking off background work that should wait until the camera set is stable.
 
-## 4. Adding sensors to cameras
+## 4. Sensors
 
-A sensor is the unit of state the host (and other plugins) sees on a camera. Detection sensors push results from analyzing video; control sensors expose user-toggleable hardware (lights, sirens, locks); event sensors fire one-shot triggers (doorbell).
+A sensor is the smallest smart-home unit in camera.ui. Detection sensors push results from analyzing video; control sensors expose user-toggleable hardware (lights, sirens, locks); event sensors fire one-shot triggers (doorbell).
+
+Every sensor is a persisted entity of its own. The plugin supplies the durable identity, everything else belongs to the user: camera assignments, display name and whether the sensor is exported to consumers. There are two ways to register one:
+
+- **`camera.addSensor(sensor)`** — the sensor belongs to this camera's hardware (spotlight, siren, battery, PTZ). The host locks the assignment to the camera; users cannot re-assign it.
+- **`api.sensorManager.addSensor(sensor)`** — standalone device (smart plug, hub, imported smart-home device). The user assigns it to zero or more cameras in the UI.
+
+Either way, pass a `nativeId` (e.g. the upstream device id) in the constructor options so the host can reconcile the sensor across restarts by `(pluginId, nativeId)`. Without it, identity falls back to `(type, name)` and a rename creates a new sensor.
 
 For detection, subclass the matching `*DetectorSensor` and implement the detect method. The host pushes one frame at the configured rate:
 
@@ -149,9 +156,34 @@ const sensor = new MyMotionSensor();
 await camera.addSensor(sensor);
 ```
 
-Other detector base classes follow the same shape but expect a batch (`frames: VideoFrameData[]`) and an abstract `modelSpec` getter: `ObjectDetectorSensor` (`detectObjects(frame)` — singular here), `FaceDetectorSensor.detectFaces(frames)`, `LicensePlateDetectorSensor.detectLicensePlates(frames)`, `AudioDetectorSensor.detectAudio(audio)`, `ClassifierDetectorSensor.detectClassifications(frames)`, `ClipDetectorSensor.detectEmbeddings(frames)`. Smart-home sensors expose semantic methods instead — e.g. `LightControl` gives you `setOn()` / `setOff()` / `setBrightness(value)`, `ContactSensor` gives you `setDetected(value)`, `DoorbellTrigger` gives you `trigger()`. You construct them, call `camera.addSensor`, and then call those methods when your hardware reports a change.
+Other detector base classes follow the same shape but expect a batch (`frames: VideoFrameData[]`) and an abstract `modelSpec` getter: `ObjectDetectorSensor` (`detectObjects(frame)` — singular here), `FaceDetectorSensor.detectFaces(frames)`, `LicensePlateDetectorSensor.detectLicensePlates(frames)`, `AudioDetectorSensor.detectAudio(audio)`, `ClassifierDetectorSensor.detectClassifications(frames)`, `ClipDetectorSensor.detectEmbeddings(frames)`. Smart-home sensors expose semantic methods instead — e.g. `LightControl` gives you `setOn()` / `setOff()` / `setBrightness(value)`, `ContactSensor` gives you `setDetected(value)`, `DoorbellTrigger` gives you `trigger()`. You construct them, register them, and then call those methods when your hardware reports a change.
 
-The host removes sensors automatically when a camera is released. Your `onCameraReleased` hook just needs to drop your reference to it.
+A standalone sensor works exactly the same, it just goes through the sensor manager instead of a camera:
+
+```ts
+import { LockControl } from '@camera.ui/sdk';
+
+const lock = new LockControl('Front Door', { nativeId: 'lock.front_door' });
+await api.sensorManager.addSensor(lock);
+```
+
+Every sensor also has a lifecycle pair: `onStart()` runs once the sensor is registered and its storage is ready — start pollers, subscriptions, timers there. `onStop()` is the counterpart and runs on removal, plugin shutdown and cleanup:
+
+```ts
+class PollingContact extends ContactSensor {
+  private timer?: NodeJS.Timeout;
+
+  protected override onStart(): void {
+    this.timer = setInterval(() => this.poll(), 10_000);
+  }
+
+  protected override onStop(): void {
+    clearInterval(this.timer);
+  }
+}
+```
+
+`removeSensor` only unregisters the runtime instance — the persisted entity stays and shows as disconnected until the user deletes it in the UI. The host removes camera-bound sensors automatically when a camera is released; your `onCameraReleased` hook just needs to drop your reference.
 
 ## 5. Storage and configuration schema
 
@@ -453,16 +485,22 @@ async onCameraAdded(camera: CameraDevice): Promise<void> {
 }
 ```
 
-## 8. Inter-plugin communication
+## 8. Consuming sensors from other plugins
 
-The cleanest way for one plugin to react to another's sensors is `camera.onSensorProperty<T>(type, property, callback)`. It auto-subscribes when a sensor of the requested type appears (now or later), unsubscribes when it goes away, and tears down everything when you dispose the returned handle. The callback receives `(value, timestamp, sensor)`. This is the pattern Hub plugins (HomeKit, automations) use.
+Bridge plugins (HomeKit, MQTT, automations) don't look at cameras to find sensors — they receive a **consumable view**: every sensor whose type is listed in `contract.consumes` and that the user exported. The host delivers it through three optional `BasePlugin` hooks:
 
-A complete Hub consumer that listens to motion AND doorbell on every assigned camera:
+- `configureSensors(sensors)` — once at startup with the view known at that point.
+- `onSensorAdded(sensor)` — a sensor entered the view at runtime: it was created, became exposed, or its type became consumable.
+- `onSensorReleased(sensorId)` — a sensor permanently left the view: deleted or unexposed. Plugin connectivity does NOT fire this; watch `sensor.onConnectedChanged` for that.
+
+Each sensor arrives as a `SensorLike`: a read-only view with `type`, `displayName`, `connected`, `assignedCameraIds`, `assignmentLocked`, plus `getValue()` / `getValues()` and the observables `onPropertyChanged`, `onConnectedChanged`, `onAssignmentChanged`. Consumers decide rendering purely from that data — e.g. a light with `assignmentLocked` is camera hardware, an unassigned contact sensor is a standalone device.
+
+A complete Hub consumer that reacts to motion and doorbell state:
 
 ```ts
-import { API_EVENT, BasePlugin, DoorbellProperty, MotionProperty, SensorType } from '@camera.ui/sdk';
+import { API_EVENT, BasePlugin, MotionProperty, SensorType } from '@camera.ui/sdk';
 import type {
-  CameraDevice, DeviceStorage, Disposable, LoggerService, PluginAPI,
+  CameraDevice, DeviceStorage, Disposable, LoggerService, PluginAPI, SensorLike,
 } from '@camera.ui/sdk';
 
 export default class HubConsumer extends BasePlugin {
@@ -473,31 +511,35 @@ export default class HubConsumer extends BasePlugin {
     this.api.on(API_EVENT.SHUTDOWN, () => this.disposeAll());
   }
 
-  async configureCameras(cameras: CameraDevice[]): Promise<void> {
-    for (const camera of cameras) this.bind(camera);
+  async configureCameras(_cameras: CameraDevice[]): Promise<void> {}
+  async onCameraAdded(_camera: CameraDevice): Promise<void> {}
+  async onCameraReleased(_cameraId: string): Promise<void> {}
+
+  async configureSensors(sensors: SensorLike[]): Promise<void> {
+    for (const sensor of sensors) this.bind(sensor);
   }
 
-  async onCameraAdded(camera: CameraDevice): Promise<void> {
-    this.bind(camera);
+  async onSensorAdded(sensor: SensorLike): Promise<void> {
+    this.bind(sensor);
   }
 
-  async onCameraReleased(cameraId: string): Promise<void> {
-    for (const sub of this.subs.get(cameraId) ?? []) sub.dispose();
-    this.subs.delete(cameraId);
+  async onSensorReleased(sensorId: string): Promise<void> {
+    for (const sub of this.subs.get(sensorId) ?? []) sub.dispose();
+    this.subs.delete(sensorId);
   }
 
-  private bind(camera: CameraDevice): void {
-    const motion = camera.onSensorProperty<boolean>(
-      SensorType.Motion, MotionProperty.Detected,
-      (detected) => { if (detected) camera.logger.log('motion started'); },
-    );
+  private bind(sensor: SensorLike): void {
+    const props = sensor.onPropertyChanged.subscribe(({ property, value }) => {
+      if (sensor.type === SensorType.Motion && property === MotionProperty.Detected && value) {
+        this.logger.log(`${sensor.displayName}: motion started`);
+      }
+    });
 
-    const doorbell = camera.onSensorProperty<boolean>(
-      SensorType.Doorbell, DoorbellProperty.Ring,
-      (ring) => { if (ring) camera.logger.log('doorbell rang'); },
-    );
+    const conn = sensor.onConnectedChanged.subscribe((connected) => {
+      this.logger.log(`${sensor.displayName}: ${connected ? 'online' : 'offline'}`);
+    });
 
-    this.subs.set(camera.id, [motion, doorbell]);
+    this.subs.set(sensor.id, [props, conn]);
   }
 
   private disposeAll(): void {
@@ -509,8 +551,8 @@ export default class HubConsumer extends BasePlugin {
 
 Two things to notice:
 
-- The bridge keeps one `Disposable[]` per camera and disposes it in `onCameraReleased`. This is critical — `onSensorProperty` keeps an internal subscription alive until you call `.dispose()`.
-- The bind happens in both `configureCameras` AND `onCameraAdded` for cameras that show up after startup. Same shape as for sensor-providing plugins.
+- The bridge keeps one `Disposable[]` per sensor and disposes it in `onSensorReleased`. `subscribe()` keeps the subscription alive until you call `.dispose()`.
+- The bind happens in both `configureSensors` AND `onSensorAdded` for sensors that show up after startup. Same shape as the camera lifecycle.
 
 For direct plugin-to-plugin RPC (e.g. asking a face plugin to compute embeddings on demand), use `api.coreManager.connectToPlugin(name)`. It returns a typed proxy of the target plugin including any optional interfaces it implements:
 
