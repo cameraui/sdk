@@ -403,6 +403,18 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         """
         return None
 
+    def on_assigned(self) -> Any:
+        """Deprecated: renamed to ``on_start``. Stub window: still fired
+        alongside ``on_start``, remove in the first minor after the
+        standalone-sensors release."""
+        return None
+
+    def on_deassigned(self) -> Any:
+        """Deprecated: renamed to ``on_stop``. Stub window: still fired
+        alongside ``on_stop``, remove in the first minor after the
+        standalone-sensors release."""
+        return None
+
     def toJSON(self) -> SensorJSON:
         """Serialize this sensor to a JSON-safe dict for RPC transport."""
         result: SensorJSON = {
@@ -533,21 +545,23 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         self._storage = storage
 
     def _fire_lifecycle(self, active: bool) -> None:
-        """Invoke the lifecycle hook and schedule it if the override is async."""
-        try:
-            result = self.on_start() if active else self.on_stop()
-        except Exception:  # noqa: BLE001 - lifecycle errors must not break bookkeeping
-            return
-        if asyncio.iscoroutine(result):
+        """Invoke the lifecycle hooks and schedule them if an override is async."""
+        hooks = (self.on_start, self.on_assigned) if active else (self.on_stop, self.on_deassigned)
+        for hook in hooks:
             try:
-                loop = asyncio.get_running_loop()
-            except RuntimeError:
-                # no loop, close so the coroutine isn't logged as "never awaited"
-                result.close()
-                return
-            task = loop.create_task(result)
-            # swallow, otherwise "Task exception was never retrieved" warnings
-            task.add_done_callback(lambda t: t.exception() if not t.cancelled() else None)
+                result = hook()
+            except Exception:  # noqa: BLE001 - lifecycle errors must not break bookkeeping
+                continue
+            if asyncio.iscoroutine(result):
+                try:
+                    loop = asyncio.get_running_loop()
+                except RuntimeError:
+                    # no loop, close so the coroutine isn't logged as "never awaited"
+                    result.close()
+                    continue
+                task = loop.create_task(result)
+                # swallow, otherwise "Task exception was never retrieved" warnings
+                task.add_done_callback(lambda t: t.exception() if not t.cancelled() else None)
 
     def _setActive(self, active: bool) -> None:
         if self._active == active:

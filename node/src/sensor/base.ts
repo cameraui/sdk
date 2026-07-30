@@ -475,16 +475,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     if (this._active === active) return;
     this._active = active;
     this.#connectedChangedSubject.next(active);
-    try {
-      const result = active ? this.onStart() : this.onStop();
-      if (result && typeof result.catch === 'function') {
-        result.catch(() => {
-          // swallow, lifecycle errors must not break bookkeeping
-        });
-      }
-    } catch {
-      // swallow, same reason
-    }
+    this.#runLifecycle(active);
   }
 
   /**
@@ -505,14 +496,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     // pair onStop even when the sensor is force-removed without teardown
     if (this._active) {
       this._active = false;
-      try {
-        const result = this.onStop();
-        if (result && typeof result.catch === 'function') {
-          result.catch(() => {});
-        }
-      } catch {
-        // swallow
-      }
+      this.#runLifecycle(false);
     }
 
     this._updateFn = undefined;
@@ -625,6 +609,52 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
    * ```
    */
   protected onStop(): void | Promise<void> {}
+
+  /**
+   * @deprecated Renamed to `onStart`. Stub window: still fired alongside
+   * `onStart`, remove in the first minor after the standalone-sensors release.
+   *
+   * @example
+   * ```ts
+   * // before
+   * protected override onAssigned(): void { this.startPolling(); }
+   * // after
+   * protected override onStart(): void { this.startPolling(); }
+   * ```
+   */
+  protected onAssigned(): void | Promise<void> {}
+
+  /**
+   * @deprecated Renamed to `onStop`. Stub window: still fired alongside
+   * `onStop`, remove in the first minor after the standalone-sensors release.
+   *
+   * @example
+   * ```ts
+   * // before
+   * protected override onDeassigned(): void { this.stopPolling(); }
+   * // after
+   * protected override onStop(): void { this.stopPolling(); }
+   * ```
+   */
+  protected onDeassigned(): void | Promise<void> {}
+
+  #runLifecycle(start: boolean): void {
+    const hooks = start
+      ? [(): void | Promise<void> => this.onStart(), (): void | Promise<void> => this.onAssigned()]
+      : [(): void | Promise<void> => this.onStop(), (): void | Promise<void> => this.onDeassigned()];
+    for (const hook of hooks) {
+      try {
+        const result = hook();
+        if (result && typeof result.catch === 'function') {
+          result.catch(() => {
+            // swallow, lifecycle errors must not break bookkeeping
+          });
+        }
+      } catch {
+        // swallow, same reason
+      }
+    }
+  }
 
   private _notifyListeners(property: SensorPropertyType, value: unknown, timestamp?: number): void {
     // skip constructor-time writes, listeners only matter once registered
