@@ -341,6 +341,11 @@ class CameraDevice(Protocol):
         siren, PTZ, battery, ...). The host assigns it to this camera and
         reconciles it across restarts like a standalone sensor.
 
+        Registering here declares "this sensor belongs to this camera and no
+        other": the assignment is locked, users cannot re-assign it. For
+        sensors the user should assign freely, register via
+        ``sensorManager.addSensor()`` instead.
+
         Args:
             sensor: Sensor instance to register.
         """
