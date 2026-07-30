@@ -217,9 +217,9 @@ class BasePlugin(ABC, Generic[StorageT]):
     async def configureSensors(self, sensors: list[SensorLike]) -> None:
         """Called once on startup with every sensor this plugin may consume:
         sensors whose type is listed in ``contract.consumes`` and that are
-        exposed. Each sensor carries ``type``, ``assignedCameraIds``,
-        ``exposed`` and ``connected``, so consumers decide rendering purely
-        from that data. Optional, only bridge plugins override it.
+        exposed. Each sensor carries ``type``, ``assignedCameraIds`` and
+        ``connected``, so consumers decide rendering purely from that data.
+        Optional, only bridge plugins override it.
 
         Args:
             sensors: Consumable sensors known at startup.
