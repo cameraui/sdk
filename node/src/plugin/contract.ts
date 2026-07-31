@@ -1,6 +1,16 @@
 import type { SensorType } from '../sensor/base.js';
 
 /**
+ * Compatibility level of the plugin surface: the plugin-facing API and the
+ * plugin wire protocol. Bumped only on breaking changes, never for additive
+ * features. The CLI stamps the level a plugin was built against into its
+ * bundle (`cameraui.protocolLevel` in the bundle package.json); the server
+ * compares that stamp with its own level and refuses to start plugins
+ * outside its supported range.
+ */
+export const PROTOCOL_LEVEL = 1;
+
+/**
  * Python interpreter major.minor version a Python plugin requires. The host
  * ensures a matching interpreter exists in its venv pool before launching the
  * plugin; Node and Go plugins ignore this field.

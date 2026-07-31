@@ -1,7 +1,15 @@
 from __future__ import annotations
 
 from .api import API_EVENT, APIListener, PluginAPI
-from .contract import PluginCapability, PluginContract, PluginInfo, PluginInterface, PluginRole, PythonVersion
+from .contract import (
+    PROTOCOL_LEVEL,
+    PluginCapability,
+    PluginContract,
+    PluginInfo,
+    PluginInterface,
+    PluginRole,
+    PythonVersion,
+)
 from .helper import (
     can_create_cameras,
     can_provide_sensors_to_any_cameras,
@@ -52,6 +60,7 @@ from .oauth import (
 )
 
 __all__ = [
+    "PROTOCOL_LEVEL",
     "PythonVersion",
     "PluginInfo",
     "APIListener",

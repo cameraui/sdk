@@ -98,6 +98,7 @@ from .observable import (
 )
 from .plugin import (
     API_EVENT,
+    PROTOCOL_LEVEL,
     APIListener,
     AudioDetectionInterface,
     AudioDetectionPluginResponse,
@@ -288,6 +289,7 @@ __all__ = [
     "VideoFFmpegCodec",
     "RTSPAudioCodec",
     "ProbeAudioCodec",
+    "PROTOCOL_LEVEL",
     "PythonVersion",
     "PluginInfo",
     "VideoStreamingMode",

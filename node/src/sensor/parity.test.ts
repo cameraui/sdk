@@ -3,6 +3,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
+import { PROTOCOL_LEVEL } from '../plugin/contract.js';
 import { SensorType } from './base.js';
 import { OBJECT_DETECTION_LABELS } from './detection.js';
 import { SENSOR_META } from './registry.js';
@@ -18,7 +19,7 @@ function values(source: string, pattern: RegExp): Set<string> {
   return new Set([...source.matchAll(pattern)].map((match) => match[1]));
 }
 
-describe('cross-SDK sensor parity', () => {
+describe('cross-SDK parity', () => {
   const nodeTypes = new Set<string>(Object.values(SensorType));
   const nodeAssignmentKeys = new Set<string>([...SENSOR_META.map((meta) => meta.assignmentKey), 'cameraController', 'hub']);
 
@@ -44,6 +45,14 @@ describe('cross-SDK sensor parity', () => {
 
     expect([...python].sort()).toEqual([...nodeAssignmentKeys].sort());
     expect([...go].sort()).toEqual([...nodeAssignmentKeys].sort());
+  });
+
+  it('PROTOCOL_LEVEL matches across node, python and go', () => {
+    const python = Number((/^PROTOCOL_LEVEL = (\d+)$/m.exec(read('python/camera_ui_sdk/plugin/contract.py')))?.[1]);
+    const go = Number((/^const ProtocolLevel = (\d+)$/m.exec(read('go/plugin_contract.go')))?.[1]);
+
+    expect(python).toBe(PROTOCOL_LEVEL);
+    expect(go).toBe(PROTOCOL_LEVEL);
   });
 
   it('go contract-validation sensor list covers every SensorType', () => {
