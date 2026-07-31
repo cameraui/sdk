@@ -48,8 +48,8 @@ describe('cross-SDK parity', () => {
   });
 
   it('PROTOCOL_LEVEL matches across node, python and go', () => {
-    const python = Number((/^PROTOCOL_LEVEL = (\d+)$/m.exec(read('python/camera_ui_sdk/plugin/contract.py')))?.[1]);
-    const go = Number((/^const ProtocolLevel = (\d+)$/m.exec(read('go/plugin_contract.go')))?.[1]);
+    const python = Number(/^PROTOCOL_LEVEL = (\d+)$/m.exec(read('python/camera_ui_sdk/plugin/contract.py'))?.[1]);
+    const go = Number(/^const ProtocolLevel = (\d+)$/m.exec(read('go/plugin_contract.go'))?.[1]);
 
     expect(python).toBe(PROTOCOL_LEVEL);
     expect(go).toBe(PROTOCOL_LEVEL);
