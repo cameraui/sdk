@@ -21,6 +21,8 @@ export interface CameraFrameWorkerSettings {
   hqSnapshots?: boolean;
   /** Decoder hardware selection. Applies on the machine that decodes this camera (master or assigned worker); an unusable selection falls back to auto. */
   decoder?: FrameWorkerDecoderSettings;
+  /** Decoder hardware selection used instead of `decoder` while this camera decodes on its assigned worker. Falls back to `decoder` when omitted. */
+  workerDecoder?: FrameWorkerDecoderSettings;
 }
 
 /** Snapshot settings for a camera. */

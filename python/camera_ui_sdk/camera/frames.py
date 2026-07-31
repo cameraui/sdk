@@ -38,6 +38,8 @@ class CameraFrameWorkerSettings(TypedDict):
     """Capture event thumbnails from the highest-resolution source."""
     decoder: NotRequired[FrameWorkerDecoderSettings]
     """Decoder hardware selection. Applies on the machine that decodes this camera (master or assigned worker); an unusable selection falls back to auto."""
+    workerDecoder: NotRequired[FrameWorkerDecoderSettings]
+    """Decoder hardware selection used instead of `decoder` while this camera decodes on its assigned worker. Falls back to `decoder` when omitted."""
 
 
 class SnapshotSettings(TypedDict):
