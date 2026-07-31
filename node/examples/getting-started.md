@@ -74,6 +74,8 @@ Examples:
   provides: [], consumes: [SensorType.Motion, SensorType.Doorbell], interfaces: [] }
 ```
 
+The SDK also carries a plugin protocol level (`PROTOCOL_LEVEL`). The CLI stamps the level your plugin was built against into the bundle, and the server refuses to start a plugin whose level it does not support, telling the user whether the plugin or the server needs an update. You never set it yourself: rebuilding against the current SDK is all it takes.
+
 ## 3. The plugin class
 
 `BasePlugin<TStorage>` is generic over your storage shape so `this.storage.values.X` is typed. Its constructor takes the three host-injected dependencies in order: `logger`, `api`, `storage`.

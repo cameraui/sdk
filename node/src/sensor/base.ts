@@ -610,49 +610,16 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
    */
   protected onStop(): void | Promise<void> {}
 
-  /**
-   * @deprecated Renamed to `onStart`. Stub window: still fired alongside
-   * `onStart`, remove in the first minor after the standalone-sensors release.
-   *
-   * @example
-   * ```ts
-   * // before
-   * protected override onAssigned(): void { this.startPolling(); }
-   * // after
-   * protected override onStart(): void { this.startPolling(); }
-   * ```
-   */
-  protected onAssigned(): void | Promise<void> {}
-
-  /**
-   * @deprecated Renamed to `onStop`. Stub window: still fired alongside
-   * `onStop`, remove in the first minor after the standalone-sensors release.
-   *
-   * @example
-   * ```ts
-   * // before
-   * protected override onDeassigned(): void { this.stopPolling(); }
-   * // after
-   * protected override onStop(): void { this.stopPolling(); }
-   * ```
-   */
-  protected onDeassigned(): void | Promise<void> {}
-
   #runLifecycle(start: boolean): void {
-    const hooks = start
-      ? [(): void | Promise<void> => this.onStart(), (): void | Promise<void> => this.onAssigned()]
-      : [(): void | Promise<void> => this.onStop(), (): void | Promise<void> => this.onDeassigned()];
-    for (const hook of hooks) {
-      try {
-        const result = hook();
-        if (result && typeof result.catch === 'function') {
-          result.catch(() => {
-            // swallow, lifecycle errors must not break bookkeeping
-          });
-        }
-      } catch {
-        // swallow, same reason
+    try {
+      const result = start ? this.onStart() : this.onStop();
+      if (result && typeof result.catch === 'function') {
+        result.catch(() => {
+          // swallow, lifecycle errors must not break bookkeeping
+        });
       }
+    } catch {
+      // swallow, same reason
     }
   }
 
