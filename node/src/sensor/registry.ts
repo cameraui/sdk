@@ -1,12 +1,18 @@
 import { audioMeta } from './audio.js';
 import { batteryMeta } from './battery.js';
+import { carbonDioxideMeta } from './carbonDioxide.js';
+import { carbonMonoxideMeta } from './carbonMonoxide.js';
 import { classifierMeta } from './classifier.js';
 import { clipMeta } from './clip.js';
+import { coldMeta } from './cold.js';
 import { contactMeta } from './contact.js';
 import { doorbellMeta } from './doorbell.js';
 import { faceMeta } from './face.js';
 import { garageMeta } from './garage.js';
+import { gasMeta } from './gas.js';
+import { heatMeta } from './heat.js';
 import { humidityMeta } from './humidity.js';
+import { illuminanceMeta } from './illuminance.js';
 import { leakMeta } from './leak.js';
 import { licensePlateMeta } from './licensePlate.js';
 import { lightMeta } from './light.js';
@@ -15,12 +21,16 @@ import { motionMeta } from './motion.js';
 import { objectMeta } from './object.js';
 import { objectAssistMeta } from './objectAssist.js';
 import { occupancyMeta } from './occupancy.js';
+import { powerMeta } from './power.js';
+import { problemMeta } from './problem.js';
 import { ptzMeta } from './ptz.js';
 import { securitySystemMeta } from './securitySystem.js';
 import { sirenMeta } from './siren.js';
 import { smokeMeta } from './smoke.js';
 import { switchMeta } from './switch.js';
+import { tamperMeta } from './tamper.js';
 import { temperatureMeta } from './temperature.js';
+import { vibrationMeta } from './vibration.js';
 
 import type { SensorType } from './base.js';
 import type { SensorMeta } from './meta.js';
@@ -29,13 +39,19 @@ import type { SensorMeta } from './meta.js';
 export const SENSOR_META = [
   audioMeta,
   batteryMeta,
+  carbonDioxideMeta,
+  carbonMonoxideMeta,
   classifierMeta,
   clipMeta,
+  coldMeta,
   contactMeta,
   doorbellMeta,
   faceMeta,
   garageMeta,
+  gasMeta,
+  heatMeta,
   humidityMeta,
+  illuminanceMeta,
   leakMeta,
   licensePlateMeta,
   lightMeta,
@@ -44,12 +60,16 @@ export const SENSOR_META = [
   objectMeta,
   objectAssistMeta,
   occupancyMeta,
+  powerMeta,
+  problemMeta,
   ptzMeta,
   securitySystemMeta,
   sirenMeta,
   smokeMeta,
   switchMeta,
+  tamperMeta,
   temperatureMeta,
+  vibrationMeta,
 ] as const satisfies readonly SensorMeta[];
 
 /** Union of every declared assignment key, derived from the registry. */

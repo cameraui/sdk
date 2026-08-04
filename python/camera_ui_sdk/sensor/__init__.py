@@ -21,6 +21,12 @@ from .battery import (
     BatteryInfo,
     ChargingState,
 )
+from .carbon_dioxide import (
+    CarbonDioxideInfo,
+)
+from .carbon_monoxide import (
+    CarbonMonoxideSensor,
+)
 from .classifier import (
     ClassifierDetection,
     ClassifierDetectorSensor,
@@ -31,6 +37,9 @@ from .clip import (
     ClipDetectorSensor,
     ClipEmbedding,
     ClipResult,
+)
+from .cold import (
+    ColdSensor,
 )
 from .contact import (
     ContactSensor,
@@ -59,8 +68,17 @@ from .garage import (
     GarageControl,
     GarageState,
 )
+from .gas import (
+    GasSensor,
+)
+from .heat import (
+    HeatSensor,
+)
 from .humidity import (
     HumidityInfo,
+)
+from .illuminance import (
+    IlluminanceInfo,
 )
 from .leak import (
     LeakSensor,
@@ -93,6 +111,12 @@ from .object import (
 from .occupancy import (
     OccupancySensor,
 )
+from .power import (
+    PowerSensor,
+)
+from .problem import (
+    ProblemSensor,
+)
 from .ptz import (
     PTZCapability,
     PTZControl,
@@ -121,8 +145,14 @@ from .spec import (
 from .switch import (
     SwitchControl,
 )
+from .tamper import (
+    TamperSensor,
+)
 from .temperature import (
     TemperatureInfo,
+)
+from .vibration import (
+    VibrationSensor,
 )
 
 if TYPE_CHECKING:
@@ -188,6 +218,16 @@ __all__ = [
     "OccupancySensor",
     "SmokeSensor",
     "LeakSensor",
+    "GasSensor",
+    "CarbonMonoxideSensor",
+    "HeatSensor",
+    "ColdSensor",
+    "VibrationSensor",
+    "TamperSensor",
+    "ProblemSensor",
+    "PowerSensor",
+    "IlluminanceInfo",
+    "CarbonDioxideInfo",
     "LightControl",
     "SecuritySystem",
     "SirenControl",

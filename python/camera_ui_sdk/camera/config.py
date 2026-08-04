@@ -179,12 +179,32 @@ class PluginAssignments(TypedDict, total=False):
     """Smoke sensor plugins."""
     leak: list[AssignedPlugin]
     """Leak sensor plugins."""
+    gas: list[AssignedPlugin]
+    """Gas sensor plugins."""
+    carbonMonoxide: list[AssignedPlugin]
+    """Carbon monoxide sensor plugins."""
+    heat: list[AssignedPlugin]
+    """Heat sensor plugins."""
+    cold: list[AssignedPlugin]
+    """Cold sensor plugins."""
+    vibration: list[AssignedPlugin]
+    """Vibration sensor plugins."""
+    tamper: list[AssignedPlugin]
+    """Tamper sensor plugins."""
+    problem: list[AssignedPlugin]
+    """Problem sensor plugins."""
+    power: list[AssignedPlugin]
+    """Power sensor plugins."""
     doorbell: list[AssignedPlugin]
     """Doorbell trigger plugins."""
     temperature: list[AssignedPlugin]
     """Temperature info plugins."""
     humidity: list[AssignedPlugin]
     """Humidity info plugins."""
+    illuminance: list[AssignedPlugin]
+    """Illuminance info plugins."""
+    carbonDioxide: list[AssignedPlugin]
+    """Carbon dioxide info plugins."""
     classifier: list[AssignedPlugin]
     """Image classifier plugins."""
     hub: list[AssignedPlugin]

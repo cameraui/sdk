@@ -91,6 +91,26 @@ export enum SensorType {
   Smoke = 'smoke',
   /** Water leak detector. */
   Leak = 'leak',
+  /** Gas detector. */
+  Gas = 'gas',
+  /** Carbon monoxide detector. */
+  CarbonMonoxide = 'carbonMonoxide',
+  /** Heat alarm. */
+  Heat = 'heat',
+  /** Cold alarm. */
+  Cold = 'cold',
+  /** Vibration sensor. */
+  Vibration = 'vibration',
+  /** Tamper sensor. */
+  Tamper = 'tamper',
+  /** Generic problem/fault sensor. */
+  Problem = 'problem',
+  /** Power detection sensor. */
+  Power = 'power',
+  /** Illuminance sensor (lx). */
+  Illuminance = 'illuminance',
+  /** Carbon dioxide sensor (ppm). */
+  CarbonDioxide = 'carbonDioxide',
 
   // controls: writable sensors the user can toggle from the UI
   /** Light on/off and brightness control. */
