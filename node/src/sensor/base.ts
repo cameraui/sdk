@@ -227,6 +227,9 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
 
   private _id: string;
   private _nativeId?: string;
+  private _origin?: string;
+  private _initialExposed?: boolean;
+  private _initialHidden?: boolean;
   private _assignedCameraIds: string[] = [];
   private _assignmentLocked = false;
   private _pluginId?: string;
@@ -257,6 +260,9 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     this._id = crypto.randomUUID();
     this.name = name;
     this._nativeId = options?.nativeId;
+    this._origin = options?.origin;
+    this._initialExposed = options?.exposed;
+    this._initialHidden = options?.hidden;
     this._propertiesStore = {} as TProperties;
   }
 
@@ -266,6 +272,10 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
 
   get nativeId(): string | undefined {
     return this._nativeId;
+  }
+
+  get origin(): string | undefined {
+    return this._origin;
   }
 
   get displayName(): string {
@@ -392,6 +402,9 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
       displayName: this.displayName,
       category: this.category,
       nativeId: this.nativeId,
+      origin: this._origin,
+      exposed: this._initialExposed,
+      hidden: this._initialHidden,
       pluginId: this.pluginId,
       properties: this._getProperties() as Record<string, unknown>,
       capabilities: this._capabilities,
@@ -662,4 +675,21 @@ export interface SensorOptions {
    * new sensor.
    */
   nativeId?: string;
+  /**
+   * Source system the sensor was imported from, e.g. `'homeassistant'`. The
+   * host stores it on the sensor entity, and export bridges targeting that
+   * system skip the sensor so an import can never be exported back to where
+   * it came from.
+   */
+  origin?: string;
+  /**
+   * Initial export state when the host creates the sensor entity. Later
+   * user changes win; re-registering never overwrites them.
+   */
+  exposed?: boolean;
+  /**
+   * Initial hidden state when the host creates the sensor entity. Later
+   * user changes win; re-registering never overwrites them.
+   */
+  hidden?: boolean;
 }

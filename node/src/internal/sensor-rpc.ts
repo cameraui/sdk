@@ -53,6 +53,12 @@ export interface SensorJSON {
   capabilities?: string[];
   /** Sensor needs a frame feed to work. */
   requiresFrames?: boolean;
+  /** Source system the sensor was imported from, e.g. `'homeassistant'`. */
+  origin?: string;
+  /** Initial export state on first creation; the user's later choice wins. */
+  exposed?: boolean;
+  /** Initial hidden state on first creation; the user's later choice wins. */
+  hidden?: boolean;
   /** Model the sensor runs, for ML-backed sensors. */
   modelSpec?: ModelSpec;
 }

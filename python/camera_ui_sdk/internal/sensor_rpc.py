@@ -91,6 +91,12 @@ class SensorJSON(TypedDict):
     category: SensorCategory
     """Category the sensor belongs to."""
     nativeId: NotRequired[str]
+    origin: NotRequired[str]
+    """Source system the sensor was imported from, e.g. ``'homeassistant'``."""
+    exposed: NotRequired[bool]
+    """Initial export state on first creation; the user's later choice wins."""
+    hidden: NotRequired[bool]
+    """Initial hidden state on first creation; the user's later choice wins."""
     """Device ID assigned by the plugin."""
     pluginId: NotRequired[str]
     """Plugin that owns the sensor."""

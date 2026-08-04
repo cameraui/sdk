@@ -266,10 +266,21 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
 
     _requires_frames: bool = False
 
-    def __init__(self, name: str, *, native_id: str | None = None) -> None:
+    def __init__(
+        self,
+        name: str,
+        *,
+        native_id: str | None = None,
+        origin: str | None = None,
+        exposed: bool | None = None,
+        hidden: bool | None = None,
+    ) -> None:
         self._name = name
         self._id = str(uuid4())  # provisional id, replaced by the host's persistent id at registration
         self._native_id = native_id
+        self._origin = origin
+        self._initial_exposed = exposed
+        self._initial_hidden = hidden
         self._display_name = name
         self._plugin_id: str | None = None
         self._assigned_camera_ids: list[str] = []
@@ -437,6 +448,12 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         }
         if self._native_id:
             result["nativeId"] = self._native_id
+        if self._origin:
+            result["origin"] = self._origin
+        if self._initial_exposed is not None:
+            result["exposed"] = self._initial_exposed
+        if self._initial_hidden is not None:
+            result["hidden"] = self._initial_hidden
         if self._plugin_id:
             result["pluginId"] = self._plugin_id
         return result
