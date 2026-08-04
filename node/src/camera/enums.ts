@@ -88,7 +88,29 @@ export type DetectionEventType = 'start' | 'end' | 'update' | 'segment-start' | 
 export type DetectionEventState = 'active' | 'ended';
 
 /** Event trigger type. */
-export type EventTriggerType = 'motion' | 'audio' | 'contact' | 'doorbell' | 'switch' | 'light' | 'siren' | 'security_system' | 'line-crossing';
+export type EventTriggerType =
+  | 'motion'
+  | 'audio'
+  | 'contact'
+  | 'doorbell'
+  | 'switch'
+  | 'light'
+  | 'siren'
+  | 'security_system'
+  | 'line-crossing'
+  | 'occupancy'
+  | 'smoke'
+  | 'leak'
+  | 'gas'
+  | 'carbonMonoxide'
+  | 'heat'
+  | 'cold'
+  | 'vibration'
+  | 'tamper'
+  | 'problem'
+  | 'power'
+  | 'lock'
+  | 'garage';
 
 /** Stream direction (from SDP). */
 export type StreamDirection = 'sendonly' | 'recvonly' | 'sendrecv' | 'inactive';

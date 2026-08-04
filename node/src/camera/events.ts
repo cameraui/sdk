@@ -3,7 +3,30 @@ import type { BoundingBox } from '../sensor/detection.js';
 import type { DetectionEventState, EventTriggerType } from './enums.js';
 
 /** All event trigger types as a runtime-accessible array. */
-export const EVENT_TRIGGER_TYPES = ['motion', 'audio', 'contact', 'doorbell', 'switch', 'light', 'siren', 'security_system', 'line-crossing'] as const;
+export const EVENT_TRIGGER_TYPES = [
+  'motion',
+  'audio',
+  'contact',
+  'doorbell',
+  'switch',
+  'light',
+  'siren',
+  'security_system',
+  'line-crossing',
+  'occupancy',
+  'smoke',
+  'leak',
+  'gas',
+  'carbonMonoxide',
+  'heat',
+  'cold',
+  'vibration',
+  'tamper',
+  'problem',
+  'power',
+  'lock',
+  'garage',
+] as const satisfies readonly EventTriggerType[];
 
 /** AI-generated event description. */
 export interface EventDescription {
