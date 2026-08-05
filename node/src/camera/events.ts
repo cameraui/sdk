@@ -159,6 +159,12 @@ export interface DetectionEvent {
    */
   thumbnail?: Uint8Array;
   /**
+   * Unix ms of the moment the current event thumbnail shows (best-shot capture
+   * time, or scene capture time for the fallback). Lets clients label the card
+   * with the image's time and anchor playback at the span containing it.
+   */
+  thumbnailAt?: number;
+  /**
    * Whether recorded footage overlaps this event's time window. Populated only
    * when the events query explicitly requests it (e.g. the recordings browser),
    * undefined otherwise.
