@@ -91,6 +91,9 @@ class EventSegment(TypedDict):
     """Segment start time (Unix ms)."""
     lastSeen: int
     """Segment end time (Unix ms)."""
+    thumbnailAt: NotRequired[int]
+    """Unix ms of the moment this segment's thumbnail shows, so clients can place it
+    on a timeline."""
     thumbnail: NotRequired[bytes]
     """Best-selected JPEG scene thumbnail for this segment. Present on 'segment-start' and
     'segment-end', plus once on a 'segment-update' if the start message had none."""
