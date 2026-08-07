@@ -1,6 +1,6 @@
 {
   "name": "@camera.ui/sdk",
-  "version": "1.2.9",
+  "version": "1.2.10",
   "description": "camera.ui sdk",
   "exports": {
     ".": {
