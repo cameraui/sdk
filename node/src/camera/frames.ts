@@ -15,10 +15,8 @@ export interface FrameWorkerDecoderSettings {
 
 /** Frame worker (decoder) settings. */
 export interface CameraFrameWorkerSettings {
-  /** Target frames per second for detection. */
-  fps: number;
-  /** Capture event thumbnails from the highest-resolution source. */
-  hqSnapshots?: boolean;
+  /** Analyse the main stream while something is detected, instead of the detection stream. */
+  mainStreamAnalysis?: boolean;
   /** Decoder hardware selection. Applies on the machine that decodes this camera (master or assigned worker); an unusable selection falls back to auto. */
   decoder?: FrameWorkerDecoderSettings;
   /** Decoder hardware selection used instead of `decoder` while this camera decodes on its assigned worker. Falls back to `decoder` when omitted. */

@@ -32,10 +32,8 @@ class FrameWorkerDecoderSettings(TypedDict):
 class CameraFrameWorkerSettings(TypedDict):
     """Frame worker (decoder) settings."""
 
-    fps: int
-    """Target frames per second for detection."""
-    hqSnapshots: NotRequired[bool]
-    """Capture event thumbnails from the highest-resolution source."""
+    mainStreamAnalysis: NotRequired[bool]
+    """Analyse the main stream while something is detected, instead of the detection stream."""
     decoder: NotRequired[FrameWorkerDecoderSettings]
     """Decoder hardware selection. Applies on the machine that decodes this camera (master or assigned worker); an unusable selection falls back to auto."""
     workerDecoder: NotRequired[FrameWorkerDecoderSettings]
