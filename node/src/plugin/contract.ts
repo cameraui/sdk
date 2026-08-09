@@ -8,7 +8,7 @@ import type { SensorType } from '../sensor/base.js';
  * compares that stamp with its own level and refuses to start plugins
  * outside its supported range.
  */
-export const PROTOCOL_LEVEL = 1;
+export const PROTOCOL_LEVEL = 2;
 
 /**
  * Python interpreter major.minor version a Python plugin requires. The host

@@ -5,7 +5,7 @@ from typing import Literal, NotRequired, TypedDict
 
 from ..sensor import SensorType
 
-PROTOCOL_LEVEL = 1
+PROTOCOL_LEVEL = 2
 """Compatibility level of the plugin surface: the plugin-facing API and the
 plugin wire protocol. Bumped only on breaking changes, never for additive
 features. The CLI stamps the level a plugin was built against into its
