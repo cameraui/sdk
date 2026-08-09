@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Literal, NotRequired, TypedDict
 
-from ..sensor.detection import BoundingBox
 from .enums import DetectionEventType, EventTriggerType
 
 
@@ -15,13 +14,6 @@ class EventDetection(TypedDict):
     """Best confidence score."""
     maxCount: int
     """Maximum simultaneous count in a single frame."""
-    box: NotRequired[BoundingBox]
-    """Bounding box of the highest-confidence detection (normalized 0-1)."""
-    thumbnail: NotRequired[bytes]
-    """Best-selected JPEG thumbnail crop. Present on 'segment-start' and 'segment-end',
-    omitted when it matches the segment thumbnail."""
-    trackId: NotRequired[int]
-    """Object tracker ID (links this detection across frames)."""
     moving: NotRequired[bool]
     """Whether the object was moving (True) or stationary (False)."""
 
@@ -35,19 +27,6 @@ class EventAttribute(TypedDict):
     """Identity name, plate text, or classification label."""
     confidence: NotRequired[float]
     """Detection confidence (0-1)."""
-    thumbnail: NotRequired[bytes]
-    """Best-selected JPEG thumbnail crop. Present on 'segment-start' and 'segment-end',
-    and on 'segment-update' for unknown faces."""
-    embedding: NotRequired[list[float]]
-    """Face embedding vector for unknown face persistence. Only present for face attributes."""
-    embeddingModel: NotRequired[str]
-    """Embedding model identifier. Only present for face attributes with embedding."""
-    clipEmbedding: NotRequired[list[float]]
-    """CLIP embedding vector for semantic search. Only present for clip attributes."""
-    clipEmbeddingModel: NotRequired[str]
-    """CLIP embedding model identifier. Only present for clip attributes with embedding."""
-    parentTrackId: NotRequired[int]
-    """Parent object's tracker ID (links this attribute to its parent detection)."""
 
 
 class EventTrigger(TypedDict):
@@ -71,19 +50,6 @@ class EventTrigger(TypedDict):
     """Track ID of the object that crossed (only for line-crossing triggers)."""
 
 
-class EventDescription(TypedDict):
-    """AI-generated event description."""
-
-    title: str
-    """Brief title of what occurred."""
-    description: str
-    """Chronological narrative of the scene."""
-    summary: str
-    """Two-sentence notification-friendly summary."""
-    threatLevel: int
-    """Threat level: 0 = normal, 1 = suspicious, 2 = threat."""
-
-
 class EventSegment(TypedDict):
     """A contiguous object detection phase within an event."""
 
@@ -91,20 +57,12 @@ class EventSegment(TypedDict):
     """Segment start time (Unix ms)."""
     lastSeen: int
     """Segment end time (Unix ms)."""
-    thumbnailAt: NotRequired[int]
-    """Unix ms of the moment this segment's thumbnail shows, so clients can place it
-    on a timeline."""
-    thumbnail: NotRequired[bytes]
-    """Best-selected JPEG scene thumbnail for this segment. Present on 'segment-start' and
-    'segment-end', plus once on a 'segment-update' if the start message had none."""
     detections: list[EventDetection]
     """Object detections in this segment."""
     attributes: list[EventAttribute]
     """Unified attributes (faces, plates, classifications)."""
     zones: NotRequired[list[str]]
     """Names of detection zones any detection in this segment overlapped (deduplicated)."""
-    description: NotRequired[EventDescription]
-    """AI-generated description for this segment."""
 
 
 class DetectionEvent(TypedDict):
@@ -137,18 +95,6 @@ class DetectionEvent(TypedDict):
     """Expected event end time (Unix ms): the latest dwell expiry across all
     currently-active triggers. Monotonically non-decreasing during the event
     lifetime. Updated on each `update` / `segment-*` message."""
-    thumbnail: NotRequired[bytes]
-    """Full-frame downscaled JPEG captured at event start. Inline only on the first
-    message that delivers it (start or the first update); the NVR plugin persists it
-    and clients fetch it on demand via getEventThumbnails."""
-    thumbnailAt: NotRequired[int]
-    """Unix ms of the moment the current event thumbnail shows (best-shot capture
-    time, or scene capture time for the fallback). Lets clients label the card with
-    the image's time and anchor playback at the span containing it."""
-    hasRecording: NotRequired[bool]
-    """Whether recorded footage overlaps this event's time window. Populated only when
-    the events query explicitly requests it (e.g. the recordings browser); absent
-    otherwise."""
 
 
 class DetectionEventPayload(TypedDict):

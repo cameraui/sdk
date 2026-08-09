@@ -63,7 +63,6 @@ from .events import (
     DetectionEvent,
     DetectionEventPayload,
     EventAttribute,
-    EventDescription,
     EventDetection,
     EventSegment,
     EventTrigger,
@@ -139,7 +138,6 @@ __all__ = [
     "EventAttribute",
     "EventTrigger",
     "EventSegment",
-    "EventDescription",
     "DetectionEvent",
     "DetectionEventPayload",
     # Detection
