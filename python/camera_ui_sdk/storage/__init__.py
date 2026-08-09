@@ -32,7 +32,7 @@ OnGetCallback = (
 )
 """Callback type for onGet handlers."""
 
-JsonSchemaType = Literal["string", "number", "boolean", "array", "button", "submit"]
+JsonSchemaType = Literal["string", "number", "boolean", "array", "object", "button", "submit"]
 """Available schema field types for configuration UI."""
 
 StringFormat = Literal[
@@ -229,8 +229,14 @@ class JsonEnumSchema(TypedDict, total=False):
     enum: list[str]
     """Available options."""
 
+    enumLabels: dict[str, str]
+    """Display labels per enum value; values without a label show the raw value."""
+
     multiple: bool
     """Allow multiple selection."""
+
+    minItems: int
+    """Minimum number of selected values (multiple only)."""
 
 
 class JsonArraySchema(TypedDict, total=False):
@@ -242,8 +248,25 @@ class JsonArraySchema(TypedDict, total=False):
     opened: bool
     """Whether array items are expanded by default."""
 
+    minItems: int
+    """Minimum number of entries."""
+
     items: JsonSchemaWithoutCallbacks
     """Schema for array items."""
+
+
+class JsonObjectSchema(TypedDict, total=False):
+    """Object schema options.
+
+    The value is a plain dict; each property is its own keyed sub-field.
+    As array items this yields structured lists, e.g. ``[{"name", "cameras"}]``.
+    """
+
+    type: Literal["object"]
+    """Schema type discriminator."""
+
+    properties: list[JsonSchemaWithoutCallbacks]
+    """Sub-fields of the object value."""
 
 
 class JsonSchemaString(JsonBaseSchema[str], total=False):
@@ -316,7 +339,11 @@ class JsonSchemaEnum(JsonBaseSchema[str | list[str]], total=False):
 
     enum: Required[list[str]]
 
+    enumLabels: dict[str, str]
+
     multiple: bool
+
+    minItems: int
 
 
 class JsonSchemaEnumWithoutCallbacks(JsonBaseSchemaWithoutCallbacks[str | list[str]], total=False):
@@ -326,7 +353,11 @@ class JsonSchemaEnumWithoutCallbacks(JsonBaseSchemaWithoutCallbacks[str | list[s
 
     enum: Required[list[str]]
 
+    enumLabels: dict[str, str]
+
     multiple: bool
+
+    minItems: int
 
 
 class JsonSchemaArray(JsonBaseSchema[list[str] | list[int] | list[float] | list[bool]], total=False):  # pyright: ignore[reportInvalidTypeArguments]
@@ -335,6 +366,8 @@ class JsonSchemaArray(JsonBaseSchema[list[str] | list[int] | list[float] | list[
     type: Required[Literal["array"]]  # type: ignore[misc]
 
     opened: bool
+
+    minItems: int
 
     items: JsonSchemaWithoutCallbacks
 
@@ -349,7 +382,28 @@ class JsonSchemaArrayWithoutCallbacks(
 
     opened: bool
 
+    minItems: int
+
     items: JsonSchemaWithoutCallbacks
+
+
+class JsonSchemaObject(JsonBaseSchema[dict[str, Any]], total=False):  # pyright: ignore[reportInvalidTypeArguments]
+    """Complete object schema with callbacks."""
+
+    type: Required[Literal["object"]]  # type: ignore[misc]
+
+    properties: Required[list[JsonSchemaWithoutCallbacks]]
+
+
+class JsonSchemaObjectWithoutCallbacks(
+    JsonBaseSchemaWithoutCallbacks[dict[str, Any]],  # pyright: ignore[reportInvalidTypeArguments]
+    total=False,
+):
+    """Object schema without callbacks (for nested use)."""
+
+    type: Required[Literal["object"]]  # type: ignore[misc]
+
+    properties: Required[list[JsonSchemaWithoutCallbacks]]
 
 
 class JsonSchemaButton(TypedDict, total=False):
@@ -408,6 +462,7 @@ JsonSchema = (
     | JsonSchemaBoolean
     | JsonSchemaEnum
     | JsonSchemaArray
+    | JsonSchemaObject
     | JsonSchemaButton
     | JsonSchemaSubmit
 )
@@ -424,6 +479,7 @@ JsonSchemaWithoutKey = (
     | JsonSchemaBoolean
     | JsonSchemaEnum
     | JsonSchemaArray
+    | JsonSchemaObject
     | JsonSchemaButton
     | JsonSchemaSubmit
 )
@@ -435,6 +491,7 @@ JsonSchemaWithoutCallbacks = (
     | JsonSchemaBooleanWithoutCallbacks
     | JsonSchemaEnumWithoutCallbacks
     | JsonSchemaArrayWithoutCallbacks
+    | JsonSchemaObjectWithoutCallbacks
 )
 """Union type of schemas without callbacks. Use this for nested schemas (e.g., array items)."""
 

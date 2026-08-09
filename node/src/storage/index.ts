@@ -5,7 +5,7 @@
 export type PluginConfig<T = Record<string, any>> = T;
 
 /** Available schema field types for configuration UI. */
-export type JsonSchemaType = 'string' | 'number' | 'boolean' | 'array' | 'button' | 'submit';
+export type JsonSchemaType = 'string' | 'number' | 'boolean' | 'array' | 'object' | 'button' | 'submit';
 
 /** Condition operator for conditional field visibility. */
 export type SchemaConditionOperator = 'eq' | 'neq' | 'gt' | 'lt' | 'in' | 'nin';
@@ -148,8 +148,12 @@ export interface JsonEnumSchema {
   type: 'string';
   /** Available options. */
   enum: string[];
+  /** Display labels per enum value; values without a label show the raw value. */
+  enumLabels?: Record<string, string>;
   /** Allow multiple selection. */
   multiple?: boolean;
+  /** Minimum number of selected values (multiple only). */
+  minItems?: number;
 }
 
 /** Array schema options. */
@@ -158,8 +162,22 @@ export interface JsonArraySchema {
   type: 'array';
   /** Whether array items are expanded by default. */
   opened?: boolean;
+  /** Minimum number of entries. */
+  minItems?: number;
   /** Schema for array items. */
   items: Omit<JsonSchemaWithoutCallbacks, 'key'>;
+}
+
+/**
+ * Object schema options.
+ * The value is a plain object; each property is its own keyed sub-field.
+ * As array items this yields structured lists, e.g. `[{ name, cameras }]`.
+ */
+export interface JsonObjectSchema {
+  /** Schema type discriminator. */
+  type: 'object';
+  /** Sub-fields of the object value. */
+  properties: JsonSchemaWithoutCallbacks[];
 }
 
 /** Complete string schema with callbacks. */
@@ -212,6 +230,16 @@ export interface JsonSchemaArrayWithoutCallbacks extends JsonBaseSchemaWithoutCa
   type: 'array';
 }
 
+/** Complete object schema with callbacks. */
+export interface JsonSchemaObject extends JsonBaseSchema<any>, JsonObjectSchema {
+  type: 'object';
+}
+
+/** Object schema without callbacks (for nested use). */
+export interface JsonSchemaObjectWithoutCallbacks extends JsonBaseSchemaWithoutCallbacks<any>, JsonObjectSchema {
+  type: 'object';
+}
+
 /** Button schema: triggers an action without storing a value. */
 export interface JsonSchemaButton extends JsonFactorySchema {
   /** Schema type discriminator. */
@@ -239,7 +267,8 @@ export interface JsonSchemaSubmit extends JsonFactorySchema {
  * `addSchema`, or `changeSchema`. Each entry describes one configurable
  * field rendered in the UI; the discriminator is the `type` property.
  */
-export type JsonSchema = JsonSchemaString | JsonSchemaNumber | JsonSchemaBoolean | JsonSchemaEnum | JsonSchemaArray | JsonSchemaButton | JsonSchemaSubmit;
+export type JsonSchema =
+  JsonSchemaString | JsonSchemaNumber | JsonSchemaBoolean | JsonSchemaEnum | JsonSchemaArray | JsonSchemaObject | JsonSchemaButton | JsonSchemaSubmit;
 
 /**
  * Schema variant without the `key` field.
@@ -256,7 +285,8 @@ export type JsonSchemaWithoutCallbacks =
   | JsonSchemaNumberWithoutCallbacks
   | JsonSchemaBooleanWithoutCallbacks
   | JsonSchemaEnumWithoutCallbacks
-  | JsonSchemaArrayWithoutCallbacks;
+  | JsonSchemaArrayWithoutCallbacks
+  | JsonSchemaObjectWithoutCallbacks;
 
 /**
  * Toast notification message.
