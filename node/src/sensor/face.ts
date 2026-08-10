@@ -16,6 +16,8 @@ export enum FaceProperty {
   Detected = 'detected',
   /** List of detected faces with optional identity, embedding, and thumbnail. */
   Detections = 'detections',
+  /** Names of the faces recognized during the active detection phase. */
+  Identities = 'identities',
 }
 
 /** A face detection result, extending {@link Detection} with face-specific fields. */
@@ -38,6 +40,7 @@ export interface FaceDetection extends Detection {
 export interface FaceSensorProperties {
   [FaceProperty.Detected]: boolean;
   [FaceProperty.Detections]: FaceDetection[];
+  [FaceProperty.Identities]: string[];
 }
 
 /** Read-only proxy interface for a face sensor. */
@@ -47,6 +50,7 @@ export interface FaceSensorLike extends SensorLike {
 
   getValue(property: FaceProperty.Detected): boolean | undefined;
   getValue(property: FaceProperty.Detections): FaceDetection[] | undefined;
+  getValue(property: FaceProperty.Identities): string[] | undefined;
   getValue(property: string): unknown;
 }
 
@@ -66,6 +70,7 @@ export class FaceSensor<TStorage extends object = Record<string, any>> extends S
     this._writeState({
       [FaceProperty.Detected]: false,
       [FaceProperty.Detections]: [],
+      [FaceProperty.Identities]: [],
     });
   }
 
@@ -75,6 +80,10 @@ export class FaceSensor<TStorage extends object = Record<string, any>> extends S
 
   get detections(): FaceDetection[] {
     return this.props.detections;
+  }
+
+  get identities(): string[] {
+    return this.props.identities;
   }
 
   /**
@@ -108,9 +117,19 @@ export class FaceSensor<TStorage extends object = Record<string, any>> extends S
    */
   reportDetections(detected: boolean, detections?: FaceDetection[]): void {
     const list = this._normalizeReportedDetections<FaceDetection>(detected, detections, 'person', { attribute: 'face' });
+    // recognized names accumulate while faces stay visible, so automations
+    // don't flap when a face is momentarily unrecognized mid-presence
+    const recognized = list.map((d) => d.identity).filter((identity): identity is string => Boolean(identity));
+    let identities: string[] | undefined;
+    if (!detected) {
+      identities = [];
+    } else if (recognized.length > 0) {
+      identities = [...new Set([...this.props.identities, ...recognized])].sort();
+    }
     this._writeState({
       [FaceProperty.Detected]: detected,
       [FaceProperty.Detections]: list,
+      ...(identities ? { [FaceProperty.Identities]: identities } : {}),
     });
   }
 
@@ -171,6 +190,7 @@ export const faceMeta = defineSensor({
   properties: {
     [FaceProperty.Detected]: { type: 'boolean' },
     [FaceProperty.Detections]: { type: 'object', internal: true },
+    [FaceProperty.Identities]: { type: 'object' },
   },
   semantics: null,
 });

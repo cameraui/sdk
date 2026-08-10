@@ -20,6 +20,8 @@ class LicensePlateProperty(StrEnum):
     """Whether any license plate is currently detected."""
     Detections = "detections"
     """List of detected plates with OCR text."""
+    Plates = "plates"
+    """Plate texts recognized during the active detection phase."""
 
 
 class LicensePlateDetection(Detection):
@@ -38,6 +40,7 @@ class LicensePlateSensorProperties(TypedDict):
 
     detected: bool
     detections: list[LicensePlateDetection]
+    plates: list[str]
 
 
 class LicensePlatePropertyChangeData(TypedDict):
@@ -45,7 +48,7 @@ class LicensePlatePropertyChangeData(TypedDict):
 
     property: str
     """Name of the changed property, a LicensePlateProperty value."""
-    value: bool | list[LicensePlateDetection]
+    value: bool | list[str] | list[LicensePlateDetection]
     """New value of the property."""
 
 
@@ -70,6 +73,8 @@ class LicensePlateSensorLike(SensorLike, Protocol):
         self, property: Literal[LicensePlateProperty.Detections]
     ) -> list[LicensePlateDetection] | None: ...
     @overload
+    def getValue(self, property: Literal[LicensePlateProperty.Plates]) -> list[str] | None: ...
+    @overload
     def getValue(self, property: str) -> object | None: ...
 
 
@@ -88,6 +93,7 @@ class LicensePlateSensor(Sensor[LicensePlateSensorProperties, TStorage, str], Ge
             {
                 LicensePlateProperty.Detected.value: False,
                 LicensePlateProperty.Detections.value: [],
+                LicensePlateProperty.Plates.value: [],
             }
         )
 
@@ -106,6 +112,10 @@ class LicensePlateSensor(Sensor[LicensePlateSensorProperties, TStorage, str], Ge
     @property
     def detections(self) -> list[LicensePlateDetection]:
         return self.props.detections or []
+
+    @property
+    def plates(self) -> list[str]:
+        return list(self.props.plates or [])
 
     def reportDetections(
         self,
@@ -146,12 +156,18 @@ class LicensePlateSensor(Sensor[LicensePlateSensorProperties, TStorage, str], Ge
             "vehicle",
             {"attribute": "license_plate", "plateText": ""},
         )
-        self._write_state(
-            {
-                LicensePlateProperty.Detected.value: detected,
-                LicensePlateProperty.Detections.value: list_,
-            }
-        )
+        # recognized plates accumulate while plates stay visible, so automations
+        # don't flap when the OCR misses a frame mid-presence
+        recognized = [d["plateText"] for d in list_ if d.get("plateText")]
+        state: dict[str, Any] = {
+            LicensePlateProperty.Detected.value: detected,
+            LicensePlateProperty.Detections.value: list_,
+        }
+        if not detected:
+            state[LicensePlateProperty.Plates.value] = []
+        elif recognized:
+            state[LicensePlateProperty.Plates.value] = sorted({*self.plates, *recognized})
+        self._write_state(state)
 
     def clearDetections(self) -> None:
         """Explicitly clear license plate state (detected = False, detections = [])."""

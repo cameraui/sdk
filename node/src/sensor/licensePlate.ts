@@ -16,6 +16,8 @@ export enum LicensePlateProperty {
   Detected = 'detected',
   /** List of detected plates with OCR text. */
   Detections = 'detections',
+  /** Plate texts recognized during the active detection phase. */
+  Plates = 'plates',
 }
 
 /** A license plate detection result, extending {@link Detection} with OCR fields. */
@@ -36,6 +38,7 @@ export interface LicensePlateDetection extends Detection {
 export interface LicensePlateSensorProperties {
   [LicensePlateProperty.Detected]: boolean;
   [LicensePlateProperty.Detections]: LicensePlateDetection[];
+  [LicensePlateProperty.Plates]: string[];
 }
 
 /** Read-only proxy interface for a license plate sensor. */
@@ -45,6 +48,7 @@ export interface LicensePlateSensorLike extends SensorLike {
 
   getValue(property: LicensePlateProperty.Detected): boolean | undefined;
   getValue(property: LicensePlateProperty.Detections): LicensePlateDetection[] | undefined;
+  getValue(property: LicensePlateProperty.Plates): string[] | undefined;
   getValue(property: string): unknown;
 }
 
@@ -64,6 +68,7 @@ export class LicensePlateSensor<TStorage extends object = Record<string, any>> e
     this._writeState({
       [LicensePlateProperty.Detected]: false,
       [LicensePlateProperty.Detections]: [],
+      [LicensePlateProperty.Plates]: [],
     });
   }
 
@@ -73,6 +78,10 @@ export class LicensePlateSensor<TStorage extends object = Record<string, any>> e
 
   get detections(): LicensePlateDetection[] {
     return this.props.detections;
+  }
+
+  get plates(): string[] {
+    return this.props.plates;
   }
 
   /**
@@ -104,9 +113,19 @@ export class LicensePlateSensor<TStorage extends object = Record<string, any>> e
    */
   reportDetections(detected: boolean, detections?: LicensePlateDetection[]): void {
     const list = this._normalizeReportedDetections<LicensePlateDetection>(detected, detections, 'vehicle', { attribute: 'license_plate', plateText: '' });
+    // recognized plates accumulate while plates stay visible, so automations
+    // don't flap when the OCR misses a frame mid-presence
+    const recognized = list.map((d) => d.plateText).filter(Boolean);
+    let plates: string[] | undefined;
+    if (!detected) {
+      plates = [];
+    } else if (recognized.length > 0) {
+      plates = [...new Set([...this.props.plates, ...recognized])].sort();
+    }
     this._writeState({
       [LicensePlateProperty.Detected]: detected,
       [LicensePlateProperty.Detections]: list,
+      ...(plates ? { [LicensePlateProperty.Plates]: plates } : {}),
     });
   }
 
@@ -167,6 +186,7 @@ export const licensePlateMeta = defineSensor({
   properties: {
     [LicensePlateProperty.Detected]: { type: 'boolean' },
     [LicensePlateProperty.Detections]: { type: 'object', internal: true },
+    [LicensePlateProperty.Plates]: { type: 'object' },
   },
   semantics: null,
 });

@@ -16,7 +16,7 @@ export enum ClassifierProperty {
   Detected = 'detected',
   /** List of classification results with labels and confidence. */
   Detections = 'detections',
-  /** Unique labels of the current detections (auto-derived when reporting detections). */
+  /** Labels recognized during the active detection phase (auto-derived when reporting detections). */
   Labels = 'labels',
 }
 
@@ -113,11 +113,19 @@ export class ClassifierSensor<TStorage extends object = Record<string, any>> ext
    */
   reportDetections(detected: boolean, detections?: ClassifierDetection[]): void {
     const list = this._normalizeReportedDetections<ClassifierDetection>(detected, detections, 'motion', { attribute: '', subAttribute: '' });
-    const labels = Array.from(new Set(list.map((d) => d.label)));
+    // the specific answer wins (subAttribute, e.g. the bird species), and labels
+    // accumulate while the classifier keeps firing, so automations don't flap
+    const recognized = list.map((d) => d.subAttribute || d.attribute || d.label).filter(Boolean);
+    let labels: string[] | undefined;
+    if (!detected) {
+      labels = [];
+    } else if (recognized.length > 0) {
+      labels = [...new Set([...this.props.labels, ...recognized])].sort();
+    }
     this._writeState({
       [ClassifierProperty.Detected]: detected,
       [ClassifierProperty.Detections]: list,
-      [ClassifierProperty.Labels]: labels,
+      ...(labels ? { [ClassifierProperty.Labels]: labels } : {}),
     });
   }
 

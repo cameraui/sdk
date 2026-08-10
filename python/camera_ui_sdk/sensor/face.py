@@ -20,6 +20,8 @@ class FaceProperty(StrEnum):
     """Whether any face is currently detected."""
     Detections = "detections"
     """List of detected faces with optional identity, embedding, and thumbnail."""
+    Identities = "identities"
+    """Names of the faces recognized during the active detection phase."""
 
 
 class FaceDetection(Detection):
@@ -40,6 +42,7 @@ class FaceSensorProperties(TypedDict):
 
     detected: bool
     detections: list[FaceDetection]
+    identities: list[str]
 
 
 class FacePropertyChangeData(TypedDict):
@@ -47,7 +50,7 @@ class FacePropertyChangeData(TypedDict):
 
     property: str
     """Name of the changed property, a FaceProperty value."""
-    value: bool | list[FaceDetection]
+    value: bool | list[str] | list[FaceDetection]
     """New value of the property."""
 
 
@@ -70,6 +73,8 @@ class FaceSensorLike(SensorLike, Protocol):
     @overload
     def getValue(self, property: Literal[FaceProperty.Detections]) -> list[FaceDetection] | None: ...
     @overload
+    def getValue(self, property: Literal[FaceProperty.Identities]) -> list[str] | None: ...
+    @overload
     def getValue(self, property: str) -> object | None: ...
 
 
@@ -88,6 +93,7 @@ class FaceSensor(Sensor[FaceSensorProperties, TStorage, str], Generic[TStorage])
             {
                 FaceProperty.Detected.value: False,
                 FaceProperty.Detections.value: [],
+                FaceProperty.Identities.value: [],
             }
         )
 
@@ -106,6 +112,10 @@ class FaceSensor(Sensor[FaceSensorProperties, TStorage, str], Generic[TStorage])
     @property
     def detections(self) -> list[FaceDetection]:
         return self.props.detections or []
+
+    @property
+    def identities(self) -> list[str]:
+        return list(self.props.identities or [])
 
     def reportDetections(self, detected: bool, detections: list[FaceDetection] | None = None) -> None:
         """Report detected faces.
@@ -144,12 +154,18 @@ class FaceSensor(Sensor[FaceSensorProperties, TStorage, str], Generic[TStorage])
             "person",
             {"attribute": "face"},
         )
-        self._write_state(
-            {
-                FaceProperty.Detected.value: detected,
-                FaceProperty.Detections.value: list_,
-            }
-        )
+        # recognized names accumulate while faces stay visible, so automations
+        # don't flap when a face is momentarily unrecognized mid-presence
+        recognized = [d["identity"] for d in list_ if d.get("identity")]
+        state: dict[str, Any] = {
+            FaceProperty.Detected.value: detected,
+            FaceProperty.Detections.value: list_,
+        }
+        if not detected:
+            state[FaceProperty.Identities.value] = []
+        elif recognized:
+            state[FaceProperty.Identities.value] = sorted({*self.identities, *recognized})
+        self._write_state(state)
 
     def clearDetections(self) -> None:
         """Explicitly clear face detection state (detected = False, detections = [])."""

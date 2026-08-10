@@ -152,14 +152,20 @@ class ClassifierSensor(Sensor[ClassifierSensorProperties, TStorage, str], Generi
             "motion",
             {"attribute": "", "subAttribute": ""},
         )
-        labels = list(dict.fromkeys(d["label"] for d in list_))
-        self._write_state(
-            {
-                ClassifierProperty.Detected.value: detected,
-                ClassifierProperty.Detections.value: list_,
-                ClassifierProperty.Labels.value: labels,
-            }
-        )
+        # the specific answer wins (subAttribute, e.g. the bird species), and labels
+        # accumulate while the classifier keeps firing, so automations don't flap
+        recognized = [
+            label for d in list_ if (label := d.get("subAttribute") or d.get("attribute") or d.get("label"))
+        ]
+        state: dict[str, Any] = {
+            ClassifierProperty.Detected.value: detected,
+            ClassifierProperty.Detections.value: list_,
+        }
+        if not detected:
+            state[ClassifierProperty.Labels.value] = []
+        elif recognized:
+            state[ClassifierProperty.Labels.value] = sorted({*self.labels, *recognized})
+        self._write_state(state)
 
     def clearDetections(self) -> None:
         """Explicitly clear classifier state (detected = False, detections = [], labels = [])."""
