@@ -92,6 +92,13 @@ class Notification(TypedDict):
     don't reach guests the instance is merely shared with. Defaults to
     ``False``."""
 
+    silent: NotRequired[bool]
+    """Delivers without sound, vibration or badge increment: meant for publishes
+    that replace an earlier notification with the same ``tag`` (e.g. a richer
+    description superseding the initial alert). The banner still updates.
+    Ignored when ``severity`` is :attr:`Severity.Critical`. Defaults to
+    ``False``."""
+
 
 @runtime_checkable
 class NotifierInterface(Protocol):

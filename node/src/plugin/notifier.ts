@@ -72,6 +72,14 @@ export interface Notification {
    * don't reach guests the instance is merely shared with. Defaults to `false`.
    */
   adminOnly?: boolean;
+  /**
+   * Delivers without sound, vibration or badge increment: meant for publishes
+   * that replace an earlier notification with the same {@link Notification.tag}
+   * (e.g. a richer description superseding the initial alert). The banner
+   * still updates. Ignored when {@link Notification.severity} is
+   * {@link Severity.Critical}. Defaults to `false`.
+   */
+  silent?: boolean;
 }
 
 /**
