@@ -110,6 +110,7 @@ export interface JsonBaseSchema<T extends string | string[] | number | number[] 
  * - `'ipv4'`: IPv4 address input.
  * - `'ipv6'`: IPv6 address input.
  * - `'password'`: masked input that hides characters.
+ * - `'textarea'`: multi-line text area for longer free text.
  * - `'qrCode'`: value is rendered as a QR code (read-only display).
  * - `'image'`: value is a data URL or path; rendered as a thumbnail.
  */
@@ -117,7 +118,7 @@ export interface JsonStringSchema {
   /** Schema type discriminator. */
   type: 'string';
   /** String format for validation/display. See type docs for behavior per format. */
-  format?: 'date-time' | 'date' | 'time' | 'email' | 'uuid' | 'ipv4' | 'ipv6' | 'password' | 'qrCode' | 'image';
+  format?: 'date-time' | 'date' | 'time' | 'email' | 'uuid' | 'ipv4' | 'ipv6' | 'password' | 'textarea' | 'qrCode' | 'image';
   /** Minimum string length (inclusive). */
   minLength?: number;
   /** Maximum string length (inclusive). */

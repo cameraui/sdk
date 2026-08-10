@@ -36,7 +36,7 @@ JsonSchemaType = Literal["string", "number", "boolean", "array", "object", "butt
 """Available schema field types for configuration UI."""
 
 StringFormat = Literal[
-    "date-time", "date", "time", "email", "uuid", "ipv4", "ipv6", "password", "qrCode", "image"
+    "date-time", "date", "time", "email", "uuid", "ipv4", "ipv6", "password", "textarea", "qrCode", "image"
 ]
 """String format types for validation/display.
 
@@ -50,6 +50,7 @@ Used on string-typed schemas to render a specialized UI control:
 - ``ipv4``: IPv4 address input.
 - ``ipv6``: IPv6 address input.
 - ``password``: masked input that hides characters.
+- ``textarea``: multi-line text area for longer free text.
 - ``qrCode``: value is rendered as a QR code (read-only display).
 - ``image``: value is a data URL or path; rendered as a thumbnail.
 """
