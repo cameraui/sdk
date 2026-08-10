@@ -16,6 +16,17 @@ class EventDetection(TypedDict):
     """Maximum simultaneous count in a single frame."""
     moving: NotRequired[bool]
     """Whether the object was moving (True) or stationary (False)."""
+    path: NotRequired[DetectionPath]
+    """Where the tracked object entered and left the frame within this segment."""
+
+
+class DetectionPath(TypedDict):
+    """Normalized box centers (0-1) of a tracked object's first and last sighting in a segment."""
+
+    enterX: float
+    enterY: float
+    exitX: float
+    exitY: float
 
 
 class EventAttribute(TypedDict):

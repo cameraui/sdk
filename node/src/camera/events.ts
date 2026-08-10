@@ -56,6 +56,16 @@ export interface EventDetection {
   maxCount: number;
   /** Whether the object was moving (true) or stationary (false). */
   moving?: boolean;
+  /** Where the tracked object entered and left the frame within this segment. */
+  path?: DetectionPath;
+}
+
+/** Normalized box centers (0-1) of a tracked object's first and last sighting in a segment. */
+export interface DetectionPath {
+  enterX: number;
+  enterY: number;
+  exitX: number;
+  exitY: number;
 }
 
 /** Unified attribute within a segment (face identity, license plate, classifier result). */
