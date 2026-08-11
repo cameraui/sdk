@@ -65,7 +65,7 @@ export interface ObjectDetectionSettings {
   suppressStatic?: boolean;
   /**
    * Object dwell time in seconds for camera-based object sensors that report a detection
-   * without a matching end report. Frame-based detection ignores this. Defaults to 30.
+   * without a matching end report. Frame-based detection ignores this. Defaults to 15.
    */
   timeout?: number;
 }
