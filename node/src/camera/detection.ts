@@ -63,6 +63,11 @@ export interface ObjectDetectionSettings {
   confidence: number;
   /** Suppress events from objects that stay stationary across events (e.g. parked cars). Defaults to true. */
   suppressStatic?: boolean;
+  /**
+   * Object dwell time in seconds for camera-based object sensors that report a detection
+   * without a matching end report. Frame-based detection ignores this. Defaults to 30.
+   */
+  timeout?: number;
 }
 
 /** Audio detection settings. */

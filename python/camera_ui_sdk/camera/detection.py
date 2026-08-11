@@ -64,6 +64,8 @@ class ObjectDetectionSettings(TypedDict):
     """Minimum confidence threshold (0.3 - 1.0)."""
     suppressStatic: NotRequired[bool]
     """Suppress events from objects that stay stationary across events (e.g. parked cars). Defaults to True."""
+    timeout: NotRequired[int]
+    """Object dwell time in seconds for camera-based object sensors that report a detection without a matching end report. Frame-based detection ignores this. Defaults to 30."""
 
 
 class AudioDetectionSettings(TypedDict):
