@@ -80,6 +80,12 @@ class Notification(TypedDict):
     Preferred over inline ``thumbnail`` bytes when a URL is available; empty
     renders text-only."""
 
+    videoUrl: NotRequired[str]
+    """Publicly-fetchable URL to a short MP4 clip. Notifiers that can render
+    video (iOS attachments) prefer it over ``imageUrl``; everything else
+    ignores it, so always send the image alongside. Keep clips small: the
+    receiving phone downloads inside a tight OS budget."""
+
     deepLink: NotRequired[str]
     """Router-relative path for mobile / web tap-handlers (e.g. ``/cameras/cam-1``). No host, no scheme."""
 

@@ -62,6 +62,13 @@ export interface Notification {
    * available; empty renders text-only.
    */
   imageUrl?: string;
+  /**
+   * Publicly-fetchable URL to a short MP4 clip. Notifiers that can render
+   * video (iOS attachments) prefer it over {@link Notification.imageUrl};
+   * everything else ignores it, so always send the image alongside. Keep
+   * clips small: the receiving phone downloads inside a tight OS budget.
+   */
+  videoUrl?: string;
   /** Router-relative path for mobile / web tap-handlers (e.g. '/cameras/cam-1'). No host, no scheme. */
   deepLink?: string;
   /** Plugin-specific context (cameraId, eventId, plugin-defined keys), string values only. */
