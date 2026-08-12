@@ -62,6 +62,8 @@ class ObjectDetectionSettings(TypedDict):
 
     confidence: float
     """Minimum confidence threshold (0.3 - 1.0)."""
+    labels: NotRequired[list[DetectionLabel]]
+    """Object labels to detect (empty = all). Detections with other labels are dropped."""
     suppressStatic: NotRequired[bool]
     """Suppress events from objects that stay stationary across events (e.g. parked cars). Defaults to True."""
     timeout: NotRequired[int]

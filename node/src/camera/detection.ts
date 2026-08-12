@@ -61,6 +61,8 @@ export interface MotionDetectionSettings {
 export interface ObjectDetectionSettings {
   /** Minimum confidence threshold (0.3 - 1.0). */
   confidence: number;
+  /** Object labels to detect (empty = all). Detections with other labels are dropped. */
+  labels?: DetectionLabel[];
   /** Suppress events from objects that stay stationary across events (e.g. parked cars). Defaults to true. */
   suppressStatic?: boolean;
   /**
