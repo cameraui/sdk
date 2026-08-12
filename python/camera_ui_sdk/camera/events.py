@@ -18,6 +18,8 @@ class EventDetection(TypedDict):
     """Whether the object was moving (True) or stationary (False)."""
     path: NotRequired[DetectionPath]
     """Where the tracked object entered and left the frame within this segment."""
+    zones: NotRequired[list[str]]
+    """Names of detection/alert zones any object of this label overlapped during the segment."""
 
 
 class DetectionPath(TypedDict):

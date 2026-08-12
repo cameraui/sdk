@@ -1,6 +1,6 @@
 import type { CameraInputSettings } from '../internal/camera-config-internal.js';
 import type { SENSOR_META } from '../sensor/registry.js';
-import type { CameraDetectionSettings, DetectionLine, DetectionZone, PtzAutotrackSettings } from './detection.js';
+import type { AlertZone, CameraDetectionSettings, DetectionLine, DetectionZone, PtzAutotrackSettings } from './detection.js';
 import type { CameraRecordingSettings } from './recording.js';
 import type { AudioCodec, CameraAspectRatio, CameraRole, CameraType, StreamingRole, VideoCodec, VideoStreamingMode } from './enums.js';
 import type { CameraFrameWorkerSettings, SnapshotSettings } from './frames.js';
@@ -140,6 +140,8 @@ export interface BaseCamera {
   snapshotSettings: SnapshotSettings;
   /** Detection zone configurations. */
   detectionZones: DetectionZone[];
+  /** Alert zone configurations (notification gating only, never filter detections). */
+  alertZones?: AlertZone[];
   /** Detection line configurations (virtual tripwires). */
   detectionLines: DetectionLine[];
   /** Detection settings. */

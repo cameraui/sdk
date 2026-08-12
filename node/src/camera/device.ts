@@ -3,7 +3,7 @@ import type { Sensor } from '../sensor/base.js';
 import type { DeviceStorage, JsonSchema } from '../storage/index.js';
 import type { LoggerService } from '../types.js';
 import type { Camera, CameraInformation, CameraInput, CameraPluginInfo, CameraUiSettings } from './config.js';
-import type { CameraDetectionSettings, DetectionLine, DetectionZone, PtzAutotrackSettings } from './detection.js';
+import type { AlertZone, CameraDetectionSettings, DetectionLine, DetectionZone, PtzAutotrackSettings } from './detection.js';
 import type { CameraRecordingSettings } from './recording.js';
 import type { CameraType, DetectionEventType } from './enums.js';
 import type { DetectionEvent } from './events.js';
@@ -106,6 +106,8 @@ export interface CameraDevice {
   readonly isCloud: boolean;
   /** Detection zone configurations. */
   readonly detectionZones: DetectionZone[];
+  /** Alert zone configurations (notification gating only, never filter detections). */
+  readonly alertZones: AlertZone[];
   /** Detection line configurations (virtual tripwires). */
   readonly detectionLines: DetectionLine[];
   /** Detection settings. */

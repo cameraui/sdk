@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import NotRequired, TypedDict
+from typing import Literal, NotRequired, TypedDict
 
 from ..sensor.detection import DetectionLabel
 from .enums import LineDirection, MotionResolution, Point, ZoneFilter, ZoneType
@@ -24,6 +24,29 @@ class DetectionZone(TypedDict):
     """Labels to filter (empty = all labels)."""
     isPrivacyMask: bool
     """Whether this is an ignore zone: detections fully inside it are dropped."""
+    color: str
+    """Zone display color (hex)."""
+
+
+AlertZoneMatch = Literal["anchor", "intersect", "contain"]
+"""When an object counts as inside an alert zone: where it stands, touching, or fully inside."""
+
+
+class AlertZone(TypedDict):
+    """
+    Alert zone configuration.
+    Never filters detections: a label selected here only sends push
+    notifications while an object of that label is inside the zone.
+    """
+
+    name: str
+    """Zone display name."""
+    points: list[Point]
+    """Polygon points (0-100 percentage coordinates)."""
+    labels: list[DetectionLabel]
+    """Labels that alert from inside this zone (empty = zone is inert)."""
+    match: AlertZoneMatch
+    """When an object counts as inside. Default: anchor."""
     color: str
     """Zone display color (hex)."""
 

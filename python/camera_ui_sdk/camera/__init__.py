@@ -16,6 +16,8 @@ from .config import (
     PluginAssignments,
 )
 from .detection import (
+    AlertZone,
+    AlertZoneMatch,
     AudioDetectionSettings,
     CameraDetectionSettings,
     DetectionLine,
@@ -141,6 +143,8 @@ __all__ = [
     "DetectionEvent",
     "DetectionEventPayload",
     # Detection
+    "AlertZone",
+    "AlertZoneMatch",
     "DetectionZone",
     "DetectionLine",
     "MotionDetectionSettings",

@@ -58,6 +58,8 @@ export interface EventDetection {
   moving?: boolean;
   /** Where the tracked object entered and left the frame within this segment. */
   path?: DetectionPath;
+  /** Names of detection/alert zones any object of this label overlapped during the segment. */
+  zones?: string[];
 }
 
 /** Normalized box centers (0-1) of a tracked object's first and last sighting in a segment. */

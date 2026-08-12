@@ -1,4 +1,6 @@
 from .camera import (
+    AlertZone,
+    AlertZoneMatch,
     AssignedPlugin,
     AudioCodec,
     AudioCodecProperties,
@@ -331,6 +333,8 @@ __all__ = [
     "DetectionEvent",
     "DetectionEventState",
     "DetectionEventType",
+    "AlertZone",
+    "AlertZoneMatch",
     "DetectionZone",
     "DetectionLine",
     "MotionDetectionSettings",

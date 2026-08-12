@@ -15,7 +15,7 @@ from .config import (
     CameraPublicProperties,
     CameraUiSettings,
 )
-from .detection import CameraDetectionSettings, DetectionLine, DetectionZone, PtzAutotrackSettings
+from .detection import AlertZone, CameraDetectionSettings, DetectionLine, DetectionZone, PtzAutotrackSettings
 from .enums import CameraRole, CameraType
 from .events import DetectionEventPayload
 from .frames import CameraFrameWorkerSettings, SnapshotSettings
@@ -178,6 +178,11 @@ class CameraDevice(Protocol):
     @property
     def detectionZones(self) -> list[DetectionZone]:
         """Detection zone configurations."""
+        ...
+
+    @property
+    def alertZones(self) -> list[AlertZone]:
+        """Alert zone configurations (notification gating only, never filter detections)."""
         ...
 
     @property

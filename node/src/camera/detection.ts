@@ -49,6 +49,32 @@ export interface DetectionZone {
   color: string;
 }
 
+/**
+ * When an object counts as inside an alert zone.
+ * - `anchor` — where the object stands (bottom center of its box)
+ * - `intersect` — its box touches the zone
+ * - `contain` — its box lies fully inside the zone
+ */
+export type AlertZoneMatch = 'anchor' | 'intersect' | 'contain';
+
+/**
+ * Alert zone configuration.
+ * Never filters detections: a label selected here only sends push
+ * notifications while an object of that label is inside the zone.
+ */
+export interface AlertZone {
+  /** Zone display name. */
+  name: string;
+  /** Polygon points (0-100 percentage coordinates). */
+  points: Point[];
+  /** Labels that alert from inside this zone (empty = zone is inert). */
+  labels: DetectionLabel[];
+  /** When an object counts as inside. Default: anchor. */
+  match: AlertZoneMatch;
+  /** Zone display color (hex). */
+  color: string;
+}
+
 /** Motion detection settings. */
 export interface MotionDetectionSettings {
   /** Detection resolution quality. */

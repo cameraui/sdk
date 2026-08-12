@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Literal, NotRequired, TypedDict
 
 from .detection import (
+    AlertZone,
     CameraDetectionSettings,
     DetectionLine,
     DetectionZone,
@@ -245,6 +246,8 @@ class BaseCamera(TypedDict):
     """Snapshot settings."""
     detectionZones: list[DetectionZone]
     """Detection zone configurations."""
+    alertZones: NotRequired[list[AlertZone]]
+    """Alert zone configurations (notification gating only, never filter detections)."""
     detectionLines: list[DetectionLine]
     """Detection line configurations (virtual tripwires)."""
     detectionSettings: CameraDetectionSettings
