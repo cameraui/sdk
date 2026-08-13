@@ -31,6 +31,7 @@ from .detection import (
     PrivacyZone,
     PtzAutotrackSettings,
     SensorTriggerSettings,
+    TimeWindow,
 )
 from .device import (
     CameraDevice,
@@ -160,6 +161,7 @@ __all__ = [
     "LicensePlateDetectionSettings",
     "SensorTriggerSettings",
     "PtzAutotrackSettings",
+    "TimeWindow",
     "CameraDetectionSettings",
     "CameraRecordingSettings",
     "FrameWorkerDecoderHardware",

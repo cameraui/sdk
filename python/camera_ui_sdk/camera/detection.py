@@ -178,6 +178,18 @@ class SensorTriggerSettings(TypedDict):
     """Sensor entity ids that also trigger the detection cascade (in addition to motion/audio)."""
 
 
+# "from" is a keyword, so this one needs the functional form
+TimeWindow = TypedDict(
+    "TimeWindow",
+    {
+        "from": str,
+        "to": str,
+        "timezone": str,
+    },
+)
+"""A daily time window (\"HH:mm\"), read in the timezone it was configured in. A `to` before `from` wraps around midnight."""
+
+
 class PtzAutotrackSettings(TypedDict):
     """PTZ autotracking settings: the camera follows detected objects automatically."""
 
@@ -205,6 +217,12 @@ class PtzAutotrackSettings(TypedDict):
     """Return to home position when no target is found for homeWaitMs."""
     homeWaitMs: int
     """How long to wait (ms) without a target before returning home."""
+    minTargetSize: NotRequired[float]
+    """Smallest target to start following, as a fraction of the frame height (0 - 0.5). 0 disables the limit."""
+    maxTargetSize: NotRequired[float]
+    """Largest target to keep following, as a fraction of the frame height (0 - 1). Above it the camera holds its position. 0 disables the limit."""
+    activeHours: NotRequired[TimeWindow]
+    """Hours the camera is allowed to follow. Outside them autotracking rests."""
 
 
 class CameraDetectionSettings(TypedDict):

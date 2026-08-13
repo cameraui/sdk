@@ -206,6 +206,31 @@ export interface PtzAutotrackSettings {
   returnToHome: boolean;
   /** How long to wait (ms) without a target before returning home. */
   homeWaitMs: number;
+  /**
+   * Smallest target to start following, as a fraction of the frame height
+   * (0 - 0.5). Below it the object is too far away to be worth a move.
+   * 0 disables the limit.
+   */
+  minTargetSize?: number;
+  /**
+   * Largest target to keep following, as a fraction of the frame height
+   * (0 - 1). Above it the object is so close that the picture says nothing,
+   * so the camera holds its position until it moves away again.
+   * 0 disables the limit.
+   */
+  maxTargetSize?: number;
+  /** Hours the camera is allowed to follow. Outside them autotracking rests. */
+  activeHours?: TimeWindow;
+}
+
+/** A daily time window, given in the timezone it was configured in. */
+export interface TimeWindow {
+  /** Start time as "HH:mm". */
+  from: string;
+  /** End time as "HH:mm". A time before `from` wraps around midnight. */
+  to: string;
+  /** IANA timezone the times are read in, e.g. "Europe/Berlin". */
+  timezone: string;
 }
 
 /** Combined detection settings for a camera. */
