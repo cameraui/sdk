@@ -28,6 +28,72 @@ class DetectionZone(TypedDict):
     """Zone display color (hex)."""
 
 
+class MotionZone(TypedDict):
+    """
+    Motion zone configuration.
+    Motion carries no labels, so a motion zone only says where frame motion
+    counts. No motion zone at all means motion counts everywhere.
+    """
+
+    name: str
+    """Zone display name."""
+    points: list[Point]
+    """Polygon points (0-100 percentage coordinates)."""
+    filter: ZoneFilter
+    """Include/exclude filter mode."""
+    color: str
+    """Zone display color (hex)."""
+
+
+class ObjectZone(TypedDict):
+    """
+    Object zone configuration.
+    With at least one include object zone, an object counts only inside such a
+    zone and only when its label is listed there.
+    """
+
+    name: str
+    """Zone display name."""
+    points: list[Point]
+    """Polygon points (0-100 percentage coordinates)."""
+    type: ZoneType
+    """Intersection detection type."""
+    filter: ZoneFilter
+    """Include/exclude filter mode."""
+    labels: list[DetectionLabel]
+    """Labels that count in this zone."""
+    color: str
+    """Zone display color (hex)."""
+
+
+class PrivacyZone(TypedDict):
+    """
+    Privacy zone configuration.
+    Nothing is detected inside, motion and objects alike, and camera.ui covers
+    the area in live view, playback and the pictures it generates.
+    """
+
+    name: str
+    """Zone display name."""
+    points: list[Point]
+    """Polygon points (0-100 percentage coordinates)."""
+
+
+class CameraZones(TypedDict):
+    """
+    Everything the zone editor draws, one list per purpose.
+    Motion decides where frame motion counts, object which types count where,
+    privacy where nothing is looked at, alert which types notify from where,
+    and lines report objects crossing them.
+    """
+
+    motion: list[MotionZone]
+    object: list[ObjectZone]
+    privacy: list[PrivacyZone]
+    alert: list[AlertZone]
+    lines: list[DetectionLine]
+
+
 AlertZoneMatch = Literal["anchor", "intersect", "contain"]
 """When an object counts as inside an alert zone: where it stands, touching, or fully inside."""
 

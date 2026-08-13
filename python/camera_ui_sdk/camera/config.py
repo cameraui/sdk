@@ -5,6 +5,7 @@ from typing import Any, Literal, NotRequired, TypedDict
 from .detection import (
     AlertZone,
     CameraDetectionSettings,
+    CameraZones,
     DetectionLine,
     DetectionZone,
     PtzAutotrackSettings,
@@ -246,8 +247,10 @@ class BaseCamera(TypedDict):
     """Snapshot settings."""
     detectionZones: list[DetectionZone]
     """Detection zone configurations."""
+    zones: NotRequired[CameraZones]
+    """Zone configurations, one list per purpose."""
     alertZones: NotRequired[list[AlertZone]]
-    """Alert zone configurations (notification gating only, never filter detections)."""
+    """Deprecated: mirrors zones.alert for plugins older than the split."""
     detectionLines: list[DetectionLine]
     """Detection line configurations (virtual tripwires)."""
     detectionSettings: CameraDetectionSettings

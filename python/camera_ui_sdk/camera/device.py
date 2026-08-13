@@ -15,7 +15,14 @@ from .config import (
     CameraPublicProperties,
     CameraUiSettings,
 )
-from .detection import AlertZone, CameraDetectionSettings, DetectionLine, DetectionZone, PtzAutotrackSettings
+from .detection import (
+    AlertZone,
+    CameraDetectionSettings,
+    CameraZones,
+    DetectionLine,
+    DetectionZone,
+    PtzAutotrackSettings,
+)
 from .enums import CameraRole, CameraType
 from .events import DetectionEventPayload
 from .frames import CameraFrameWorkerSettings, SnapshotSettings
@@ -181,8 +188,13 @@ class CameraDevice(Protocol):
         ...
 
     @property
+    def zones(self) -> CameraZones:
+        """Zone configurations, one list per purpose."""
+        ...
+
+    @property
     def alertZones(self) -> list[AlertZone]:
-        """Alert zone configurations (notification gating only, never filter detections)."""
+        """Deprecated: mirrors zones.alert for plugins older than the split."""
         ...
 
     @property

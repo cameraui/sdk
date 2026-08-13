@@ -29,10 +29,28 @@ export interface DetectionLine {
 }
 
 /**
- * Detection zone configuration.
- * Defines areas that restrict or drop detections.
+ * Motion zone configuration.
+ * Motion carries no labels, so a motion zone only says where frame motion
+ * counts. No motion zone at all means motion counts everywhere.
  */
-export interface DetectionZone {
+export interface MotionZone {
+  /** Zone display name. */
+  name: string;
+  /** Polygon points (0-100 percentage coordinates). */
+  points: Point[];
+  /** Include/exclude filter mode. */
+  filter: ZoneFilter;
+  /** Zone display color (hex). */
+  color: string;
+}
+
+/**
+ * Object zone configuration.
+ * With at least one include object zone, an object counts only inside such a
+ * zone and only when its label is listed there. No object zone means every
+ * label counts everywhere.
+ */
+export interface ObjectZone {
   /** Zone display name. */
   name: string;
   /** Polygon points (0-100 percentage coordinates). */
@@ -41,12 +59,36 @@ export interface DetectionZone {
   type: ZoneType;
   /** Include/exclude filter mode. */
   filter: ZoneFilter;
-  /** Labels to filter (empty = all labels). */
+  /** Labels that count in this zone. */
   labels: DetectionLabel[];
-  /** Whether this is an ignore zone: detections fully inside it are dropped. */
-  isPrivacyMask: boolean;
   /** Zone display color (hex). */
   color: string;
+}
+
+/**
+ * Privacy zone configuration.
+ * Nothing is detected inside, motion and objects alike, and camera.ui covers
+ * the area in live view, playback and the pictures it generates.
+ */
+export interface PrivacyZone {
+  /** Zone display name. */
+  name: string;
+  /** Polygon points (0-100 percentage coordinates). */
+  points: Point[];
+}
+
+/**
+ * Everything the zone editor draws, one list per purpose. Motion decides where
+ * frame motion counts, object which types count where, privacy where nothing
+ * is looked at, alert which types notify from where, and lines report objects
+ * crossing them.
+ */
+export interface CameraZones {
+  motion: MotionZone[];
+  object: ObjectZone[];
+  privacy: PrivacyZone[];
+  alert: AlertZone[];
+  lines: DetectionLine[];
 }
 
 /**
