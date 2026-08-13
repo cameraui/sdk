@@ -16,11 +16,8 @@ from .config import (
     CameraUiSettings,
 )
 from .detection import (
-    AlertZone,
     CameraDetectionSettings,
     CameraZones,
-    DetectionLine,
-    DetectionZone,
     PtzAutotrackSettings,
 )
 from .enums import CameraRole, CameraType
@@ -183,23 +180,8 @@ class CameraDevice(Protocol):
         ...
 
     @property
-    def detectionZones(self) -> list[DetectionZone]:
-        """Detection zone configurations."""
-        ...
-
-    @property
     def zones(self) -> CameraZones:
         """Zone configurations, one list per purpose."""
-        ...
-
-    @property
-    def alertZones(self) -> list[AlertZone]:
-        """Deprecated: mirrors zones.alert for plugins older than the split."""
-        ...
-
-    @property
-    def detectionLines(self) -> list[DetectionLine]:
-        """Detection line configurations (virtual tripwires)."""
         ...
 
     @property

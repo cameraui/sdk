@@ -6,28 +6,6 @@ from ..sensor.detection import DetectionLabel
 from .enums import LineDirection, MotionResolution, Point, ZoneFilter, ZoneType
 
 
-class DetectionZone(TypedDict):
-    """
-    Detection zone configuration.
-    Defines areas that restrict or drop detections.
-    """
-
-    name: str
-    """Zone display name."""
-    points: list[Point]
-    """Polygon points (0-100 percentage coordinates)."""
-    type: ZoneType
-    """Intersection detection type."""
-    filter: ZoneFilter
-    """Include/exclude filter mode."""
-    labels: list[DetectionLabel]
-    """Labels to filter (empty = all labels)."""
-    isPrivacyMask: bool
-    """Whether this is an ignore zone: detections fully inside it are dropped."""
-    color: str
-    """Zone display color (hex)."""
-
-
 class MotionZone(TypedDict):
     """
     Motion zone configuration.
@@ -69,14 +47,20 @@ class ObjectZone(TypedDict):
 class PrivacyZone(TypedDict):
     """
     Privacy zone configuration.
-    Nothing is detected inside, motion and objects alike, and camera.ui covers
-    the area in live view, playback and the pictures it generates.
+    camera.ui always covers the area in live view, playback and the pictures it
+    generates; dropDetections decides whether detections inside are dropped too.
     """
 
     name: str
     """Zone display name."""
     points: list[Point]
     """Polygon points (0-100 percentage coordinates)."""
+    dropDetections: bool
+    """Whether detections inside are dropped as well. Default: True."""
+
+
+PrivacyFallback = Literal["send", "drop"]
+"""What happens to a picture whose privacy zones could not be applied: ship it unmasked, or drop it."""
 
 
 class CameraZones(TypedDict):
@@ -87,6 +71,7 @@ class CameraZones(TypedDict):
     and lines report objects crossing them.
     """
 
+    privacyFallback: PrivacyFallback
     motion: list[MotionZone]
     object: list[ObjectZone]
     privacy: list[PrivacyZone]

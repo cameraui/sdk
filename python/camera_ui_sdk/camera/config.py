@@ -3,11 +3,8 @@ from __future__ import annotations
 from typing import Any, Literal, NotRequired, TypedDict
 
 from .detection import (
-    AlertZone,
     CameraDetectionSettings,
     CameraZones,
-    DetectionLine,
-    DetectionZone,
     PtzAutotrackSettings,
 )
 from .enums import (
@@ -245,14 +242,8 @@ class BaseCamera(TypedDict):
     """Camera type (camera/doorbell)."""
     snapshotSettings: SnapshotSettings
     """Snapshot settings."""
-    detectionZones: list[DetectionZone]
-    """Detection zone configurations."""
     zones: NotRequired[CameraZones]
     """Zone configurations, one list per purpose."""
-    alertZones: NotRequired[list[AlertZone]]
-    """Deprecated: mirrors zones.alert for plugins older than the split."""
-    detectionLines: list[DetectionLine]
-    """Detection line configurations (virtual tripwires)."""
     detectionSettings: CameraDetectionSettings
     """Detection settings."""
     ptzAutotrack: PtzAutotrackSettings
@@ -286,7 +277,7 @@ CameraPublicProperties = Literal[
     "info",
     "type",
     "snapshotSettings",
-    "detectionZones",
+    "zones",
     "detectionSettings",
     "ptzAutotrack",
     "frameWorkerSettings",

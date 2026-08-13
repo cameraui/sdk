@@ -67,15 +67,26 @@ export interface ObjectZone {
 
 /**
  * Privacy zone configuration.
- * Nothing is detected inside, motion and objects alike, and camera.ui covers
- * the area in live view, playback and the pictures it generates.
+ * camera.ui always covers the area in live view, playback and the pictures it
+ * generates; `dropDetections` decides whether detections inside are dropped
+ * too or whether the camera keeps watching an area it does not show.
  */
 export interface PrivacyZone {
   /** Zone display name. */
   name: string;
   /** Polygon points (0-100 percentage coordinates). */
   points: Point[];
+  /** Whether detections inside are dropped as well. Default: true. */
+  dropDetections: boolean;
 }
+
+/**
+ * What to do with a picture whose privacy zones could not be applied, for
+ * example on a pixel format we cannot write.
+ * - `send` — ship it unmasked, the user sees it and can delete it
+ * - `drop` — no picture at all rather than an unmasked one
+ */
+export type PrivacyFallback = 'send' | 'drop';
 
 /**
  * Everything the zone editor draws, one list per purpose. Motion decides where
@@ -84,6 +95,8 @@ export interface PrivacyZone {
  * crossing them.
  */
 export interface CameraZones {
+  /** What happens to a picture the privacy zones could not be applied to. Default: send. */
+  privacyFallback: PrivacyFallback;
   motion: MotionZone[];
   object: ObjectZone[];
   privacy: PrivacyZone[];
