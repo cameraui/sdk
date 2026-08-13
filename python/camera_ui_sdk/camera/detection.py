@@ -97,7 +97,7 @@ class AlertZone(TypedDict):
     labels: list[DetectionLabel]
     """Labels that alert from inside this zone (empty = every label alerts here)."""
     match: AlertZoneMatch
-    """When an object counts as inside. Default: anchor."""
+    """When an object counts as inside. Default: contain."""
     color: str
     """Zone display color (hex)."""
 

@@ -124,7 +124,7 @@ export interface AlertZone {
   points: Point[];
   /** Labels that alert from inside this zone (empty = every label alerts here). */
   labels: DetectionLabel[];
-  /** When an object counts as inside. Default: anchor. */
+  /** When an object counts as inside. Default: contain. */
   match: AlertZoneMatch;
   /** Zone display color (hex). */
   color: string;
