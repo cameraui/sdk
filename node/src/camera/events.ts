@@ -60,6 +60,8 @@ export interface EventDetection {
   path?: DetectionPath;
   /** Names of detection/alert zones any object of this label overlapped during the segment. */
   zones?: string[];
+  /** Whether this detection may raise a notification. Alert zones decide it, the camera's own reports pass. */
+  alert?: boolean;
 }
 
 /** Normalized box centers (0-1) of a tracked object's first and last sighting in a segment. */

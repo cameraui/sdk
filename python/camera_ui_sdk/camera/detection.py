@@ -95,7 +95,7 @@ class AlertZone(TypedDict):
     points: list[Point]
     """Polygon points (0-100 percentage coordinates)."""
     labels: list[DetectionLabel]
-    """Labels that alert from inside this zone (empty = zone is inert)."""
+    """Labels that alert from inside this zone (empty = every label alerts here)."""
     match: AlertZoneMatch
     """When an object counts as inside. Default: anchor."""
     color: str
@@ -136,8 +136,6 @@ class ObjectDetectionSettings(TypedDict):
 
     confidence: float
     """Minimum confidence threshold (0.3 - 1.0)."""
-    labels: NotRequired[list[DetectionLabel]]
-    """Object labels to detect (empty = all). Detections with other labels are dropped."""
     suppressStatic: NotRequired[bool]
     """Suppress events from objects that stay stationary across events (e.g. parked cars). Defaults to True."""
     timeout: NotRequired[int]

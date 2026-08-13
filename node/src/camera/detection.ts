@@ -122,7 +122,7 @@ export interface AlertZone {
   name: string;
   /** Polygon points (0-100 percentage coordinates). */
   points: Point[];
-  /** Labels that alert from inside this zone (empty = zone is inert). */
+  /** Labels that alert from inside this zone (empty = every label alerts here). */
   labels: DetectionLabel[];
   /** When an object counts as inside. Default: anchor. */
   match: AlertZoneMatch;
@@ -142,8 +142,6 @@ export interface MotionDetectionSettings {
 export interface ObjectDetectionSettings {
   /** Minimum confidence threshold (0.3 - 1.0). */
   confidence: number;
-  /** Object labels to detect (empty = all). Detections with other labels are dropped. */
-  labels?: DetectionLabel[];
   /** Suppress events from objects that stay stationary across events (e.g. parked cars). Defaults to true. */
   suppressStatic?: boolean;
   /**
