@@ -1,4 +1,4 @@
-import type { DetectionLabel } from '../sensor/detection.js';
+import type { DetectionAttribute, DetectionLabel } from '../sensor/detection.js';
 import type { LineDirection, MotionResolution, Point, ZoneFilter, ZoneType } from './enums.js';
 
 /** Sensor trigger settings (contact, doorbell, switch, light, etc.). */
@@ -8,6 +8,9 @@ export interface SensorTriggerSettings {
   /** Sensor entity ids that also trigger the detection cascade (in addition to motion/audio). */
   triggers: string[];
 }
+
+/** What an object zone can list: a detection label, or an attribute that gates identification. */
+export type ZoneLabel = DetectionLabel | DetectionAttribute;
 
 /**
  * Detection line configuration.
@@ -59,8 +62,12 @@ export interface ObjectZone {
   type: ZoneType;
   /** Include/exclude filter mode. */
   filter: ZoneFilter;
-  /** Labels that count in this zone. */
-  labels: DetectionLabel[];
+  /**
+   * Labels that count in this zone. Besides the detection labels, `face` and
+   * `license_plate` decide whether an object here is identified at all, so a
+   * zone can watch a street without recognizing anyone on it.
+   */
+  labels: ZoneLabel[];
   /** Zone display color (hex). */
   color: string;
 }

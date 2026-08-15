@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Literal, NotRequired, TypedDict
 
-from ..sensor.detection import DetectionLabel
+from ..sensor.detection import DetectionAttribute, DetectionLabel
 from .enums import LineDirection, MotionResolution, Point, ZoneFilter, ZoneType
 
 
@@ -38,8 +38,10 @@ class ObjectZone(TypedDict):
     """Intersection detection type."""
     filter: ZoneFilter
     """Include/exclude filter mode."""
-    labels: list[DetectionLabel]
-    """Labels that count in this zone."""
+    labels: list[ZoneLabel]
+    """Labels that count in this zone. Besides the detection labels, ``face`` and
+    ``license_plate`` decide whether an object here is identified at all, so a zone
+    can watch a street without recognizing anyone on it."""
     color: str
     """Zone display color (hex)."""
 
@@ -81,6 +83,10 @@ class CameraZones(TypedDict):
 
 AlertZoneMatch = Literal["anchor", "intersect", "contain"]
 """When an object counts as inside an alert zone: where it stands, touching, or fully inside."""
+
+
+ZoneLabel = DetectionLabel | DetectionAttribute
+"""What an object zone can list: a detection label, or an attribute that gates identification."""
 
 
 class AlertZone(TypedDict):
