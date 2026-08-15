@@ -16,13 +16,6 @@ Detection zone intersection type.
 - `contain`: Trigger only when object is fully inside the zone
 """
 
-ZoneFilter = Literal["include", "exclude"]
-"""
-Detection zone filter mode.
-- `include`: Only consider detections inside this zone
-- `exclude`: Only consider detections outside this zone
-"""
-
 CameraRole = Literal["high-resolution", "mid-resolution", "low-resolution", "snapshot"]
 """
 Camera stream resolution role.

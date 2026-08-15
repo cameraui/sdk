@@ -72,7 +72,6 @@ from .camera import (
     VideoFFmpegCodec,
     VideoStreamInfo,
     VideoStreamingMode,
-    ZoneFilter,
     ZoneType,
 )
 from .manager import (
@@ -297,7 +296,6 @@ __all__ = [
     "Camera",
     "CameraType",
     "ZoneType",
-    "ZoneFilter",
     "CameraRole",
     "StreamingRole",
     "MotionResolution",

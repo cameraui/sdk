@@ -1,5 +1,5 @@
 import type { DetectionAttribute, DetectionLabel } from '../sensor/detection.js';
-import type { LineDirection, MotionResolution, Point, ZoneFilter, ZoneType } from './enums.js';
+import type { LineDirection, MotionResolution, Point, ZoneType } from './enums.js';
 
 /** Sensor trigger settings (contact, doorbell, switch, light, etc.). */
 export interface SensorTriggerSettings {
@@ -41,8 +41,6 @@ export interface MotionZone {
   name: string;
   /** Polygon points (0-100 percentage coordinates). */
   points: Point[];
-  /** Include/exclude filter mode. */
-  filter: ZoneFilter;
   /** Zone display color (hex). */
   color: string;
 }
@@ -60,8 +58,6 @@ export interface ObjectZone {
   points: Point[];
   /** Intersection detection type. */
   type: ZoneType;
-  /** Include/exclude filter mode. */
-  filter: ZoneFilter;
   /**
    * Labels that count in this zone. Besides the detection labels, `face` and
    * `license_plate` decide whether an object here is identified at all, so a

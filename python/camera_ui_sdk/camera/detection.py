@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Literal, NotRequired, TypedDict
 
 from ..sensor.detection import DetectionAttribute, DetectionLabel
-from .enums import LineDirection, MotionResolution, Point, ZoneFilter, ZoneType
+from .enums import LineDirection, MotionResolution, Point, ZoneType
 
 
 class MotionZone(TypedDict):
@@ -17,8 +17,6 @@ class MotionZone(TypedDict):
     """Zone display name."""
     points: list[Point]
     """Polygon points (0-100 percentage coordinates)."""
-    filter: ZoneFilter
-    """Include/exclude filter mode."""
     color: str
     """Zone display color (hex)."""
 
@@ -36,8 +34,6 @@ class ObjectZone(TypedDict):
     """Polygon points (0-100 percentage coordinates)."""
     type: ZoneType
     """Intersection detection type."""
-    filter: ZoneFilter
-    """Include/exclude filter mode."""
     labels: list[ZoneLabel]
     """Labels that count in this zone. Besides the detection labels, ``face`` and
     ``license_plate`` decide whether an object here is identified at all, so a zone

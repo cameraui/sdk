@@ -17,7 +17,6 @@ export type ZoneType = 'intersect' | 'contain';
  * - `include`: Only consider detections inside this zone
  * - `exclude`: Only consider detections outside this zone
  */
-export type ZoneFilter = 'include' | 'exclude';
 
 /**
  * Camera stream resolution role.

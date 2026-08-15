@@ -62,7 +62,6 @@ from .enums import (
     VideoCodec,
     VideoFFmpegCodec,
     VideoStreamingMode,
-    ZoneFilter,
     ZoneType,
 )
 from .events import (
@@ -108,7 +107,6 @@ __all__ = [
     # Types
     "CameraType",
     "ZoneType",
-    "ZoneFilter",
     "CameraRole",
     "StreamingRole",
     "MotionResolution",
