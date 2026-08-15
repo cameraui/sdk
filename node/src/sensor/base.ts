@@ -548,6 +548,26 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   }
 
   /**
+   * Re-announces the model spec, e.g. once the models finished loading.
+   *
+   * The spec a detector reports at registration is what it knows at that
+   * moment: models that load in the background are missing from it. Call this
+   * after loading, the server replaces its copy.
+   *
+   * @example
+   * ```typescript
+   * async onStart(): Promise<void> {
+   *   await this.loadModel();
+   *   this.updateModelSpec();
+   * }
+   * ```
+   */
+  public updateModelSpec(): void {
+    const spec = (this as { modelSpec?: unknown }).modelSpec;
+    if (spec) this._writeState({ modelSpec: spec } as unknown as Partial<TProperties>);
+  }
+
+  /**
    * Writes changed properties to the store, fires one batched RPC update with
    * the delta and notifies local listeners per property. Used by the semantic
    * helpers on each sensor type, not by plugin code.

@@ -505,6 +505,24 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         """
         return capability in self._capabilities
 
+    def updateModelSpec(self) -> None:
+        """Re-announce the model spec, e.g. once the models finished loading.
+
+        The spec a detector reports at registration is what it knows at that
+        moment: models that load in the background are missing from it. Call
+        this after loading, the server replaces its copy.
+
+        Example:
+            ```python
+            async def on_start(self) -> None:
+                await self._plugin.get_object_detector(model_name)
+                self.updateModelSpec()
+            ```
+        """
+        spec = getattr(self, "modelSpec", None)
+        if spec is not None:
+            self._write_state({"modelSpec": spec})
+
     def _write_state(self, partial: Mapping[str, Any]) -> None:
         """Write changed properties, fire one batched RPC update and notify listeners.
 
