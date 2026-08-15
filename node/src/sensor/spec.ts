@@ -22,12 +22,34 @@ export interface AudioInputSpec {
   samplesPerFrame?: number;
 }
 
+/** One model a sensor has loaded. Reported for the metrics view and for debugging. */
+export interface LoadedModel {
+  /** Resolved model name, after any `default` placeholder (e.g. `'yolo-v9-s-320'`). */
+  name: string;
+  /** What this model does inside a sensor that loads several: `'detect'`, `'embed'`, `'ocr'`, `'text'`. */
+  role?: string;
+  /** Where inference runs, resolved to the real device (e.g. `'GPU.0'`, `'ANE'`, `'TPU:0'`, `'CPU'`). */
+  device?: string;
+  /** Weight precision: `'fp32'`, `'fp16'`, `'int8'`. */
+  precision?: string;
+  /** How long loading this model took, in milliseconds. */
+  loadMs?: number;
+}
+
+/** What a sensor runs on. Optional throughout: a plugin that reports nothing simply shows nothing. */
+export interface ModelRuntime {
+  /** Inference framework and version, e.g. `'openvino 2025.3.0'`. */
+  runtime?: string;
+  /** Models this sensor has loaded, primary one first. */
+  models?: LoadedModel[];
+}
+
 /**
  * Model spec for detectors with fixed output labels (face, classifier, license plate).
  * Declares the input shape the backend should produce and the trigger labels
  * that should activate this detector.
  */
-export interface ModelSpec {
+export interface ModelSpec extends ModelRuntime {
   /** Required input frame dimensions and pixel format. */
   input: VideoInputSpec;
   /** Labels emitted by an upstream object detector that activate this detector (e.g. `['person']` for face detection). */
@@ -40,13 +62,13 @@ export interface ModelSpec {
  * Model spec for object detectors. Only declares input dimensions, the output
  * label set is dynamic and comes from the model itself.
  */
-export interface ObjectModelSpec {
+export interface ObjectModelSpec extends ModelRuntime {
   /** Required input frame dimensions and pixel format. */
   input: VideoInputSpec;
 }
 
 /** Model spec for audio detectors. */
-export interface AudioModelSpec {
+export interface AudioModelSpec extends ModelRuntime {
   /** Required input audio format. */
   input: AudioInputSpec;
 }

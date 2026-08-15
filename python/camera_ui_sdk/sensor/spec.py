@@ -16,7 +16,31 @@ class VideoInputSpec(TypedDict):
     """Pixel format: rgb=3 bytes/pixel, gray=1 byte/pixel, nv12=YUV semi-planar."""
 
 
-class ObjectModelSpec(TypedDict):
+class LoadedModel(TypedDict):
+    """One model a sensor has loaded. Reported for the metrics view and for debugging."""
+
+    name: str
+    """Resolved model name, after any "default" placeholder (e.g. "yolo-v9-s-320")."""
+    role: NotRequired[str]
+    """What this model does inside a sensor that loads several: "detect", "embed", "ocr", "text"."""
+    device: NotRequired[str]
+    """Where inference runs, resolved to the real device (e.g. "GPU.0", "ANE", "TPU:0", "CPU")."""
+    precision: NotRequired[str]
+    """Weight precision: "fp32", "fp16", "int8"."""
+    loadMs: NotRequired[int]
+    """How long loading this model took, in milliseconds."""
+
+
+class ModelRuntime(TypedDict):
+    """What a sensor runs on. Optional throughout: a plugin that reports nothing simply shows nothing."""
+
+    runtime: NotRequired[str]
+    """Inference framework and version, e.g. "openvino 2025.3.0"."""
+    models: NotRequired[list[LoadedModel]]
+    """Models this sensor has loaded, primary one first."""
+
+
+class ObjectModelSpec(ModelRuntime):
     """Model spec for object detectors.
 
     Only declares input dimensions, the output label set is dynamic and comes
@@ -27,7 +51,7 @@ class ObjectModelSpec(TypedDict):
     """Required input frame dimensions and pixel format."""
 
 
-class ModelSpec(TypedDict):
+class ModelSpec(ModelRuntime):
     """Model spec for detectors with fixed output labels (face, classifier, license plate).
 
     Declares the input shape the backend should produce and the trigger
@@ -55,7 +79,7 @@ class AudioInputSpec(TypedDict):
     """Number of samples per audio frame the detector expects; the backend buffers audio to deliver exactly this many samples per call."""
 
 
-class AudioModelSpec(TypedDict):
+class AudioModelSpec(ModelRuntime):
     """Model spec for audio detectors."""
 
     input: AudioInputSpec

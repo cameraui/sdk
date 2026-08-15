@@ -138,6 +138,8 @@ from .smoke import (
 from .spec import (
     AudioInputSpec,
     AudioModelSpec,
+    LoadedModel,
+    ModelRuntime,
     ModelSpec,
     ObjectModelSpec,
     VideoInputSpec,
@@ -165,6 +167,8 @@ __all__ = [
     "SensorCategory",
     "SensorPropertyChangeData",
     "VideoInputSpec",
+    "LoadedModel",
+    "ModelRuntime",
     "ObjectModelSpec",
     "ModelSpec",
     "AudioInputSpec",
