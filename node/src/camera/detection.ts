@@ -124,6 +124,18 @@ export interface AlertZone {
   points: Point[];
   /** Labels that alert from inside this zone (empty = every label alerts here). */
   labels: DetectionLabel[];
+  /**
+   * Faces that may push from inside this zone. Undefined leaves faces out of the
+   * decision, an empty list lets every recognized face push, otherwise only the
+   * listed identities do. `unknown` covers everyone the recognition could not
+   * name, including people whose face was never captured.
+   */
+  faces?: string[];
+  /**
+   * Plates that may push from inside this zone, same rules as {@link AlertZone.faces}.
+   * Plates are OCR text, so the list is free-form rather than picked from a roster.
+   */
+  plates?: string[];
   /** When an object counts as inside. Default: contain. */
   match: AlertZoneMatch;
   /** Zone display color (hex). */

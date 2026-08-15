@@ -17,6 +17,7 @@ from .enums import (
     VideoStreamingMode,
 )
 from .frames import CameraFrameWorkerSettings, SnapshotSettings
+from .notification import CameraNotificationSettings
 from .recording import CameraRecordingSettings
 from .streaming import StreamUrls
 
@@ -250,6 +251,8 @@ class BaseCamera(TypedDict):
     """PTZ autotracking settings."""
     recordingSettings: CameraRecordingSettings
     """Recording settings."""
+    notificationSettings: CameraNotificationSettings
+    """Push notification settings."""
     frameWorkerSettings: CameraFrameWorkerSettings
     """Frame worker settings."""
     interfaceSettings: CameraUiSettings

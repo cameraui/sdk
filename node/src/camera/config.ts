@@ -1,6 +1,7 @@
 import type { CameraInputSettings } from '../internal/camera-config-internal.js';
 import type { SENSOR_META } from '../sensor/registry.js';
 import type { CameraDetectionSettings, CameraZones, PtzAutotrackSettings } from './detection.js';
+import type { CameraNotificationSettings } from './notification.js';
 import type { CameraRecordingSettings } from './recording.js';
 import type { AudioCodec, CameraAspectRatio, CameraRole, CameraType, StreamingRole, VideoCodec, VideoStreamingMode } from './enums.js';
 import type { CameraFrameWorkerSettings, SnapshotSettings } from './frames.js';
@@ -146,6 +147,8 @@ export interface BaseCamera {
   ptzAutotrack: PtzAutotrackSettings;
   /** Recording settings. */
   recordingSettings: CameraRecordingSettings;
+  /** Push notification settings. */
+  notificationSettings: CameraNotificationSettings;
   /** Frame worker settings. */
   frameWorkerSettings: CameraFrameWorkerSettings;
   /** UI display settings. */

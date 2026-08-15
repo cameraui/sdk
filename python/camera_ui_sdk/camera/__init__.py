@@ -79,6 +79,10 @@ from .frames import (
     FrameWorkerDecoderSettings,
     SnapshotSettings,
 )
+from .notification import (
+    CameraNotificationSettings,
+    NotificationSpeed,
+)
 from .recording import (
     CameraRecordingSettings,
     RecordingMode,
@@ -163,9 +167,11 @@ __all__ = [
     "PtzAutotrackSettings",
     "TimeWindow",
     "CameraDetectionSettings",
+    "CameraNotificationSettings",
     "CameraRecordingSettings",
     "FrameWorkerDecoderHardware",
     "FrameWorkerDecoderSettings",
+    "NotificationSpeed",
     "RecordingMode",
     "RecordingSource",
     "SnapshotSettings",

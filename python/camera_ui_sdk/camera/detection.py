@@ -96,6 +96,14 @@ class AlertZone(TypedDict):
     """Polygon points (0-100 percentage coordinates)."""
     labels: list[DetectionLabel]
     """Labels that alert from inside this zone (empty = every label alerts here)."""
+    faces: NotRequired[list[str]]
+    """Faces that may push from inside this zone. Missing leaves faces out of the
+    decision, an empty list lets every recognized face push, otherwise only the
+    listed identities do. ``unknown`` covers everyone the recognition could not
+    name, including people whose face was never captured."""
+    plates: NotRequired[list[str]]
+    """Plates that may push from inside this zone, same rules as ``faces``. Plates
+    are OCR text, so the list is free-form rather than picked from a roster."""
     match: AlertZoneMatch
     """When an object counts as inside. Default: contain."""
     color: str
