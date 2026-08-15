@@ -168,6 +168,8 @@ class FaceDetectionSettings(TypedDict):
 
     confidence: NotRequired[float]
     """Minimum confidence threshold (0 - 1) for a face to count."""
+    matchThreshold: NotRequired[float]
+    """Minimum similarity (0 - 1) for a face to be recognized as an enrolled person."""
 
 
 class LicensePlateDetectionSettings(TypedDict):

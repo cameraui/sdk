@@ -180,6 +180,11 @@ export interface AudioDetectionSettings {
 export interface FaceDetectionSettings {
   /** Minimum confidence threshold (0 - 1) for a face to count. */
   confidence?: number;
+  /**
+   * Minimum similarity (0 - 1) for a face to be recognized as an enrolled
+   * person. Higher means fewer false matches, lower means more matches.
+   */
+  matchThreshold?: number;
 }
 
 /** License plate detection settings. */
