@@ -174,6 +174,8 @@ class LicensePlateDetectionSettings(TypedDict):
     """License plate detection settings."""
 
     confidence: NotRequired[float]
+    """Minimum confidence threshold (0 - 1) for a plate to be found in the picture."""
+    ocrConfidence: NotRequired[float]
     """Minimum text recognition confidence (0 - 1) for a plate read to count."""
     minLength: NotRequired[int]
     """Minimum plate text length, shorter reads are dropped as fragments."""

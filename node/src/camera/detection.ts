@@ -184,8 +184,10 @@ export interface FaceDetectionSettings {
 
 /** License plate detection settings. */
 export interface LicensePlateDetectionSettings {
-  /** Minimum text recognition confidence (0 - 1) for a plate read to count. */
+  /** Minimum confidence threshold (0 - 1) for a plate to be found in the picture. */
   confidence?: number;
+  /** Minimum text recognition confidence (0 - 1) for a plate read to count. */
+  ocrConfidence?: number;
   /** Minimum plate text length, shorter reads are dropped as fragments. */
   minLength?: number;
 }
