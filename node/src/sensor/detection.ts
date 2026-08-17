@@ -1,5 +1,5 @@
 /** Object-detection labels the detector groups its classes into. */
-export const OBJECT_DETECTION_LABELS = ['person', 'vehicle', 'animal', 'package'] as const;
+export const OBJECT_DETECTION_LABELS = ['person', 'vehicle', 'animal'] as const;
 
 /** Union of the object-detection label strings. */
 export type ObjectDetectionLabel = (typeof OBJECT_DETECTION_LABELS)[number];
