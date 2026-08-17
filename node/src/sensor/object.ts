@@ -18,6 +18,8 @@ export enum ObjectProperty {
   Detections = 'detections',
   /** Unique labels of the current detections (auto-derived when reporting detections). */
   Labels = 'labels',
+  /** Settled objects hidden from events, kept visible for overlays. Written by the backend. */
+  StaticDetections = 'staticDetections',
 }
 
 /** Detection enriched with tracking metadata (stable IDs, velocity). */
@@ -35,6 +37,8 @@ export interface TrackedDetection extends Detection {
   trackVelocity?: { x: number; y: number };
   /** True if the object was not matched in the current frame. */
   trackLost?: boolean;
+  /** Epoch ms since the object has been still. Only present while it is settled. */
+  stationarySince?: number;
 }
 
 /**
@@ -46,6 +50,7 @@ export interface ObjectSensorProperties {
   [ObjectProperty.Detected]: boolean;
   [ObjectProperty.Detections]: TrackedDetection[];
   [ObjectProperty.Labels]: DetectionLabel[];
+  [ObjectProperty.StaticDetections]?: TrackedDetection[];
 }
 
 /** Read-only proxy interface for an object detection sensor. */
@@ -56,6 +61,7 @@ export interface ObjectSensorLike extends SensorLike {
   getValue(property: ObjectProperty.Detected): boolean | undefined;
   getValue(property: ObjectProperty.Detections): TrackedDetection[] | undefined;
   getValue(property: ObjectProperty.Labels): DetectionLabel[] | undefined;
+  getValue(property: ObjectProperty.StaticDetections): TrackedDetection[] | undefined;
   getValue(property: string): unknown;
 }
 
@@ -182,6 +188,7 @@ export const objectMeta = defineSensor({
     [ObjectProperty.Detected]: { type: 'boolean' },
     [ObjectProperty.Detections]: { type: 'object', internal: true },
     [ObjectProperty.Labels]: { type: 'object' },
+    [ObjectProperty.StaticDetections]: { type: 'object', internal: true },
   },
   semantics: null,
 });

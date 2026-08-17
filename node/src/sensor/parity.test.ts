@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 import { PROTOCOL_LEVEL } from '../plugin/contract.js';
 import { SensorType } from './base.js';
+import { BASE_AUDIO_LABELS } from './audio.js';
 import { OBJECT_DETECTION_LABELS } from './detection.js';
 import { SENSOR_META } from './registry.js';
 
@@ -37,6 +38,17 @@ describe('cross-SDK parity', () => {
 
     expect([...python].sort()).toEqual([...OBJECT_DETECTION_LABELS].sort());
     expect([...go].sort()).toEqual([...OBJECT_DETECTION_LABELS].sort());
+  });
+
+  it('BASE_AUDIO_LABELS match across node, python and go', () => {
+    const pythonSource = read('python/camera_ui_sdk/sensor/audio.py');
+    const python = values(block(pythonSource, /BASE_AUDIO_LABELS[^=]*= \(([\s\S]*?)\)/), /"([^"]+)"/g);
+    const pythonLiteral = values(block(pythonSource, /BaseAudioLabel = Literal\[([\s\S]*?)\]/), /"([^"]+)"/g);
+    const go = values(block(read('go/sensor_audio.go'), /BaseAudioLabels = \[\]string\{([\s\S]*?)\}/), /"([^"]+)"/g);
+
+    expect([...python].sort()).toEqual([...BASE_AUDIO_LABELS].sort());
+    expect([...pythonLiteral].sort()).toEqual([...BASE_AUDIO_LABELS].sort());
+    expect([...go].sort()).toEqual([...BASE_AUDIO_LABELS].sort());
   });
 
   it('PluginAssignments keys match across node, python and go', () => {

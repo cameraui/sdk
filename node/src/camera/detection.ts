@@ -1,4 +1,4 @@
-import type { DetectionAttribute, DetectionLabel } from '../sensor/detection.js';
+import type { DetectionAttribute, DetectionLabel, ObjectDetectionLabel } from '../sensor/detection.js';
 import type { LineDirection, MotionResolution, Point, ZoneType } from './enums.js';
 
 /** Sensor trigger settings (contact, doorbell, switch, light, etc.). */
@@ -155,8 +155,8 @@ export interface MotionDetectionSettings {
 
 /** Object detection settings. */
 export interface ObjectDetectionSettings {
-  /** Minimum confidence threshold (0.3 - 1.0). */
-  confidence: number;
+  /** Minimum confidence threshold (0.3 - 1.0) per object label. */
+  confidences: Record<ObjectDetectionLabel, number>;
   /** Suppress events from objects that stay stationary across events (e.g. parked cars). Defaults to true. */
   suppressStatic?: boolean;
   /**

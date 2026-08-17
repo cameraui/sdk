@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections.abc import Mapping
 from enum import StrEnum
-from typing import Any, Generic, Literal, Protocol, overload, runtime_checkable
+from typing import Any, Generic, Literal, NotRequired, Protocol, overload, runtime_checkable
 
 from typing_extensions import TypedDict, TypeVar
 
@@ -22,6 +22,8 @@ class ObjectProperty(StrEnum):
     """List of detected objects with labels and bounding boxes."""
     Labels = "labels"
     """Unique labels of the current detections (auto-derived when reporting detections)."""
+    StaticDetections = "staticDetections"
+    """Settled objects hidden from events, kept visible for overlays. Written by the backend."""
 
 
 class TrackVelocity(TypedDict):
@@ -47,6 +49,8 @@ class TrackedDetection(Detection, total=False):
     """Signed centroid velocity in normalized units per frame."""
     trackLost: bool
     """True if the object was not matched in the current frame."""
+    stationarySince: float
+    """Epoch ms since the object has been still. Only present while it is settled."""
 
 
 class ObjectSensorProperties(TypedDict):
@@ -55,6 +59,7 @@ class ObjectSensorProperties(TypedDict):
     detected: bool
     detections: list[TrackedDetection]
     labels: list[DetectionLabel]
+    staticDetections: NotRequired[list[TrackedDetection]]
 
 
 class ObjectPropertyChangeData(TypedDict):

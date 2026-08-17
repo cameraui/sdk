@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Literal, NotRequired, TypedDict
 
-from ..sensor.detection import DetectionAttribute, DetectionLabel
+from ..sensor.detection import DetectionAttribute, DetectionLabel, ObjectDetectionLabel
 from .enums import LineDirection, MotionResolution, Point, ZoneType
 
 
@@ -144,8 +144,8 @@ class MotionDetectionSettings(TypedDict):
 class ObjectDetectionSettings(TypedDict):
     """Object detection settings."""
 
-    confidence: float
-    """Minimum confidence threshold (0.3 - 1.0)."""
+    confidences: dict[ObjectDetectionLabel, float]
+    """Minimum confidence threshold (0.3 - 1.0) per object label."""
     suppressStatic: NotRequired[bool]
     """Suppress events from objects that stay stationary across events (e.g. parked cars). Defaults to True."""
     timeout: NotRequired[int]
