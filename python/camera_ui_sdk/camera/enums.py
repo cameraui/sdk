@@ -25,6 +25,12 @@ Used to identify different quality streams from the same camera.
 StreamingRole = Literal["high-resolution", "mid-resolution", "low-resolution"]
 """Streaming roles (excludes snapshot)."""
 
+PlaybackSource = Literal["auto", "high", "mid", "low"]
+"""Recorded playback quality selection: a fixed tier, or automatic tier choice from the recorded coverage."""
+
+CameraActivityMode = Literal["always-on", "activity", "standby"]
+"""When the live stream runs: continuously, only during activity, or on demand."""
+
 MotionResolution = Literal["low", "medium", "high"]
 """
 Motion detection resolution setting.

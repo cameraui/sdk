@@ -3,7 +3,7 @@ import type { SENSOR_META } from '../sensor/registry.js';
 import type { CameraDetectionSettings, CameraZones, PtzAutotrackSettings } from './detection.js';
 import type { CameraNotificationSettings } from './notification.js';
 import type { CameraRecordingSettings } from './recording.js';
-import type { AudioCodec, CameraAspectRatio, CameraRole, CameraType, StreamingRole, VideoCodec, VideoStreamingMode } from './enums.js';
+import type { AudioCodec, CameraActivityMode, CameraAspectRatio, CameraRole, CameraType, PlaybackSource, StreamingRole, VideoCodec, VideoStreamingMode } from './enums.js';
 import type { CameraFrameWorkerSettings, SnapshotSettings } from './frames.js';
 import type { StreamUrls } from './streaming.js';
 
@@ -80,6 +80,10 @@ export interface CameraUiSettings {
   streamingMode: VideoStreamingMode;
   /** Preferred stream quality. */
   streamingSource: StreamingRole;
+  /** Recorded playback quality. Auto picks the best tier with footage and may switch at coverage edges. */
+  playbackSource: PlaybackSource;
+  /** When the live stream runs: continuously, only during activity, or on demand. */
+  activityMode: CameraActivityMode;
   /** Display aspect ratio. */
   aspectRatio: CameraAspectRatio;
 }

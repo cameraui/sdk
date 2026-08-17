@@ -9,9 +9,11 @@ from .detection import (
 )
 from .enums import (
     AudioCodec,
+    CameraActivityMode,
     CameraAspectRatio,
     CameraRole,
     CameraType,
+    PlaybackSource,
     StreamingRole,
     VideoCodec,
     VideoStreamingMode,
@@ -118,6 +120,10 @@ class CameraUiSettings(TypedDict):
     """Preferred streaming method."""
     streamingSource: StreamingRole
     """Preferred stream quality."""
+    playbackSource: PlaybackSource
+    """Recorded playback quality. Auto picks the best tier with footage and may switch at coverage edges."""
+    activityMode: CameraActivityMode
+    """When the live stream runs: continuously, only during activity, or on demand."""
     aspectRatio: CameraAspectRatio
     """Display aspect ratio."""
 

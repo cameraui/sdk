@@ -27,6 +27,12 @@ export type CameraRole = 'high-resolution' | 'mid-resolution' | 'low-resolution'
 /** Streaming roles (excludes snapshot). */
 export type StreamingRole = Exclude<CameraRole, 'snapshot'>;
 
+/** Recorded playback quality selection: a fixed tier, or automatic tier choice from the recorded coverage. */
+export type PlaybackSource = 'auto' | 'high' | 'mid' | 'low';
+
+/** When the live stream runs: continuously, only during activity, or on demand. */
+export type CameraActivityMode = 'always-on' | 'activity' | 'standby';
+
 /** Zone polygon coordinate as [x, y] tuple (0-100 percentage). */
 export type Point = [number, number];
 
