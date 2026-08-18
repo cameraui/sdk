@@ -321,8 +321,20 @@ export interface ClipDetectionInterface {
   testClipEmbedding(imageData: Buffer | Uint8Array, metadata: ImageMetadata, config: Record<string, unknown>): Promise<ClipDetectionPluginResponse | undefined>;
   /** Run the CLIP image branch on a pre-decoded video frame. */
   detectClipEmbedding?(frame: VideoFrameData, config?: Record<string, unknown>): Promise<ClipDetectionPluginResponse | undefined>;
+  /**
+   * Run the CLIP image branch over a batch of encoded images (JPEG/PNG): one result per
+   * input in the same order, undefined where decoding or embedding failed. Meant for
+   * re-indexing stored images after an embedding-model change.
+   */
+  embedImages?(images: (Buffer | Uint8Array)[], config?: Record<string, unknown>): Promise<(ClipDetectionPluginResponse | undefined)[]>;
   /** Run the CLIP text branch and return a vector usable for semantic-search queries against stored image embeddings. */
   getTextEmbedding(text: string): Promise<ClipTextEmbeddingResult>;
+  /**
+   * Run the CLIP text branch once per embedding space the plugin can currently serve,
+   * the configured search model first. Lets semantic search also cover embeddings
+   * produced by an older model during a transition.
+   */
+  getTextEmbeddings?(text: string): Promise<ClipTextEmbeddingResult[]>;
   /** Return the JSON schema for the CLIP settings form in the UI, or undefined for no schema. */
   clipSettings?(): Promise<JsonSchema[] | undefined>;
 }

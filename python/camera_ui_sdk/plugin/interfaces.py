@@ -443,8 +443,26 @@ class ClipDetectionInterface(Protocol):
         """Run the CLIP image branch on a pre-decoded video frame."""
         ...
 
+    async def embedImages(
+        self, images: list[bytes], config: dict[str, Any] | None = None
+    ) -> list[ClipDetectionPluginResponse | None]:
+        """Run the CLIP image branch over a batch of encoded images (JPEG/PNG).
+
+        One result per input in the same order, None where decoding or embedding
+        failed. Meant for re-indexing stored images after an embedding-model change.
+        """
+        ...
+
     async def getTextEmbedding(self, text: str) -> ClipTextEmbeddingResult:
         """Run the CLIP text branch and return a vector usable for semantic-search queries against stored image embeddings."""
+        ...
+
+    async def getTextEmbeddings(self, text: str) -> list[ClipTextEmbeddingResult]:
+        """Run the CLIP text branch once per embedding space the plugin can currently serve.
+
+        The configured search model comes first. Lets semantic search also cover
+        embeddings produced by an older model during a transition.
+        """
         ...
 
     async def clipSettings(self) -> list[JsonSchema] | None:
