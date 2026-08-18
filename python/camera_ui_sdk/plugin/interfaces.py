@@ -130,6 +130,9 @@ class ClipDetectionPluginResponse(TypedDict):
     embeddingModel: str
     """Model that produced the embeddings; consumers must not mix models."""
 
+    scoreBand: list[float]
+    """[floor, ceiling] of raw text-image cosine scores for this model; consumers map scores to a 0..1 relevance scale and treat a missing band as score 0."""
+
 
 class ClipTextEmbeddingResult(TypedDict):
     """Result of a CLIP text embedding request."""
@@ -139,6 +142,9 @@ class ClipTextEmbeddingResult(TypedDict):
 
     embeddingModel: str
     """Model that produced the embedding; consumers must not mix models."""
+
+    scoreBand: list[float]
+    """[floor, ceiling] of raw text-image cosine scores for this model; consumers map scores to a 0..1 relevance scale and treat a missing band as score 0."""
 
 
 class BasePlugin(ABC, Generic[StorageT]):

@@ -86,6 +86,8 @@ export interface ClipDetectionPluginResponse {
   embeddings: ClipEmbedding[];
   /** Model that produced the embeddings; consumers must not mix models. */
   embeddingModel: string;
+  /** [floor, ceiling] of raw text-image cosine scores for this model; consumers map scores to a 0..1 relevance scale and treat a missing band as score 0. */
+  scoreBand: [number, number];
 }
 
 /** Result of a CLIP text embedding request. */
@@ -94,6 +96,8 @@ export interface ClipTextEmbeddingResult {
   embedding: number[];
   /** Model that produced the embedding; consumers must not mix models. */
   embeddingModel: string;
+  /** [floor, ceiling] of raw text-image cosine scores for this model; consumers map scores to a 0..1 relevance scale and treat a missing band as score 0. */
+  scoreBand: [number, number];
 }
 
 /**
