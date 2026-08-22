@@ -5,6 +5,18 @@ import type { BasePlugin, PluginInterfaces } from '../plugin/interfaces.js';
 import type { Notification } from '../plugin/notifier.js';
 import type { Sensor } from '../sensor/base.js';
 
+/** One recorded change of one sensor property. */
+export interface SensorHistoryEntry {
+  /** The sensor it belongs to. */
+  sensorId: string;
+  /** Property name, e.g. 'detected' or 'current'. */
+  property: string;
+  /** The value it changed to. */
+  value: string | number | boolean | null;
+  /** When it changed, in milliseconds. */
+  timestamp: number;
+}
+
 /**
  * Core manager event payload.
  * The host currently publishes one event type, 'cloudAccountChanged'.
@@ -180,6 +192,33 @@ export interface SensorManager {
    * @returns Sensor instances owned by this plugin
    */
   getSensors(): Sensor<any, any, any>[];
+
+  /**
+   * Get what a set of sensors did during a window of time.
+   *
+   * Returns every recorded change between `from` and `to`, and for each
+   * property also the value it already had when the window opened, because a
+   * door that was open the whole time says as much as one that opened halfway
+   * through. Entries come back oldest first.
+   *
+   * The history is a short tail, not an archive: it is coalesced to one entry
+   * per second and capped per sensor, so a window far in the past may be gone.
+   *
+   * @param sensorIds - Sensors to read
+   *
+   * @param from - Start of the window, in milliseconds
+   *
+   * @param to - End of the window, in milliseconds
+   *
+   * @returns Recorded changes, oldest first
+   *
+   * @example
+   * ```typescript
+   * const changes = await api.sensorManager.getSensorHistory([contactId], event.start, event.end);
+   * const opened = changes.find((change) => change.property === 'detected' && change.value === true);
+   * ```
+   */
+  getSensorHistory(sensorIds: string[], from: number, to: number): Promise<SensorHistoryEntry[]>;
 }
 
 /**

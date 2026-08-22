@@ -86,6 +86,7 @@ from .manager import (
     DownloadManager,
     DownloadToken,
     NotificationManager,
+    SensorHistoryEntry,
     SensorManager,
 )
 from .observable import (
@@ -508,6 +509,7 @@ __all__ = [
     "SensorManager",
     "CoreManager",
     "CoreManagerEvent",
+    "SensorHistoryEntry",
     "DownloadManager",
     "CreateDownloadOptions",
     "CreateStreamDownloadOptions",

@@ -33,6 +33,15 @@ class CoreManagerEvent(TypedDict):
     """Event-specific data payload. Shape depends on the event type."""
 
 
+class SensorHistoryEntry(TypedDict):
+    """One recorded change of one sensor property."""
+
+    sensorId: str
+    property: str
+    value: str | float | bool | None
+    timestamp: int
+
+
 @runtime_checkable
 class CoreManager(Protocol):
     """
@@ -179,6 +188,35 @@ class SensorManager(Protocol):
 
         Returns:
             Sensor instances owned by this plugin
+        """
+        ...
+
+    async def getSensorHistory(self, sensorIds: list[str], start: int, end: int) -> list[SensorHistoryEntry]:
+        """
+        Get what a set of sensors did during a window of time.
+
+        Returns every recorded change between ``start`` and ``end``, and for
+        each property also the value it already had when the window opened,
+        because a door that was open the whole time says as much as one that
+        opened halfway through. Entries come back oldest first.
+
+        The history is a short tail, not an archive: it is coalesced to one
+        entry per second and capped per sensor, so a window far in the past may
+        be gone.
+
+        Args:
+            sensorIds: Sensors to read
+            start: Start of the window, in milliseconds
+            end: End of the window, in milliseconds
+
+        Returns:
+            Recorded changes, oldest first
+
+        Example:
+            ```python
+            changes = await api.sensorManager.getSensorHistory([contact_id], event_start, event_end)
+            opened = [c for c in changes if c["property"] == "detected" and c["value"] is True]
+            ```
         """
         ...
 
