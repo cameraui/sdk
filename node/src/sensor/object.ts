@@ -28,10 +28,10 @@ export interface TrackedDetection extends Detection {
   trackId?: number;
   /** Number of frames this object has been continuously tracked. */
   trackAge?: number;
-  /** Velocity magnitude in normalized units per frame. 0 = stationary. */
+  /** Velocity magnitude in normalized units per second. */
   trackSpeed?: number;
   /**
-   * Signed centroid velocity in normalized units per frame. Positive x = moving right,
+   * Signed centroid velocity in normalized units per second. Positive x = moving right,
    * positive y = moving down. Prefer this over deriving velocity from position deltas.
    */
   trackVelocity?: { x: number; y: number };

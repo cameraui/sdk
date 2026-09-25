@@ -27,7 +27,7 @@ class ObjectProperty(StrEnum):
 
 
 class TrackVelocity(TypedDict):
-    """Signed centroid velocity in normalized units per frame. Positive x = moving
+    """Signed centroid velocity in normalized units per second. Positive x = moving
     right, positive y = moving down. Prefer this over deriving velocity from
     position deltas.
     """
@@ -44,9 +44,9 @@ class TrackedDetection(Detection, total=False):
     trackAge: int
     """Number of frames this object has been continuously tracked."""
     trackSpeed: float
-    """Velocity magnitude in normalized units per frame. 0 = stationary."""
+    """Velocity magnitude in normalized units per second."""
     trackVelocity: TrackVelocity
-    """Signed centroid velocity in normalized units per frame."""
+    """Signed centroid velocity in normalized units per second."""
     trackLost: bool
     """True if the object was not matched in the current frame."""
     stationarySince: float

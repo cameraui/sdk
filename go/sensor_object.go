@@ -7,7 +7,7 @@ const (
 	objectPropertyStaticDetections = "staticDetections"
 )
 
-// TrackVelocity is the signed centroid velocity in normalized units per frame.
+// TrackVelocity is the signed centroid velocity in normalized units per second.
 // Positive X = moving right, positive Y = moving down. Prefer it over deriving
 // velocity from frame-to-frame position deltas.
 type TrackVelocity struct {
@@ -22,8 +22,8 @@ type TrackedDetection struct {
 	Detection
 	TrackId         *int           `msgpack:"trackId,omitempty" json:"trackId,omitempty"`                 // Stable sequential ID for this object across frames
 	TrackAge        *int           `msgpack:"trackAge,omitempty" json:"trackAge,omitempty"`               // Number of frames this object has been continuously tracked
-	TrackSpeed      *float64       `msgpack:"trackSpeed,omitempty" json:"trackSpeed,omitempty"`           // Velocity magnitude in normalized units per frame; 0 = stationary
-	TrackVelocity   *TrackVelocity `msgpack:"trackVelocity,omitempty" json:"trackVelocity,omitempty"`     // Signed centroid velocity in normalized units per frame
+	TrackSpeed      *float64       `msgpack:"trackSpeed,omitempty" json:"trackSpeed,omitempty"`           // Velocity magnitude in normalized units per second
+	TrackVelocity   *TrackVelocity `msgpack:"trackVelocity,omitempty" json:"trackVelocity,omitempty"`     // Signed centroid velocity in normalized units per second
 	TrackLost       *bool          `msgpack:"trackLost,omitempty" json:"trackLost,omitempty"`             // True if the object was not matched in the current frame
 	StationarySince *float64       `msgpack:"stationarySince,omitempty" json:"stationarySince,omitempty"` // Epoch ms since the object has been still; only present while it is settled
 }
