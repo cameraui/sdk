@@ -176,7 +176,8 @@ class CoreManager(Protocol):
 
     async def getServerAddresses(self) -> list[str]:
         """
-        Get server addresses (IP addresses the server is listening on).
+        Get server addresses (IP addresses the server is listening on). A plugin running on a worker
+        gets the addresses selected for that worker, empty when none are selected.
 
         Returns:
             List of server addresses

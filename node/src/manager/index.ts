@@ -105,7 +105,8 @@ export interface CoreManager {
   getFFmpegPath(): Promise<string>;
 
   /**
-   * Get server addresses (IP addresses the server is listening on).
+   * Get server addresses (IP addresses the server is listening on). A plugin running on a worker
+   * gets the addresses selected for that worker, empty when none are selected.
    *
    * @returns Array of server addresses
    */
