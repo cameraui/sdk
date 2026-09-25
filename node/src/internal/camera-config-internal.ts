@@ -1,5 +1,5 @@
 import type { BaseCameraConfig, CameraConfigInputSettings } from '../camera/config.js';
-import type { CameraRole } from '../camera/enums.js';
+import type { CameraRole, StreamingRole } from '../camera/enums.js';
 
 /** Camera input settings (user configuration). */
 export interface CameraInputSettings {
@@ -27,6 +27,10 @@ export interface CameraInputSettings {
   urls: string[];
   /** Child source ID (for snapshot fallback). */
   childSourceId?: string;
+  /** Camera whose stream shows in the picture-in-picture overlay, instead of a source of this camera. */
+  childCameraId?: string;
+  /** Role of the `childCameraId` stream shown in the overlay. */
+  childCameraRole?: StreamingRole;
 }
 
 /** Camera configuration subset for partial updates. */

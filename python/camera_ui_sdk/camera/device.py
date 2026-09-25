@@ -20,7 +20,7 @@ from .detection import (
     CameraZones,
     PtzAutotrackSettings,
 )
-from .enums import CameraRole, CameraType
+from .enums import CameraRole, CameraType, StreamingRole
 from .events import DetectionEventPayload
 from .frames import CameraFrameWorkerSettings, SnapshotSettings
 from .recording import CameraRecordingSettings
@@ -55,6 +55,10 @@ class CameraSource(Protocol):
     """Generated streaming URLs."""
     childSourceId: str | None
     """Child source ID (for snapshot fallback)."""
+    childCameraId: str | None
+    """Camera whose stream shows in the picture-in-picture overlay, instead of a source of this camera."""
+    childCameraRole: StreamingRole | None
+    """Role of the ``childCameraId`` stream shown in the overlay."""
 
     async def snapshot(self, forceNew: bool = False) -> bytes | None:
         """

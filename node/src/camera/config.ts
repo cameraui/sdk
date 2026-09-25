@@ -49,6 +49,10 @@ export interface CameraInput {
   backchannelAudioCodec?: AudioCodec;
   /** Child source ID (for snapshot fallback). */
   childSourceId?: string;
+  /** Camera whose stream shows in the picture-in-picture overlay, instead of a source of this camera. */
+  childCameraId?: string;
+  /** Role of the `childCameraId` stream shown in the overlay. */
+  childCameraRole?: StreamingRole;
 }
 
 /** Camera input settings for config. */

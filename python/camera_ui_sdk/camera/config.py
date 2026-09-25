@@ -74,6 +74,10 @@ class CameraInput(TypedDict):
     """Probed talkback audio codec (client to camera). Present only when the probed source has a backchannel."""
     childSourceId: NotRequired[str]
     """Child source ID (for snapshot fallback)."""
+    childCameraId: NotRequired[str]
+    """Camera whose stream shows in the picture-in-picture overlay, instead of a source of this camera."""
+    childCameraRole: NotRequired[StreamingRole]
+    """Role of the ``childCameraId`` stream shown in the overlay."""
 
 
 class CameraConfigInputSettings(TypedDict):
@@ -99,6 +103,10 @@ class CameraConfigInputSettings(TypedDict):
     """Seconds allowed per RTSP request while connecting. Raise it for cameras that wake slowly. Unset means 5."""
     childSourceId: NotRequired[str]
     """Child source ID (for snapshot fallback)."""
+    childCameraId: NotRequired[str]
+    """Camera whose stream shows in the picture-in-picture overlay, instead of a source of this camera."""
+    childCameraRole: NotRequired[StreamingRole]
+    """Role of the ``childCameraId`` stream shown in the overlay."""
     urls: NotRequired[list[str]]
     """Raw source URLs, the server resolves them into streaming URLs."""
 

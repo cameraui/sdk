@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import NotRequired, TypedDict
 
 from ..camera.config import CameraConfigInputSettings, CameraInformation
-from ..camera.enums import CameraRole
+from ..camera.enums import CameraRole, StreamingRole
 
 
 class CameraInputSettings(TypedDict):
@@ -27,6 +27,10 @@ class CameraInputSettings(TypedDict):
     """User-provided stream URLs."""
     childSourceId: NotRequired[str]
     """Child source ID (for snapshot fallback)."""
+    childCameraId: NotRequired[str]
+    """Camera whose stream shows in the picture-in-picture overlay, instead of a source of this camera."""
+    childCameraRole: NotRequired[StreamingRole]
+    """Role of the ``childCameraId`` stream shown in the overlay."""
 
 
 class CameraConfigPartial(TypedDict, total=False):
