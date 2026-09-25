@@ -15,10 +15,11 @@ from typing import (
 
 from typing_extensions import TypeVar as ExtTypeVar
 
-from ..sensor import ClassifierDetection, Detection, FaceDetection, LicensePlateDetection
+from ..sensor import BoundingBox, ClassifierDetection, Detection, FaceDetection, LicensePlateDetection
 from ..sensor.audio import AudioFrameData
 from ..sensor.clip import ClipEmbedding
 from ..sensor.motion import VideoFrameData
+from ..sensor.segmenter import ObjectMask
 from .api import PluginAPI
 from .assistant import AssistantToolProvider
 
@@ -147,6 +148,33 @@ class FaceEmbeddingPluginResponse(TypedDict):
 
     quality: NotRequired[float]
     """How sure the model is that those points sit on a face (0 - 1)."""
+
+
+class PersonEmbeddingPluginResponse(TypedDict):
+    """Result of a person embedding run on a single image."""
+
+    embedding: list[float]
+    """Embedding vector for the person, empty when the picture could not be embedded."""
+
+    embeddingModel: str
+    """Model that produced the embedding; consumers must not mix models."""
+
+
+class SegmentationImage(TypedDict):
+    """A picture to outline an object in, with the object's box."""
+
+    image: bytes
+    """Encoded image (JPEG/PNG)."""
+
+    box: BoundingBox
+    """Box of the object to outline, normalized to the image."""
+
+
+class SegmentationPluginResponse(TypedDict):
+    """Result of a segmentation run on a single image."""
+
+    mask: NotRequired[ObjectMask]
+    """The object's outline, missing when the model found no object at the box."""
 
 
 class ClipTextEmbeddingResult(TypedDict):
@@ -502,6 +530,30 @@ class FaceDetectionInterface(Protocol):
 
 
 @runtime_checkable
+class SegmentationInterface(Protocol):
+    """Implemented by plugins that outline objects: a mask that separates an object from its background.
+
+    The frame-based side is the segmenter sensor.
+    """
+
+    async def segmentImages(
+        self,
+        images: list[SegmentationImage],
+        config: dict[str, Any] | None = None,
+    ) -> list[SegmentationPluginResponse | None]:
+        """Outline the object at ``box`` in each picture.
+
+        One result per input in the same order, None when the plugin could not run
+        at all. ``config`` holds the values of the segmentation settings form.
+        """
+        ...
+
+    async def segmentationSettings(self) -> list[JsonSchema] | None:
+        """Return the JSON schema for the segmentation settings form in the UI, or None for no schema."""
+        ...
+
+
+@runtime_checkable
 class LicensePlateDetectionInterface(Protocol):
     """Implemented by plugins that locate license plates and run OCR on
     them."""
@@ -576,6 +628,31 @@ class FaceEmbeddingInterface(Protocol):
 
 
 @runtime_checkable
+class PersonEmbeddingInterface(Protocol):
+    """Implemented by plugins that turn the crop of a person into a vector of their appearance.
+
+    The NVR stores and searches the vectors, the plugin only emits them.
+    """
+
+    async def embedPersonImages(
+        self,
+        images: list[bytes],
+        config: dict[str, Any] | None = None,
+    ) -> list[PersonEmbeddingPluginResponse | None]:
+        """Embed a batch of encoded images (JPEG/PNG), each showing one person cut tight around their box.
+
+        One result per input in the same order. An empty ``embedding`` means the
+        picture could not be used, None that the plugin could not run at all. Meant for
+        searching by a picture the user picked.
+        """
+        ...
+
+    async def personEmbeddingSettings(self) -> list[JsonSchema] | None:
+        """Return the JSON schema for the person-embedding settings form in the UI, or None for no schema."""
+        ...
+
+
+@runtime_checkable
 class ClipDetectionInterface(Protocol):
     """Implemented by plugins that generate CLIP image and text embeddings
     used for semantic search over recorded events."""
@@ -627,6 +704,8 @@ PluginInterfaces = (
     | LicensePlateDetectionInterface
     | ClassifierDetectionInterface
     | ClipDetectionInterface
+    | PersonEmbeddingInterface
+    | SegmentationInterface
     | DiscoveryProvider
     | AssistantToolProvider
 )

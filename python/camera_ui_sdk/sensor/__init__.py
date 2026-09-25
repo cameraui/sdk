@@ -116,6 +116,10 @@ from .object import (
 from .occupancy import (
     OccupancySensor,
 )
+from .person_embedder import (
+    PersonEmbedderSensor,
+    PersonEmbeddingResult,
+)
 from .power import (
     PowerSensor,
 )
@@ -132,6 +136,12 @@ from .ptz import (
 from .security_system import (
     SecuritySystem,
     SecuritySystemState,
+)
+from .segmenter import (
+    ObjectMask,
+    SegmentationFrame,
+    SegmentationResult,
+    SegmenterSensor,
 )
 from .siren import (
     SirenCapability,
@@ -209,6 +219,10 @@ __all__ = [
     "ClipEmbedding",
     "ClipResult",
     "FaceEmbeddingResult",
+    "PersonEmbeddingResult",
+    "ObjectMask",
+    "SegmentationFrame",
+    "SegmentationResult",
     # Public sensor classes
     "MotionSensor",
     "MotionDetectorSensor",
@@ -219,6 +233,8 @@ __all__ = [
     "FaceSensor",
     "FaceDetectorSensor",
     "FaceEmbedderSensor",
+    "PersonEmbedderSensor",
+    "SegmenterSensor",
     "LicensePlateSensor",
     "LicensePlateDetectorSensor",
     "ClassifierSensor",

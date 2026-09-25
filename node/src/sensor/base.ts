@@ -80,6 +80,10 @@ export enum SensorType {
   Face = 'face',
   /** Face embedding generation from a face crop, for recognition against enrolled faces. */
   FaceEmbedder = 'faceEmbedder',
+  /** Appearance embedding of a person crop, to find the same person again without a face. */
+  PersonEmbedder = 'personEmbedder',
+  /** Outline of an object inside a crop, as a mask over its box. */
+  Segmenter = 'segmenter',
   /** License plate detection and OCR. */
   LicensePlate = 'licensePlate',
   /** General-purpose image classifier. */

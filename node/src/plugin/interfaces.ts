@@ -4,9 +4,10 @@ import type { AudioFrameData } from '../sensor/audio.js';
 import type { ClassifierDetection } from '../sensor/classifier.js';
 import type { ClipEmbedding } from '../sensor/clip.js';
 import type { Sensor, SensorLike } from '../sensor/base.js';
-import type { Detection, VideoFrameData } from '../sensor/detection.js';
+import type { BoundingBox, Detection, VideoFrameData } from '../sensor/detection.js';
 import type { FaceDetection } from '../sensor/face.js';
 import type { LicensePlateDetection } from '../sensor/licensePlate.js';
+import type { ObjectMask } from '../sensor/segmenter.js';
 import type { DeviceStorage, JsonSchema, JsonSchemaWithoutCallbacks } from '../storage/index.js';
 import type { LoggerService } from '../types.js';
 import type { PluginAPI } from './api.js';
@@ -99,6 +100,28 @@ export interface FaceEmbeddingPluginResponse {
   landmarks?: Point[];
   /** How sure the model is that those points sit on a face (0 - 1). */
   quality?: number;
+}
+
+/** Result of a person embedding run on a single image. */
+export interface PersonEmbeddingPluginResponse {
+  /** Embedding vector for the person, empty when the picture could not be embedded. */
+  embedding: number[];
+  /** Model that produced the embedding; consumers must not mix models. */
+  embeddingModel: string;
+}
+
+/** A picture to outline an object in, with the object's box. */
+export interface SegmentationImage {
+  /** Encoded image (JPEG/PNG). */
+  image: Buffer | Uint8Array;
+  /** Box of the object to outline, normalized to the image. */
+  box: BoundingBox;
+}
+
+/** Result of a segmentation run on a single image. */
+export interface SegmentationPluginResponse {
+  /** The object's outline, missing when the model found no object at the box. */
+  mask?: ObjectMask;
 }
 
 /** Result of a CLIP text embedding request. */
@@ -402,6 +425,38 @@ export interface FaceEmbeddingInterface {
   faceEmbeddingSettings?(): Promise<JsonSchema[] | undefined>;
 }
 
+/**
+ * Implemented by plugins that turn the crop of a person into a vector of their
+ * appearance. The NVR stores and searches the vectors, the plugin only emits
+ * them.
+ */
+export interface PersonEmbeddingInterface {
+  /**
+   * Embed a batch of encoded images (JPEG/PNG), each showing one person cut
+   * tight around their box: one result per input in the same order. An empty
+   * `embedding` means the picture could not be used, undefined that the plugin
+   * could not run at all. Meant for searching by a picture the user picked.
+   */
+  embedPersonImages(images: (Buffer | Uint8Array)[], config?: Record<string, unknown>): Promise<(PersonEmbeddingPluginResponse | undefined)[]>;
+  /** Return the JSON schema for the person-embedding settings form in the UI, or undefined for no schema. */
+  personEmbeddingSettings?(): Promise<JsonSchema[] | undefined>;
+}
+
+/**
+ * Implemented by plugins that outline objects: a mask that separates an object
+ * from its background. The frame-based side is the segmenter sensor.
+ */
+export interface SegmentationInterface {
+  /**
+   * Outline the object at `box` in each picture: one result per input in the
+   * same order, undefined when the plugin could not run at all. `config` holds
+   * the values of the segmentation settings form.
+   */
+  segmentImages(images: SegmentationImage[], config?: Record<string, unknown>): Promise<(SegmentationPluginResponse | undefined)[]>;
+  /** Return the JSON schema for the segmentation settings form in the UI, or undefined for no schema. */
+  segmentationSettings?(): Promise<JsonSchema[] | undefined>;
+}
+
 /** Implemented by plugins that locate license plates and run OCR on them. */
 export interface LicensePlateDetectionInterface {
   /** Run detection on a single image captured by the UI test panel and return the result for preview rendering. */
@@ -468,6 +523,8 @@ export type PluginInterfaces = Partial<
   AudioDetectionInterface &
   FaceDetectionInterface &
   FaceEmbeddingInterface &
+  PersonEmbeddingInterface &
+  SegmentationInterface &
   LicensePlateDetectionInterface &
   ClassifierDetectionInterface &
   ClipDetectionInterface &

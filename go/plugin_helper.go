@@ -8,7 +8,7 @@ import (
 
 var validSensorTypes = []SensorType{
 	SensorTypeMotion, SensorTypeObject, SensorTypeAudio,
-	SensorTypeFace, SensorTypeFaceEmbedder, SensorTypeLicensePlate, SensorTypeClassifier,
+	SensorTypeFace, SensorTypeFaceEmbedder, SensorTypePersonEmbedder, SensorTypeSegmenter, SensorTypeLicensePlate, SensorTypeClassifier,
 	SensorTypeContact, SensorTypeTemperature, SensorTypeHumidity, SensorTypeOccupancy,
 	SensorTypeSmoke, SensorTypeLeak, SensorTypeGas, SensorTypeCarbonMonoxide,
 	SensorTypeHeat, SensorTypeCold, SensorTypeVibration, SensorTypeTamper,
@@ -25,13 +25,14 @@ var validRoles = []PluginRole{
 
 var validInterfaces = []PluginInterface{
 	PluginInterfaceMotionDetection, PluginInterfaceObjectDetection,
-	PluginInterfaceAudioDetection, PluginInterfaceFaceDetection,
+	PluginInterfaceAudioDetection, PluginInterfaceFaceDetection, PluginInterfaceFaceEmbedding,
 	PluginInterfaceLicensePlateDetection, PluginInterfaceClassifierDetection,
-	PluginInterfaceClipDetection,
+	PluginInterfaceClipDetection, PluginInterfacePersonEmbedding, PluginInterfaceSegmentation,
 	PluginInterfaceDiscoveryProvider,
 	PluginInterfaceSensorDiscovery,
 	PluginInterfaceNotifier,
 	PluginInterfaceNVR,
+	PluginInterfaceAssistantTools, PluginInterfaceAssistantModels,
 	PluginInterfaceOAuthCapable, PluginInterfaceOAuthDeviceFlow,
 	PluginInterfaceOAuthAuthCodeFlow, PluginInterfaceOAuthClientCredentials,
 }

@@ -1066,6 +1066,35 @@ ObjectDetectionSettings is the object detection settings.
 
 <a name="ObjectDetector"></a>
 
+## type PersonEmbeddingInterface
+
+PersonEmbeddingInterface is implemented by plugins that turn the crop of a person into a vector of their appearance. The NVR stores and searches the vectors, the plugin only emits them.
+
+	type PersonEmbeddingInterface interface {
+	    // EmbedPersonImages embeds a batch of encoded images (JPEG/PNG), each
+	    // showing one person cut tight around their box: one result per input in
+	    // the same order. An empty Embedding means the picture could not be used,
+	    // nil that the plugin could not run at all. Meant for searching by a
+	    // picture the user picked.
+	    EmbedPersonImages(images [][]byte, config map[string]any) ([]*PersonEmbeddingPluginResponse, error)
+	    // PersonEmbeddingSettings returns the JSON schema for the
+	    // person-embedding settings form in the UI, or nil for no schema.
+	    PersonEmbeddingSettings() ([]JsonSchema, error)
+	}
+
+<a name="PersonEmbeddingPluginResponse"></a>
+
+## type PersonEmbeddingPluginResponse
+
+PersonEmbeddingPluginResponse is the result of a person embedding run on a single image.
+
+	type PersonEmbeddingPluginResponse struct {
+	    Embedding      []float64 `msgpack:"embedding" json:"embedding"`           // Embedding vector for the person, empty when the picture could not be embedded
+	    EmbeddingModel string    `msgpack:"embeddingModel" json:"embeddingModel"` // Model that produced the embedding; consumers must not mix models
+	}
+
+<a name="PersonEmbeddingResult"></a>
+
 ## type Plugin
 
 Plugin is the lifecycle contract every camera.ui plugin must implement. The host calls these methods in a strict order: ConfigureCameras once at startup, then OnCameraAdded / OnCameraReleased as the user adds or removes cameras at runtime.
@@ -1138,6 +1167,10 @@ PluginAssignments maps sensor types to their assigned plugin\(s\) for a camera. 
 	    Face *AssignedPlugin `msgpack:"face,omitempty" json:"face,omitempty"`
 	    // FaceEmbedder is the assigned face embedding plugin.
 	    FaceEmbedder *AssignedPlugin `msgpack:"faceEmbedder,omitempty" json:"faceEmbedder,omitempty"`
+	    // PersonEmbedder is the assigned person embedding plugin.
+	    PersonEmbedder *AssignedPlugin `msgpack:"personEmbedder,omitempty" json:"personEmbedder,omitempty"`
+	    // Segmenter is the assigned segmentation plugin.
+	    Segmenter *AssignedPlugin `msgpack:"segmenter,omitempty" json:"segmenter,omitempty"`
 	    // LicensePlate is the assigned license plate detection plugin.
 	    LicensePlate *AssignedPlugin `msgpack:"licensePlate,omitempty" json:"licensePlate,omitempty"`
 	    // PTZ is the assigned PTZ control plugin.
@@ -1306,6 +1339,13 @@ PluginInterface is a capability flag a plugin advertises in its contract. The ho
 	    // FaceEmbeddingInterface (turns a face crop into a vector). Matching
 	    // against enrolled faces happens in the NVR.
 	    PluginInterfaceFaceEmbedding PluginInterface = "FaceEmbedding"
+	    // PluginInterfacePersonEmbedding marks a plugin implementing
+	    // PersonEmbeddingInterface (turns the crop of a person into a vector of
+	    // their appearance). Searching happens in the NVR.
+	    PluginInterfacePersonEmbedding PluginInterface = "PersonEmbedding"
+	    // PluginInterfaceSegmentation marks a plugin implementing
+	    // SegmentationInterface (outlines the object at a box in a picture).
+	    PluginInterfaceSegmentation PluginInterface = "Segmentation"
 	    // PluginInterfaceDiscoveryProvider marks a plugin implementing
 	    // DiscoveryProvider (network scan + adoption). Only valid for
 	    // camera-controlling roles.
@@ -1430,6 +1470,43 @@ PythonVersion is the Python interpreter major.minor version a Python plugin requ
 	)
 
 <a name="RTSPAudioCodec"></a>
+
+## type SegmentationImage
+
+SegmentationImage is a picture to outline an object in, with the object's box.
+
+	type SegmentationImage struct {
+	    Image []byte      `msgpack:"image" json:"image"` // Encoded image (JPEG/PNG)
+	    Box   BoundingBox `msgpack:"box" json:"box"`     // Box of the object to outline, normalized to the image
+	}
+
+<a name="SegmentationInterface"></a>
+
+## type SegmentationInterface
+
+SegmentationInterface is implemented by plugins that outline objects: a mask that separates an object from its background. The frame\-based side is SegmenterSensor.
+
+	type SegmentationInterface interface {
+	    // SegmentImages outlines the object at Box in each picture: one result
+	    // per input in the same order, nil when the plugin could not run at all.
+	    // config holds the values of the segmentation settings form.
+	    SegmentImages(images []SegmentationImage, config map[string]any) ([]*SegmentationPluginResponse, error)
+	    // SegmentationSettings returns the JSON schema for the segmentation
+	    // settings form in the UI, or nil for no schema.
+	    SegmentationSettings() ([]JsonSchema, error)
+	}
+
+<a name="SegmentationPluginResponse"></a>
+
+## type SegmentationPluginResponse
+
+SegmentationPluginResponse is the result of a segmentation run on a single image.
+
+	type SegmentationPluginResponse struct {
+	    Mask *ObjectMask `msgpack:"mask,omitempty" json:"mask,omitempty"` // The object's outline, nil when the model found no object at the box
+	}
+
+<a name="SegmentationResult"></a>
 
 ## type SensorDiscoveryProvider
 

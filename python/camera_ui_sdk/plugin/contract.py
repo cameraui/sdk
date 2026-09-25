@@ -70,6 +70,12 @@ class PluginInterface(StrEnum):
     FaceEmbedding = "FaceEmbedding"
     """Implements FaceEmbeddingInterface (turns a face crop into a vector). Matching against enrolled faces happens in the NVR."""
 
+    PersonEmbedding = "PersonEmbedding"
+    """Implements PersonEmbeddingInterface (turns the crop of a person into a vector of their appearance). Searching happens in the NVR."""
+
+    Segmentation = "Segmentation"
+    """Implements SegmentationInterface (outlines the object at a box in a picture)."""
+
     DiscoveryProvider = "DiscoveryProvider"
     """Implements DiscoveryProvider (network scan + adoption). Only valid for camera-controlling roles."""
 

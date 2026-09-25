@@ -57,6 +57,13 @@ const (
 	// FaceEmbeddingInterface (turns a face crop into a vector). Matching
 	// against enrolled faces happens in the NVR.
 	PluginInterfaceFaceEmbedding PluginInterface = "FaceEmbedding"
+	// PluginInterfacePersonEmbedding marks a plugin implementing
+	// PersonEmbeddingInterface (turns the crop of a person into a vector of
+	// their appearance). Searching happens in the NVR.
+	PluginInterfacePersonEmbedding PluginInterface = "PersonEmbedding"
+	// PluginInterfaceSegmentation marks a plugin implementing
+	// SegmentationInterface (outlines the object at a box in a picture).
+	PluginInterfaceSegmentation PluginInterface = "Segmentation"
 	// PluginInterfaceDiscoveryProvider marks a plugin implementing
 	// DiscoveryProvider (network scan + adoption). Only valid for
 	// camera-controlling roles.

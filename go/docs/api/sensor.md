@@ -1857,6 +1857,19 @@ ObjectDetectorSensor is an object sensor that consumes video frames from the bac
 
 
 
+<a name="ObjectMask"></a>
+
+## type ObjectMask
+
+ObjectMask is the outline of one object: a mask laid over its box.
+
+	type ObjectMask struct {
+	    Box    BoundingBox `msgpack:"box" json:"box"`       // Box the mask covers, normalized to the image the object was found in
+	    Width  int         `msgpack:"width" json:"width"`   // Mask width in pixels
+	    Height int         `msgpack:"height" json:"height"` // Mask height in pixels
+	    Data   []byte      `msgpack:"data" json:"data"`     // One byte per pixel, row by row from the top left: how likely the pixel belongs to the object (0 - 255). Above 127 counts as the object
+	}
+
 <a name="ObjectModelSpec"></a>
 
 ## type ObjectModelSpec
@@ -2203,6 +2216,78 @@ UpdateValue routes generic property writes to the semantic setters.
 
 <a name="PTZDirection"></a>
 
+## type PersonEmbedder
+
+PersonEmbedder is implemented by plugins that turn the crop of a person into a vector of their appearance.
+
+	type PersonEmbedder interface {
+	    // ModelSpec declares the expected input dimensions and trigger labels.
+	    ModelSpec() ModelSpec
+	    // EmbedPersons embeds a batch of person crops, each cut tight around the
+	    // detected box and stretched to ModelSpec().Input. Must return exactly one
+	    // PersonEmbeddingResult per input frame, in the same order; return an
+	    // empty Embedding for a crop the model could not use.
+	    EmbedPersons(frames []VideoFrameData) ([]PersonEmbeddingResult, error)
+	}
+
+<a name="PersonEmbedderSensor"></a>
+
+## type PersonEmbedderSensor
+
+PersonEmbedderSensor is a frame\-only sensor that turns person crops into vectors of their appearance, to find the same person again when no face is visible. Pair with a PersonEmbedder implementation.
+
+The crop is the person's box from the object detector, cut tight from the source frame. A vector describes clothing and build, not identity: it finds the same person on the same day, not after a change of clothes. Vectors from different models are not comparable, which is why every result carries its embedding model.
+
+	type PersonEmbedderSensor struct{ BaseSensor }
+
+<a name="NewPersonEmbedderSensor"></a>
+### func NewPersonEmbedderSensor
+
+	func NewPersonEmbedderSensor(name string, opts ...SensorOption) *PersonEmbedderSensor
+
+NewPersonEmbedderSensor creates a person embedder sensor with the given name and options.
+
+<a name="PersonEmbedderSensor.GetCategory"></a>
+### func \(\*PersonEmbedderSensor\) GetCategory
+
+	func (s *PersonEmbedderSensor) GetCategory() SensorCategory
+
+
+
+<a name="PersonEmbedderSensor.GetType"></a>
+### func \(\*PersonEmbedderSensor\) GetType
+
+	func (s *PersonEmbedderSensor) GetType() SensorType
+
+
+
+<a name="PersonEmbedderSensor.ToJSON"></a>
+### func \(\*PersonEmbedderSensor\) ToJSON
+
+	func (s *PersonEmbedderSensor) ToJSON() sensorJSON
+
+
+
+<a name="PersonEmbedderSensor.UpdateValue"></a>
+### func \(\*PersonEmbedderSensor\) UpdateValue
+
+	func (s *PersonEmbedderSensor) UpdateValue(property string, value any) error
+
+UpdateValue on a read\-only sensor: external writes are ignored.
+
+<a name="PersonEmbeddingInterface"></a>
+
+## type PersonEmbeddingResult
+
+PersonEmbeddingResult is the return value of PersonEmbedder.EmbedPersons.
+
+	type PersonEmbeddingResult struct {
+	    Embedding      []float64 `msgpack:"embedding" json:"embedding"`           // Embedding vector for the person in this crop, empty when the crop could not be embedded
+	    EmbeddingModel string    `msgpack:"embeddingModel" json:"embeddingModel"` // Identifier of the embedding model that produced the vector
+	}
+
+<a name="PlaybackSource"></a>
+
 ## type SecuritySystem
 
 SecuritySystem is a security system arm/disarm control sensor.
@@ -2299,6 +2384,88 @@ SecuritySystemState defines security system states.
 	    SecuritySystemStateDisarmed       SecuritySystemState = 3 // System disarmed
 	    SecuritySystemStateAlarmTriggered SecuritySystemState = 4 // Alarm is triggered
 	)
+
+<a name="SegmentationFrame"></a>
+
+## type SegmentationFrame
+
+SegmentationFrame is a crop handed to Segmenter.SegmentObjects, with the object it was cut for.
+
+	type SegmentationFrame struct {
+	    VideoFrameData `msgpack:",inline"`
+	    Box            BoundingBox `msgpack:"box" json:"box"` // Box of the object to outline, normalized to this crop
+	}
+
+<a name="SegmentationImage"></a>
+
+## type SegmentationResult
+
+SegmentationResult is the return value of Segmenter.SegmentObjects.
+
+	type SegmentationResult struct {
+	    Mask *ObjectMask `msgpack:"mask,omitempty" json:"mask,omitempty"` // The object's outline, nil when the model found no object at the box
+	}
+
+<a name="Segmenter"></a>
+
+## type Segmenter
+
+Segmenter is implemented by plugins that outline an object inside a crop.
+
+	type Segmenter interface {
+	    // ModelSpec declares the expected input dimensions and trigger labels.
+	    ModelSpec() ModelSpec
+	    // SegmentObjects outlines objects in batch. Each frame is a region around
+	    // one object, scaled to ModelSpec().Input, and carries the object's box.
+	    // Must return exactly one SegmentationResult per input frame, in the same
+	    // order; leave Mask nil when the model found no object at the box.
+	    SegmentObjects(frames []SegmentationFrame) ([]SegmentationResult, error)
+	}
+
+<a name="SegmenterSensor"></a>
+
+## type SegmenterSensor
+
+SegmenterSensor is a frame\-only sensor that outlines an object inside a crop. Pair with a Segmenter implementation.
+
+Each crop is a region around an object the object detector found, and the object's box inside it says which object is meant. The mask separates the object from its background, but not from a neighbour the detector saw as part of it: two people in one box come back as one outline.
+
+	type SegmenterSensor struct{ BaseSensor }
+
+<a name="NewSegmenterSensor"></a>
+### func NewSegmenterSensor
+
+	func NewSegmenterSensor(name string, opts ...SensorOption) *SegmenterSensor
+
+NewSegmenterSensor creates a segmenter sensor with the given name and options.
+
+<a name="SegmenterSensor.GetCategory"></a>
+### func \(\*SegmenterSensor\) GetCategory
+
+	func (s *SegmenterSensor) GetCategory() SensorCategory
+
+
+
+<a name="SegmenterSensor.GetType"></a>
+### func \(\*SegmenterSensor\) GetType
+
+	func (s *SegmenterSensor) GetType() SensorType
+
+
+
+<a name="SegmenterSensor.ToJSON"></a>
+### func \(\*SegmenterSensor\) ToJSON
+
+	func (s *SegmenterSensor) ToJSON() sensorJSON
+
+
+
+<a name="SegmenterSensor.UpdateValue"></a>
+### func \(\*SegmenterSensor\) UpdateValue
+
+	func (s *SegmenterSensor) UpdateValue(property string, value any) error
+
+UpdateValue on a read\-only sensor: external writes are ignored.
 
 <a name="Sensor"></a>
 
@@ -2432,6 +2599,8 @@ SensorType identifies the kind of sensor. "Sensor" is camera.ui's umbrella term 
 	    SensorTypeAudio          SensorType = "audio"          // Audio event detection (glass break, scream, etc.)
 	    SensorTypeFace           SensorType = "face"           // Face detection and recognition
 	    SensorTypeFaceEmbedder   SensorType = "faceEmbedder"   // Face embedding generation from a face crop, for recognition against enrolled faces
+	    SensorTypePersonEmbedder SensorType = "personEmbedder" // Appearance embedding of a person crop, to find the same person again without a face
+	    SensorTypeSegmenter      SensorType = "segmenter"      // Outline of an object inside a crop, as a mask over its box
 	    SensorTypeLicensePlate   SensorType = "licensePlate"   // License plate detection and OCR
 	    SensorTypeClassifier     SensorType = "classifier"     // General-purpose image classifier
 	    SensorTypeClip           SensorType = "clip"           // CLIP embedding generation for semantic search

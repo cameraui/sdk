@@ -262,6 +262,54 @@ type FaceEmbeddingInterface interface {
 	FaceEmbeddingSettings() ([]JsonSchema, error)
 }
 
+// PersonEmbeddingPluginResponse is the result of a person embedding run on a
+// single image.
+type PersonEmbeddingPluginResponse struct {
+	Embedding      []float64 `msgpack:"embedding" json:"embedding"`           // Embedding vector for the person, empty when the picture could not be embedded
+	EmbeddingModel string    `msgpack:"embeddingModel" json:"embeddingModel"` // Model that produced the embedding; consumers must not mix models
+}
+
+// SegmentationImage is a picture to outline an object in, with the object's
+// box.
+type SegmentationImage struct {
+	Image []byte      `msgpack:"image" json:"image"` // Encoded image (JPEG/PNG)
+	Box   BoundingBox `msgpack:"box" json:"box"`     // Box of the object to outline, normalized to the image
+}
+
+// SegmentationPluginResponse is the result of a segmentation run on a single
+// image.
+type SegmentationPluginResponse struct {
+	Mask *ObjectMask `msgpack:"mask,omitempty" json:"mask,omitempty"` // The object's outline, nil when the model found no object at the box
+}
+
+// SegmentationInterface is implemented by plugins that outline objects: a
+// mask that separates an object from its background. The frame-based side is
+// SegmenterSensor.
+type SegmentationInterface interface {
+	// SegmentImages outlines the object at Box in each picture: one result
+	// per input in the same order, nil when the plugin could not run at all.
+	// config holds the values of the segmentation settings form.
+	SegmentImages(images []SegmentationImage, config map[string]any) ([]*SegmentationPluginResponse, error)
+	// SegmentationSettings returns the JSON schema for the segmentation
+	// settings form in the UI, or nil for no schema.
+	SegmentationSettings() ([]JsonSchema, error)
+}
+
+// PersonEmbeddingInterface is implemented by plugins that turn the crop of a
+// person into a vector of their appearance. The NVR stores and searches the
+// vectors, the plugin only emits them.
+type PersonEmbeddingInterface interface {
+	// EmbedPersonImages embeds a batch of encoded images (JPEG/PNG), each
+	// showing one person cut tight around their box: one result per input in
+	// the same order. An empty Embedding means the picture could not be used,
+	// nil that the plugin could not run at all. Meant for searching by a
+	// picture the user picked.
+	EmbedPersonImages(images [][]byte, config map[string]any) ([]*PersonEmbeddingPluginResponse, error)
+	// PersonEmbeddingSettings returns the JSON schema for the
+	// person-embedding settings form in the UI, or nil for no schema.
+	PersonEmbeddingSettings() ([]JsonSchema, error)
+}
+
 // ClipDetectionInterface is implemented by plugins that generate CLIP
 // image and text embeddings used for semantic search over recorded events.
 type ClipDetectionInterface interface {

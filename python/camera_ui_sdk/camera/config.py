@@ -175,6 +175,10 @@ class PluginAssignments(TypedDict, total=False):
     """Face detection plugin."""
     faceEmbedder: AssignedPlugin
     """Face embedding plugin."""
+    personEmbedder: AssignedPlugin
+    """Person embedding plugin."""
+    segmenter: AssignedPlugin
+    """Segmentation plugin."""
     licensePlate: AssignedPlugin
     """License plate detection plugin."""
     ptz: AssignedPlugin
