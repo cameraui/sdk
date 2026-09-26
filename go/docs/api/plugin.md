@@ -619,7 +619,9 @@ FaceDetectionInterface is implemented by plugins that locate faces and emit per\
 
 	type FaceDetectionInterface interface {
 	    // TestFaces runs face detection on a single image captured by the UI
-	    // test panel and returns the result for preview rendering.
+	    // test panel and returns the result for preview rendering. A number in
+	    // config["threshold"] is the lowest confidence to return, without it the
+	    // plugin's default applies.
 	    TestFaces(imageData []byte, metadata ImageMetadata, config map[string]any) (*FaceDetectionResponse, error)
 	    // DetectFaces runs face detection on a pre-decoded video frame.
 	    DetectFaces(frame VideoFrameData, config map[string]any) (*FaceDetectionResponse, error)
@@ -663,7 +665,9 @@ LicensePlateDetectionInterface is implemented by plugins that locate license pla
 
 	type LicensePlateDetectionInterface interface {
 	    // TestPlates runs detection on a single image captured by the UI test
-	    // panel and returns the result for preview rendering.
+	    // panel and returns the result for preview rendering. A number in
+	    // config["threshold"] is the lowest confidence to return, without it the
+	    // plugin's default applies.
 	    TestPlates(imageData []byte, metadata ImageMetadata, config map[string]any) (*LicensePlateDetectionResponse, error)
 	    // DetectLicensePlates runs detection on a pre-decoded video frame.
 	    DetectLicensePlates(frame VideoFrameData, config map[string]any) (*LicensePlateDetectionResponse, error)
@@ -1025,7 +1029,9 @@ ObjectDetectionInterface is implemented by plugins that perform object detection
 
 	type ObjectDetectionInterface interface {
 	    // TestObjects runs detection on a single image captured by the UI test
-	    // panel; metadata carries the image dimensions.
+	    // panel; metadata carries the image dimensions. A number in
+	    // config["threshold"] is the lowest confidence to return, without it the
+	    // plugin's default applies.
 	    TestObjects(imageData []byte, metadata ImageMetadata, config map[string]any) (*ObjectDetectionResponse, error)
 	    // DetectObjects runs detection on a pre-decoded video frame. Called
 	    // from automation / benchmark pipelines.

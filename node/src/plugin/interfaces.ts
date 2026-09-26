@@ -369,7 +369,10 @@ export interface MotionDetectionInterface {
 
 /** Implemented by plugins that perform object detection (person, vehicle, animal, ...). */
 export interface ObjectDetectionInterface {
-  /** Run detection on a single image captured by the UI test panel; `metadata` carries the image dimensions. */
+  /**
+   * Run detection on a single image captured by the UI test panel; `metadata` carries the image dimensions.
+   * A number in `config.threshold` is the lowest confidence to return, without it the plugin's default applies.
+   */
   testObjectDetection(imageData: Buffer | Uint8Array, metadata: ImageMetadata, config: Record<string, unknown>): Promise<ObjectDetectionPluginResponse | undefined>;
   /** Run detection on a pre-decoded video frame. Called from automation / benchmark pipelines. */
   detectObjects?(frame: VideoFrameData, config?: Record<string, unknown>): Promise<ObjectDetectionPluginResponse | undefined>;
@@ -393,7 +396,10 @@ export interface AudioDetectionInterface {
  * detections and embeddings.
  */
 export interface FaceDetectionInterface {
-  /** Run face detection on a single image captured by the UI test panel and return the result for preview rendering. */
+  /**
+   * Run face detection on a single image captured by the UI test panel and return the result for preview rendering.
+   * A number in `config.threshold` is the lowest confidence to return, without it the plugin's default applies.
+   */
   testFaceDetection(imageData: Buffer | Uint8Array, metadata: ImageMetadata, config: Record<string, unknown>): Promise<FaceDetectionPluginResponse | undefined>;
   /** Run face detection on a pre-decoded video frame. */
   detectFaces?(frame: VideoFrameData, config?: Record<string, unknown>): Promise<FaceDetectionPluginResponse | undefined>;
@@ -459,7 +465,10 @@ export interface SegmentationInterface {
 
 /** Implemented by plugins that locate license plates and run OCR on them. */
 export interface LicensePlateDetectionInterface {
-  /** Run detection on a single image captured by the UI test panel and return the result for preview rendering. */
+  /**
+   * Run detection on a single image captured by the UI test panel and return the result for preview rendering.
+   * A number in `config.threshold` is the lowest confidence to return, without it the plugin's default applies.
+   */
   testLicensePlateDetection(
     imageData: Buffer | Uint8Array,
     metadata: ImageMetadata,

@@ -471,7 +471,10 @@ class ObjectDetectionInterface(Protocol):
     async def testObjectDetection(
         self, image_data: bytes, metadata: ImageMetadata, config: dict[str, Any]
     ) -> ObjectDetectionPluginResponse | None:
-        """Run detection on a single image captured by the UI test panel; ``metadata`` carries the image dimensions."""
+        """Run detection on a single image captured by the UI test panel; ``metadata`` carries the image dimensions.
+
+        A number in ``config["threshold"]`` is the lowest confidence to return, without it the plugin's default applies.
+        """
         ...
 
     async def detectObjects(
@@ -515,7 +518,10 @@ class FaceDetectionInterface(Protocol):
     async def testFaceDetection(
         self, image_data: bytes, metadata: ImageMetadata, config: dict[str, Any]
     ) -> FaceDetectionPluginResponse | None:
-        """Run face detection on a single image captured by the UI test panel and return the result for preview rendering."""
+        """Run face detection on a single image captured by the UI test panel and return the result for preview rendering.
+
+        A number in ``config["threshold"]`` is the lowest confidence to return, without it the plugin's default applies.
+        """
         ...
 
     async def detectFaces(
@@ -561,7 +567,10 @@ class LicensePlateDetectionInterface(Protocol):
     async def testLicensePlateDetection(
         self, image_data: bytes, metadata: ImageMetadata, config: dict[str, Any]
     ) -> LicensePlateDetectionPluginResponse | None:
-        """Run detection on a single image captured by the UI test panel and return the result for preview rendering."""
+        """Run detection on a single image captured by the UI test panel and return the result for preview rendering.
+
+        A number in ``config["threshold"]`` is the lowest confidence to return, without it the plugin's default applies.
+        """
         ...
 
     async def detectLicensePlates(
