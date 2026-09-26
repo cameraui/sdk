@@ -247,7 +247,7 @@ type FaceEmbeddingPluginResponse struct {
 	Embedding      []float64 `msgpack:"embedding" json:"embedding"`                     // Embedding vector for the face, empty when no face could be embedded
 	EmbeddingModel string    `msgpack:"embeddingModel" json:"embeddingModel"`           // Model that produced the embedding; consumers must not mix models
 	Landmarks      []Point   `msgpack:"landmarks,omitempty" json:"landmarks,omitempty"` // The five points the face was aligned on, in 0 - 1 of the input image: right eye, left eye, nose, right and left mouth corner
-	Quality        float64   `msgpack:"quality,omitempty" json:"quality,omitempty"`     // How sure the model is that those points sit on a face (0 - 1)
+	Quality        float64   `msgpack:"quality,omitempty" json:"quality,omitempty"`     // How clearly the picture shows a face (0 - 1), also sent with an empty embedding when the face was too unclear; not sent when the landmarks were passed in
 }
 
 // FaceEmbeddingInterface is implemented by plugins that turn a face crop into

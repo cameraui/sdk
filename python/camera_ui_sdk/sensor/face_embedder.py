@@ -22,7 +22,7 @@ class FaceEmbeddingResult(TypedDict):
     landmarks: NotRequired[list[Point]]
     """The five points the face was aligned on, in 0 - 1 of the input image: right eye, left eye, nose, right and left mouth corner."""
     quality: NotRequired[float]
-    """How sure the model is that those points sit on a face (0 - 1)."""
+    """How clearly the picture shows a face (0 - 1), also sent with an empty embedding when the face was too unclear; not sent when the landmarks were passed in."""
 
 
 TStorage = TypeVar("TStorage", bound=Mapping[str, Any], default=dict[str, Any])
