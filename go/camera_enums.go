@@ -10,6 +10,16 @@ const (
 	CameraTypeDoorbell CameraType = "doorbell"
 )
 
+// CameraPower is the camera power source.
+//   - mains: Wired or PoE, may stay connected
+//   - battery: Battery powered, sleeps between events
+type CameraPower string
+
+const (
+	CameraPowerMains   CameraPower = "mains"
+	CameraPowerBattery CameraPower = "battery"
+)
+
 // CameraRole identifies the resolution tier of a camera source.
 // Used to identify different quality streams from the same camera.
 type CameraRole string

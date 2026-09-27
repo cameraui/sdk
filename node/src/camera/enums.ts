@@ -6,6 +6,13 @@
 export type CameraType = 'camera' | 'doorbell';
 
 /**
+ * Camera power source.
+ * - `mains`: Wired or PoE, may stay connected
+ * - `battery`: Battery powered, sleeps between events
+ */
+export type CameraPower = 'mains' | 'battery';
+
+/**
  * Detection zone intersection type.
  * - `intersect`: Trigger when object overlaps the zone at all
  * - `contain`: Trigger only when object is fully inside the zone

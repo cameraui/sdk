@@ -127,6 +127,7 @@ BUCKETS: dict[str, str] = {
     "CameraInformation": "camera",
     "CameraPluginInfo": "camera",
     "CameraType": "camera",
+    "CameraPower": "camera",
     "CameraRole": "camera",
     "CameraAspectRatio": "camera",
     "CameraDetectionSettings": "camera",

@@ -48,6 +48,7 @@ from .enums import (
     CameraActivityMode,
     CameraAspectRatio,
     CameraAspectRatioPreset,
+    CameraPower,
     CameraRole,
     CameraType,
     DetectionEventState,
@@ -109,6 +110,7 @@ from .streaming import (
 __all__ = [
     # Types
     "CameraType",
+    "CameraPower",
     "ZoneType",
     "CameraRole",
     "CameraActivityMode",

@@ -60,6 +60,10 @@ type CameraInformation struct {
 	FirmwareVersion string `msgpack:"firmwareVersion,omitempty" json:"firmwareVersion,omitempty"`
 	// SupportUrl is the manufacturer support URL.
 	SupportUrl string `msgpack:"supportUrl,omitempty" json:"supportUrl,omitempty"`
+	// Power is the power source. A battery camera is set up so it can sleep:
+	// no lasting connection, snapshots on request, live view on tap and event
+	// recording.
+	Power CameraPower `msgpack:"power,omitempty" json:"power,omitempty"`
 }
 
 // AssignedPlugin is plugin assignment info (id + display name).
@@ -281,6 +285,8 @@ type BaseCameraConfig struct {
 	Disabled bool `msgpack:"disabled,omitempty" json:"disabled,omitempty"`
 	// Info is the camera hardware information.
 	Info *CameraInformation `msgpack:"info,omitempty" json:"info,omitempty"`
+	// Type is the device type, CameraTypeDoorbell for doorbell cameras.
+	Type CameraType `msgpack:"type,omitempty" json:"type,omitempty"`
 }
 
 // CameraConfig is the full camera configuration with sources, supplied when

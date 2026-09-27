@@ -2,7 +2,7 @@
  * How recordings are captured.
  * - `continuous`: record around the clock
  * - `event`: record only around detections, padded by the pre-buffer
- * - `adhoc`: record only when started manually
+ * - `adhoc`: connect and record only while a detection event runs
  */
 export type RecordingMode = 'continuous' | 'event' | 'adhoc';
 

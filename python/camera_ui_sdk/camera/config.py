@@ -11,6 +11,7 @@ from .enums import (
     AudioCodec,
     CameraActivityMode,
     CameraAspectRatio,
+    CameraPower,
     CameraRole,
     CameraType,
     PlaybackSource,
@@ -39,6 +40,8 @@ class CameraInformation(TypedDict, total=False):
     """Current firmware version."""
     supportUrl: str
     """Manufacturer support URL."""
+    power: CameraPower
+    """Power source. A battery camera is set up so it can sleep: no lasting connection, snapshots on request, live view on tap and event recording."""
 
 
 class CameraInput(TypedDict):
@@ -124,6 +127,8 @@ class BaseCameraConfig(TypedDict):
     """Disable this camera."""
     info: NotRequired[CameraInformation]
     """Camera hardware information."""
+    type: NotRequired[CameraType]
+    """Device type, `doorbell` for doorbell cameras."""
 
 
 class CameraConfig(BaseCameraConfig):

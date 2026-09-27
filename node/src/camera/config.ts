@@ -7,6 +7,7 @@ import type {
   AudioCodec,
   CameraActivityMode,
   CameraAspectRatio,
+  CameraPower,
   CameraRole,
   CameraType,
   PlaybackSource,
@@ -73,6 +74,8 @@ export interface BaseCameraConfig {
   disabled?: boolean;
   /** Camera hardware information. */
   info?: Partial<CameraInformation>;
+  /** Device type, `doorbell` for doorbell cameras. */
+  type?: CameraType;
 }
 
 /** Camera hardware/firmware information. */
@@ -89,6 +92,8 @@ export interface CameraInformation {
   firmwareVersion?: string;
   /** Manufacturer support URL. */
   supportUrl?: string;
+  /** Power source. A battery camera is set up so it can sleep: no lasting connection, snapshots on request, live view on tap and event recording. */
+  power?: CameraPower;
 }
 
 /** Full camera configuration with sources. */

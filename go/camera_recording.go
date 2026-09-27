@@ -8,7 +8,7 @@ const (
 	RecordingModeContinuous RecordingMode = "continuous"
 	// RecordingModeEvent records only around detections, padded by the pre-buffer.
 	RecordingModeEvent RecordingMode = "event"
-	// RecordingModeAdhoc records only when started manually.
+	// RecordingModeAdhoc connects and records only while a detection event runs.
 	RecordingModeAdhoc RecordingMode = "adhoc"
 )
 

@@ -175,6 +175,8 @@ BaseCameraConfig holds the camera configuration fields shared between creation a
 	    Disabled bool `msgpack:"disabled,omitempty" json:"disabled,omitempty"`
 	    // Info is the camera hardware information.
 	    Info *CameraInformation `msgpack:"info,omitempty" json:"info,omitempty"`
+	    // Type is the device type, CameraTypeDoorbell for doorbell cameras.
+	    Type CameraType `msgpack:"type,omitempty" json:"type,omitempty"`
 	}
 
 <a name="BasePlugin"></a>
@@ -705,6 +707,10 @@ CameraInformation is camera hardware/firmware information.
 	    FirmwareVersion string `msgpack:"firmwareVersion,omitempty" json:"firmwareVersion,omitempty"`
 	    // SupportUrl is the manufacturer support URL.
 	    SupportUrl string `msgpack:"supportUrl,omitempty" json:"supportUrl,omitempty"`
+	    // Power is the power source. A battery camera is set up so it can sleep:
+	    // no lasting connection, snapshots on request, live view on tap and event
+	    // recording.
+	    Power CameraPower `msgpack:"power,omitempty" json:"power,omitempty"`
 	}
 
 <a name="CameraInput"></a>
@@ -770,6 +776,24 @@ CameraPluginInfo identifies the plugin that provides a camera \(id \+ display na
 	    // Name is the plugin display name.
 	    Name string `msgpack:"name" json:"name"`
 	}
+
+<a name="CameraPower"></a>
+
+## type CameraPower
+
+CameraPower is the camera power source.
+
+- mains: Wired or PoE, may stay connected
+- battery: Battery powered, sleeps between events
+
+	type CameraPower string
+
+<a name="CameraPowerMains"></a>
+
+	const (
+	    CameraPowerMains   CameraPower = "mains"
+	    CameraPowerBattery CameraPower = "battery"
+	)
 
 <a name="CameraRecordingSettings"></a>
 

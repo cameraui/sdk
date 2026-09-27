@@ -23,6 +23,7 @@ from .camera import (
     CameraInformation,
     CameraInput,
     CameraPluginInfo,
+    CameraPower,
     CameraPropertyObservableObject,
     CameraPublicProperties,
     CameraRecordingSettings,
@@ -356,6 +357,7 @@ __all__ = [
     # Camera
     "Camera",
     "CameraType",
+    "CameraPower",
     "ZoneType",
     "CameraRole",
     "CameraActivityMode",

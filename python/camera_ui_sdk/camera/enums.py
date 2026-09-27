@@ -9,6 +9,13 @@ Camera device type.
 - `doorbell`: Doorbell camera
 """
 
+CameraPower = Literal["mains", "battery"]
+"""
+Camera power source.
+- `mains`: Wired or PoE, may stay connected
+- `battery`: Battery powered, sleeps between events
+"""
+
 ZoneType = Literal["intersect", "contain"]
 """
 Detection zone intersection type.
