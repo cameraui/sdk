@@ -262,7 +262,7 @@ export interface SensorManager {
  * @example
  * ```typescript
  * const { token, url } = await api.downloadManager.createDownload({
- *   filePath: '/tmp/export.mp4',
+ *   filePath: `${api.storagePath}/export.mp4`,
  *   filename: 'recording.mp4',
  *   mimeType: 'video/mp4',
  *   ttlMs: 600000,
@@ -300,7 +300,7 @@ export interface DownloadManager {
 
 /** Options for creating a streaming download (progressive file tailing). */
 export interface CreateStreamDownloadOptions extends CreateDownloadOptions {
-  /** Path to a marker file that signals export is still in progress. */
+  /** Path to a marker file that signals export is still in progress, inside the plugin's storage folder. */
   markerPath: string;
 }
 
@@ -318,7 +318,7 @@ export type DownloadCleanup = 'never' | 'on-expiry' | 'on-download';
 
 /** Options for creating a download. */
 export interface CreateDownloadOptions {
-  /** Absolute path to the file on disk. */
+  /** Absolute path to the file on disk, inside the plugin's storage folder (`api.storagePath`). */
   filePath: string;
   /** Filename for Content-Disposition header (defaults to basename of filePath). */
   filename?: string;

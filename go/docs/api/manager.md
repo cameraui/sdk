@@ -116,7 +116,8 @@ The host currently publishes one event type, "cloudAccountChanged". Subscribe vi
 CreateDownloadOptions specifies how to register an existing file as a downloadable artifact.
 
 	type CreateDownloadOptions struct {
-	    // FilePath is the absolute path to the file on disk.
+	    // FilePath is the absolute path to the file on disk, inside the plugin's
+	    // storage folder (API.StoragePath).
 	    FilePath string `msgpack:"filePath" json:"filePath"`
 	    // Filename is the value used in the Content-Disposition header
 	    // (defaults to the basename of FilePath).
@@ -137,7 +138,8 @@ CreateDownloadOptions specifies how to register an existing file as a downloadab
 CreateStreamDownloadOptions specifies how to register a file that is still being written and served progressively.
 
 	type CreateStreamDownloadOptions struct {
-	    // FilePath is the absolute path to the file being written.
+	    // FilePath is the absolute path to the file being written, inside the
+	    // plugin's storage folder (API.StoragePath).
 	    FilePath string `msgpack:"filePath" json:"filePath"`
 	    // Filename is the value used in the Content-Disposition header
 	    // (defaults to the basename of FilePath).
@@ -151,7 +153,7 @@ CreateStreamDownloadOptions specifies how to register a file that is still being
 	    Cleanup DownloadCleanup `msgpack:"cleanup,omitempty" json:"cleanup,omitempty"`
 	    // MarkerPath is the path to a marker file whose existence signals
 	    // that writing is still in progress; when removed, the download
-	    // server closes the response.
+	    // server closes the response. It lies inside the plugin's storage folder.
 	    MarkerPath string `msgpack:"markerPath" json:"markerPath"`
 	}
 
@@ -218,7 +220,7 @@ Accessed via api.DownloadManager from within a plugin.
 Example:
 
 	tok, err := api.DownloadManager.CreateDownload(sdk.CreateDownloadOptions{
-	    FilePath: "/tmp/export.mp4",
+	    FilePath: filepath.Join(api.StoragePath, "export.mp4"),
 	    Filename: "recording.mp4",
 	    MimeType: "video/mp4",
 	    TTLMs:    600000,

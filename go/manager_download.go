@@ -30,7 +30,7 @@ type createStreamDownloadWire struct {
 // Example:
 //
 //	tok, err := api.DownloadManager.CreateDownload(sdk.CreateDownloadOptions{
-//	    FilePath: "/tmp/export.mp4",
+//	    FilePath: filepath.Join(api.StoragePath, "export.mp4"),
 //	    Filename: "recording.mp4",
 //	    MimeType: "video/mp4",
 //	    TTLMs:    600000,

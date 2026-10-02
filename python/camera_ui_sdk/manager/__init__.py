@@ -375,7 +375,7 @@ class CreateDownloadOptions(TypedDict):
     """Options for creating a download."""
 
     filePath: str
-    """Absolute path to the file on disk."""
+    """Absolute path to the file on disk, inside the plugin's storage folder (``api.storagePath``)."""
 
     filename: NotRequired[str]
     """Filename for Content-Disposition header (defaults to basename of filePath)."""
@@ -401,7 +401,7 @@ class CreateStreamDownloadOptions(CreateDownloadOptions):
     """Options for creating a streaming download (progressive file tailing)."""
 
     markerPath: str
-    """Path to a marker file that signals export is still in progress."""
+    """Path to a marker file that signals export is still in progress, inside the plugin's storage folder."""
 
 
 class DownloadToken(TypedDict):
@@ -440,7 +440,7 @@ class DownloadManager(Protocol):
         ```python
         result = await api.downloadManager.createDownload(
             {
-                "filePath": "/tmp/export.mp4",
+                "filePath": f"{api.storagePath}/export.mp4",
                 "filename": "recording.mp4",
                 "mimeType": "video/mp4",
                 "ttlMs": 600000,
