@@ -14,7 +14,7 @@ import type { ModelSpec } from './spec.js';
 export enum LicensePlateProperty {
   /** Whether any license plate is currently detected. */
   Detected = 'detected',
-  /** List of detected plates with OCR text. */
+  /** List of detected plates with OCR text. The plugin that owns the sensor does not get the backend's updates of it. */
   Detections = 'detections',
   /** Plate texts recognized during the active detection phase. */
   Plates = 'plates',

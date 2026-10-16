@@ -650,10 +650,13 @@ class DeviceStorage(Protocol, Generic[V2]):
 
     async def getConfig(self) -> SchemaConfig:
         """
-        Get the full schema configuration.
+        Get the schema definitions and the values they own.
+
+        Internal values written with ``setInternalValue`` are left out, read them
+        with ``getValue``.
 
         Returns:
-            Schema definitions and current values
+            Schema definitions and their current values
         """
         ...
 
@@ -662,8 +665,9 @@ class DeviceStorage(Protocol, Generic[V2]):
         Merge configuration values into the current config.
 
         Only keys present in ``new_config`` are updated (not a full replace);
-        arrays are replaced, not merged. Values are durably persisted before the
-        coroutine completes; ``onSet`` fires for each key whose value changed.
+        arrays are replaced, not merged. Keys without a schema are ignored.
+        Values are durably persisted before the coroutine completes; ``onSet``
+        fires for each key whose value changed.
 
         Args:
             new_config: Configuration values to merge in
@@ -737,10 +741,26 @@ class DeviceStorage(Protocol, Generic[V2]):
 
     async def setInternalValue(self, key: str, value: Any) -> None:
         """
-        Set a system-internal value (e.g. _displayName) without requiring a schema and persist it.
+        Set an internal value without a schema and persist it.
 
-        When the coroutine completes, the value is durably persisted.
+        Internal values stay out of ``getConfig`` and can only be written by the
+        plugin itself. When the coroutine completes, the value is durably persisted.
         Passing ``None`` deletes the key; it reads as never-set again.
+
+        Args:
+            key: Internal key (typically prefixed with '_')
+            value: Value to set, or ``None`` to delete the key
+        """
+        ...
+
+    def setInternalValueSync(self, key: str, value: Any) -> None:
+        """
+        Set an internal value and write it to disk before returning.
+
+        For callbacks that must not return before the value is safe, such as the
+        synchronous storage hook of a library. The write blocks the event loop, so
+        use ``setInternalValue`` everywhere else. Once the call returns, the value
+        survives a crash of the plugin. Passing ``None`` deletes the key.
 
         Args:
             key: Internal key (typically prefixed with '_')

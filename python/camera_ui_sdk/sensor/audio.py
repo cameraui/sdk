@@ -54,9 +54,9 @@ class AudioProperty(StrEnum):
     Detected = "detected"
     """Whether an audio event is currently detected."""
     Detections = "detections"
-    """List of detected audio events (e.g. glass break, scream)."""
+    """List of detected audio events (e.g. glass break, scream). The plugin that owns the sensor does not get the backend's updates of it."""
     Decibels = "decibels"
-    """Current audio level in decibels."""
+    """Current audio level in decibels. The plugin that owns the sensor does not get the backend's updates of it."""
     LastTriggered = "lastTriggered"
     """Timestamp in milliseconds of the last detection trigger, set by the backend."""
 

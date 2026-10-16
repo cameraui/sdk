@@ -13,7 +13,7 @@ import type { Detection, VideoFrameData } from './detection.js';
 export enum MotionProperty {
   /** Whether motion is currently detected. */
   Detected = 'detected',
-  /** List of detection results with bounding boxes. */
+  /** List of detection results with bounding boxes. The plugin that owns the sensor does not get the backend's updates of it. */
   Detections = 'detections',
   /** When true, detection updates are suppressed (set by the backend dwell logic). */
   Blocked = 'blocked',

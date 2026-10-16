@@ -14,7 +14,7 @@ import type { ModelSpec } from './spec.js';
 export enum ClassifierProperty {
   /** Whether any classification result is active. */
   Detected = 'detected',
-  /** List of classification results with labels and confidence. */
+  /** List of classification results with labels and confidence. The plugin that owns the sensor does not get the backend's updates of it. */
   Detections = 'detections',
   /** Labels recognized during the active detection phase (auto-derived when reporting detections). */
   Labels = 'labels',

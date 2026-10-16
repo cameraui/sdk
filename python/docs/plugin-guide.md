@@ -182,6 +182,8 @@ await camera.addSensor(sensor)
 
 Other detector base classes follow the same shape. `ObjectDetectorSensor.detectObjects(frame)` takes a single frame; `FaceDetectorSensor.detectFaces(frames)`, `LicensePlateDetectorSensor.detectLicensePlates(frames)`, `ClassifierDetectorSensor.detectClassifications(frames)`, `ClipDetectorSensor.detectEmbeddings(frames)` all take a batch (`list[VideoFrameData]`); `AudioDetectorSensor.detectAudio(audio)` takes one `AudioFrameData`. The frame-based detectors also expose an abstract `modelSpec` property — return the input dimensions and (for classifier) the trigger labels. Smart-home sensors expose semantic methods instead — `LightControl` gives you `setOn()` / `setOff()` / `setBrightness(value)`, `ContactSensor` gives you `setDetected(value)`, `DoorbellTrigger` gives you `trigger()`. You construct them, register them, and then call those methods when your hardware reports a change.
 
+The host may send up to three frames to `detectObjects` at once, so the method must not keep per-call state on the sensor. A detector that needs one call at a time sets `_rpc_concurrency = {}` in its class.
+
 A standalone sensor works exactly the same once it runs, only nobody registers it: you build it from the adopted record the host hands you and return it, and the host binds it to the record by `nativeId`:
 
 ```python
@@ -667,7 +669,7 @@ if face is not None:
     result = await face.testFaceDetection(jpeg_bytes, {"width": 640, "height": 480}, {})
 ```
 
-Use `await self.api.coreManager.getPluginsByInterface(PluginInterface.FaceDetection)` to discover candidate plugins by capability rather than by name.
+Use `await self.api.coreManager.getPluginsByInterface(PluginInterface.FaceDetection)` to discover candidate plugins by capability rather than by name. A plugin in that list can be installed but not started; skip it when its `running` is false. A call to a method no process serves is retried for about 3.5 s, because the plugin may be starting. To probe an optional method without that wait, connect with `connectToPlugin(name, {"noRetry": True})`; the call then raises at once, so wrap it in `try`. Read an optional method with `getattr(plugin, "methodName", None)`: once the proxy knows the plugin's methods, a missing one is `None`.
 
 To use one of the language models configured in camera.ui, call `self.api.coreManager.assistantAsk()`. The admin allows the plugin under Settings, Assistant, Plugin access and picks the model; camera.ui runs the request, so the plugin never holds a key. `assistantAccess()` tells you whether the plugin is allowed, and the `assistantModelChanged` core event fires when that changes:
 

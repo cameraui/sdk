@@ -3,6 +3,7 @@ package sdk
 import (
 	"context"
 	"fmt"
+	"maps"
 	"slices"
 	"sync"
 
@@ -52,7 +53,12 @@ type SensorManager struct {
 	external map[string]Sensor
 
 	// consumable view: exposed foreign sensors of consumed types
-	consumed       map[string]*sensorProxy
+	consumed map[string]*sensorProxy
+
+	// properties whose write never reached the master, sent again with their
+	// current value when the link is back
+	unsent map[string]map[string]bool
+
 	unsubGlobal    func()
 	unsubReconnect func()
 }
@@ -69,6 +75,7 @@ func newSensorManager(client *rpc.Client, storageCtrl *StorageController, plugin
 		cleanups:      make(map[string]func()),
 		external:      make(map[string]Sensor),
 		consumed:      make(map[string]*sensorProxy),
+		unsent:        make(map[string]map[string]bool),
 	}
 }
 
@@ -215,7 +222,31 @@ func (m *SensorManager) trackCameraSensor(s Sensor) error {
 func (m *SensorManager) untrackCameraSensor(sensorID string) {
 	m.mu.Lock()
 	delete(m.external, sensorID)
+	delete(m.unsent, sensorID)
 	m.mu.Unlock()
+}
+
+func (m *SensorManager) settleWrite(sensorID string, properties map[string]any, sent bool) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	keys := m.unsent[sensorID]
+	if keys == nil {
+		if sent {
+			return
+		}
+		keys = make(map[string]bool)
+		m.unsent[sensorID] = keys
+	}
+	for key := range properties {
+		if sent {
+			delete(keys, key)
+		} else {
+			keys[key] = true
+		}
+	}
+	if len(keys) == 0 {
+		delete(m.unsent, sensorID)
+	}
 }
 
 func (m *SensorManager) init() error {
@@ -432,7 +463,8 @@ func (m *SensorManager) bind(s Sensor, recordID string) error {
 			}
 			return
 		}
-		_, _ = m.registryProxy.Invoke(ctx, "updatePropertyValues", sensor.GetID(), properties)
+		_, err := m.registryProxy.Invoke(ctx, "updatePropertyValues", sensor.GetID(), properties)
+		m.settleWrite(sensor.GetID(), properties, err == nil)
 	})
 	si.initCapabilitiesUpdateFn(func(caps []string) {
 		ctx := context.Background()
@@ -444,7 +476,12 @@ func (m *SensorManager) bind(s Sensor, recordID string) error {
 	})
 
 	sensorEventNS := getSensorEventNamespaces(s.GetID())
-	unsubBackend, subErr := m.client.Subscribe(sensorEventNS.SensorSubject, func(data []byte) {
+	// a frame-fed owner needs no echo of the detections the coordinator writes per frame
+	eventSubject := sensorEventNS.SensorSubject
+	if registration.StateSubject && sensorJSON.RequiresFrames {
+		eventSubject = sensorEventNS.SensorStateSubject
+	}
+	unsubBackend, subErr := m.client.Subscribe(eventSubject, func(data []byte) {
 		var msg sensorEventMessage
 		if !decodeMsgpack(m.logger, data, &msg, "sensorEventMessage") {
 			return
@@ -494,6 +531,7 @@ func (m *SensorManager) unbind(sensorID string) Sensor {
 	cleanup := m.cleanups[sensorID]
 	delete(m.cleanups, sensorID)
 	delete(m.owned, sensorID)
+	delete(m.unsent, sensorID)
 	m.mu.Unlock()
 
 	if cleanup != nil {
@@ -542,14 +580,14 @@ func (m *SensorManager) close() {
 	owned := m.owned
 	m.owned = make(map[string]Sensor)
 	m.external = make(map[string]Sensor)
+	m.unsent = make(map[string]map[string]bool)
 	m.mu.Unlock()
 
 	for _, p := range consumed {
 		p.cleanupProxy()
 	}
-	for _, cleanup := range cleanups {
-		cleanup()
-	}
+	// a cleanup waits for its running calls, in a row they add up past the stop deadline
+	runTogether(slices.Collect(maps.Values(cleanups)))
 	for _, s := range owned {
 		cleanupSensorWithLifecycle(s)
 	}
@@ -563,7 +601,9 @@ func (m *SensorManager) ensureGlobalSubscription() error {
 	}
 
 	registryNS := getSensorRegistryNamespaces()
-	m.unsubReconnect = m.client.OnReconnect(m.resyncAllConsumed)
+	if m.unsubReconnect == nil {
+		m.unsubReconnect = onResync(m.client, m.logger, m.resync)
+	}
 	unsub, err := m.client.Subscribe(registryNS.SensorsSubject, func(data []byte) {
 		var msg sensorRegistryEventMessage
 		if !decodeMsgpack(m.logger, data, &msg, "sensorRegistryEventMessage") {
@@ -601,6 +641,74 @@ func (m *SensorManager) addConsumed(data *storedSensorData) *sensorProxy {
 	m.consumed[data.ID] = proxy
 	m.mu.Unlock()
 	return proxy
+}
+
+// a new master run lost the runtime binding of every sensor, the current
+// properties win over its stored ones
+func (m *SensorManager) reattach() error {
+	m.mu.Lock()
+	owned := slices.Collect(maps.Values(m.owned))
+	// the registrations of this re-attach carry the current values, camera sensors included
+	clear(m.unsent)
+	m.mu.Unlock()
+
+	for _, s := range owned {
+		si, ok := s.(sensorInternalInit)
+		if !ok {
+			continue
+		}
+		sensorJSON := si.ToJSON()
+		sensorJSON.ModelSpec = detectorModelSpec(s)
+		result, err := m.registryProxy.Invoke(context.Background(), "registerSensor", sensorJSON, m.info.ID)
+		if err != nil {
+			return fmt.Errorf("register sensor %s: %w", s.GetName(), err)
+		}
+		registration, err := decodeSensorRegistration(result)
+		if err != nil {
+			return fmt.Errorf("decode the registration of sensor %s: %w", s.GetName(), err)
+		}
+		si.setAssignedCameras(registration.AssignedCameraIDs)
+	}
+
+	m.resyncAllConsumed()
+	return nil
+}
+
+func (m *SensorManager) resync() {
+	m.sendUnsent()
+	m.resyncAllConsumed()
+}
+
+// only what got lost: a repeated write of an unchanged value would fire its trigger again
+func (m *SensorManager) sendUnsent() {
+	type pendingWrite struct {
+		sensor Sensor
+		keys   []string
+	}
+	m.mu.Lock()
+	pending := make(map[string]pendingWrite, len(m.unsent))
+	for sensorID, keys := range m.unsent {
+		s := m.owned[sensorID]
+		if s == nil {
+			s = m.external[sensorID]
+		}
+		if s == nil {
+			delete(m.unsent, sensorID)
+			continue
+		}
+		pending[sensorID] = pendingWrite{sensor: s, keys: slices.Collect(maps.Keys(keys))}
+	}
+	m.mu.Unlock()
+
+	for sensorID, write := range pending {
+		properties := make(map[string]any, len(write.keys))
+		for _, key := range write.keys {
+			properties[key] = write.sensor.GetValue(key)
+		}
+		if _, err := m.registryProxy.Invoke(context.Background(), "updatePropertyValues", sensorID, properties); err == nil {
+			m.settleWrite(sensorID, properties, true)
+		}
+	}
 }
 
 // a dropped link loses every event published while it was down, so the whole

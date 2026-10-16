@@ -99,9 +99,15 @@ func (sc *StorageController) releaseCameraStorage(cameraID string) {
 	}
 }
 
-// runs last in teardown so final writes from device and sensor cleanup have landed
+// runs last in teardown so final writes from device and sensor cleanup have landed;
+// saves stay in order on the one config document, only the handler drains overlap
 func (sc *StorageController) close() {
+	unregisters := make([]func(), 0, len(sc.storages))
 	for _, storage := range sc.storages {
-		storage.close()
+		if err := storage.Save(); err != nil {
+			storage.logger.Error("store: close save failed:", err)
+		}
+		unregisters = append(unregisters, storage.unregister)
 	}
+	runTogether(unregisters)
 }

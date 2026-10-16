@@ -6,6 +6,7 @@ import (
 	"maps"
 	"math"
 	"reflect"
+	"strings"
 	"sync"
 
 	rpc "github.com/cameraui/rpc/go"
@@ -70,7 +71,7 @@ func newDeviceStorage(persistence configPersistence, location storeLocation, log
 // authors but are not reachable over the wire.
 func (ds *DeviceStorage) RPCMethods() []string {
 	return []string{
-		"getValue", "setValue", "submitValue", "setInternalValue", "hasValue",
+		"getValue", "setValue", "submitValue", "hasValue",
 		"getConfig", "setConfig", "addSchema", "removeSchema", "changeSchema",
 		"getSchema", "hasSchema", "destroy",
 	}
@@ -207,8 +208,8 @@ func (ds *DeviceStorage) HasValue(key string) bool {
 	return ok
 }
 
-// GetConfig returns the full schema configuration (schema definitions and
-// current values).
+// GetConfig returns the schema definitions and the values they own. Internal
+// values written with SetInternalValue are left out, read them with GetValue.
 func (ds *DeviceStorage) GetConfig() map[string]any {
 	ds.mu.RLock()
 	schemas := ds.Schemas
@@ -224,18 +225,42 @@ func (ds *DeviceStorage) GetConfig() map[string]any {
 		out = append(out, ds.Schemas[i].ToMap())
 	}
 
+	config := make(map[string]any, len(ds.Values))
+	for key, value := range ds.Values {
+		if ds.schemaOwnsKey(key) {
+			config[key] = value
+		}
+	}
+
 	return map[string]any{
 		"schema": out,
-		"config": ds.Values,
+		"config": config,
 	}
 }
 
 // SetConfig merges new configuration values into the existing config and
-// blocks until the merged state is durable. Values outside the storable
-// domain reject the whole call before anything is applied. OnSet callbacks
+// blocks until the merged state is durable. Keys without a schema are ignored.
+// Values outside the storable domain reject the whole call before anything is
+// applied. OnSet callbacks
 // for keys whose values actually changed (deep compare) fire detached after
 // the persist.
 func (ds *DeviceStorage) SetConfig(newConfig map[string]any) error {
+	owned := make(map[string]any, len(newConfig))
+	var ignored []string
+	ds.mu.RLock()
+	for key, value := range newConfig {
+		if ds.schemaOwnsKey(key) {
+			owned[key] = value
+		} else {
+			ignored = append(ignored, key)
+		}
+	}
+	ds.mu.RUnlock()
+	if len(ignored) > 0 {
+		ds.logger.Warn("SetConfig ignored keys without a schema:", strings.Join(ignored, ", "))
+	}
+	newConfig = owned
+
 	for key, value := range newConfig {
 		if err := validateStoreValue(key, value); err != nil {
 			return err
@@ -410,9 +435,10 @@ func (ds *DeviceStorage) HasSchema(key string) bool {
 	return ds.GetSchema(key) != nil
 }
 
-// SetInternalValue sets a system-internal value (e.g. _displayName) without
-// requiring a schema, blocking until it is persisted. A nil value deletes the
-// key; values outside the storable domain are rejected.
+// SetInternalValue sets an internal value without a schema, blocking until it
+// is persisted. Internal values stay out of GetConfig and can only be written
+// by the plugin itself. A nil value deletes the key; values outside the
+// storable domain are rejected.
 func (ds *DeviceStorage) SetInternalValue(key string, value any) error {
 	if err := validateStoreValue(key, value); err != nil {
 		return err
@@ -502,6 +528,17 @@ func (ds *DeviceStorage) hasValueLocked(key string) bool {
 	return ok
 }
 
+// caller must hold ds.mu; a dotted schema key also owns its top-level segment
+func (ds *DeviceStorage) schemaOwnsKey(key string) bool {
+	for i := range ds.Schemas {
+		k := ds.Schemas[i].Key
+		if k == key || strings.HasPrefix(k, key+".") || strings.HasPrefix(k, key+"[") {
+			return true
+		}
+	}
+	return false
+}
+
 // caller must hold ds.mu, read or write
 func (ds *DeviceStorage) findSchemaByKey(key string) *JsonSchema {
 	for i := range ds.Schemas {
@@ -510,13 +547,6 @@ func (ds *DeviceStorage) findSchemaByKey(key string) *JsonSchema {
 		}
 	}
 	return nil
-}
-
-func (ds *DeviceStorage) close() {
-	if err := ds.Save(); err != nil {
-		ds.logger.Error("store: close save failed:", err)
-	}
-	ds.unregister()
 }
 
 func (ds *DeviceStorage) unregister() {

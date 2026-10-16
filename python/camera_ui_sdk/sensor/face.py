@@ -19,7 +19,7 @@ class FaceProperty(StrEnum):
     Detected = "detected"
     """Whether any face is currently detected."""
     Detections = "detections"
-    """List of detected faces, with an identity where one was matched."""
+    """List of detected faces, with an identity where one was matched. The plugin that owns the sensor does not get the backend's updates of it."""
     Identities = "identities"
     """Names of the faces recognized during the active detection phase."""
 

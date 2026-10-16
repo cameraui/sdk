@@ -125,4 +125,6 @@ export interface PluginInfo {
   name: string;
   /** Full contract the plugin was loaded with. */
   contract: PluginContract;
+  /** True while the plugin's process is started; set by getPluginsByInterface. */
+  running?: boolean;
 }

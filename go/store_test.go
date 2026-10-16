@@ -441,6 +441,10 @@ func (mp *memPersistence) save(loc storeLocation, values map[string]any) func() 
 	return func() error { return nil }
 }
 
+func (mp *memPersistence) flush() error { return nil }
+
+func (mp *memPersistence) close() {}
+
 func (mp *memPersistence) persisted(loc storeLocation) map[string]any {
 	mp.mu.Lock()
 	defer mp.mu.Unlock()

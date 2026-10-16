@@ -79,6 +79,16 @@ class SensorHistoryEntry(TypedDict):
     timestamp: int
 
 
+class PluginCallOptions(TypedDict):
+    """How the calls of a proxy from ``CoreManager.connectToPlugin`` wait for an answer."""
+
+    timeoutMs: NotRequired[int]
+    """Timeout of each attempt in milliseconds; omitted or zero keeps the default."""
+
+    noRetry: NotRequired[bool]
+    """Fail a call at once when no process serves the method, instead of retrying for about 3.5 s."""
+
+
 @runtime_checkable
 class CoreManager(Protocol):
     """
@@ -117,15 +127,29 @@ class CoreManager(Protocol):
         """
         ...
 
-    async def connectToPlugin(self, pluginName: str) -> BasePlugin | None:
+    async def connectToPlugin(
+        self, pluginName: str, options: PluginCallOptions | None = None
+    ) -> BasePlugin | None:
         """
-        Connect to another plugin by name.
+        Connect to another plugin by name. Proxies are cached per plugin and options and share one connection per plugin.
 
         Args:
             pluginName: Name of the plugin to connect to
+            options: Timeout and retry for the calls of the returned proxy
 
         Returns:
             Plugin instance or None if not found. Cast to specific interface as needed.
+
+        Example:
+            ```python
+            clip = await api.coreManager.connectToPlugin("CLIP Plugin", {"noRetry": True})
+            get_text_embeddings = getattr(clip, "getTextEmbeddings", None)
+            if get_text_embeddings is not None:
+                try:
+                    embeddings = await get_text_embeddings("a red car")
+                except Exception:
+                    pass  # stopped, or no getTextEmbeddings
+            ```
         """
         ...
 
@@ -193,6 +217,37 @@ class CoreManager(Protocol):
 
         Returns:
             Cloud server id, or an empty string if not paired
+        """
+        ...
+
+    async def getRestoreGeneration(self) -> str:
+        """
+        Get the id of the last restore on this server.
+
+        It changes every time a backup is restored or a restore is undone and is
+        empty before the first one. A plugin that keeps credentials for an outside
+        service compares it with the id it saw when storing them: a different one
+        means they came back with a backup and may be outdated.
+
+        Returns:
+            Restore id, or an empty string before the first restore
+        """
+        ...
+
+    async def getInstanceId(self) -> str:
+        """
+        Get the id of this camera.ui installation.
+
+        A copy of the server made from a backup gets a new id, while a move or
+        an undone restore keeps it. A plugin that announces itself on the
+        network under a fixed identity compares it with the id it saw before:
+        a different one means it now runs on a copy and must not reuse that
+        identity.
+
+        Servers older than 2.4.0 do not know the call and reject it.
+
+        Returns:
+            Installation id
         """
         ...
 
@@ -539,6 +594,7 @@ __all__ = [
     "DeviceManager",
     "DownloadManager",
     "NotificationManager",
+    "PluginCallOptions",
     "SensorManager",
     # Download types
     "CreateDownloadOptions",

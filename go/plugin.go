@@ -27,8 +27,9 @@ const (
 type pluginCommand string
 
 const (
-	pluginCommandStart pluginCommand = "start"
-	pluginCommandStop  pluginCommand = "stop"
+	pluginCommandStart  pluginCommand = "start"
+	pluginCommandStop   pluginCommand = "stop"
+	pluginCommandResume pluginCommand = "resume"
 )
 
 // APIEvent identifies a lifecycle event emitted on the PluginAPI eventEmitter.

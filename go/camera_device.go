@@ -3,6 +3,7 @@ package sdk
 import (
 	"context"
 	"fmt"
+	"maps"
 	"reflect"
 	"slices"
 	"sync"
@@ -55,9 +56,11 @@ type CameraDevice struct {
 	sources         []*CameraDeviceSource
 	sensors         []Sensor
 	sensorCleanups  map[string]func()
-	storageDevice   *DeviceStorage
-	storageCtrl     *StorageController
-	initialized     bool
+	// a new master run has to see the plugin's connect again
+	connectWanted bool
+	storageDevice *DeviceStorage
+	storageCtrl   *StorageController
+	initialized   bool
 
 	cameraSubject    *BehaviorSubject[Camera]
 	cameraState      *BehaviorSubject[bool]
@@ -67,6 +70,10 @@ type CameraDevice struct {
 	detectionWireMu   sync.Mutex
 	detectionWireSubs int
 	detectionWireStop func()
+
+	// one refresh at a time, it may swap the camera event subject
+	refreshMu sync.Mutex
+	eventSubs map[string]func()
 
 	impl       any
 	cleanupFns []func()
@@ -328,6 +335,9 @@ func (d *CameraDevice) Connect() error {
 	if d.camera.PluginInfo == nil || d.camera.PluginInfo.ID != d.info.ID {
 		return nil
 	}
+	d.mu.Lock()
+	d.connectWanted = true
+	d.mu.Unlock()
 	ctx := context.Background()
 	_, err := d.controllerProxy.Invoke(ctx, "connect")
 	return err
@@ -339,6 +349,9 @@ func (d *CameraDevice) Disconnect() error {
 	if d.camera.PluginInfo == nil || d.camera.PluginInfo.ID != d.info.ID {
 		return nil
 	}
+	d.mu.Lock()
+	d.connectWanted = false
+	d.mu.Unlock()
 	ctx := context.Background()
 	_, err := d.controllerProxy.Invoke(ctx, "disconnect")
 	return err
@@ -448,7 +461,10 @@ func (d *CameraDevice) addSensor(s Sensor) error {
 			}
 			return
 		}
-		_, _ = d.registryProxy.Invoke(ctx, "updatePropertyValues", sensor.GetID(), properties)
+		_, err := d.registryProxy.Invoke(ctx, "updatePropertyValues", sensor.GetID(), properties)
+		if d.api != nil && d.api.SensorManager != nil {
+			d.api.SensorManager.settleWrite(sensor.GetID(), properties, err == nil)
+		}
 	})
 	si.initCapabilitiesUpdateFn(func(caps []string) {
 		ctx := context.Background()
@@ -461,7 +477,12 @@ func (d *CameraDevice) addSensor(s Sensor) error {
 
 	// host-side writes (e.g. the motion dwell timer) must land back on the sensor
 	sensorEventNS := getSensorEventNamespaces(s.GetID())
-	unsubBackend, err := d.client.Subscribe(sensorEventNS.SensorSubject, func(data []byte) {
+	// a frame-fed owner needs no echo of the detections the coordinator writes per frame
+	eventSubject := sensorEventNS.SensorSubject
+	if registration.StateSubject && sensorJSON.RequiresFrames {
+		eventSubject = sensorEventNS.SensorStateSubject
+	}
+	unsubBackend, err := d.client.Subscribe(eventSubject, func(data []byte) {
 		var msg sensorEventMessage
 		if !decodeMsgpack(d.logger, data, &msg, "sensorEventMessage") {
 			return
@@ -637,54 +658,121 @@ func (d *CameraDevice) init() error {
 	}
 	d.cleanupFns = append(d.cleanupFns, func() { _ = cleanup() })
 
+	// both until the controller tells which one it publishes
 	camEventNS := getCameraNamespaces(d.camera.ID)
-	unsub, err := d.client.Subscribe(camEventNS.CameraSubject, func(data []byte) {
-		var msg cameraEventMessage
-		if !decodeMsgpack(d.logger, data, &msg, "cameraEventMessage") {
-			return
+	for _, subject := range []string{camEventNS.CameraSubject, camEventNS.CameraStateSubject} {
+		if err := d.subscribeEvents(subject); err != nil {
+			return fmt.Errorf("subscribe camera events: %w", err)
 		}
-		d.handleCameraEvent(msg)
-	})
-	if err != nil {
-		return fmt.Errorf("subscribe camera events: %w", err)
 	}
-	d.cleanupFns = append(d.cleanupFns, unsub)
+	d.cleanupFns = append(d.cleanupFns, func() { d.dropEventSubjects("") })
 
 	// the connected event may have fired before this subscription existed
 	d.refreshStates()
-	d.cleanupFns = append(d.cleanupFns, d.client.OnReconnect(d.refreshStates))
+	d.cleanupFns = append(d.cleanupFns, onResync(d.client, d.logger, d.refreshStates))
 
 	return nil
 }
 
+// a new master run lost the runtime binding of the sensors and the plugin's connect
+func (d *CameraDevice) reattach() error {
+	d.mu.RLock()
+	sensors := slices.Clone(d.sensors)
+	connectWanted := d.connectWanted
+	d.mu.RUnlock()
+
+	ctx := context.Background()
+	for _, s := range sensors {
+		si, ok := s.(sensorInternalInit)
+		if !ok {
+			continue
+		}
+		sensorJSON := si.ToJSON()
+		sensorJSON.ModelSpec = detectorModelSpec(s)
+		result, err := d.registryProxy.Invoke(ctx, "registerSensor", sensorJSON, d.info.ID, map[string]any{"assignCameraId": d.camera.ID})
+		if err != nil {
+			return fmt.Errorf("register sensor %s: %w", s.GetName(), err)
+		}
+		registration, err := decodeSensorRegistration(result)
+		if err != nil {
+			return fmt.Errorf("decode the registration of sensor %s: %w", s.GetName(), err)
+		}
+		si.setAssignedCameras(registration.AssignedCameraIDs)
+	}
+
+	if connectWanted {
+		if _, err := d.controllerProxy.Invoke(ctx, "connect"); err != nil {
+			return fmt.Errorf("connect camera %s: %w", d.camera.Name, err)
+		}
+	}
+	d.refreshStates()
+	return nil
+}
+
 func (d *CameraDevice) refreshStates() {
+	d.refreshMu.Lock()
+	defer d.refreshMu.Unlock()
+
+	d.mu.RLock()
+	initialized := d.initialized
+	camEventNS := getCameraNamespaces(d.camera.ID)
+	d.mu.RUnlock()
+	if !initialized {
+		return
+	}
+
+	stateSubject, ok := d.applyStates()
+	if !ok {
+		return
+	}
+
+	subject := camEventNS.CameraSubject
+	if stateSubject {
+		subject = camEventNS.CameraStateSubject
+	}
+	d.mu.RLock()
+	_, held := d.eventSubs[subject]
+	d.mu.RUnlock()
+	if !held {
+		if err := d.subscribeEvents(subject); err != nil {
+			d.logger.Error("Failed to subscribe camera events:", err)
+			return
+		}
+		// what the other subject misses until it is dropped is in this second read
+		d.applyStates()
+	}
+	d.dropEventSubjects(subject)
+}
+
+func (d *CameraDevice) applyStates() (stateSubject, ok bool) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	result, err := d.controllerProxy.Invoke(ctx, "refreshStates")
 	if err != nil {
 		d.logger.Error("Failed to refresh camera states:", err)
-		return
+		return false, false
 	}
 
 	if result == nil {
-		return
+		return false, false
 	}
 
 	encoded, err := rpc.Encode(result)
 	if err != nil {
 		d.logger.Error("Failed to encode refreshStates result:", err)
-		return
+		return false, false
 	}
 
 	var states struct {
 		Camera           Camera `msgpack:"camera"`
 		CameraState      bool   `msgpack:"cameraState"`
 		FrameWorkerState bool   `msgpack:"frameWorkerState"`
+		StateSubject     bool   `msgpack:"stateSubject"`
 	}
 	if err := rpc.Decode(encoded, &states); err != nil {
 		d.logger.Error("Failed to decode refreshStates result:", err)
-		return
+		return false, false
 	}
 
 	// a resync must not wake subscribers for state they already hold
@@ -700,6 +788,52 @@ func (d *CameraDevice) refreshStates() {
 	if d.frameWorkerState.Value() != states.FrameWorkerState {
 		d.frameWorkerState.Next(states.FrameWorkerState)
 	}
+	return states.StateSubject, true
+}
+
+func (d *CameraDevice) subscribeEvents(subject string) error {
+	unsub, err := d.client.Subscribe(subject, d.onCameraEvent)
+	if err != nil {
+		return err
+	}
+
+	d.mu.Lock()
+	// cleaned up while the subscribe was in flight
+	if !d.initialized {
+		d.mu.Unlock()
+		unsub()
+		return nil
+	}
+	if d.eventSubs == nil {
+		d.eventSubs = make(map[string]func())
+	}
+	d.eventSubs[subject] = unsub
+	d.mu.Unlock()
+	return nil
+}
+
+func (d *CameraDevice) dropEventSubjects(keep string) {
+	d.mu.Lock()
+	var drop []func()
+	for subject, unsub := range d.eventSubs {
+		if subject != keep {
+			drop = append(drop, unsub)
+			delete(d.eventSubs, subject)
+		}
+	}
+	d.mu.Unlock()
+
+	for _, unsub := range drop {
+		unsub()
+	}
+}
+
+func (d *CameraDevice) onCameraEvent(data []byte) {
+	var msg cameraEventMessage
+	if !decodeMsgpack(d.logger, data, &msg, "cameraEventMessage") {
+		return
+	}
+	d.handleCameraEvent(msg)
 }
 
 func (d *CameraDevice) applyCamera(cam *Camera) {
@@ -854,9 +988,8 @@ func (d *CameraDevice) cleanup() {
 	d.initialized = false
 	d.mu.Unlock()
 
-	for _, fn := range d.cleanupFns {
-		fn()
-	}
+	// a cleanup waits for its running calls, in a row they add up past the stop deadline
+	runTogether(d.cleanupFns)
 	d.cleanupFns = nil
 
 	d.detectionWireMu.Lock()
@@ -879,9 +1012,7 @@ func (d *CameraDevice) cleanup() {
 	d.sensorCleanups = make(map[string]func())
 	d.mu.Unlock()
 
-	for _, cleanup := range sensorCleanups {
-		cleanup()
-	}
+	runTogether(slices.Collect(maps.Values(sensorCleanups)))
 
 	// dispatch outside d.mu, a plugin hook may call back into the device
 	for _, s := range sensors {

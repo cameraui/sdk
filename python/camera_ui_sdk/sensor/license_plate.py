@@ -19,7 +19,7 @@ class LicensePlateProperty(StrEnum):
     Detected = "detected"
     """Whether any license plate is currently detected."""
     Detections = "detections"
-    """List of detected plates with OCR text."""
+    """List of detected plates with OCR text. The plugin that owns the sensor does not get the backend's updates of it."""
     Plates = "plates"
     """Plate texts recognized during the active detection phase."""
 

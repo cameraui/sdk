@@ -3,6 +3,8 @@ package sdk
 import (
 	"context"
 	"fmt"
+	"maps"
+	"slices"
 	"sync"
 
 	rpc "github.com/cameraui/rpc/go"
@@ -39,9 +41,13 @@ type DeviceManager struct {
 	logger            *Logger
 	plugin            Plugin
 
-	mu           sync.RWMutex
-	devices      map[string]*CameraDevice
+	mu      sync.RWMutex
+	devices map[string]*CameraDevice
+	// the cameras the master gave the plugin, GetCamera also creates devices for others
+	configured   map[string]bool
 	closeRequest func()
+	// host events and the camera diff of a re-attach run one at a time
+	eventMu sync.Mutex
 }
 
 func newDeviceManager(client *rpc.Client, pluginInfo *PluginInfo, logger *Logger) *DeviceManager {
@@ -52,6 +58,7 @@ func newDeviceManager(client *rpc.Client, pluginInfo *PluginInfo, logger *Logger
 		pluginInfo: *pluginInfo,
 		logger:     logger,
 		devices:    make(map[string]*CameraDevice),
+		configured: make(map[string]bool),
 	}
 }
 
@@ -134,7 +141,50 @@ func (dm *DeviceManager) configureCameras(cameras []*CameraDevice) {
 	defer dm.mu.Unlock()
 	for _, cam := range cameras {
 		dm.devices[cam.ID()] = cam
+		dm.configured[cam.ID()] = true
 	}
+}
+
+// a new master run: the devices announce themselves again and the cameras of its START win
+func (dm *DeviceManager) reattach(cameras []Camera) error {
+	dm.mu.RLock()
+	devices := slices.Collect(maps.Values(dm.devices))
+	dm.mu.RUnlock()
+	for _, device := range devices {
+		if err := device.reattach(); err != nil {
+			return err
+		}
+	}
+
+	dm.eventMu.Lock()
+	defer dm.eventMu.Unlock()
+
+	wanted := make(map[string]*Camera, len(cameras))
+	for i := range cameras {
+		wanted[cameras[i].ID] = &cameras[i]
+	}
+	dm.mu.RLock()
+	var released []string
+	for cameraID := range dm.configured {
+		if wanted[cameraID] == nil {
+			released = append(released, cameraID)
+		}
+	}
+	var added []*Camera
+	for cameraID, cam := range wanted {
+		if !dm.configured[cameraID] {
+			added = append(added, cam)
+		}
+	}
+	dm.mu.RUnlock()
+
+	for _, cameraID := range released {
+		dm.releaseCamera(cameraID)
+	}
+	for _, cam := range added {
+		dm.addCamera(cam)
+	}
+	return nil
 }
 
 func (dm *DeviceManager) init() error {
@@ -148,6 +198,8 @@ func (dm *DeviceManager) init() error {
 			return nil, err
 		}
 
+		dm.eventMu.Lock()
+		defer dm.eventMu.Unlock()
 		switch msg.Type {
 		case "cameraAdded":
 			dm.handleCameraAdded(msg)
@@ -173,16 +225,15 @@ func (dm *DeviceManager) close() {
 	// snapshot under the lock, then release it before invoking cleanup: a device
 	// cleanup must never run while the manager mutex is held
 	dm.mu.Lock()
-	devices := make([]*CameraDevice, 0, len(dm.devices))
+	cleanups := make([]func(), 0, len(dm.devices))
 	for _, device := range dm.devices {
-		devices = append(devices, device)
+		cleanups = append(cleanups, device.cleanup)
 	}
 	dm.devices = make(map[string]*CameraDevice)
+	dm.configured = make(map[string]bool)
 	dm.mu.Unlock()
 
-	for _, device := range devices {
-		device.cleanup()
-	}
+	runTogether(cleanups)
 }
 
 func (dm *DeviceManager) handleCameraAdded(msg deviceManagerEventMessage) {
@@ -204,11 +255,14 @@ func (dm *DeviceManager) handleCameraAdded(msg deviceManagerEventMessage) {
 		return
 	}
 
-	cam := addedData.Camera
+	dm.addCamera(&addedData.Camera)
+}
 
-	dm.mu.RLock()
+func (dm *DeviceManager) addCamera(cam *Camera) {
+	dm.mu.Lock()
 	_, exists := dm.devices[cam.ID]
-	dm.mu.RUnlock()
+	dm.configured[cam.ID] = true
+	dm.mu.Unlock()
 
 	if exists {
 		return
@@ -219,7 +273,7 @@ func (dm *DeviceManager) handleCameraAdded(msg deviceManagerEventMessage) {
 		TargetID:   cam.ID,
 		TargetType: "camera",
 	})
-	cameraDevice := newCameraDeviceProxy(dm.client, dm.api, dm.storageController, &cam, &dm.pluginInfo, camLogger)
+	cameraDevice := newCameraDeviceProxy(dm.client, dm.api, dm.storageController, cam, &dm.pluginInfo, camLogger)
 	if err := cameraDevice.init(); err != nil {
 		return
 	}
@@ -252,10 +306,15 @@ func (dm *DeviceManager) handleCameraReleased(msg deviceManagerEventMessage) {
 		return
 	}
 
-	cameraID := releasedData.CameraID
-	if cameraID == "" {
-		return
+	if releasedData.CameraID != "" {
+		dm.releaseCamera(releasedData.CameraID)
 	}
+}
+
+func (dm *DeviceManager) releaseCamera(cameraID string) {
+	dm.mu.Lock()
+	delete(dm.configured, cameraID)
+	dm.mu.Unlock()
 
 	if err := dm.plugin.OnCameraReleased(cameraID); err != nil {
 		dm.logger.Error("OnCameraReleased failed:", err)

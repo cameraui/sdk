@@ -1,11 +1,15 @@
 package sdk
 
+import rpc "github.com/cameraui/rpc/go"
+
 const (
 	objectPropertyDetected         = "detected"
 	objectPropertyDetections       = "detections"
 	objectPropertyLabels           = "labels"
 	objectPropertyStaticDetections = "staticDetections"
 )
+
+var _ rpc.RPCMethodConcurrency = (*ObjectDetectorSensor)(nil)
 
 // TrackVelocity is the signed centroid velocity in normalized units per second.
 // Positive X = moving right, positive Y = moving down. Prefer it over deriving
@@ -115,7 +119,10 @@ func (s *ObjectSensor) UpdateValue(property string, value any) error {
 }
 
 // ObjectDetectorSensor is an object sensor that consumes video frames from
-// the backend pipeline. Pair with an ObjectDetector implementation.
+// the backend pipeline. Pair with an ObjectDetector implementation. Up to
+// three DetectObjects calls can run at once on separate goroutines, so
+// DetectObjects must be safe for concurrent use, or the embedding type
+// declares its own RPCConcurrency returning nil to get one call at a time.
 type ObjectDetectorSensor struct {
 	ObjectSensor
 }
@@ -124,6 +131,16 @@ func NewObjectDetectorSensor(name string, opts ...SensorOption) *ObjectDetectorS
 	s := &ObjectDetectorSensor{ObjectSensor: *NewObjectSensor(name, opts...)}
 	s.requiresFrames = true
 	return s
+}
+
+// RPCConcurrency returns how many calls per method the backend may run at
+// once, keyed by wire name. A detector overrides it to change the limit.
+//
+// Example:
+//
+//	func (d *MyDetector) RPCConcurrency() map[string]int { return nil }
+func (s *ObjectDetectorSensor) RPCConcurrency() map[string]int {
+	return map[string]int{"detectObjects": 3}
 }
 
 func dedupLabels(detections []TrackedDetection) []string {

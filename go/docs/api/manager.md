@@ -46,7 +46,7 @@ Example:
 
 	func (cm *CoreManager) ConnectToPlugin(pluginName string) (*pluginProxy, error)
 
-ConnectToPlugin connects to a plugin by name and returns a proxy for RPC calls. Returns nil if the plugin is not found. Connections are cached.
+ConnectToPlugin connects to a plugin by name and returns a proxy for RPC calls. Returns nil if the plugin is not found. Connections are cached. WithOptions on the proxy changes timeout and retry for its calls.
 
 <a name="CoreManager.GetCloudServerID"></a>
 ### func \(\*CoreManager\) GetCloudServerID
@@ -64,12 +64,32 @@ Returns the cloud server\_id from the active cloud pairing, or an empty string w
 
 GetFFmpegPath returns the path to the FFmpeg binary.
 
+<a name="CoreManager.GetInstanceID"></a>
+### func \(\*CoreManager\) GetInstanceID
+
+	func (cm *CoreManager) GetInstanceID() (string, error)
+
+GetInstanceID returns the id of this camera.ui installation.
+
+A copy of the server made from a backup gets a new id, while a move or an undone restore keeps it. A plugin that announces itself on the network under a fixed identity compares it with the id it saw before: a different one means it now runs on a copy and must not reuse that identity.
+
+Servers older than 2.4.0 do not know the call and return an error.
+
 <a name="CoreManager.GetPluginsByInterface"></a>
 ### func \(\*CoreManager\) GetPluginsByInterface
 
 	func (cm *CoreManager) GetPluginsByInterface(interfaceName PluginInterface) ([]PluginInfo, error)
 
 GetPluginsByInterface returns all installed, enabled plugins that implement a specific interface. Plugins the admin disabled are excluded. A returned plugin may still be starting up or may have crashed, so a call into one can fail.
+
+<a name="CoreManager.GetRestoreGeneration"></a>
+### func \(\*CoreManager\) GetRestoreGeneration
+
+	func (cm *CoreManager) GetRestoreGeneration() (string, error)
+
+GetRestoreGeneration returns the id of the last restore on this server.
+
+It changes every time a backup is restored or a restore is undone and is empty before the first one. A plugin that keeps credentials for an outside service compares it with the id it saw when storing them: a different one means they came back with a backup and may be outdated.
 
 <a name="CoreManager.GetServerAddresses"></a>
 ### func \(\*CoreManager\) GetServerAddresses
@@ -312,6 +332,19 @@ Example:
 	
 
 <a name="NotificationSpeed"></a>
+
+## type PluginCallOptions
+
+PluginCallOptions changes how calls through a proxy from ConnectToPlugin wait for an answer.
+
+	type PluginCallOptions struct {
+	    // Timeout replaces the default timeout of each attempt; zero keeps it.
+	    Timeout time.Duration
+	    // NoRetry fails a call at once when no process serves the method, instead of retrying for about 3.5 s.
+	    NoRetry bool
+	}
+
+<a name="PluginCapability"></a>
 
 ## type SensorConsumer
 

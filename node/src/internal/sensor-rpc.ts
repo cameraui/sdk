@@ -11,7 +11,7 @@ export interface PropertyChangedEvent {
   property: SensorPropertyType;
   /** New value. */
   value: unknown;
-  /** Value before the change, absent on the first write. */
+  /** Not sent by the server, keep the last value yourself if you need it. */
   previousValue?: unknown;
   /** Change time in epoch milliseconds. */
   timestamp: number;

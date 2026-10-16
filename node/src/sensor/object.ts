@@ -14,11 +14,11 @@ import type { ObjectModelSpec } from './spec.js';
 export enum ObjectProperty {
   /** Whether any object is currently detected. */
   Detected = 'detected',
-  /** List of detected objects with labels and bounding boxes. */
+  /** List of detected objects with labels and bounding boxes. The plugin that owns the sensor does not get the backend's updates of it. */
   Detections = 'detections',
   /** Unique labels of the current detections (auto-derived when reporting detections). */
   Labels = 'labels',
-  /** Settled objects hidden from events, kept visible for overlays. Written by the backend. */
+  /** Settled objects hidden from events, kept visible for overlays. Written by the backend. The plugin that owns the sensor does not get the backend's updates of it. */
   StaticDetections = 'staticDetections',
 }
 
@@ -166,10 +166,15 @@ export interface ObjectResult {
  * Object detector that receives video frames from the backend pipeline.
  * Extend this class and implement {@link detectObjects} and {@link modelSpec}.
  * The backend scales frames to match `modelSpec.input` dimensions before
- * each call.
+ * each call. Up to three `detectObjects` calls can run at once, so keep no
+ * per-call state on the sensor, or set `_rpcConcurrency = {}` in the
+ * subclass to receive one call at a time.
  */
 export abstract class ObjectDetectorSensor<TStorage extends object = Record<string, any>> extends ObjectSensor<TStorage> {
   override _requiresFrames = true;
+
+  /** Calls per method the backend may run at once, keyed by method name. */
+  _rpcConcurrency: Record<string, number> = { detectObjects: 3 };
 
   abstract get modelSpec(): ObjectModelSpec;
 

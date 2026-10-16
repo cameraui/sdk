@@ -210,7 +210,7 @@ func (p *MyPlugin) attach(cam *cameraui.CameraDevice) error {
 
 The other detector base types follow the same shape — but note the input cardinality:
 
-- `cameraui.NewObjectDetectorSensor(name)` pairs with `ObjectDetector.DetectObjects(frame VideoFrameData)` — one frame at a time.
+- `cameraui.NewObjectDetectorSensor(name)` pairs with `ObjectDetector.DetectObjects(frame VideoFrameData)` — one frame per call.
 - `cameraui.NewMotionDetectorSensor(name)` pairs with `MotionDetector.DetectMotion(frame VideoFrameData)` — one frame at a time.
 - `cameraui.NewAudioDetectorSensor(name)` pairs with `AudioDetector.DetectAudio(audio AudioFrameData)` — one audio frame at a time.
 - `cameraui.NewFaceDetectorSensor(name)` pairs with `FaceDetector.DetectFaces(frames []VideoFrameData)` — a batch of person regions.
@@ -219,6 +219,8 @@ The other detector base types follow the same shape — but note the input cardi
 - `cameraui.NewClipDetectorSensor(name)` pairs with `ClipDetector.DetectEmbeddings(frames []VideoFrameData)` — a batch of trigger regions.
 
 The frame-based detectors with a batch shape (face, license plate, classifier, clip) also expose a `ModelSpec()` method on the detector interface — return the input dimensions and (for classifier) the trigger labels. Every frame in a batch is scaled to that input. Normally it is a region the upstream object detector cropped around a matching detection, but when the pipeline has no decoded loop frame, the whole scene is scaled instead and you get a single full-frame entry.
+
+The host may send up to three frames to `DetectObjects` at once, each on its own goroutine, so the method must be safe for concurrent use. A detector that needs one call at a time declares its own `RPCConcurrency() map[string]int` returning `nil`.
 
 Smart-home sensors expose semantic methods instead. You construct one, register it, and then call those methods when your hardware reports a change:
 
@@ -833,7 +835,7 @@ if err == nil && face != nil {
 }
 ```
 
-Use `p.API.CoreManager.GetPluginsByInterface(cameraui.PluginInterfaceFaceDetection)` to discover candidate plugins by capability rather than by name.
+Use `p.API.CoreManager.GetPluginsByInterface(cameraui.PluginInterfaceFaceDetection)` to discover candidate plugins by capability rather than by name. A plugin in that list can be installed but not started; skip it when its `Running` is false. A call to a method no process serves is retried for about 3.5 s, because the plugin may be starting. To probe an optional method without that wait, call it through `face.WithOptions(cameraui.PluginCallOptions{NoRetry: true})`.
 
 To use one of the language models configured in camera.ui, call `p.API.CoreManager.AssistantAsk`. The admin allows the plugin under Settings, Assistant, Plugin access and picks the model; camera.ui runs the request, so the plugin never holds a key. `AssistantAccess` tells you whether the plugin is allowed, and the `assistantModelChanged` core event fires when that changes:
 

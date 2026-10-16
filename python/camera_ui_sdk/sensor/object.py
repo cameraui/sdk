@@ -3,6 +3,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections.abc import Mapping
 from enum import StrEnum
+from types import MappingProxyType
 from typing import Any, Generic, Literal, NotRequired, Protocol, overload, runtime_checkable
 
 from typing_extensions import TypedDict, TypeVar
@@ -19,11 +20,11 @@ class ObjectProperty(StrEnum):
     Detected = "detected"
     """Whether any object is currently detected."""
     Detections = "detections"
-    """List of detected objects with labels and bounding boxes."""
+    """List of detected objects with labels and bounding boxes. The plugin that owns the sensor does not get the backend's updates of it."""
     Labels = "labels"
     """Unique labels of the current detections (auto-derived when reporting detections)."""
     StaticDetections = "staticDetections"
-    """Settled objects hidden from events, kept visible for overlays. Written by the backend."""
+    """Settled objects hidden from events, kept visible for overlays. Written by the backend. The plugin that owns the sensor does not get the backend's updates of it."""
 
 
 class TrackVelocity(TypedDict):
@@ -204,10 +205,13 @@ class ObjectDetectorSensor(ObjectSensor[TStorage], Generic[TStorage]):
 
     Extend this class and implement ``detectObjects`` and ``modelSpec``. The
     backend scales frames to match ``modelSpec.input`` dimensions before each
-    call.
+    call. Up to three ``detectObjects`` calls can run at once, so keep no
+    per-call state on the sensor, or set ``_rpc_concurrency = {}`` in the
+    subclass to receive one call at a time.
     """
 
     _requires_frames = True
+    _rpc_concurrency: Mapping[str, int] = MappingProxyType({"detectObjects": 3})
 
     @property
     @abstractmethod

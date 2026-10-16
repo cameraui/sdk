@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"reflect"
 	"strings"
+	"sync"
 
 	rpc "github.com/cameraui/rpc/go"
 )
@@ -256,4 +257,12 @@ func decodeMsgpack(logger *Logger, data []byte, target any, context string) bool
 
 func createSourceName(cameraName, sourceName string) string {
 	return "cui_" + strings.ToLower(strings.ReplaceAll(cameraName, " ", "_")) + "_" + strings.ToLower(strings.ReplaceAll(sourceName, " ", "_"))
+}
+
+func runTogether(fns []func()) {
+	var wg sync.WaitGroup
+	for _, fn := range fns {
+		wg.Go(fn)
+	}
+	wg.Wait()
 }

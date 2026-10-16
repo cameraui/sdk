@@ -36,6 +36,7 @@ type pluginNamespaces struct {
 
 type cameraNamespaces struct {
 	CameraSubject       string
+	CameraStateSubject  string
 	CameraControllerRPC string
 }
 
@@ -55,7 +56,8 @@ type sensorRegistryNamespaces struct {
 }
 
 type sensorEventNamespaces struct {
-	SensorSubject string
+	SensorSubject      string
+	SensorStateSubject string
 }
 
 type sensorProviderNamespaces struct {
@@ -117,6 +119,7 @@ func getPluginNamespaces(pluginID string) pluginNamespaces {
 func getCameraNamespaces(cameraID string) cameraNamespaces {
 	return cameraNamespaces{
 		CameraSubject:       fmt.Sprintf("camera.%s.subscriber", cameraID),
+		CameraStateSubject:  fmt.Sprintf("camera.%s.state", cameraID),
 		CameraControllerRPC: fmt.Sprintf("camera.%s.controller.rpc", cameraID),
 	}
 }
@@ -144,7 +147,8 @@ func getSensorRegistryNamespaces() sensorRegistryNamespaces {
 
 func getSensorEventNamespaces(sensorID string) sensorEventNamespaces {
 	return sensorEventNamespaces{
-		SensorSubject: fmt.Sprintf("sensor.%s.subject", sensorID),
+		SensorSubject:      fmt.Sprintf("sensor.%s.subject", sensorID),
+		SensorStateSubject: fmt.Sprintf("sensor.%s.state", sensorID),
 	}
 }
 

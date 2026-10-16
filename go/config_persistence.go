@@ -2,23 +2,36 @@ package sdk
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"maps"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
 	rpc "github.com/cameraui/rpc/go"
 )
 
-const remoteStoreTimeout = 10 * time.Second
+const (
+	remoteStoreTimeout = 10 * time.Second
+	spillFileName      = ".pending-config.json"
+	spillMaxAge        = 24 * time.Hour
+	staleInstance      = "STALE_INSTANCE"
+)
+
+var remoteRetryDelays = []time.Duration{time.Second, 2 * time.Second, 5 * time.Second, 10 * time.Second}
 
 // backed by the local store file, or by the master's config store over RPC so
 // remote-hosted plugins keep their config across re-homing
 type configPersistence interface {
 	load(loc storeLocation) map[string]any
 	save(loc storeLocation, values map[string]any) func() error
+	// an error means the change is still unsaved
+	flush() error
+	close()
 }
 
 // every caller whose write folded into the snapshot waits on this one outcome
@@ -154,6 +167,10 @@ func (fp *filePersistence) load(loc storeLocation) map[string]any {
 	return copied
 }
 
+func (fp *filePersistence) flush() error { return nil }
+
+func (fp *filePersistence) close() {}
+
 func (fp *filePersistence) save(loc storeLocation, values map[string]any) func() error {
 	fp.mu.Lock()
 	if len(values) == 0 {
@@ -180,40 +197,70 @@ func (fp *filePersistence) save(loc storeLocation, values map[string]any) func()
 }
 
 // reads come from an in-process cache of the document, this child is the only
-// writer so the cache never goes stale
+// writer so the cache never goes stale; an unsaved change waits on disk for the
+// next instance
 type remotePersistence struct {
-	proxy  *rpc.Proxy
-	logger *Logger
-	writer *coalescingWriter
+	proxy *rpc.Proxy
+	// the same store without no-responder retries: an older master has no load or putIfRev
+	probe      *rpc.Proxy
+	logger     *Logger
+	writer     *coalescingWriter
+	instanceID string
+	spillPath  string
 
 	mu    sync.Mutex
 	cache map[string]any
+	// the rev the cache builds on, empty under a master without revs
+	rev     string
+	seq     uint64
+	saved   uint64
+	attempt int
+	retry   *time.Timer
+	closed  bool
 }
 
-func newRemotePersistence(client *rpc.Client, pluginID string, logger *Logger) (*remotePersistence, error) {
+type remoteSnapshot struct {
+	doc map[string]any
+	seq uint64
+}
+
+type configSpill struct {
+	InstanceID string         `json:"instanceId,omitempty"`
+	BaseRev    string         `json:"baseRev,omitempty"`
+	Doc        map[string]any `json:"doc"`
+	At         int64          `json:"at"`
+}
+
+func newRemotePersistence(client *rpc.Client, pluginID, storagePath, instanceID string, logger *Logger) (*remotePersistence, error) {
 	ns := getPluginNamespaces(pluginID)
+	proxy := client.CreateProxy(ns.PluginConfigStoreRPC)
 	rp := &remotePersistence{
-		proxy:  client.CreateProxy(ns.PluginConfigStoreRPC),
-		logger: logger,
-		cache:  map[string]any{},
+		proxy:      proxy,
+		probe:      proxy.WithOptions(rpc.RequestOptions{NoResponderRetry: &rpc.NoResponderRetryOptions{MaxRetries: -1}}),
+		logger:     logger,
+		instanceID: instanceID,
+		spillPath:  filepath.Join(storagePath, spillFileName),
+		cache:      map[string]any{},
 	}
 	rp.writer = newCoalescingWriter(rp.flushSnapshot, logger)
 
-	ctx, cancel := context.WithTimeout(context.Background(), remoteStoreTimeout)
-	defer cancel()
-
-	result, err := rp.proxy.Invoke(ctx, "get")
-	if err != nil {
+	// a worker never created the storage folder of the plugin
+	if err := os.MkdirAll(storagePath, 0o755); err != nil {
+		logger.Debug("Could not create the storage folder for unsaved config changes:", err)
+	}
+	if err := rp.replaySpill(); err != nil {
 		return nil, err
 	}
-	if doc, ok := normalizeStoreValue(result).(map[string]any); ok {
-		rp.cache = doc
+	if err := rp.loadDoc(); err != nil {
+		return nil, err
 	}
 
 	doc, changed := upgradeStoreLayout(rp.cache)
 	rp.cache = doc
 	if changed {
-		if err := rp.flushSnapshot(snapshotStoreDoc(doc)); err != nil {
+		rp.seq++
+		if err := rp.flushSnapshot(remoteSnapshot{doc: snapshotStoreDoc(doc), seq: rp.seq}); err != nil {
+			rp.close()
 			return nil, err
 		}
 	}
@@ -241,22 +288,202 @@ func (rp *remotePersistence) save(loc storeLocation, values map[string]any) func
 		copied, _ := deepCopyValue(values).(map[string]any)
 		writeLocation(rp.cache, loc, copied)
 	}
-	snapshot := snapshotStoreDoc(rp.cache)
+	rp.seq++
+	snapshot := remoteSnapshot{doc: snapshotStoreDoc(rp.cache), seq: rp.seq}
+	// synchronous, so a kill at any point after the save leaves the change on disk
+	rp.writeSpillLocked(snapshot.doc)
 	// Enqueue before unlocking so flush order matches cache-install order.
 	p := rp.writer.enqueue(snapshot)
 	rp.mu.Unlock()
 	return p.wait
 }
 
+func (rp *remotePersistence) flush() error {
+	rp.mu.Lock()
+	if rp.saved >= rp.seq {
+		rp.mu.Unlock()
+		return nil
+	}
+	if rp.retry != nil {
+		rp.retry.Stop()
+		rp.retry = nil
+	}
+	p := rp.writer.enqueue(remoteSnapshot{doc: snapshotStoreDoc(rp.cache), seq: rp.seq})
+	rp.mu.Unlock()
+	return p.wait()
+}
+
+func (rp *remotePersistence) close() {
+	rp.mu.Lock()
+	defer rp.mu.Unlock()
+	rp.closed = true
+	if rp.retry != nil {
+		rp.retry.Stop()
+		rp.retry = nil
+	}
+}
+
 func (rp *remotePersistence) flushSnapshot(snapshot any) error {
+	snap := snapshot.(remoteSnapshot)
+	args := []any{snap.doc}
+	if rp.instanceID != "" {
+		args = append(args, map[string]any{"instanceId": rp.instanceID})
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), remoteStoreTimeout)
+	defer cancel()
+	result, err := rp.proxy.Invoke(ctx, "put", args...)
+
+	rp.mu.Lock()
+	defer rp.mu.Unlock()
+	if err != nil && strings.Contains(err.Error(), staleInstance) {
+		rp.logger.Warn(fmt.Sprintf("Dropped a config change: instance %s no longer runs the plugin", rp.instanceID))
+		rp.settleLocked(snap.seq)
+		return nil
+	}
+	if err != nil {
+		if rp.attempt == 0 {
+			// no responders: the master restarts, the change waits on disk
+			if isNoResponders(err) {
+				rp.logger.Debug("Saving the config failed, retrying:", err)
+			} else {
+				rp.logger.Warn("Saving the config failed, retrying:", err)
+			}
+		}
+		rp.attempt++
+		rp.scheduleRetryLocked()
+		return err
+	}
+
+	rp.attempt = 0
+	rp.rev = ""
+	if saved, ok := normalizeStoreValue(result).(map[string]any); ok {
+		rp.rev, _ = saved["rev"].(string)
+	}
+	rp.settleLocked(snap.seq)
+	return nil
+}
+
+func (rp *remotePersistence) settleLocked(seq uint64) {
+	rp.saved = max(rp.saved, seq)
+	if rp.saved >= rp.seq {
+		rp.removeSpill()
+	} else {
+		// a newer change builds on this save
+		rp.writeSpillLocked(snapshotStoreDoc(rp.cache))
+	}
+}
+
+func (rp *remotePersistence) scheduleRetryLocked() {
+	if rp.closed || rp.retry != nil {
+		return
+	}
+	delay := remoteRetryDelays[min(rp.attempt-1, len(remoteRetryDelays)-1)]
+	rp.retry = time.AfterFunc(delay, rp.retrySave)
+}
+
+func (rp *remotePersistence) retrySave() {
+	rp.mu.Lock()
+	rp.retry = nil
+	if rp.closed || rp.saved >= rp.seq {
+		rp.mu.Unlock()
+		return
+	}
+	p := rp.writer.enqueue(remoteSnapshot{doc: snapshotStoreDoc(rp.cache), seq: rp.seq})
+	rp.mu.Unlock()
+	_ = p.wait()
+}
+
+func (rp *remotePersistence) loadDoc() error {
 	ctx, cancel := context.WithTimeout(context.Background(), remoteStoreTimeout)
 	defer cancel()
 
-	if _, err := rp.proxy.Invoke(ctx, "put", snapshot); err != nil {
-		rp.logger.Error(fmt.Sprintf("store: remote put failed: %v", err))
+	result, err := rp.probe.Invoke(ctx, "load")
+	if err == nil {
+		loaded, _ := normalizeStoreValue(result).(map[string]any)
+		if doc, ok := loaded["doc"].(map[string]any); ok {
+			rp.cache = doc
+		}
+		rp.rev, _ = loaded["rev"].(string)
+		return nil
+	}
+	if !isNoResponders(err) {
 		return err
 	}
+
+	result, err = rp.proxy.Invoke(ctx, "get")
+	if err != nil {
+		return err
+	}
+	if doc, ok := normalizeStoreValue(result).(map[string]any); ok {
+		rp.cache = doc
+	}
 	return nil
+}
+
+func (rp *remotePersistence) replaySpill() error {
+	data, err := os.ReadFile(rp.spillPath)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	var spill configSpill
+	if err == nil {
+		err = json.Unmarshal(data, &spill)
+	}
+	if err != nil {
+		rp.logger.Warn("Dropped an unreadable unsaved config change:", err)
+		rp.removeSpill()
+		return nil
+	}
+	if len(spill.Doc) == 0 || time.Since(time.UnixMilli(spill.At)) > spillMaxAge {
+		rp.logger.Warn("Dropped an unsaved config change older than 24 h")
+		rp.removeSpill()
+		return nil
+	}
+	if spill.BaseRev == "" {
+		rp.logger.Warn("Dropped an unsaved config change made under an older camera.ui server")
+		rp.removeSpill()
+		return nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), remoteStoreTimeout)
+	defer cancel()
+	result, err := rp.probe.Invoke(ctx, "putIfRev", spill.Doc, spill.BaseRev, map[string]any{"instanceId": rp.instanceID, "madeBy": spill.InstanceID})
+	switch {
+	case err == nil:
+		outcome, _ := normalizeStoreValue(result).(map[string]any)
+		if applied, _ := outcome["applied"].(bool); applied {
+			rp.logger.Log("Restored a config change the last run did not save")
+		} else {
+			rp.logger.Warn(fmt.Sprintf("Dropped an unsaved config change of the last run (instance %s), the config was saved in between", spill.InstanceID))
+		}
+	case isNoResponders(err):
+		rp.logger.Warn("Dropped an unsaved config change, the camera.ui server is too old to take it")
+	case strings.Contains(err.Error(), staleInstance):
+		rp.logger.Warn("Dropped an unsaved config change: this instance no longer runs the plugin")
+	default:
+		// kept for the next start
+		return err
+	}
+	rp.removeSpill()
+	return nil
+}
+
+func (rp *remotePersistence) writeSpillLocked(doc map[string]any) {
+	data, err := json.Marshal(configSpill{InstanceID: rp.instanceID, BaseRev: rp.rev, Doc: doc, At: time.Now().UnixMilli()})
+	if err == nil {
+		tmp := rp.spillPath + ".tmp"
+		if err = os.WriteFile(tmp, data, 0o600); err == nil {
+			err = os.Rename(tmp, rp.spillPath)
+		}
+	}
+	if err != nil {
+		rp.logger.Debug("Could not write the unsaved config change to disk:", err)
+	}
+}
+
+func (rp *remotePersistence) removeSpill() {
+	_ = os.Remove(rp.spillPath)
 }
 
 // container levels only, the encoder must not read a map a concurrent save may
@@ -287,6 +514,12 @@ func snapshotStoreDoc(doc map[string]any) map[string]any {
 		out["sensors"] = byCamera
 	}
 	return out
+}
+
+// a responder that is not there, or an older master without the method
+func isNoResponders(err error) bool {
+	var rpcErr *rpc.RPCException
+	return errors.As(err, &rpcErr) && rpcErr.Code == rpc.ErrCodeNotFound
 }
 
 func deepCopyValue(v any) any {

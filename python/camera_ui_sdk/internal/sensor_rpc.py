@@ -65,7 +65,7 @@ class PropertyChangedEvent(TypedDict):
     value: object
     """New value."""
     previousValue: NotRequired[object]
-    """Value before the change, absent on the first write."""
+    """Not sent by the server, keep the last value yourself if you need it."""
     timestamp: int
     """Change time in epoch milliseconds."""
 

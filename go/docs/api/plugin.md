@@ -1242,7 +1242,7 @@ PluginAssignments maps sensor types to their assigned plugin\(s\) for a camera. 
 	    Hub []AssignedPlugin `msgpack:"hub,omitempty" json:"hub,omitempty"`
 	}
 
-<a name="PluginCapability"></a>
+<a name="PluginCallOptions"></a>
 
 ## type PluginCapability
 
@@ -1304,6 +1304,8 @@ PluginInfo is a lightweight handle identifying an installed plugin, used in RPC 
 	    Name string `msgpack:"name" json:"name"`
 	    // Contract is the full contract the plugin was loaded with.
 	    Contract PluginContract `msgpack:"contract" json:"contract"`
+	    // Running is true while the plugin's process is started; set by GetPluginsByInterface.
+	    Running bool `msgpack:"running,omitempty" json:"running,omitempty"`
 	}
 
 <a name="PluginInterface"></a>

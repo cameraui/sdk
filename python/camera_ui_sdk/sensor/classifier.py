@@ -19,7 +19,7 @@ class ClassifierProperty(StrEnum):
     Detected = "detected"
     """Whether any classification result is active."""
     Detections = "detections"
-    """List of classification results with labels and confidence."""
+    """List of classification results with labels and confidence. The plugin that owns the sensor does not get the backend's updates of it."""
     Labels = "labels"
     """Unique labels of the current detections (auto-derived when reporting detections)."""
 

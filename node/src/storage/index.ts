@@ -420,9 +420,11 @@ export interface DeviceStorage<T extends Record<string, any> = Record<string, an
   hasValue(key: string): boolean;
 
   /**
-   * Get the full schema configuration.
+   * Get the schema definitions and the values they own.
    *
-   * @returns Schema definitions and current values
+   * Internal values written with `setInternalValue` are left out, read them with `getValue`.
+   *
+   * @returns Schema definitions and their current values
    */
   getConfig(): Promise<SchemaConfig>;
 
@@ -430,8 +432,9 @@ export interface DeviceStorage<T extends Record<string, any> = Record<string, an
    * Merge configuration values into the current config.
    *
    * Only keys present in `newConfig` are updated (not a full replace); arrays
-   * are replaced, not merged. Values are durably persisted before the returned
-   * promise resolves; `onSet` fires for each key whose value actually changed.
+   * are replaced, not merged. Keys without a schema are ignored. Values are
+   * durably persisted before the returned promise resolves; `onSet` fires for
+   * each key whose value actually changed.
    *
    * @param newConfig - Configuration values to merge in
    */
@@ -491,8 +494,9 @@ export interface DeviceStorage<T extends Record<string, any> = Record<string, an
   hasSchema(key: string): boolean;
 
   /**
-   * Set a system-internal value (e.g. _displayName) without requiring a schema and persist it.
+   * Set an internal value without a schema and persist it.
    *
+   * Internal values stay out of `getConfig` and can only be written by the plugin itself.
    * When the returned promise resolves, the value is durably persisted.
    * Passing `null` or `undefined` deletes the key; it reads as never-set again.
    *
@@ -501,6 +505,20 @@ export interface DeviceStorage<T extends Record<string, any> = Record<string, an
    * @param value - Value to set, or `null`/`undefined` to delete the key
    */
   setInternalValue(key: string, value: unknown): Promise<void>;
+
+  /**
+   * Set an internal value and write it to disk before returning.
+   *
+   * For callbacks that must not return before the value is safe, such as the
+   * synchronous storage hook of a library. The write blocks the event loop, so
+   * use `setInternalValue` everywhere else. Once the call returns, the value
+   * survives a crash of the plugin. Passing `null` or `undefined` deletes the key.
+   *
+   * @param key - Internal key (typically prefixed with '_')
+   *
+   * @param value - Value to set, or `null`/`undefined` to delete the key
+   */
+  setInternalValueSync(key: string, value: unknown): void;
 
   /**
    * Persist all changes to storage.

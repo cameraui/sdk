@@ -59,6 +59,36 @@ func TestGetConfigResolvesOnGet(t *testing.T) {
 	}
 }
 
+func TestConfigLeavesInternalValuesAlone(t *testing.T) {
+	ds := newDeviceStorage(newMemPersistence(), storeLocation{kind: storeLocationPlugin}, testLogger())
+	ds.DefineSchemas([]JsonSchema{
+		{Type: JsonSchemaTypeString, Key: "name", Store: Bool(true)},
+		{Type: JsonSchemaTypeString, Key: "group.inner", Store: Bool(true)},
+	})
+	if err := ds.SetInternalValue("_secret", "s"); err != nil {
+		t.Fatal(err)
+	}
+
+	err := ds.SetConfig(map[string]any{"name": "n", "group": map[string]any{"inner": "i"}, "_secret": "forged", "extra": 1.0})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := ds.GetValue("_secret"); got != "s" {
+		t.Errorf("SetConfig overwrote an internal value: %v", got)
+	}
+	if ds.HasValue("extra") {
+		t.Error("SetConfig stored a key without a schema")
+	}
+
+	config, _ := ds.GetConfig()["config"].(map[string]any)
+	if _, ok := config["_secret"]; ok {
+		t.Errorf("GetConfig exposed an internal value: %v", config)
+	}
+	if config["name"] != "n" || config["group"] == nil {
+		t.Errorf("GetConfig dropped schema values: %v", config)
+	}
+}
+
 func TestSetConfigDeepMergesNestedKeys(t *testing.T) {
 	mp := newMemPersistence()
 	ds := newDeviceStorage(mp, storeLocation{kind: storeLocationPlugin}, testLogger())

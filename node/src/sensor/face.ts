@@ -14,7 +14,7 @@ import type { ModelSpec } from './spec.js';
 export enum FaceProperty {
   /** Whether any face is currently detected. */
   Detected = 'detected',
-  /** List of detected faces, with an identity where one was matched. */
+  /** List of detected faces, with an identity where one was matched. The plugin that owns the sensor does not get the backend's updates of it. */
   Detections = 'detections',
   /** Names of the faces recognized during the active detection phase. */
   Identities = 'identities',

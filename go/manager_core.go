@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	rpc "github.com/cameraui/rpc/go"
 )
@@ -76,6 +77,15 @@ type CoreManagerEvent struct {
 	Type string
 	// Data is the event-specific payload. Shape depends on the event type.
 	Data any
+}
+
+// PluginCallOptions changes how calls through a proxy from ConnectToPlugin
+// wait for an answer.
+type PluginCallOptions struct {
+	// Timeout replaces the default timeout of each attempt; zero keeps it.
+	Timeout time.Duration
+	// NoRetry fails a call at once when no process serves the method, instead of retrying for about 3.5 s.
+	NoRetry bool
 }
 
 // CoreManager provides system-level operations.
@@ -208,6 +218,52 @@ func (cm *CoreManager) GetCloudServerID() (string, error) {
 	return id, nil
 }
 
+// GetRestoreGeneration returns the id of the last restore on this server.
+//
+// It changes every time a backup is restored or a restore is undone and is empty
+// before the first one. A plugin that keeps credentials for an outside service
+// compares it with the id it saw when storing them: a different one means they
+// came back with a backup and may be outdated.
+func (cm *CoreManager) GetRestoreGeneration() (string, error) {
+	ctx := context.Background()
+	result, err := cm.proxy.Invoke(ctx, "getRestoreGeneration")
+	if err != nil {
+		return "", fmt.Errorf("getRestoreGeneration: %w", err)
+	}
+	if result == nil {
+		return "", nil
+	}
+	generation, ok := result.(string)
+	if !ok {
+		return "", fmt.Errorf("getRestoreGeneration: unexpected result type %T", result)
+	}
+	return generation, nil
+}
+
+// GetInstanceID returns the id of this camera.ui installation.
+//
+// A copy of the server made from a backup gets a new id, while a move or an
+// undone restore keeps it. A plugin that announces itself on the network under
+// a fixed identity compares it with the id it saw before: a different one means
+// it now runs on a copy and must not reuse that identity.
+//
+// Servers older than 2.4.0 do not know the call and return an error.
+func (cm *CoreManager) GetInstanceID() (string, error) {
+	ctx := context.Background()
+	result, err := cm.proxy.Invoke(ctx, "getInstanceId")
+	if err != nil {
+		return "", fmt.Errorf("getInstanceId: %w", err)
+	}
+	if result == nil {
+		return "", nil
+	}
+	id, ok := result.(string)
+	if !ok {
+		return "", fmt.Errorf("getInstanceId: unexpected result type %T", result)
+	}
+	return id, nil
+}
+
 // GetPluginsByInterface returns all installed, enabled plugins that implement a
 // specific interface. Plugins the admin disabled are excluded. A returned plugin
 // may still be starting up or may have crashed, so a call into one can fail.
@@ -265,7 +321,8 @@ func (cm *CoreManager) InvokeInto(ctx context.Context, out any, method string, a
 }
 
 // ConnectToPlugin connects to a plugin by name and returns a proxy for RPC calls.
-// Returns nil if the plugin is not found. Connections are cached.
+// Returns nil if the plugin is not found. Connections are cached. WithOptions
+// on the proxy changes timeout and retry for its calls.
 func (cm *CoreManager) ConnectToPlugin(pluginName string) (*pluginProxy, error) {
 	plugin, err := cm.getPlugin(pluginName)
 	if err != nil {
@@ -348,10 +405,29 @@ func (pp *pluginProxy) Invoke(ctx context.Context, method string, args ...any) (
 	return pp.proxy.Invoke(ctx, method, args...)
 }
 
+// WithOptions returns a proxy to the same plugin whose calls use opts. A
+// probe for an optional method can skip the retry this way.
+//
+// Example:
+//
+//	probe := proxy.WithOptions(sdk.PluginCallOptions{NoRetry: true})
+//	result, err := probe.Invoke(ctx, "getTextEmbeddings", "a red car")
+func (pp *pluginProxy) WithOptions(opts PluginCallOptions) *pluginProxy {
+	return &pluginProxy{proxy: pp.proxy.WithOptions(requestOptions(opts))}
+}
+
 func decodePluginInfo(v any, out *PluginInfo) error {
 	encoded, err := rpc.Encode(v)
 	if err != nil {
 		return err
 	}
 	return rpc.Decode(encoded, out)
+}
+
+func requestOptions(opts PluginCallOptions) rpc.RequestOptions {
+	request := rpc.RequestOptions{Timeout: opts.Timeout}
+	if opts.NoRetry {
+		request.NoResponderRetry = &rpc.NoResponderRetryOptions{MaxRetries: -1}
+	}
+	return request
 }

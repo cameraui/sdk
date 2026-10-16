@@ -76,12 +76,31 @@ type DownloadToken struct {
 }
 
 type processLoadMessage struct {
-	Cameras []Camera      `msgpack:"cameras" json:"cameras"`
-	Plugin  PluginInfo    `msgpack:"plugin" json:"plugin"`
-	Storage PluginStorage `msgpack:"storage" json:"storage"`
+	Cameras []Camera        `msgpack:"cameras" json:"cameras"`
+	Plugin  PluginInfo      `msgpack:"plugin" json:"plugin"`
+	Storage PluginStorage   `msgpack:"storage" json:"storage"`
+	Session *processSession `msgpack:"session,omitempty" json:"session,omitempty"`
+}
+
+// sent by a master that speaks the re-handshake, absent under older ones
+type processSession struct {
+	RunID      string `msgpack:"runId" json:"runId"`
+	Level      int    `msgpack:"level" json:"level"`
+	InstanceID string `msgpack:"instanceId,omitempty" json:"instanceId,omitempty"`
+}
+
+type resumeData struct {
+	RunID      string `msgpack:"runId" json:"runId"`
+	InstanceID string `msgpack:"instanceId,omitempty" json:"instanceId,omitempty"`
 }
 
 type processResponse struct {
-	Type  string `msgpack:"type" json:"type"`
-	Error string `msgpack:"error,omitempty" json:"error,omitempty"`
+	Type       string `msgpack:"type" json:"type"`
+	Error      string `msgpack:"error,omitempty" json:"error,omitempty"`
+	InstanceID string `msgpack:"instanceId,omitempty" json:"instanceId,omitempty"`
+	Handshake  int    `msgpack:"handshake,omitempty" json:"handshake,omitempty"`
+	Resume     bool   `msgpack:"resume,omitempty" json:"resume,omitempty"`
+	RunID      string `msgpack:"runId,omitempty" json:"runId,omitempty"`
+	Resumed    bool   `msgpack:"resumed,omitempty" json:"resumed,omitempty"`
+	Code       string `msgpack:"code,omitempty" json:"code,omitempty"`
 }

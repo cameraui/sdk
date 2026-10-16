@@ -158,3 +158,6 @@ class PluginInfo(TypedDict):
 
     contract: PluginContract
     """Full contract the plugin was loaded with."""
+
+    running: NotRequired[bool]
+    """True while the plugin's process is started; set by getPluginsByInterface."""

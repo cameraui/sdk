@@ -54,6 +54,7 @@ type sensorRegistration struct {
 	ID                string   `msgpack:"id"`
 	AssignedCameraIDs []string `msgpack:"assignedCameraIds"`
 	Active            bool     `msgpack:"active"`
+	StateSubject      bool     `msgpack:"stateSubject"`
 }
 
 type storedSensorData struct {

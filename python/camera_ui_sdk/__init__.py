@@ -94,6 +94,7 @@ from .manager import (
     DownloadManager,
     DownloadToken,
     NotificationManager,
+    PluginCallOptions,
     SensorHistoryEntry,
     SensorManager,
 )
@@ -575,6 +576,7 @@ __all__ = [
     "SensorManager",
     "CoreManager",
     "CoreManagerEvent",
+    "PluginCallOptions",
     "AssistantAskImage",
     "AssistantAskRequest",
     "AssistantAskResult",

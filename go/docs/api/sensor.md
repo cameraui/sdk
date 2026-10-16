@@ -1844,7 +1844,7 @@ ObjectDetector is implemented by plugins that detect objects in video frames. Th
 
 ## type ObjectDetectorSensor
 
-ObjectDetectorSensor is an object sensor that consumes video frames from the backend pipeline. Pair with an ObjectDetector implementation.
+ObjectDetectorSensor is an object sensor that consumes video frames from the backend pipeline. Pair with an ObjectDetector implementation. Up to three DetectObjects calls can run at once on separate goroutines, so DetectObjects must be safe for concurrent use, or the embedding type declares its own RPCConcurrency returning nil to get one call at a time.
 
 	type ObjectDetectorSensor struct {
 	    ObjectSensor
@@ -1856,6 +1856,18 @@ ObjectDetectorSensor is an object sensor that consumes video frames from the bac
 	func NewObjectDetectorSensor(name string, opts ...SensorOption) *ObjectDetectorSensor
 
 
+
+<a name="ObjectDetectorSensor.RPCConcurrency"></a>
+### func \(\*ObjectDetectorSensor\) RPCConcurrency
+
+	func (s *ObjectDetectorSensor) RPCConcurrency() map[string]int
+
+RPCConcurrency returns how many calls per method the backend may run at once, keyed by wire name. A detector overrides it to change the limit.
+
+Example:
+
+	func (d *MyDetector) RPCConcurrency() map[string]int { return nil }
+	
 
 <a name="ObjectMask"></a>
 

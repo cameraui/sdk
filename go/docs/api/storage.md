@@ -82,7 +82,7 @@ Destroy clears this storage's values and deletes its location from the store, bl
 
 	func (ds *DeviceStorage) GetConfig() map[string]any
 
-GetConfig returns the full schema configuration \(schema definitions and current values\).
+GetConfig returns the schema definitions and the values they own. Internal values written with SetInternalValue are left out, read them with GetValue.
 
 <a name="DeviceStorage.GetSchema"></a>
 ### func \(\*DeviceStorage\) GetSchema
@@ -138,14 +138,14 @@ Save persists the storable configuration state, returning once the write is dura
 
 	func (ds *DeviceStorage) SetConfig(newConfig map[string]any) error
 
-SetConfig merges new configuration values into the existing config and blocks until the merged state is durable. Values outside the storable domain reject the whole call before anything is applied. OnSet callbacks for keys whose values actually changed \(deep compare\) fire detached after the persist.
+SetConfig merges new configuration values into the existing config and blocks until the merged state is durable. Keys without a schema are ignored. Values outside the storable domain reject the whole call before anything is applied. OnSet callbacks for keys whose values actually changed \(deep compare\) fire detached after the persist.
 
 <a name="DeviceStorage.SetInternalValue"></a>
 ### func \(\*DeviceStorage\) SetInternalValue
 
 	func (ds *DeviceStorage) SetInternalValue(key string, value any) error
 
-SetInternalValue sets a system\-internal value \(e.g. \_displayName\) without requiring a schema, blocking until it is persisted. A nil value deletes the key; values outside the storable domain are rejected.
+SetInternalValue sets an internal value without a schema, blocking until it is persisted. Internal values stay out of GetConfig and can only be written by the plugin itself. A nil value deletes the key; values outside the storable domain are rejected.
 
 <a name="DeviceStorage.SetValue"></a>
 ### func \(\*DeviceStorage\) SetValue

@@ -67,6 +67,16 @@ export interface AssistantAccess {
 }
 
 /**
+ * How the calls of a proxy from {@link CoreManager.connectToPlugin} wait for an answer.
+ */
+export interface PluginCallOptions {
+  /** Timeout of each attempt in milliseconds; omitted or zero keeps the default. */
+  timeoutMs?: number;
+  /** Fail a call at once when no process serves the method, instead of retrying for about 3.5 s. */
+  noRetry?: boolean;
+}
+
+/**
  * Core manager interface for system-level operations.
  *
  * Provides access to cross-cutting services like the FFmpeg binary path,
@@ -89,13 +99,25 @@ export interface AssistantAccess {
  */
 export interface CoreManager {
   /**
-   * Connect to another plugin by name.
+   * Connect to another plugin by name. Proxies are cached per plugin and options and share one connection per plugin.
    *
    * @param pluginName - Name of the plugin to connect to
    *
+   * @param options - Timeout and retry for the calls of the returned proxy
+   *
    * @returns Plugin proxy or undefined if not found
+   *
+   * @example
+   * ```typescript
+   * const clip = await api.coreManager.connectToPlugin('CLIP Plugin', { noRetry: true });
+   * try {
+   *   const embeddings = await clip?.getTextEmbeddings?.('a red car');
+   * } catch {
+   *   // stopped, or no getTextEmbeddings
+   * }
+   * ```
    */
-  connectToPlugin(pluginName: string): Promise<(BasePlugin & PluginInterfaces) | undefined>;
+  connectToPlugin(pluginName: string, options?: PluginCallOptions): Promise<(BasePlugin & PluginInterfaces) | undefined>;
 
   /**
    * Get the FFmpeg executable path.
@@ -121,6 +143,32 @@ export interface CoreManager {
    * @returns Cloud server id, or an empty string if not paired
    */
   getCloudServerId(): Promise<string>;
+
+  /**
+   * Get the id of the last restore on this server.
+   *
+   * It changes every time a backup is restored or a restore is undone and is empty
+   * before the first one. A plugin that keeps credentials for an outside service
+   * compares it with the id it saw when storing them: a different one means they
+   * came back with a backup and may be outdated.
+   *
+   * @returns Restore id, or an empty string before the first restore
+   */
+  getRestoreGeneration(): Promise<string>;
+
+  /**
+   * Get the id of this camera.ui installation.
+   *
+   * A copy of the server made from a backup gets a new id, while a move or an
+   * undone restore keeps it. A plugin that announces itself on the network
+   * under a fixed identity compares it with the id it saw before: a different
+   * one means it now runs on a copy and must not reuse that identity.
+   *
+   * Servers older than 2.4.0 do not know the call and reject it.
+   *
+   * @returns Installation id
+   */
+  getInstanceId(): Promise<string>;
 
   /**
    * Get all installed, enabled plugins that implement a specific interface.

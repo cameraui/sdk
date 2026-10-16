@@ -44,7 +44,7 @@ class MotionProperty(StrEnum):
     Detected = "detected"
     """Whether motion is currently detected."""
     Detections = "detections"
-    """List of detection results with bounding boxes."""
+    """List of detection results with bounding boxes. The plugin that owns the sensor does not get the backend's updates of it."""
     Blocked = "blocked"
     """When true, detection updates are suppressed (set by the backend dwell logic)."""
     LastTriggered = "lastTriggered"

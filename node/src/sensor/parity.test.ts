@@ -7,7 +7,11 @@ import { PROTOCOL_LEVEL } from '../plugin/contract.js';
 import { SensorType } from './base.js';
 import { BASE_AUDIO_LABELS } from './audio.js';
 import { OBJECT_DETECTION_LABELS } from './detection.js';
+import { ObjectDetectorSensor } from './object.js';
 import { SENSOR_META } from './registry.js';
+
+import type { ObjectResult } from './object.js';
+import type { ObjectModelSpec } from './spec.js';
 
 const sdkRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const read = (relative: string): string => readFileSync(resolve(sdkRoot, relative), 'utf8');
@@ -65,6 +69,54 @@ describe('cross-SDK parity', () => {
 
     expect(python).toBe(PROTOCOL_LEVEL);
     expect(go).toBe(PROTOCOL_LEVEL);
+  });
+
+  it('PluginInfo fields match across node, python and go', () => {
+    const node = values(block(read('node/src/plugin/contract.ts'), /export interface PluginInfo \{([\s\S]*?)\n\}/), /^\s{2}(\w+)\??:/gm);
+    const python = values(block(read('python/camera_ui_sdk/plugin/contract.py'), /class PluginInfo\(TypedDict\):([\s\S]*?)(?=\n\S|$)/), /^\s{4}(\w+):/gm);
+    const go = values(block(read('go/plugin_contract.go'), /type PluginInfo struct \{([\s\S]*?)\n\}/), /json:"(\w+)/g);
+
+    expect([...node].sort()).toEqual(['contract', 'id', 'name', 'running']);
+    expect([...python].sort()).toEqual([...node].sort());
+    expect([...go].sort()).toEqual([...node].sort());
+  });
+
+  it('object detector call concurrency matches across node, python and go', () => {
+    class Detector extends ObjectDetectorSensor {
+      get modelSpec(): ObjectModelSpec {
+        return {} as ObjectModelSpec;
+      }
+
+      async detectObjects(): Promise<ObjectResult> {
+        return { detected: false, detections: [] };
+      }
+    }
+    const limits = (source: string): Record<string, number> => Object.fromEntries([...source.matchAll(/"(\w+)":\s*(\d+)/g)].map((m) => [m[1], Number(m[2])]));
+    const python = limits(block(read('python/camera_ui_sdk/sensor/object.py'), /_rpc_concurrency[^=]*= MappingProxyType\((\{[^}]*\})\)/));
+    const go = limits(block(read('go/sensor_object.go'), /func \(s \*ObjectDetectorSensor\) RPCConcurrency\(\) map\[string\]int \{([\s\S]*?)\n\}/));
+
+    expect(new Detector()._rpcConcurrency).toEqual({ detectObjects: 3 });
+    expect(python).toEqual(new Detector()._rpcConcurrency);
+    expect(go).toEqual(new Detector()._rpcConcurrency);
+  });
+
+  it('PluginCallOptions match across node, python and go', () => {
+    const nodeSource = read('node/src/manager/index.ts');
+    const pythonSource = read('python/camera_ui_sdk/manager/__init__.py');
+    const goSource = read('go/manager_core.go');
+    const node = values(block(nodeSource, /export interface PluginCallOptions \{([\s\S]*?)\n\}/), /^\s{2}(\w+)\??:/gm);
+    const python = values(block(pythonSource, /class PluginCallOptions\(TypedDict\):([\s\S]*?)(?=\n\S|$)/), /^\s{4}(\w+):/gm);
+    const goBlock = block(goSource, /type PluginCallOptions struct \{([\s\S]*?)\n\}/);
+    // go carries the unit in time.Duration
+    const go = [...values(goBlock, /^\t([A-Z]\w*)\s/gm)].map((name) => (name === 'Timeout' ? 'timeoutMs' : name[0].toLowerCase() + name.slice(1)));
+
+    expect(goBlock).toMatch(/^\tTimeout time\.Duration$/m);
+    expect([...node].sort()).toEqual(['noRetry', 'timeoutMs']);
+    expect([...python].sort()).toEqual([...node].sort());
+    expect(go.sort()).toEqual([...node].sort());
+    expect(nodeSource).toMatch(/connectToPlugin\(pluginName: string, options\?: PluginCallOptions\)/);
+    expect(pythonSource).toMatch(/def connectToPlugin\(\s*self, pluginName: str, options: PluginCallOptions \| None = None\s*\)/);
+    expect(goSource).toMatch(/func \(pp \*pluginProxy\) WithOptions\(opts PluginCallOptions\) \*pluginProxy/);
   });
 
   it('go detection-sensor list matches the metadata', () => {

@@ -164,6 +164,8 @@ await camera.addSensor(sensor);
 
 Other detector base classes follow the same shape but expect a batch (`frames: VideoFrameData[]`) and an abstract `modelSpec` getter: `ObjectDetectorSensor` (`detectObjects(frame)` — singular here), `FaceDetectorSensor.detectFaces(frames)`, `LicensePlateDetectorSensor.detectLicensePlates(frames)`, `AudioDetectorSensor.detectAudio(audio)`, `ClassifierDetectorSensor.detectClassifications(frames)`, `ClipDetectorSensor.detectEmbeddings(frames)`. Smart-home sensors expose semantic methods instead — e.g. `LightControl` gives you `setOn()` / `setOff()` / `setBrightness(value)`, `ContactSensor` gives you `setDetected(value)`, `DoorbellTrigger` gives you `trigger()`. You construct them, register them, and then call those methods when your hardware reports a change.
 
+The host may send up to three frames to `detectObjects` at once, so the method must not keep per-call state on the sensor. A detector that needs one call at a time sets `_rpcConcurrency = {}` in its class.
+
 A standalone sensor works exactly the same once it runs, only nobody registers it: you build it from the adopted record the host hands you and return it, and the host binds it to the record by `nativeId`:
 
 ```ts
@@ -632,7 +634,7 @@ const face = await this.api.coreManager.connectToPlugin('Face Plugin');
 const result = await face?.testFaceDetection(jpegBytes, { width: 640, height: 480 }, {});
 ```
 
-Use `api.coreManager.getPluginsByInterface(PluginInterface.FaceDetection)` to discover candidate plugins by capability rather than by name.
+Use `api.coreManager.getPluginsByInterface(PluginInterface.FaceDetection)` to discover candidate plugins by capability rather than by name. A plugin in that list can be installed but not started; skip it when its `running` is false. A call to a method no process serves is retried for about 3.5 s, because the plugin may be starting. To probe an optional method without that wait, connect with `connectToPlugin(name, { noRetry: true })`; the call then fails at once, so wrap it in `try`.
 
 To use one of the language models configured in camera.ui, call `api.coreManager.assistantAsk()`. The admin allows the plugin under Settings, Assistant, Plugin access and picks the model; camera.ui runs the request, so the plugin never holds a key. `assistantAccess()` tells you whether the plugin is allowed, and the `assistantModelChanged` core event fires when that changes:
 
