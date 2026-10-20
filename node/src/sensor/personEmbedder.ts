@@ -43,11 +43,7 @@ export abstract class PersonEmbedderSensor<TStorage extends object = Record<stri
    */
   abstract embedPersons(frames: VideoFrameData[]): Promise<PersonEmbeddingResult[]>;
 
-  /**
-   * Read-only sensor: external writes are ignored.
-   *
-   * @internal
-   */
+  /** @internal */
   updateValue(_property: string, _value: unknown): void {}
 }
 

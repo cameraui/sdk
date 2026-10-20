@@ -11,8 +11,6 @@ type fileServeStat struct {
 	Size   int64 `msgpack:"size" json:"size"`
 }
 
-// registered only when the plugin runs remote-hosted, it is how the master
-// reaches worker-local files like NVR recordings
 type fileServer struct {
 	cleanup rpc.CleanupFunc
 }

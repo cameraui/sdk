@@ -4,7 +4,6 @@ import { defineConfig } from 'vitepress';
 const require = createRequire(import.meta.url);
 const typedocSidebar = require('../api/typedoc-sidebar.json');
 
-// https://vitepress.dev/reference/site-config
 export default defineConfig({
   srcDir: '.',
   base: '/sdk/node/',
@@ -20,9 +19,7 @@ export default defineConfig({
   themeConfig: {
     logo: '/logo.svg',
 
-    // typedocSidebar entries are alphabetical:
-    //   [0] camera, [1] manager, [2] observable, [3] plugin,
-    //   [4] sensor, [5] storage, [6] types
+    // typedocSidebar is alphabetical: camera, manager, observable, plugin, sensor, storage, types
     sidebar: [
       {
         text: 'Plugin API',

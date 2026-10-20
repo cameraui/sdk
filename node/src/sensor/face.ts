@@ -6,11 +6,7 @@ import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 import type { Detection, VideoFrameData } from './detection.js';
 import type { ModelSpec } from './spec.js';
 
-/**
- * Property names of a face sensor.
- *
- * @internal
- */
+/** @internal */
 export enum FaceProperty {
   /** Whether any face is currently detected. */
   Detected = 'detected',
@@ -28,11 +24,7 @@ export interface FaceDetection extends Detection {
   identity?: string;
 }
 
-/**
- * Property values of a face sensor.
- *
- * @internal
- */
+/** @internal */
 export interface FaceSensorProperties {
   [FaceProperty.Detected]: boolean;
   [FaceProperty.Detections]: FaceDetection[];
@@ -113,8 +105,7 @@ export class FaceSensor<TStorage extends object = Record<string, any>> extends S
    */
   reportDetections(detected: boolean, detections?: FaceDetection[]): void {
     const list = this._normalizeReportedDetections<FaceDetection>(detected, detections, 'person', { attribute: 'face' });
-    // recognized names accumulate while faces stay visible, so automations
-    // don't flap when a face is momentarily unrecognized mid-presence
+    // names accumulate while faces stay visible, so automations don't flap on a missed match
     const recognized = list.map((d) => d.identity).filter((identity): identity is string => Boolean(identity));
     let identities: string[] | undefined;
     if (!detected) {
@@ -141,11 +132,7 @@ export class FaceSensor<TStorage extends object = Record<string, any>> extends S
     this.reportDetections(false);
   }
 
-  /**
-   * Read-only sensor: external writes are ignored.
-   *
-   * @internal
-   */
+  /** @internal */
   updateValue(_property: string, _value: unknown): void {}
 }
 

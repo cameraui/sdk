@@ -4,21 +4,13 @@ import { defineSensor, SensorDomain } from './meta.js';
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/**
- * Property names of a power sensor.
- *
- * @internal
- */
+/** @internal */
 export enum PowerProperty {
   /** Whether power is detected. */
   Detected = 'detected',
 }
 
-/**
- * Property values of a power sensor.
- *
- * @internal
- */
+/** @internal */
 export interface PowerSensorProperties {
   [PowerProperty.Detected]: boolean;
 }
@@ -61,11 +53,7 @@ export class PowerSensor<TStorage extends object = Record<string, any>> extends 
     this._writeState({ [PowerProperty.Detected]: value });
   }
 
-  /**
-   * Read-only sensor: external writes are ignored.
-   *
-   * @internal
-   */
+  /** @internal */
   updateValue(_property: string, _value: unknown): void {}
 }
 

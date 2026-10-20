@@ -11,14 +11,12 @@
   --cui-primary-900: #59111e;
   --cui-primary-950: #380b13;
 
-  /* Dark surface — mirror ui/src/plugins/preset.ts */
   --cui-surface-900: #1a1a1a;
   --cui-surface-925: #161616;
   --cui-surface-950: #101010;
   --cui-surface-1000: #0d0d0d;
 }
 
-/* Light mode — white body, pink accents, dark header */
 [data-md-color-scheme="default"][data-md-color-primary="custom"] {
   --md-primary-fg-color:        var(--cui-surface-900);
   --md-primary-fg-color--light: var(--cui-surface-900);
@@ -33,7 +31,6 @@
   --md-accent-bg-color:         #ffffff;
 }
 
-/* Dark mode — neutral grey body, dark header */
 [data-md-color-scheme="slate"][data-md-color-primary="custom"] {
   --md-primary-fg-color:        var(--cui-surface-950);
   --md-primary-fg-color--light: var(--cui-surface-900);
@@ -59,12 +56,10 @@
   --md-footer-bg-color--dark:   var(--cui-surface-1000);
 }
 
-/* Tabs sit under the header — keep them aligned */
 .md-tabs {
   background-color: var(--md-primary-fg-color);
 }
 
-/* Active tab indicator + active nav link in brand pink */
 .md-tabs__link--active,
 .md-nav__link--active {
   color: var(--cui-primary-400) !important;

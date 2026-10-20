@@ -413,11 +413,6 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   }
 
   /**
-   * Serialize this sensor to a JSON-safe object for RPC transport.
-   *
-   * @internal
-   */
-  /**
    * Report what the source behind this sensor looks like right now. The host
    * shows the state with its reason on the sensors page and never deletes on
    * it. Only meaningful for adopted sensors.
@@ -452,6 +447,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     this._sourceUpdateFn?.({ address });
   }
 
+  /** @internal */
   toJSON(): SensorJSON {
     return {
       id: this.id,
@@ -470,21 +466,13 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     };
   }
 
-  /**
-   * Wires up RPC propagation and marks the sensor registered.
-   *
-   * @internal
-   */
+  /** @internal */
   _init(updateFn: PropertyUpdateFn): void {
     this._updateFn = updateFn;
     this._registered = true;
   }
 
-  /**
-   * Writes a property without broadcasting it back over RPC.
-   *
-   * @internal
-   */
+  /** @internal */
   _setPropertyInternal<K extends keyof TProperties>(property: K, value: TProperties[K], timestamp?: number): void {
     const previousValue = this._propertiesStore[property];
     if (!isEqual(previousValue, value)) {
@@ -493,79 +481,48 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     }
   }
 
-  /**
-   * Shallow copy of the sensor's current property store.
-   *
-   * @internal
-   */
+  /** @internal */
   _getProperties(): TProperties {
     return { ...this._propertiesStore };
   }
 
-  /**
-   * Replaces the provisional id with the host's persistent one.
-   *
-   * @internal
-   */
+  /** @internal */
   _setId(id: string): void {
     this._id = id;
   }
 
-  /**
-   * Applies the user's camera assignment and notifies subscribers.
-   *
-   * @internal
-   */
+  /** @internal */
   _setAssignedCameras(cameraIds: string[]): void {
     this._assignedCameraIds = [...cameraIds];
     this.#assignmentChangedSubject.next(this._assignedCameraIds);
   }
 
-  /**
-   * Marks the assignment as locked to one camera (camera.addSensor registration).
-   *
-   * @internal
-   */
+  /** @internal */
   _setAssignmentLocked(): void {
     this._assignmentLocked = true;
   }
 
-  /**
-   * Records the owning plugin.
-   *
-   * @internal
-   */
+  /** @internal */
   _setPluginId(pluginId: string): void {
     this._pluginId = pluginId;
   }
 
-  /**
-   * Attaches the per-sensor storage handle.
-   *
-   * @internal
-   */
+  /** @internal */
   _setStorage(storage: DeviceStorage<TStorage>): void {
     this._storage = storage;
   }
 
-  /**
-   * Wires capability changes to RPC propagation.
-   *
-   * @internal
-   */
+  /** @internal */
   _initCapabilities(updateFn: CapabilityUpdateFn): void {
     this._capabilitiesUpdateFn = updateFn;
   }
 
+  /** @internal */
   _initSource(updateFn: SourceUpdateFn): void {
     this._sourceUpdateFn = updateFn;
   }
 
-  /**
-   * Flips the lifecycle state and runs the matching lifecycle hook.
-   *
-   * @internal
-   */
+  /** @internal */
   _setActive(active: boolean): void {
     if (this._active === active) return;
     this._active = active;
@@ -573,20 +530,12 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     this.#runLifecycle(active);
   }
 
-  /**
-   * Applies a property change pushed by the backend, without re-broadcasting it.
-   *
-   * @internal
-   */
+  /** @internal */
   _onBackendPropertyChanged(property: string, value: unknown, timestamp?: number): void {
     this._setPropertyInternal(property as keyof TProperties, value as TProperties[keyof TProperties], timestamp);
   }
 
-  /**
-   * Tears the sensor down and detaches it from the host.
-   *
-   * @internal
-   */
+  /** @internal */
   _cleanup(): void {
     // pair onStop even when the sensor is force-removed without teardown
     if (this._active) {
@@ -630,13 +579,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     if (spec) this._writeState({ modelSpec: spec } as unknown as Partial<TProperties>);
   }
 
-  /**
-   * Writes changed properties to the store, fires one batched RPC update with
-   * the delta and notifies local listeners per property. Used by the semantic
-   * helpers on each sensor type, not by plugin code.
-   *
-   * @internal
-   */
+  /** @internal */
   protected _writeState(partial: Partial<TProperties>): void {
     const delta: Record<string, unknown> = {};
     const changes: { property: SensorPropertyType; value: unknown }[] = [];
@@ -663,16 +606,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     }
   }
 
-  /**
-   * Normalizes the arguments of a `reportDetections(detected, detections?)` call.
-   *
-   * - `detected === false`: returns `[]` (clear).
-   * - `detected === true` with detections: returns them, substituting a full-frame box where missing.
-   * - `detected === true` without detections: returns one synthesized full-frame
-   *   detection carrying `fallbackLabel` and `fallbackExtra`.
-   *
-   * @internal
-   */
+  /** @internal */
   protected _normalizeReportedDetections<T extends Detection>(
     detected: boolean,
     detections: T[] | undefined,
@@ -681,8 +615,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   ): T[] {
     if (!detected) return [];
     if (detections && detections.length > 0) {
-      // smart-camera plugins report labels without coordinates, downstream
-      // consumers (coordinator, zone matching) require a box on every detection
+      // smart-camera plugins report labels without boxes, the coordinator and zone matching need one
       return detections.map((detection) => (detection.box ? detection : { ...detection, box: { x: 0, y: 0, width: 1, height: 1 } }));
     }
     return [

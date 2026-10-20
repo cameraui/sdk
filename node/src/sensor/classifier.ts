@@ -6,11 +6,7 @@ import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 import type { Detection, VideoFrameData } from './detection.js';
 import type { ModelSpec } from './spec.js';
 
-/**
- * Property names of a classifier sensor.
- *
- * @internal
- */
+/** @internal */
 export enum ClassifierProperty {
   /** Whether any classification result is active. */
   Detected = 'detected',
@@ -28,11 +24,7 @@ export interface ClassifierDetection extends Detection {
   subAttribute: string;
 }
 
-/**
- * Property values of a classifier sensor.
- *
- * @internal
- */
+/** @internal */
 export interface ClassifierSensorProperties {
   [ClassifierProperty.Detected]: boolean;
   [ClassifierProperty.Detections]: ClassifierDetection[];
@@ -113,8 +105,7 @@ export class ClassifierSensor<TStorage extends object = Record<string, any>> ext
    */
   reportDetections(detected: boolean, detections?: ClassifierDetection[]): void {
     const list = this._normalizeReportedDetections<ClassifierDetection>(detected, detections, 'motion', { attribute: '', subAttribute: '' });
-    // the specific answer wins (subAttribute, e.g. the bird species), and labels
-    // accumulate while the classifier keeps firing, so automations don't flap
+    // the most specific answer wins, labels accumulate while it keeps firing so automations don't flap
     const recognized = list.map((d) => d.subAttribute || d.attribute || d.label).filter(Boolean);
     let labels: string[] | undefined;
     if (!detected) {
@@ -141,11 +132,7 @@ export class ClassifierSensor<TStorage extends object = Record<string, any>> ext
     this.reportDetections(false);
   }
 
-  /**
-   * Read-only sensor: external writes are ignored.
-   *
-   * @internal
-   */
+  /** @internal */
   updateValue(_property: string, _value: unknown): void {}
 }
 

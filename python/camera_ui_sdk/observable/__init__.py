@@ -269,7 +269,6 @@ class Subject(Generic[T]):
         return Observable(lambda cb: self.subscribe(cb))
 
     def _on_complete(self, handler: Callable[[], None]) -> Disposable:
-        """Register a handler run once on completion, immediately if already completed."""
         if self._completed:
             handler()
             return Disposable(lambda: None)

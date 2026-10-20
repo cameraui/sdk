@@ -10,9 +10,8 @@ import (
 	"time"
 )
 
-// Driven by the cross-language conformance suite in
-// camera.ui/tests/plugin-store via env vars; skipped in normal `go test`.
 func TestStoreConformanceCLI(t *testing.T) {
+	// driven by camera.ui/tests/plugin-store via env vars
 	cmd := os.Getenv("CUI_STORE_CLI")
 	if cmd == "" {
 		t.Skip("conformance CLI disabled")
@@ -38,7 +37,7 @@ func TestStoreConformanceCLI(t *testing.T) {
 		}
 		fmt.Println("GO-VERIFY OK")
 	case "edit":
-		// Mutations mirrored in gen-corpus.mjs --final (Go section).
+		// keep in sync with the Go section of gen-corpus.mjs --final
 		doc, ok, err := readStoreFile(file, log)
 		if err != nil || !ok {
 			t.Fatalf("GO-EDIT READ FAILED: ok=%v err=%v", ok, err)
@@ -70,8 +69,6 @@ func TestStoreConformanceCLI(t *testing.T) {
 		counter := doc["plugin"].(map[string]any)["killCounter"]
 		fmt.Printf("GO-READ-COUNTER %v\n", counter)
 	case "open-verify":
-		// Exercises the production open path: read, layout upgrade and
-		// write-back.
 		fp, err := newFilePersistence(file, log)
 		if err != nil {
 			t.Fatalf("GO-OPEN-VERIFY FAILED: %v", err)
@@ -157,9 +154,8 @@ func loadConformanceCorpus(t *testing.T) map[string]any {
 	return corpus
 }
 
-// Numbers compare by float64 value: the JSON corpus decodes to float64 while
-// the store decodes integers as int64/uint64.
 func conformanceEqual(a, b any) bool {
+	// the JSON corpus decodes to float64, the store integers to int64/uint64
 	if af, aok := toConformanceFloat(a); aok {
 		bf, bok := toConformanceFloat(b)
 		return bok && af == bf

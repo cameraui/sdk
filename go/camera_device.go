@@ -56,11 +56,10 @@ type CameraDevice struct {
 	sources         []*CameraDeviceSource
 	sensors         []Sensor
 	sensorCleanups  map[string]func()
-	// a new master run has to see the plugin's connect again
-	connectWanted bool
-	storageDevice *DeviceStorage
-	storageCtrl   *StorageController
-	initialized   bool
+	connectWanted   bool
+	storageDevice   *DeviceStorage
+	storageCtrl     *StorageController
+	initialized     bool
 
 	cameraSubject    *BehaviorSubject[Camera]
 	cameraState      *BehaviorSubject[bool]
@@ -71,7 +70,6 @@ type CameraDevice struct {
 	detectionWireSubs int
 	detectionWireStop func()
 
-	// one refresh at a time, it may swap the camera event subject
 	refreshMu sync.Mutex
 	eventSubs map[string]func()
 
@@ -384,8 +382,7 @@ func (d *CameraDevice) addSensor(s Sensor) error {
 		sensorJSON.NativeID = fmt.Sprintf("%s:%s:%s", d.camera.ID, s.GetType(), s.GetName())
 	}
 
-	// resolve the durable id first and wire storage with it, so registration
-	// data (modelSpec) can read sensor storage
+	// resolve the id before registering, the registration data (modelSpec) may read sensor storage
 	ctx := context.Background()
 	resolveResult, err := d.registryProxy.Invoke(ctx, "resolveSensor", sensorJSON, d.info.ID, map[string]any{"assignCameraId": d.camera.ID})
 	if err != nil {
@@ -441,8 +438,7 @@ func (d *CameraDevice) addSensor(s Sensor) error {
 	si.initUpdateFn(func(properties map[string]any) {
 		ctx := context.Background()
 		if isDetectionSensorType(sensor.GetType()) {
-			// the spec belongs to the registry: it survives a frame worker that
-			// is not up yet, the coordinator receives it with the next push
+			// the spec lives in the registry, so it survives a frame worker that is not up yet
 			if spec, ok := properties["modelSpec"]; ok {
 				_, _ = d.registryProxy.Invoke(ctx, "updateModelSpec", sensor.GetID(), spec)
 				properties = withoutModelSpec(properties)
@@ -451,8 +447,7 @@ func (d *CameraDevice) addSensor(s Sensor) error {
 				}
 			}
 
-			// detection writes bypass the main process and go straight to the
-			// frame worker, so without one there is nowhere to deliver them
+			// detection writes go straight to the frame worker, without one there is nowhere to deliver them
 			if !d.frameWorkerState.Value() {
 				return
 			}
@@ -492,7 +487,7 @@ func (d *CameraDevice) addSensor(s Sensor) error {
 			if property != "" {
 				if bpr, ok := s.(backendPropertyReceiver); ok {
 					value := coercePropertyValue(s.GetType(), property, msg.Data["value"])
-					// honor the server-side timestamp, like the consumer proxies
+					// honor the server-side timestamp
 					if ts, ok := toInt64(msg.Data["timestamp"]); ok && ts > 0 {
 						bpr.setPropertyWithTimestamp(property, value, ts)
 					} else {
@@ -674,7 +669,6 @@ func (d *CameraDevice) init() error {
 	return nil
 }
 
-// a new master run lost the runtime binding of the sensors and the plugin's connect
 func (d *CameraDevice) reattach() error {
 	d.mu.RLock()
 	sensors := slices.Clone(d.sensors)

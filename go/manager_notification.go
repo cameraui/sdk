@@ -6,8 +6,6 @@ import (
 	rpc "github.com/cameraui/rpc/go"
 )
 
-// carries the publishing plugin's identity so the host can run capability and
-// per-source-toggle checks before fan-out
 type notificationPublishEnvelope struct {
 	PluginID     string        `msgpack:"pluginId" json:"pluginId"`
 	PluginName   string        `msgpack:"pluginName" json:"pluginName"`

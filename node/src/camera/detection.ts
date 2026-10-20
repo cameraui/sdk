@@ -86,8 +86,8 @@ export interface PrivacyZone {
 /**
  * What to do with a picture whose privacy zones could not be applied, for
  * example on a pixel format we cannot write.
- * - `send` — ship it unmasked, the user sees it and can delete it
- * - `drop` — no picture at all rather than an unmasked one
+ * - `send`: ship it unmasked, the user sees it and can delete it
+ * - `drop`: no picture at all rather than an unmasked one
  */
 export type PrivacyFallback = 'send' | 'drop';
 
@@ -109,9 +109,9 @@ export interface CameraZones {
 
 /**
  * When an object counts as inside an alert zone.
- * - `anchor` — where the object stands (bottom center of its box)
- * - `intersect` — its box touches the zone
- * - `contain` — its box lies fully inside the zone
+ * - `anchor`: where the object stands (bottom center of its box)
+ * - `intersect`: its box touches the zone
+ * - `contain`: its box lies fully inside the zone
  */
 export type AlertZoneMatch = 'anchor' | 'intersect' | 'contain';
 

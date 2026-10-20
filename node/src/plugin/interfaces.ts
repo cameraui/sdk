@@ -416,7 +416,7 @@ export interface FaceEmbeddingInterface {
   /**
    * Embed a batch of encoded images (JPEG/PNG), each showing one face: one result per
    * input in the same order. An empty `embedding` means the picture holds no face this
-   * model can use, undefined that the plugin could not run at all — the caller may drop
+   * model can use, undefined that the plugin could not run at all: the caller may drop
    * such a picture, so the two must not be mixed up. Meant for re-embedding stored
    * pictures after an embedding-model change. `landmarks` holds the points an earlier
    * result returned for the same picture, one entry per image: with them the face is

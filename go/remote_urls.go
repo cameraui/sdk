@@ -8,11 +8,10 @@ import (
 
 var localhostPattern = regexp.MustCompile(`127\.0\.0\.1|localhost`)
 
-// go2rtc RTSP credentials are injected because remote connections are
-// authenticated, local ones are not
 func rewriteURLForRemote(url, master, user, password string) string {
 	rewritten := localhostPattern.ReplaceAllString(url, master)
 
+	// go2rtc authenticates remote RTSP connections, local ones not
 	if user != "" && strings.HasPrefix(rewritten, "rtsp://") {
 		hostPart, _, _ := strings.Cut(strings.TrimPrefix(rewritten, "rtsp://"), "/")
 		if !strings.Contains(hostPart, "@") {

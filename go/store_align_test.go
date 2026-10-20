@@ -101,7 +101,6 @@ func TestSetConfigDeepMergesNestedKeys(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// The sibling key "a" must survive a partial update of "b".
 	if got := ds.GetValue("obj"); !deepEqualLoose(got, map[string]any{"a": 1, "b": 3}) {
 		t.Errorf("deep merge dropped sibling keys: %v", got)
 	}

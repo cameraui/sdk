@@ -3,18 +3,7 @@ import { PluginInterface } from '../plugin/contract.js';
 
 import type { PluginContract } from '../plugin/contract.js';
 
-/**
- * Reports whether the plugin can be queried for camera discovery.
- *
- * @param contract - Plugin contract to inspect.
- *
- * @returns `true` if the plugin is a usable discovery provider.
- *
- * @example
- * ```ts
- * if (isDiscoveryProvider(contract)) await runDiscovery(contract);
- * ```
- */
+/** @internal */
 export function isDiscoveryProvider(contract: PluginContract): boolean {
   return hasInterface(contract, PluginInterface.DiscoveryProvider) && canCreateCameras(contract);
 }

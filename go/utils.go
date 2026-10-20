@@ -149,8 +149,6 @@ func BuildSnapshotUrl(cameraName, sourceName, snapshotUrl string, opts *Snapshot
 	return baseUrl + "?" + strings.Join(params, "&"), nil
 }
 
-// msgpack round-trips a number into a different width than the plugin wrote, so
-// numbers compare by value; ignoreOrder compares any list as a multiset
 func isEqual(a, b any, ignoreOrder bool) bool {
 	if a == nil || b == nil {
 		return a == nil && b == nil
@@ -241,8 +239,6 @@ func asNumber(v any) (float64, bool) {
 	return 0, false
 }
 
-// use this instead of rpc.Decode in subscribe callbacks: it logs instead of
-// swallowing, and subscription payloads may be CUIB frames, not plain msgpack
 func decodeMsgpack(logger *Logger, data []byte, target any, context string) bool {
 	if err := rpc.DecodeMessageInto(data, target); err != nil {
 		head := data

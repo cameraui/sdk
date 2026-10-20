@@ -81,8 +81,6 @@ export const SENSOR_META = [
 /** Union of every declared assignment key, derived from the registry. */
 export type SensorAssignmentKey = (typeof SENSOR_META)[number]['assignmentKey'];
 
-// a SensorType without a meta entry is a compile error here, so consumers can
-// build exhaustive per-type tables
 type MissingMeta = Exclude<SensorType, (typeof SENSOR_META)[number]['type']>;
 const _everySensorHasMeta: MissingMeta extends never ? true : ['missing SENSOR_META entry for', MissingMeta] = true;
 void _everySensorHasMeta;

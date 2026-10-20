@@ -12,11 +12,8 @@ const (
 
 const storeLayoutVersionKey = "__v"
 
-// v2: sensors keyed by persistent sensor id, old camera-keyed trees are unmappable
-const storeLayoutVersion = 2
+const storeLayoutVersion = 2 // sensors keyed by persistent sensor id
 
-// every component is a literal map key, never parsed or split, so ids may
-// contain any characters
 type storeLocation struct {
 	kind     storeLocationKind
 	cameraID string
@@ -83,8 +80,6 @@ func pruneIfEmpty(parent map[string]any, key string) {
 	}
 }
 
-// upgradeStoreLayout stamps the current layout version. Idempotent: a
-// document already on the current version comes back unchanged.
 func upgradeStoreLayout(doc map[string]any) (map[string]any, bool) {
 	if v, _ := toInt64(doc[storeLayoutVersionKey]); v == storeLayoutVersion {
 		return doc, false
@@ -92,7 +87,7 @@ func upgradeStoreLayout(doc map[string]any) (map[string]any, bool) {
 
 	out := make(map[string]any, len(doc)+1)
 	maps.Copy(out, doc)
-	// v2: camera-keyed sensor storage cannot be mapped to persistent sensor ids
+	// camera-keyed sensor storage from layout 1 cannot be mapped to persistent sensor ids
 	delete(out, "sensors")
 	out[storeLayoutVersionKey] = storeLayoutVersion
 	return out, true

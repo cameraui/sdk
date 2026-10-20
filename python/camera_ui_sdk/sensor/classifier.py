@@ -152,8 +152,7 @@ class ClassifierSensor(Sensor[ClassifierSensorProperties, TStorage, str], Generi
             "motion",
             {"attribute": "", "subAttribute": ""},
         )
-        # the specific answer wins (subAttribute, e.g. the bird species), and labels
-        # accumulate while the classifier keeps firing, so automations don't flap
+        # the specific answer (subAttribute) wins, labels accumulate while firing so automations don't flap
         recognized = [
             label for d in list_ if (label := d.get("subAttribute") or d.get("attribute") or d.get("label"))
         ]

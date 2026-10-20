@@ -1,5 +1,3 @@
-"""Tests for AsyncEventEmitter."""
-
 from __future__ import annotations
 
 import asyncio
@@ -7,8 +5,6 @@ import asyncio
 import pytest
 
 from camera_ui_sdk.internal import AsyncEventEmitter
-
-# ── on + emit (sync) ─────────────────────────────────────────────────
 
 
 class TestOnEmitSync:
@@ -30,9 +26,6 @@ class TestOnEmitSync:
         assert results == [1, 2]
 
 
-# ── on + emit (async) ────────────────────────────────────────────────
-
-
 class TestOnEmitAsync:
     @pytest.mark.asyncio
     async def test_async_handler_fire_and_forget(self) -> None:
@@ -45,12 +38,8 @@ class TestOnEmitAsync:
         ee.on("test", handler)
         ee.emit("test", "async_val")
 
-        # Give the scheduled coroutine a chance to run
         await asyncio.sleep(0)
         assert results == ["async_val"]
-
-
-# ── once ──────────────────────────────────────────────────────────────
 
 
 class TestOnce:
@@ -80,9 +69,6 @@ class TestOnce:
         assert results == ["once", "on", "on"]
 
 
-# ── remove_listener ──────────────────────────────────────────────────
-
-
 class TestRemoveListener:
     def test_removes_specific_handler(self) -> None:
         ee = AsyncEventEmitter()
@@ -103,7 +89,7 @@ class TestRemoveListener:
 
     def test_remove_nonexistent_is_noop(self) -> None:
         ee = AsyncEventEmitter()
-        ee.remove_listener("no_such_event", lambda: None)  # should not raise
+        ee.remove_listener("no_such_event", lambda: None)
 
     def test_remove_once_listener(self) -> None:
         ee = AsyncEventEmitter()
@@ -118,9 +104,6 @@ class TestRemoveListener:
 
         ee.emit("evt")
         assert count == 0
-
-
-# ── remove_all_listeners ─────────────────────────────────────────────
 
 
 class TestRemoveAllListeners:
@@ -153,9 +136,6 @@ class TestRemoveAllListeners:
         assert results == []
 
 
-# ── emit return value ────────────────────────────────────────────────
-
-
 class TestEmitReturn:
     def test_returns_true_with_listeners(self) -> None:
         ee = AsyncEventEmitter()
@@ -165,9 +145,6 @@ class TestEmitReturn:
     def test_returns_false_without_listeners(self) -> None:
         ee = AsyncEventEmitter()
         assert ee.emit("evt") is False
-
-
-# ── cancel ────────────────────────────────────────────────────────────
 
 
 class TestCancel:
@@ -184,7 +161,6 @@ class TestCancel:
         ee.on("evt", long_handler)
         ee.emit("evt")
 
-        # Let the task start
         await asyncio.sleep(0)
         assert started is True
         assert len(ee._waiting) == 1  # pyright: ignore[reportPrivateUsage]
@@ -202,7 +178,7 @@ class TestCancel:
         ee.on("evt", quick_handler)
         ee.emit("evt")
 
-        # Let the task complete + done callback fire
+        # one tick for the task, one for its done callback
         await asyncio.sleep(0)
         await asyncio.sleep(0)
         assert len(ee._waiting) == 0  # pyright: ignore[reportPrivateUsage]

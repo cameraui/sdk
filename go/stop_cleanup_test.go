@@ -9,7 +9,6 @@ import (
 	"time"
 )
 
-// handler cleanups that wait like the rpc drain does with a call in flight
 type drainCounter struct {
 	mu      sync.Mutex
 	running int

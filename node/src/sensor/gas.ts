@@ -4,21 +4,13 @@ import { defineSensor, SensorDomain } from './meta.js';
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/**
- * Property names of a gas sensor.
- *
- * @internal
- */
+/** @internal */
 export enum GasProperty {
   /** Whether gas is detected. */
   Detected = 'detected',
 }
 
-/**
- * Property values of a gas sensor.
- *
- * @internal
- */
+/** @internal */
 export interface GasSensorProperties {
   [GasProperty.Detected]: boolean;
 }
@@ -61,11 +53,7 @@ export class GasSensor<TStorage extends object = Record<string, any>> extends Se
     this._writeState({ [GasProperty.Detected]: value });
   }
 
-  /**
-   * Read-only sensor: external writes are ignored.
-   *
-   * @internal
-   */
+  /** @internal */
   updateValue(_property: string, _value: unknown): void {}
 }
 

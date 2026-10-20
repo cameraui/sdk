@@ -4,21 +4,13 @@ import { defineSensor, SensorDomain } from './meta.js';
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/**
- * Property names of a switch control.
- *
- * @internal
- */
+/** @internal */
 export enum SwitchProperty {
   /** Whether the switch is on. */
   On = 'on',
 }
 
-/**
- * Property values of a switch control.
- *
- * @internal
- */
+/** @internal */
 export interface SwitchControlProperties {
   [SwitchProperty.On]: boolean;
 }
@@ -78,11 +70,7 @@ export class SwitchControl<TStorage extends object = Record<string, any>> extend
     this._writeState({ [SwitchProperty.On]: false });
   }
 
-  /**
-   * Routes generic property writes to the semantic setters.
-   *
-   * @internal
-   */
+  /** @internal */
   async updateValue(property: string, value: unknown): Promise<void> {
     if ((property as SwitchProperty) === SwitchProperty.On) {
       if (value) await this.setOn();

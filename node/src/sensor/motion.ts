@@ -5,11 +5,7 @@ import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 import type { Detection, VideoFrameData } from './detection.js';
 
-/**
- * Property names of a motion sensor.
- *
- * @internal
- */
+/** @internal */
 export enum MotionProperty {
   /** Whether motion is currently detected. */
   Detected = 'detected',
@@ -21,11 +17,7 @@ export enum MotionProperty {
   LastTriggered = 'lastTriggered',
 }
 
-/**
- * Property values of a motion sensor.
- *
- * @internal
- */
+/** @internal */
 export interface MotionSensorProperties {
   [MotionProperty.Detected]: boolean;
   [MotionProperty.Detections]: Detection[];
@@ -122,11 +114,7 @@ export class MotionSensor<TStorage extends object = Record<string, any>> extends
     this.reportDetections(false);
   }
 
-  /**
-   * Read-only sensor: external writes are ignored.
-   *
-   * @internal
-   */
+  /** @internal */
   updateValue(_property: string, _value: unknown): void {}
 }
 

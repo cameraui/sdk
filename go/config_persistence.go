@@ -24,17 +24,13 @@ const (
 
 var remoteRetryDelays = []time.Duration{time.Second, 2 * time.Second, 5 * time.Second, 10 * time.Second}
 
-// backed by the local store file, or by the master's config store over RPC so
-// remote-hosted plugins keep their config across re-homing
 type configPersistence interface {
 	load(loc storeLocation) map[string]any
 	save(loc storeLocation, values map[string]any) func() error
-	// an error means the change is still unsaved
 	flush() error
 	close()
 }
 
-// every caller whose write folded into the snapshot waits on this one outcome
 type pendingFlush struct {
 	snapshot any
 	err      error
@@ -42,13 +38,11 @@ type pendingFlush struct {
 }
 
 func (p *pendingFlush) wait() error {
-	// err is written before close(done); the channel close orders the read.
+	// close(done) orders the read of err
 	<-p.done
 	return p.err
 }
 
-// snapshots are whole-document states, so the newest one subsumes every earlier
-// caller's write and a burst of N saves costs at most 2 flushes
 type coalescingWriter struct {
 	flush func(snapshot any) error
 	log   *Logger
@@ -62,8 +56,6 @@ func newCoalescingWriter(flush func(snapshot any) error, log *Logger) *coalescin
 	return &coalescingWriter{flush: flush, log: log}
 }
 
-// flush order is enqueue order, so enqueueing under the caller's snapshot lock
-// keeps an older snapshot from overtaking a newer one
 func (w *coalescingWriter) enqueue(snapshot any) *pendingFlush {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -84,7 +76,6 @@ func (w *coalescingWriter) write(snapshot any) error {
 	return w.enqueue(snapshot).wait()
 }
 
-// exits once the queue drains, enqueue starts a new drainer
 func (w *coalescingWriter) run() {
 	for {
 		w.mu.Lock()
@@ -102,7 +93,6 @@ func (w *coalescingWriter) run() {
 	}
 }
 
-// waiters block on the flush outcome, a panic must not skip delivering one
 func (w *coalescingWriter) runFlush(snapshot any) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -112,8 +102,6 @@ func (w *coalescingWriter) runFlush(snapshot any) (err error) {
 	return w.flush(snapshot)
 }
 
-// the doc and every value map in it are owned deep copies, callers never hold
-// a reference into it
 type filePersistence struct {
 	path   string
 	logger *Logger
@@ -174,43 +162,35 @@ func (fp *filePersistence) close() {}
 func (fp *filePersistence) save(loc storeLocation, values map[string]any) func() error {
 	fp.mu.Lock()
 	if len(values) == 0 {
-		// An empty value map reads the same as "never set"; deleting keeps
-		// never-populated sections out of the file.
+		// an empty value map reads the same as never set, deleting keeps empty sections out of the file
 		deleteLocation(fp.doc, loc)
 	} else {
 		copied, _ := deepCopyValue(values).(map[string]any)
 		writeLocation(fp.doc, loc, copied)
 	}
-	// Encoding under the lock is safe (the doc is solely owned, nothing else
-	// reads it) and yields a consistent snapshot without copying the document.
+	// encoding under the lock is safe, the doc is solely owned
 	data, err := encodeEnvelope(fp.doc)
 	if err != nil {
 		fp.mu.Unlock()
 		fp.logger.Error(fmt.Sprintf("store: encode for %s failed: %v", fp.path, err))
 		return func() error { return err }
 	}
-	// Enqueue before unlocking so flush order matches doc-install order: a
-	// newer document can never be overwritten by an older encoded snapshot.
+	// enqueue before unlocking so flush order matches doc-install order
 	p := fp.writer.enqueue(data)
 	fp.mu.Unlock()
 	return p.wait
 }
 
-// reads come from an in-process cache of the document, this child is the only
-// writer so the cache never goes stale; an unsaved change waits on disk for the
-// next instance
 type remotePersistence struct {
-	proxy *rpc.Proxy
-	// the same store without no-responder retries: an older master has no load or putIfRev
+	proxy      *rpc.Proxy
 	probe      *rpc.Proxy
 	logger     *Logger
 	writer     *coalescingWriter
 	instanceID string
 	spillPath  string
 
-	mu    sync.Mutex
-	cache map[string]any
-	// the rev the cache builds on, empty under a master without revs
+	mu      sync.Mutex
+	cache   map[string]any
 	rev     string
 	seq     uint64
 	saved   uint64
@@ -234,6 +214,7 @@ type configSpill struct {
 func newRemotePersistence(client *rpc.Client, pluginID, storagePath, instanceID string, logger *Logger) (*remotePersistence, error) {
 	ns := getPluginNamespaces(pluginID)
 	proxy := client.CreateProxy(ns.PluginConfigStoreRPC)
+	// probe never retries on no responders, an older master has no load or putIfRev
 	rp := &remotePersistence{
 		proxy:      proxy,
 		probe:      proxy.WithOptions(rpc.RequestOptions{NoResponderRetry: &rpc.NoResponderRetryOptions{MaxRetries: -1}}),
@@ -292,7 +273,7 @@ func (rp *remotePersistence) save(loc storeLocation, values map[string]any) func
 	snapshot := remoteSnapshot{doc: snapshotStoreDoc(rp.cache), seq: rp.seq}
 	// synchronous, so a kill at any point after the save leaves the change on disk
 	rp.writeSpillLocked(snapshot.doc)
-	// Enqueue before unlocking so flush order matches cache-install order.
+	// enqueue before unlocking so flush order matches cache-install order
 	p := rp.writer.enqueue(snapshot)
 	rp.mu.Unlock()
 	return p.wait
@@ -486,9 +467,8 @@ func (rp *remotePersistence) removeSpill() {
 	_ = os.Remove(rp.spillPath)
 }
 
-// container levels only, the encoder must not read a map a concurrent save may
-// mutate; leaf value maps are shared on purpose, saves replace them wholesale
 func snapshotStoreDoc(doc map[string]any) map[string]any {
+	// containers only, leaf value maps are shared on purpose: saves replace them wholesale
 	out := maps.Clone(doc)
 	if cameras, ok := doc["cameras"].(map[string]any); ok {
 		out["cameras"] = maps.Clone(cameras)
@@ -516,7 +496,6 @@ func snapshotStoreDoc(doc map[string]any) map[string]any {
 	return out
 }
 
-// a responder that is not there, or an older master without the method
 func isNoResponders(err error) bool {
 	var rpcErr *rpc.RPCException
 	return errors.As(err, &rpcErr) && rpcErr.Code == rpc.ErrCodeNotFound

@@ -150,8 +150,7 @@ class FaceSensor(Sensor[FaceSensorProperties, TStorage, str], Generic[TStorage])
             "person",
             {"attribute": "face"},
         )
-        # recognized names accumulate while faces stay visible, so automations
-        # don't flap when a face is momentarily unrecognized mid-presence
+        # names accumulate while faces stay visible, so automations don't flap on a missed recognition
         recognized = [d["identity"] for d in list_ if d.get("identity")]
         state: dict[str, Any] = {
             FaceProperty.Detected.value: detected,

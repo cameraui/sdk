@@ -257,7 +257,7 @@ type FaceEmbeddingInterface interface {
 	// EmbedFaceImages embeds a batch of encoded images (JPEG/PNG), each
 	// showing one face: one result per input in the same order. An empty
 	// Embedding means the picture holds no face this model can use, nil that
-	// the plugin could not run at all — the caller may drop such a picture, so
+	// the plugin could not run at all: the caller may drop such a picture, so
 	// the two must not be mixed up. Meant for re-embedding stored pictures
 	// after an embedding-model change. landmarks holds the points an earlier
 	// result returned for the same picture, one entry per image, nil where

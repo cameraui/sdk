@@ -170,7 +170,6 @@ func (s *Subject[T]) AsObservable() *Observable[T] {
 	})
 }
 
-// runs the handler immediately when the Subject already completed
 func (s *Subject[T]) onCompleteNotify(handler func()) *Disposable {
 	s.mu.Lock()
 	if s.completed {

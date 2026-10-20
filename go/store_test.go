@@ -152,7 +152,6 @@ func TestReadStoreFileCorruptWithoutBackupFails(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// A corrupt store must fail the open, never read as empty.
 	_, _, err := readStoreFile(path, testLogger())
 	if err == nil {
 		t.Fatal("corrupt store opened as empty")
@@ -246,7 +245,7 @@ func TestCoalescingWriterCollapsesBurst(t *testing.T) {
 		})
 	}
 
-	// Give the burst time to register as pending before releasing the flush.
+	// let the burst register as pending before releasing the flush
 	time.Sleep(50 * time.Millisecond)
 	close(release)
 	wg.Wait()
@@ -296,7 +295,6 @@ func TestCoalescingWriterPanicDoesNotStrandWaiters(t *testing.T) {
 		t.Fatal("waiter stranded after flush panic")
 	}
 
-	// The writer must still be usable after a panic.
 	if err := w.write(3); err == nil {
 		t.Error("subsequent write should surface the panicking flush error")
 	}
@@ -326,7 +324,6 @@ func TestFilePersistenceRoundTrip(t *testing.T) {
 		t.Errorf("reopened store lost data: %v", values)
 	}
 
-	// Saving an empty map removes the section from the document entirely.
 	if err := reopened.save(camLoc, map[string]any{})(); err != nil {
 		t.Fatal(err)
 	}
@@ -360,7 +357,6 @@ func TestFilePersistenceUpgradesLayout(t *testing.T) {
 		t.Error("plugin values lost by upgrade")
 	}
 
-	// The upgrade is written back immediately: the raw file is stamped.
 	payload, found, err := readStoreFile(path, log)
 	if err != nil || !found {
 		t.Fatal(err)
@@ -401,7 +397,6 @@ func TestValidateStoreValue(t *testing.T) {
 	}
 }
 
-// memPersistence records saves for DeviceStorage tests.
 type memPersistence struct {
 	mu    sync.Mutex
 	doc   map[string]any
@@ -486,7 +481,6 @@ func TestDeviceStoragePersistRule(t *testing.T) {
 		t.Errorf("Store=false key was persisted: %v", got)
 	}
 
-	// nil deletes the key everywhere.
 	if err := ds.SetValue("stored", nil); err != nil {
 		t.Fatal(err)
 	}
@@ -543,8 +537,6 @@ func TestDeviceStoragePropagatesSaveErrors(t *testing.T) {
 	}
 }
 
-// RPC msgpack decodes numbers to the narrowest fitting type; the write path
-// must normalize like the load path or type switches on GetValue results miss.
 func TestDeviceStorageNormalizesRPCNumericTypes(t *testing.T) {
 	mp := newMemPersistence()
 	ds := newDeviceStorage(mp, storeLocation{kind: storeLocationPlugin}, testLogger())
@@ -579,8 +571,6 @@ func TestDeviceStorageNormalizesRPCNumericTypes(t *testing.T) {
 	}
 }
 
-// watchdog fails the test if fn does not return within the deadline, the
-// concurrency tests must fail on deadlock instead of hanging.
 func watchdog(t *testing.T, timeout time.Duration, fn func()) {
 	t.Helper()
 	done := make(chan struct{})
@@ -648,9 +638,7 @@ func TestDeviceStorageConcurrentStress(t *testing.T) {
 		wg.Wait()
 	})
 
-	// Every acknowledged write must be durable: reload the file from disk and
-	// check that no goroutine's last acknowledged value was overwritten by a
-	// staler concurrent whole-document snapshot.
+	// reload from disk: no acknowledged write may be overwritten by a staler whole-document snapshot
 	reloaded, err := newFilePersistence(path, testLogger())
 	if err != nil {
 		t.Fatal(err)
@@ -675,8 +663,7 @@ func TestDeviceStorageMutateInPlacePersists(t *testing.T) {
 	ds := newDeviceStorage(fp, loc, testLogger())
 	ds.DefineSchemas([]JsonSchema{{Type: JsonSchemaTypeArray, Key: "obj", Store: Bool(true)}})
 
-	// Reload from disk between probes: a later whole-document persist would
-	// mask an earlier write that was wrongly skipped as "unchanged".
+	// reload between probes, a later whole-document persist would mask a write wrongly skipped as unchanged
 	reload := func(key string) any {
 		t.Helper()
 		reloaded, err := newFilePersistence(path, testLogger())
@@ -690,8 +677,7 @@ func TestDeviceStorageMutateInPlacePersists(t *testing.T) {
 	if err := ds.SetValue("obj", obj); err != nil {
 		t.Fatal(err)
 	}
-	// The caller mutates its own reference and re-sets it; the write must not
-	// be skipped as "unchanged".
+	// mutating the own reference and setting it again must not be skipped as unchanged
 	obj["n"] = 2
 	obj["list"] = append(obj["list"].([]any), "b")
 	if err := ds.SetValue("obj", obj); err != nil {
@@ -731,8 +717,7 @@ func TestDeviceStorageChangeSchemaStoreFlip(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// The value compares unchanged, but the flipped store flag must make it
-	// durable with the next write.
+	// compares unchanged, but the flipped store flag must make the next write durable
 	if err := ds.SetValue("k", "v"); err != nil {
 		t.Fatal(err)
 	}
@@ -741,8 +726,6 @@ func TestDeviceStorageChangeSchemaStoreFlip(t *testing.T) {
 	}
 }
 
-// OnSet callbacks may call back into the same storage; combined with the
-// awaited save path this must not deadlock.
 func TestDeviceStorageNestedCallsFromOnSet(t *testing.T) {
 	mp := newMemPersistence()
 	ds := newDeviceStorage(mp, storeLocation{kind: storeLocationPlugin}, testLogger())

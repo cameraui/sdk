@@ -6,9 +6,8 @@ import (
 	"testing"
 )
 
-// -90 is a legal go2rtc rotation (alias of 270, both transpose=2), so the
-// guard must gate on "not zero" rather than "positive".
 func TestBuildSnapshotUrlRotate(t *testing.T) {
+	// -90 is a legal go2rtc rotation (alias of 270), the guard must gate on not zero rather than positive
 	for _, rotate := range []int{-90, 90, 180, 270} {
 		got, err := BuildSnapshotUrl("Front Door", "main", "http://host:1984/api/frame.jpeg", &SnapshotUrlOptions{Rotate: rotate})
 		if err != nil {

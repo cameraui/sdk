@@ -91,8 +91,7 @@ func (s *ClassifierSensor) ReportDetections(detected bool, detections []Classifi
 		classifierPropertyDetected:   detected,
 		classifierPropertyDetections: list,
 	}
-	// the specific answer wins (subAttribute, e.g. the bird species), and labels
-	// accumulate while the classifier keeps firing, so automations don't flap
+	// the specific answer (subAttribute) wins, labels accumulate while it fires so automations don't flap
 	recognized := make([]string, 0, len(list))
 	for _, d := range list {
 		label := d.SubAttribute

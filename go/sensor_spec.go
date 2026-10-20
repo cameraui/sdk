@@ -82,8 +82,8 @@ func withoutModelSpec(properties map[string]any) map[string]any {
 	return rest
 }
 
-// a detector type left out here registers without a spec and never gets frames
 func detectorModelSpec(s Sensor) any {
+	// a detector type left out here registers without a spec and never gets frames
 	switch v := s.(type) {
 	case interface{ ModelSpec() ObjectModelSpec }:
 		return v.ModelSpec()

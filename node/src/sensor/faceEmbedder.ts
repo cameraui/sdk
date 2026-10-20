@@ -47,11 +47,7 @@ export abstract class FaceEmbedderSensor<TStorage extends object = Record<string
    */
   abstract embedFaces(frames: VideoFrameData[]): Promise<FaceEmbeddingResult[]>;
 
-  /**
-   * Read-only sensor: external writes are ignored.
-   *
-   * @internal
-   */
+  /** @internal */
   updateValue(_property: string, _value: unknown): void {}
 }
 

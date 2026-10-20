@@ -91,8 +91,7 @@ func (s *FaceSensor) ReportDetections(detected bool, detections []FaceDetection)
 		facePropertyDetected:   detected,
 		facePropertyDetections: list,
 	}
-	// recognized names accumulate while faces stay visible, so automations
-	// don't flap when a face is momentarily unrecognized mid-presence
+	// names accumulate while faces stay visible, so automations don't flap on a missed recognition
 	recognized := make([]string, 0, len(list))
 	for _, d := range list {
 		if d.Identity != "" {

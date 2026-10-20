@@ -1,5 +1,3 @@
-"""Tests for lightweight reactive primitives."""
-
 from __future__ import annotations
 
 import asyncio
@@ -20,8 +18,6 @@ from camera_ui_sdk.observable import (
     pairwise,
     share,
 )
-
-# ── Disposable ────────────────────────────────────────────────────────
 
 
 class TestDisposable:
@@ -53,9 +49,6 @@ class TestDisposable:
         d.unsubscribe()
         assert called is True
         assert d.closed is True
-
-
-# ── Subject ───────────────────────────────────────────────────────────
 
 
 class TestSubject:
@@ -126,9 +119,6 @@ class TestSubject:
         assert isinstance(obs, Observable)
 
 
-# ── BehaviorSubject ───────────────────────────────────────────────────
-
-
 class TestBehaviorSubject:
     def test_emits_current_value_on_subscribe(self) -> None:
         subject = BehaviorSubject(42)
@@ -176,9 +166,6 @@ class TestBehaviorSubject:
         assert values == []
 
 
-# ── ReplaySubject ─────────────────────────────────────────────────────
-
-
 class TestReplaySubject:
     def test_replays_buffered_values(self) -> None:
         subject: ReplaySubject[int] = ReplaySubject(2)
@@ -224,9 +211,6 @@ class TestReplaySubject:
         assert values == [1]
 
 
-# ── Observable ────────────────────────────────────────────────────────
-
-
 class TestObservable:
     def test_subscribe_calls_factory(self) -> None:
         called = False
@@ -250,9 +234,6 @@ class TestObservable:
         subject.next(1)
 
         assert values == [1]
-
-
-# ── Operators ─────────────────────────────────────────────────────────
 
 
 class TestFilterOp:
@@ -428,9 +409,6 @@ class TestShare:
         assert subscribe_count == 2
 
 
-# ── Pipe chaining ─────────────────────────────────────────────────────
-
-
 class TestPipeChaining:
     def test_chains_multiple_operators(self) -> None:
         subject: Subject[int] = Subject()
@@ -463,9 +441,6 @@ class TestPipeChaining:
         subject.next(2)
 
         assert values == [0, 1, 2]
-
-
-# ── firstValueFrom ───────────────────────────────────────────────────
 
 
 class TestFirstValueFrom:

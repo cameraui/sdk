@@ -4,21 +4,6 @@ from typing import Any
 
 
 def is_equal(first: Any, second: Any, ignore_order: bool = False) -> bool:
-    """Deep equality for primitives, lists, and dicts. Dict key order never matters.
-
-    Args:
-        first: First value to compare.
-        second: Second value to compare.
-        ignore_order: Compare lists as multisets instead of position by position.
-
-    Returns:
-        ``True`` if the values are deeply equal.
-
-    Example:
-        ```python
-        is_equal({"a": 1, "b": 2}, {"b": 2, "a": 1})  # True
-        ```
-    """
     if first is second:
         return True
 

@@ -35,8 +35,7 @@ const rollupOptions: RollupOptions[] = [
         respectExternal: true,
         tsconfig: './tsconfig.json',
       }),
-      // Strip the duplicated `declare class Disposable {...}` that rollup-dts inlines and
-      // redirect references to the public bundle so Disposable has a single identity.
+      // drop the Disposable class rollup-dts inlines a second time, so Disposable keeps one identity
       {
         name: 'replace-duplicate-disposable',
         generateBundle(_options, bundle) {

@@ -80,8 +80,6 @@ func (s *sensorProxy) Exposed() bool {
 	return s.exposed
 }
 
-// events published while the link was down are gone for good, so a resync
-// replaces the cached view wholesale and emits only what actually differs
 func (s *sensorProxy) applyRefreshedState(state sensorRefreshedState) {
 	if state.DisplayName != "" {
 		s.SetDisplayName(state.DisplayName)
@@ -99,9 +97,8 @@ func (s *sensorProxy) applyRefreshedState(state sensorRefreshedState) {
 	}
 }
 
-// UpdateValue forwards the write to the owning sensor via RPC. Read-only sensor
-// types no-op on the owning side, so there is no category gate here.
 func (s *sensorProxy) UpdateValue(property string, value any) error {
+	// read-only types no-op on the owning side, so there is no category gate here
 	if s.proxy == nil {
 		return nil
 	}
@@ -110,7 +107,6 @@ func (s *sensorProxy) UpdateValue(property string, value any) error {
 	return err
 }
 
-// ToStoredData returns the cached sensor state in its persisted shape.
 func (s *sensorProxy) ToStoredData() storedSensorData {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -177,8 +173,6 @@ func (s *sensorProxy) cleanupProxy() {
 	s.cleanup()
 }
 
-// msgpack picks the smallest type that fits, so a JS 1 can arrive as anything
-// from int8 to uint64, float32 or float64
 func toInt64(v any) (int64, bool) {
 	switch n := v.(type) {
 	case int:

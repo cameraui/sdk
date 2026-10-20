@@ -14,11 +14,7 @@ export enum LockState {
   Unknown = 2,
 }
 
-/**
- * Property names of a lock control.
- *
- * @internal
- */
+/** @internal */
 export enum LockProperty {
   /** The actual current state of the lock. */
   CurrentState = 'currentState',
@@ -26,11 +22,7 @@ export enum LockProperty {
   TargetState = 'targetState',
 }
 
-/**
- * Property values of a lock control.
- *
- * @internal
- */
+/** @internal */
 export interface LockControlProperties {
   [LockProperty.CurrentState]: LockState;
   [LockProperty.TargetState]: LockState;
@@ -113,11 +105,7 @@ export class LockControl<TStorage extends object = Record<string, any>> extends 
     this._writeState({ [LockProperty.CurrentState]: value });
   }
 
-  /**
-   * Routes generic property writes to the semantic setters. Only `targetState` is externally writable, `currentState` is observed-only.
-   *
-   * @internal
-   */
+  /** @internal */
   async updateValue(property: string, value: unknown): Promise<void> {
     if ((property as LockProperty) === LockProperty.TargetState) {
       await this.setTargetState(value as LockState);

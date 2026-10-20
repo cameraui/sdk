@@ -4,21 +4,13 @@ import { defineSensor, SensorDomain } from './meta.js';
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/**
- * Property names of a temperature sensor.
- *
- * @internal
- */
+/** @internal */
 export enum TemperatureProperty {
   /** Current temperature in degrees Celsius. */
   Current = 'current',
 }
 
-/**
- * Property values of a temperature sensor.
- *
- * @internal
- */
+/** @internal */
 export interface TemperatureInfoProperties {
   [TemperatureProperty.Current]: number;
 }
@@ -61,11 +53,7 @@ export class TemperatureInfo<TStorage extends object = Record<string, any>> exte
     this._writeState({ [TemperatureProperty.Current]: Math.max(-270, Math.min(100, value)) });
   }
 
-  /**
-   * Read-only sensor: external writes are ignored.
-   *
-   * @internal
-   */
+  /** @internal */
   updateValue(_property: string, _value: unknown): void {}
 }
 

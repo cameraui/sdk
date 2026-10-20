@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	resyncDelay  = 150 * time.Millisecond
-	resyncJitter = 500 * time.Millisecond
+	resyncDelay  = 150 * time.Millisecond // interest needs a moment to cross a fresh link
+	resyncJitter = 500 * time.Millisecond // spreads the plugins of one host
 )
 
 type resyncScheduler struct {
@@ -25,8 +25,6 @@ func newResyncScheduler(fn func()) *resyncScheduler {
 	return &resyncScheduler{fn: fn}
 }
 
-// interest needs a moment to cross a fresh link and the jitter spreads the
-// plugins of a host, triggers inside one window share a run
 func (r *resyncScheduler) trigger() {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -56,13 +54,12 @@ func (r *resyncScheduler) fire() {
 	}
 }
 
-// on a worker the link to the master can drop while the plugin's own
-// connection stays up, events published meanwhile never arrive
 func onResync(client *rpc.Client, logger *Logger, fn func()) func() {
 	scheduler := newResyncScheduler(fn)
 	unsubReconnect := client.OnReconnect(scheduler.trigger)
 
 	var unsubLink func()
+	// on a worker the master link can drop while the plugin's own connection stays up
 	if subject := os.Getenv("CAMERAUI_WORKER_LINK_SUBJECT"); subject != "" {
 		unsub, err := client.Subscribe(subject, func([]byte) { scheduler.trigger() })
 		if err != nil {

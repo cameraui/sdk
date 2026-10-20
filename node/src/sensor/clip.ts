@@ -48,11 +48,7 @@ export abstract class ClipDetectorSensor<TStorage extends object = Record<string
    */
   abstract detectEmbeddings(frames: VideoFrameData[]): Promise<ClipResult[]>;
 
-  /**
-   * Read-only sensor: external writes are ignored.
-   *
-   * @internal
-   */
+  /** @internal */
   updateValue(_property: string, _value: unknown): void {}
 }
 

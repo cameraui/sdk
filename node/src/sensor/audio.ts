@@ -28,11 +28,7 @@ export type BaseAudioLabel = (typeof BASE_AUDIO_LABELS)[number];
 /** Audio label: one of the built-in labels, or any custom string emitted by an audio detector. */
 export type AudioLabel = BaseAudioLabel | (string & {});
 
-/**
- * Property names of an audio sensor.
- *
- * @internal
- */
+/** @internal */
 export enum AudioProperty {
   /** Whether an audio event is currently detected. */
   Detected = 'detected',
@@ -44,11 +40,7 @@ export enum AudioProperty {
   LastTriggered = 'lastTriggered',
 }
 
-/**
- * Property values of an audio sensor.
- *
- * @internal
- */
+/** @internal */
 export interface AudioSensorProperties {
   [AudioProperty.Detected]: boolean;
   [AudioProperty.Detections]: Detection[];
@@ -155,11 +147,7 @@ export class AudioSensor<TStorage extends object = Record<string, any>> extends 
     this._writeState({ [AudioProperty.Decibels]: value });
   }
 
-  /**
-   * Read-only sensor: external writes are ignored.
-   *
-   * @internal
-   */
+  /** @internal */
   updateValue(_property: string, _value: unknown): void {}
 }
 

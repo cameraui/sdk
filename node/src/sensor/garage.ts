@@ -18,11 +18,7 @@ export enum GarageState {
   Stopped = 4,
 }
 
-/**
- * Property names of a garage control.
- *
- * @internal
- */
+/** @internal */
 export enum GarageProperty {
   /** The actual current state of the garage door. */
   CurrentState = 'currentState',
@@ -32,11 +28,7 @@ export enum GarageProperty {
   ObstructionDetected = 'obstructionDetected',
 }
 
-/**
- * Property values of a garage control.
- *
- * @internal
- */
+/** @internal */
 export interface GarageControlProperties {
   [GarageProperty.CurrentState]: GarageState;
   [GarageProperty.TargetState]: GarageState;
@@ -141,11 +133,7 @@ export class GarageControl<TStorage extends object = Record<string, any>> extend
     this._writeState({ [GarageProperty.ObstructionDetected]: value });
   }
 
-  /**
-   * Routes generic property writes to the semantic setters. Only `targetState` is externally writable.
-   *
-   * @internal
-   */
+  /** @internal */
   async updateValue(property: string, value: unknown): Promise<void> {
     if ((property as GarageProperty) === GarageProperty.TargetState) {
       await this.setTargetState(value as GarageState);

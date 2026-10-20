@@ -10,11 +10,7 @@ export enum SirenCapability {
   Volume = 'volume',
 }
 
-/**
- * Property names of a siren control.
- *
- * @internal
- */
+/** @internal */
 export enum SirenProperty {
   /** Whether the siren is currently active. */
   Active = 'active',
@@ -22,11 +18,7 @@ export enum SirenProperty {
   Volume = 'volume',
 }
 
-/**
- * Property values of a siren control.
- *
- * @internal
- */
+/** @internal */
 export interface SirenControlProperties {
   [SirenProperty.Active]: boolean;
   [SirenProperty.Volume]: number;
@@ -111,11 +103,7 @@ export class SirenControl<TStorage extends object = Record<string, any>> extends
     this._writeState({ [SirenProperty.Volume]: Math.max(0, Math.min(100, value)) });
   }
 
-  /**
-   * Routes generic property writes to the semantic setters.
-   *
-   * @internal
-   */
+  /** @internal */
   override async updateValue(property: string, value: unknown): Promise<void> {
     switch (property as SirenProperty) {
       case SirenProperty.Active:

@@ -79,10 +79,9 @@ type processLoadMessage struct {
 	Cameras []Camera        `msgpack:"cameras" json:"cameras"`
 	Plugin  PluginInfo      `msgpack:"plugin" json:"plugin"`
 	Storage PluginStorage   `msgpack:"storage" json:"storage"`
-	Session *processSession `msgpack:"session,omitempty" json:"session,omitempty"`
+	Session *processSession `msgpack:"session,omitempty" json:"session,omitempty"` // absent under a master without the re-handshake
 }
 
-// sent by a master that speaks the re-handshake, absent under older ones
 type processSession struct {
 	RunID      string `msgpack:"runId" json:"runId"`
 	Level      int    `msgpack:"level" json:"level"`

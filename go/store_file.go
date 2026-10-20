@@ -21,8 +21,7 @@ import (
 
 const storeFileName = "store.cui"
 
-// envelope is magic + msgpack payload + little-endian CRC32 (IEEE) of the payload
-var storeMagic = []byte("CUI1")
+var storeMagic = []byte("CUI1") // envelope: magic, msgpack payload, little-endian CRC32 (IEEE) of the payload
 
 var renameRetryDelays = []time.Duration{
 	10 * time.Millisecond,
@@ -32,7 +31,6 @@ var renameRetryDelays = []time.Duration{
 	300 * time.Millisecond,
 }
 
-// only corruption triggers the backup fallback, an I/O error must not
 type storeCorruptError struct{ reason string }
 
 func (e *storeCorruptError) Error() string { return "store envelope: " + e.reason }
@@ -68,8 +66,6 @@ func decodeEnvelope(buf []byte) (map[string]any, error) {
 	return payload, nil
 }
 
-// consumers rely on map[string]any and int64 (uint64 only above the int64
-// range), the decoder returns the narrowest type that fits
 func normalizeStoreValue(v any) any {
 	switch val := v.(type) {
 	case map[string]any:
@@ -144,8 +140,7 @@ func writeStoreBytes(path string, buf []byte, log *Logger) error {
 	err := func() error {
 		f, err := os.OpenFile(tmpPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
 		if errors.Is(err, fs.ErrNotExist) {
-			// the volume can be pulled away under a running plugin (backup
-			// restore, manual cleanup), writing again must recreate it
+			// the volume can be pulled away under a running plugin, writing again must recreate it
 			if mkErr := os.MkdirAll(filepath.Dir(path), 0o755); mkErr != nil {
 				return err
 			}
@@ -185,8 +180,6 @@ func writeStoreFile(path string, payload map[string]any, log *Logger) error {
 	return writeStoreBytes(path, buf, log)
 }
 
-// a corrupt store must never silently become an empty one, that would discard
-// the plugin's persisted state, so an unusable backup fails the open
 func readStoreFile(path string, log *Logger) (payload map[string]any, found bool, err error) {
 	buf, err := os.ReadFile(path)
 	if err != nil {
@@ -209,8 +202,7 @@ func readStoreFile(path string, log *Logger) (payload map[string]any, found bool
 	if bakBuf, bakErr := os.ReadFile(bakPath); bakErr == nil {
 		payload, err := decodeEnvelope(bakBuf)
 		if err == nil {
-			// Self-heal: replace the corrupt file immediately, otherwise the
-			// next backup refresh would clobber the only good copy.
+			// replace the corrupt file now, the next backup refresh would clobber the only good copy
 			if err := writeStoreBytes(path, bakBuf, log); err != nil {
 				return nil, false, err
 			}
@@ -220,12 +212,12 @@ func readStoreFile(path string, log *Logger) (payload map[string]any, found bool
 		log.Error(fmt.Sprintf("store: backup %s is corrupt too (%v)", bakPath, err))
 	}
 
+	// a corrupt store must never silently become an empty one
 	return nil, false, &storeCorruptError{path + " unreadable and no usable backup"}
 }
 
-// temp sibling first, a crash mid-copy must not leave a truncated .bak, it may
-// be the only recovery generation
 func backupStoreFile(path string, log *Logger) {
+	// temp sibling first, a crash mid-copy must not leave a truncated .bak
 	tmpPath := path + ".bak.tmp-" + strconv.Itoa(os.Getpid())
 	err := func() error {
 		src, err := os.Open(path)

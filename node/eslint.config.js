@@ -29,7 +29,6 @@ export default [
     ],
   },
   jsLint.configs.recommended,
-  // ...tsLint.configs.recommended,
   ...tsLint.configs.recommendedTypeChecked,
   ...tsLint.configs.stylisticTypeChecked,
   stylistic.configs['disable-legacy'],
@@ -107,7 +106,6 @@ export default [
     },
 
     rules: {
-      // TypeScript specific rules
       '@typescript-eslint/consistent-type-imports': 'error',
       '@typescript-eslint/await-thenable': 'error',
       '@typescript-eslint/no-explicit-any': 'off',
@@ -133,7 +131,6 @@ export default [
       '@typescript-eslint/no-namespace': 'off',
       '@typescript-eslint/no-this-alias': 'off',
 
-      // Stylistic specific rules
       '@stylistic/generator-star-spacing': 'off',
       '@stylistic/max-len': ['error', { code: 170, tabWidth: 2 }],
       '@stylistic/quotes': ['error', 'single', { avoidEscape: true }],
@@ -153,7 +150,6 @@ export default [
       ],
 
       semi: [1, 'always'],
-      // quotes: ['error', 'single'],
       'comma-dangle': ['error', 'only-multiline'],
       'no-multiple-empty-lines': ['warn', { max: 1, maxEOF: 0 }],
       'eol-last': ['error', 'always'],

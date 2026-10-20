@@ -143,8 +143,6 @@ type propertyUpdateFn func(properties map[string]any)
 
 type sourceUpdateFn func(patch sensorSourcePatch)
 
-// optional on a concrete sensor, OnStart/OnStop are paired 1:1, run in their own
-// goroutine and swallow panics
 type sensorLifecycle interface {
 	OnStart()
 	OnStop()
@@ -501,8 +499,6 @@ func (s *BaseSensor) initSourceUpdateFn(updateFn sourceUpdateFn) {
 	s.sourceUpdateFn = updateFn
 }
 
-// no lifecycle hooks here, BaseSensor cannot reach the outer concrete type,
-// setActiveWithLifecycle does that
 func (s *BaseSensor) setActive(active bool) bool {
 	s.mu.Lock()
 	if s.active == active {
@@ -539,8 +535,8 @@ func (s *BaseSensor) toBaseJSON(sensorType SensorType, category SensorCategory) 
 	}
 }
 
-// skips updateFn, echoing a backend-initiated change back to the server would loop
 func (s *BaseSensor) onBackendPropertyChanged(property string, value any) {
+	// no updateFn here, echoing a backend change back to the server would loop
 	s.mu.Lock()
 	oldValue := s.properties[property]
 	if isEqual(oldValue, value, false) {
@@ -589,7 +585,6 @@ func (s *BaseSensor) cleanup() {
 	s.storage = nil
 }
 
-// no connectedChanged emission, teardown pairs OnStop but is not a connectivity signal
 func (s *BaseSensor) deactivateQuiet() bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -636,9 +631,6 @@ func generateSensorID() string {
 		b[0:4], b[4:6], b[6:8], b[8:10], b[10:16])
 }
 
-// base reaches the embedded Detection of a typed detection, so every sensor
-// shares one normalization: smart-camera plugins report labels without
-// coordinates, and downstream zone matching needs a box on every detection
 func normalizeReportedDetections[T any](detected bool, detections []T, base func(*T) *Detection, fallbackLabel string, fallbackAttribute string) []T {
 	if !detected {
 		return []T{}
@@ -648,6 +640,7 @@ func normalizeReportedDetections[T any](detected bool, detections []T, base func
 		out := make([]T, len(detections))
 		copy(out, detections)
 		for i := range out {
+			// smart-camera plugins report labels without coordinates, zone matching needs a box
 			if d := base(&out[i]); d.Box == nil {
 				d.Box = &BoundingBox{X: 0, Y: 0, Width: 1, Height: 1}
 			}
@@ -666,8 +659,6 @@ func normalizeReportedDetections[T any](detected bool, detections []T, base func
 	return []T{fallback}
 }
 
-// mergeSortedUnique unions two string lists into a sorted, duplicate-free
-// result, the stable shape writeState needs for change detection
 func mergeSortedUnique(previous, next []string) []string {
 	merged := make([]string, 0, len(previous)+len(next))
 	merged = append(merged, previous...)
@@ -697,8 +688,8 @@ func cleanupSensorWithLifecycle(outer any) {
 	}
 }
 
-// outer must be the concrete sensor value, the type assertions need its full method set
 func setActiveWithLifecycle(outer any, active bool) {
+	// outer must be the concrete sensor value, the type assertions need its full method set
 	type activatableSensor interface{ setActive(bool) bool }
 	as, ok := outer.(activatableSensor)
 	if !ok {

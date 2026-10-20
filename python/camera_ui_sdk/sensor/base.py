@@ -583,10 +583,6 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
             self._write_state({"modelSpec": spec})
 
     def _write_state(self, partial: Mapping[str, Any]) -> None:
-        """Write changed properties, fire one batched RPC update and notify listeners.
-
-        Used by the semantic helpers on each sensor type, not by plugin code.
-        """
         delta: dict[str, Any] = {}
         changes: list[tuple[str, Any, Any]] = []
 
@@ -616,18 +612,10 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         fallback_label: str,
         fallback_extra: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
-        """Normalize the arguments of a `reportDetections(detected, detections)` call.
-
-        - `detected` is False: returns `[]` (clear).
-        - `detected` is True with detections: returns them, substituting a full-frame box where missing.
-        - `detected` is True without detections: returns one synthesized full-frame
-          detection carrying `fallback_label` and `fallback_extra`.
-        """
         if not detected:
             return []
         if detections:
-            # smart-camera plugins report labels without coordinates, downstream
-            # consumers (coordinator, zone matching) require a box on every detection
+            # smart-camera plugins report labels without coordinates, consumers need a box on every detection
             return [
                 detection
                 if detection.get("box")
@@ -647,7 +635,6 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         self._storage = storage
 
     def _fire_lifecycle(self, active: bool) -> None:
-        """Invoke the lifecycle hook and schedule it if the override is async."""
         try:
             result = self.on_start() if active else self.on_stop()
         except Exception:  # noqa: BLE001 - lifecycle errors must not break bookkeeping

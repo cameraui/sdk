@@ -156,8 +156,7 @@ class LicensePlateSensor(Sensor[LicensePlateSensorProperties, TStorage, str], Ge
             "vehicle",
             {"attribute": "license_plate", "plateText": ""},
         )
-        # recognized plates accumulate while plates stay visible, so automations
-        # don't flap when the OCR misses a frame mid-presence
+        # plates accumulate while visible, so automations don't flap when the OCR misses a frame
         recognized = [d["plateText"] for d in list_ if d.get("plateText")]
         state: dict[str, Any] = {
             LicensePlateProperty.Detected.value: detected,

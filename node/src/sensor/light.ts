@@ -10,11 +10,7 @@ export enum LightCapability {
   Brightness = 'brightness',
 }
 
-/**
- * Property names of a light control.
- *
- * @internal
- */
+/** @internal */
 export enum LightProperty {
   /** Whether the light is on. */
   On = 'on',
@@ -22,11 +18,7 @@ export enum LightProperty {
   Brightness = 'brightness',
 }
 
-/**
- * Property values of a light control.
- *
- * @internal
- */
+/** @internal */
 export interface LightControlProperties {
   [LightProperty.On]: boolean;
   [LightProperty.Brightness]: number;
@@ -116,11 +108,7 @@ export class LightControl<TStorage extends object = Record<string, any>> extends
     this._writeState({ [LightProperty.Brightness]: Math.max(0, Math.min(100, value)) });
   }
 
-  /**
-   * Routes generic property writes to the semantic setters. Only `on` and `brightness` are externally writable.
-   *
-   * @internal
-   */
+  /** @internal */
   async updateValue(property: string, value: unknown): Promise<void> {
     switch (property as LightProperty) {
       case LightProperty.On:

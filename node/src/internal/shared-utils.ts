@@ -1,19 +1,4 @@
-/**
- * Deep equality for primitives, arrays, and plain objects. Object key order never matters.
- *
- * @param first - First value to compare.
- *
- * @param second - Second value to compare.
- *
- * @param ignoreOrder - Compare arrays as multisets instead of position by position.
- *
- * @returns `true` if the values are deeply equal.
- *
- * @example
- * ```ts
- * isEqual({ a: 1, b: 2 }, { b: 2, a: 1 }); // true
- * ```
- */
+/** @internal */
 export function isEqual(first: unknown, second: unknown, ignoreOrder = false): boolean {
   if (first === second) {
     return true;

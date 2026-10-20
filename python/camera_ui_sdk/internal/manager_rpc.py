@@ -5,20 +5,11 @@ from typing import Literal, NotRequired
 from ..manager import DiscoveredCamera
 
 ConnectionStatus = Literal["idle", "connecting", "connected", "error"]
-"""Connection status for discovered cameras."""
 
 
 class DiscoveredCameraWithState(DiscoveredCamera):
-    """Discovered camera plus the provider that found it and its live connection state.
-
-    Used by the UI to render the adoption list.
-    """
-
     provider: str
-    """Name of the provider plugin that discovered this camera."""
 
     connectionStatus: ConnectionStatus
-    """Current connection status reported by the provider."""
 
     errorMessage: NotRequired[str]
-    """Last error message when ``connectionStatus`` is ``error``."""

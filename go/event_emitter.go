@@ -61,7 +61,7 @@ func (e *eventEmitter) Emit(event string, args ...any) {
 	if len(toRemove) > 0 {
 		e.mu.Lock()
 		current := e.listeners[event]
-		// Iterate in reverse so earlier removals don't shift the pending indices.
+		// in reverse, so earlier removals don't shift the pending indices
 		for _, idx := range slices.Backward(toRemove) {
 
 			if idx < len(current) {
@@ -85,14 +85,12 @@ func (e *eventEmitter) RemoveAllListeners(event string) {
 	}
 }
 
-// panics go to onPanic (may be nil) so one failing listener never blocks the
-// rest, work a handler spawns in its own goroutines is not tracked
 func (e *eventEmitter) emitAndWait(event string, timeout time.Duration, onPanic func(recovered any), args ...any) bool {
 	e.mu.Lock()
 	current := e.listeners[event]
 	entries := make([]eventEntry, len(current))
 	copy(entries, current)
-	// Drop once-listeners before invoking so they cannot fire again.
+	// drop once-listeners before invoking so they cannot fire again
 	kept := current[:0]
 	for _, entry := range current {
 		if !entry.once {

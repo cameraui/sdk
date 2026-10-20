@@ -44,19 +44,13 @@ type SensorManager struct {
 	logger        *Logger
 	plugin        Plugin
 
-	// adopted sensors this plugin handed over, bound to their host records
 	owned    map[string]Sensor
 	cleanups map[string]func()
 
-	// camera-registered sensors, tracked for event updates only: lifecycle
-	// and cleanup stay with the owning CameraDevice
 	external map[string]Sensor
 
-	// consumable view: exposed foreign sensors of consumed types
 	consumed map[string]*sensorProxy
 
-	// properties whose write never reached the master, sent again with their
-	// current value when the link is back
 	unsent map[string]map[string]bool
 
 	unsubGlobal    func()
@@ -119,11 +113,7 @@ type AdoptedSensor struct {
 	Type SensorType `msgpack:"type" json:"type"`
 }
 
-// registerSlots bounds concurrent sensor registrations per plugin process: a
-// plugin binding hundreds of sensors at once would put every RPC in flight
-// together and let the queue outrun the call timeout on a host that is still
-// starting up. Shared with CameraDevice.AddSensor.
-var registerSlots = make(chan struct{}, 8)
+var registerSlots = make(chan struct{}, 8) // hundreds of registrations in flight at once outrun the call timeout on a starting host
 
 // GetSensorHistory returns what a set of sensors did during a window of time.
 //
@@ -152,11 +142,8 @@ func (m *SensorManager) GetSensorHistory(sensorIDs []string, from, to int64) ([]
 	return sensorHistoryFromWire(list), nil
 }
 
-// sensorHistoryFromWire reads the entries straight off the decoded result
-// instead of re-encoding them into the struct: a history value is `any`, and
-// decoding msgpack into a struct with an interface field goes through whatever
-// the field already holds, which panics on a retry.
 func sensorHistoryFromWire(list []any) []SensorHistoryEntry {
+	// read off the decoded result, msgpack into a struct with an interface field panics on a retry
 	entries := make([]SensorHistoryEntry, 0, len(list))
 	for _, item := range list {
 		fields, ok := item.(map[string]any)
@@ -172,8 +159,6 @@ func sensorHistoryFromWire(list []any) []SensorHistoryEntry {
 	return entries
 }
 
-// a number crossing msgpack arrives as whichever type the encoder found
-// smallest, and as a float when it came from JavaScript
 func wireInt64(value any) int64 {
 	switch number := value.(type) {
 	case int64:
@@ -300,8 +285,6 @@ func (m *SensorManager) init() error {
 	return nil
 }
 
-// the host hands the plugin what the user adopted, the plugin hands back one
-// runtime sensor per record; nothing is created or dropped here
 func (m *SensorManager) configureAdoptedSensors() {
 	provider, ok := m.plugin.(SensorDiscoveryProvider)
 	if !ok || !m.providesAdopted() {
@@ -398,15 +381,13 @@ func (m *SensorManager) bindAdopted(s Sensor, record *AdoptedSensor) {
 	}
 }
 
-// the record exists (adoption), binding attaches the runtime sensor to it
 func (m *SensorManager) bind(s Sensor, recordID string) error {
 	si, ok := s.(sensorInternalInit)
 	if !ok {
 		return fmt.Errorf("sensor %s does not embed BaseSensor", s.GetName())
 	}
 
-	// producers need the global stream too: assignment changes must reach
-	// owned sensors, their detection fan-out reads assignedCameraIds
+	// assignment changes must reach owned sensors too, their detection fan-out reads assignedCameraIds
 	if err := m.ensureGlobalSubscription(); err != nil {
 		return err
 	}
@@ -454,8 +435,7 @@ func (m *SensorManager) bind(s Sensor, recordID string) error {
 				}
 			}
 
-			// external detection provider: fan the write into every assigned
-			// camera's coordinator
+			// external detection provider: fan the write into every assigned camera's coordinator
 			for _, cameraID := range sensor.GetAssignedCameraIDs() {
 				detectionNS := getFrameWorkerDetectionNamespaces(cameraID)
 				coordinator := m.client.CreateProxy(detectionNS.DetectionRPC)
@@ -491,7 +471,7 @@ func (m *SensorManager) bind(s Sensor, recordID string) error {
 			if property != "" {
 				if bpr, ok := s.(backendPropertyReceiver); ok {
 					value := coercePropertyValue(s.GetType(), property, msg.Data["value"])
-					// honor the server-side timestamp, like the consumer proxies
+					// honor the server-side timestamp
 					if ts, ok := toInt64(msg.Data["timestamp"]); ok && ts > 0 {
 						bpr.setPropertyWithTimestamp(property, value, ts)
 					} else {
@@ -643,8 +623,6 @@ func (m *SensorManager) addConsumed(data *storedSensorData) *sensorProxy {
 	return proxy
 }
 
-// a new master run lost the runtime binding of every sensor, the current
-// properties win over its stored ones
 func (m *SensorManager) reattach() error {
 	m.mu.Lock()
 	owned := slices.Collect(maps.Values(m.owned))
@@ -679,8 +657,8 @@ func (m *SensorManager) resync() {
 	m.resyncAllConsumed()
 }
 
-// only what got lost: a repeated write of an unchanged value would fire its trigger again
 func (m *SensorManager) sendUnsent() {
+	// only what got lost: a repeated write of an unchanged value would fire its trigger again
 	type pendingWrite struct {
 		sensor Sensor
 		keys   []string
@@ -711,8 +689,6 @@ func (m *SensorManager) sendUnsent() {
 	}
 }
 
-// a dropped link loses every event published while it was down, so the whole
-// consumed view is refetched rather than trusted
 func (m *SensorManager) resyncAllConsumed() {
 	m.mu.RLock()
 	ids := make([]string, 0, len(m.consumed))
@@ -798,8 +774,7 @@ func (m *SensorManager) handleGlobalSensorEvent(msg sensorRegistryEventMessage) 
 			}
 		}
 		if alreadyConsumed {
-			// re-announced while we already hold it: the payload carries the
-			// authoritative state, so take it instead of keeping a stale view
+			// re-announced while held: the payload is authoritative, take it over the stale view
 			consumed.applyRefreshedState(added.State)
 			return
 		}

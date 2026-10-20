@@ -92,8 +92,7 @@ func (s *LicensePlateSensor) ReportDetections(detected bool, detections []Licens
 		licensePlatePropertyDetected:   detected,
 		licensePlatePropertyDetections: list,
 	}
-	// recognized plates accumulate while plates stay visible, so automations
-	// don't flap when the OCR misses a frame mid-presence
+	// plates accumulate while they stay visible, so automations don't flap when the OCR misses a frame
 	recognized := make([]string, 0, len(list))
 	for _, d := range list {
 		if d.PlateText != "" {

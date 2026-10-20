@@ -4,21 +4,13 @@ import { defineSensor, SensorDomain } from './meta.js';
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/**
- * Property names of a carbon dioxide sensor.
- *
- * @internal
- */
+/** @internal */
 export enum CarbonDioxideProperty {
   /** Current CO2 concentration in parts per million. */
   Current = 'current',
 }
 
-/**
- * Property values of a carbon dioxide sensor.
- *
- * @internal
- */
+/** @internal */
 export interface CarbonDioxideInfoProperties {
   [CarbonDioxideProperty.Current]: number;
 }
@@ -61,11 +53,7 @@ export class CarbonDioxideInfo<TStorage extends object = Record<string, any>> ex
     this._writeState({ [CarbonDioxideProperty.Current]: Math.max(0, Math.min(40000, value)) });
   }
 
-  /**
-   * Read-only sensor: external writes are ignored.
-   *
-   * @internal
-   */
+  /** @internal */
   updateValue(_property: string, _value: unknown): void {}
 }
 

@@ -4,21 +4,13 @@ import { defineSensor, SensorDomain } from './meta.js';
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/**
- * Property names of a heat sensor.
- *
- * @internal
- */
+/** @internal */
 export enum HeatProperty {
   /** Whether abnormal heat is detected. */
   Detected = 'detected',
 }
 
-/**
- * Property values of a heat sensor.
- *
- * @internal
- */
+/** @internal */
 export interface HeatSensorProperties {
   [HeatProperty.Detected]: boolean;
 }
@@ -61,11 +53,7 @@ export class HeatSensor<TStorage extends object = Record<string, any>> extends S
     this._writeState({ [HeatProperty.Detected]: value });
   }
 
-  /**
-   * Read-only sensor: external writes are ignored.
-   *
-   * @internal
-   */
+  /** @internal */
   updateValue(_property: string, _value: unknown): void {}
 }
 

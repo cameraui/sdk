@@ -27,18 +27,15 @@ const (
 	phaseStartError   runtimePhase = "start-error"
 )
 
-// host STOP arrived mid-startup, tear down instead of reporting a startup error
 var errStopRequested = errors.New("stop requested during startup")
 
 var reattachRetryDelays = []time.Duration{time.Second, 2 * time.Second, 5 * time.Second, 10 * time.Second}
 
 const shutdownListenerTimeout = 1500 * time.Millisecond
 
-// the stores save once after the listeners, a reachable master answers in milliseconds
-const storeSaveReserve = time.Second
+const storeSaveReserve = time.Second // one store save after the listeners, a reachable master answers in milliseconds
 
-// one handler drain (250 ms plus 50 ms grace) on top of the flush and close
-const rpcTeardownTimeout = 800 * time.Millisecond
+const rpcTeardownTimeout = 800 * time.Millisecond // one handler drain (250 ms plus 50 ms grace) on top of the flush and close
 
 const gracefulShutdownTimeout = 2 * time.Second
 
@@ -51,7 +48,6 @@ type channelEvent struct {
 	resume *resumeData
 }
 
-// the run loop owns the phase and every plugin handle, channel callbacks only queue events
 type pluginRuntime struct {
 	constructor pluginConstructor
 	client      *rpc.Client
@@ -66,7 +62,6 @@ type pluginRuntime struct {
 	requestStop  func()
 	stopBudget   atomic.Int64
 	teardownOnce sync.Once
-	// a START with a session or a resume came, so the master opens its side again after a close
 	level2Master atomic.Bool
 	events       chan channelEvent
 
@@ -173,11 +168,11 @@ func (r *pluginRuntime) openChannel() error {
 	return nil
 }
 
-// under an older master the channel stays closed, it closes on purpose before its local fallback
 func (r *pluginRuntime) onChannelClose(channel *rpc.PrivateChannel) {
 	r.channelMu.Lock()
 	current := channel == r.channel
 	r.channelMu.Unlock()
+	// an older master closes the channel on purpose before its local fallback
 	if r.stopRequested() || !current || !r.level2Master.Load() {
 		return
 	}
@@ -259,7 +254,6 @@ func (r *pluginRuntime) onStart(load *processLoadMessage) {
 	}
 }
 
-// a resume that came while a start or re-attach ran waits in the queue until it ends
 func (r *pluginRuntime) onResume(runID string) {
 	r.level2Master.Store(true)
 
@@ -315,7 +309,6 @@ func (r *pluginRuntime) reattach(load *processLoadMessage, runID string) {
 	_ = r.sendStarted(true)
 }
 
-// every step is safe to repeat, one that fails on the link runs again until the deadline
 func (r *pluginRuntime) runReattachSteps(cameras []Camera) error {
 	if r.api == nil {
 		return errors.New("the plugin never started")
@@ -327,6 +320,7 @@ func (r *pluginRuntime) runReattachSteps(cameras []Camera) error {
 		r.persistence.flush,
 	}
 	deadline := time.Now().Add(reattachDeadline)
+	// every step is safe to repeat, one that fails on the link runs again until the deadline
 	for attempt := 0; ; attempt++ {
 		var failed []func() error
 		var lastErr error
@@ -512,8 +506,7 @@ func (r *pluginRuntime) teardown() {
 				r.logger.Warn("Shutdown listeners still pending after", listenerTimeout, ", continuing teardown")
 			}
 
-			// runtime-owned teardown, ordered: devices (+ their sensors) ->
-			// core manager -> storages, flushed last so cleanup writes land
+			// devices with their sensors first, storages last so cleanup writes land
 			if r.sensorManager != nil {
 				r.sensorManager.close()
 			}

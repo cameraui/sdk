@@ -6,11 +6,7 @@ import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 import type { Detection, VideoFrameData } from './detection.js';
 import type { ModelSpec } from './spec.js';
 
-/**
- * Property names of a license plate sensor.
- *
- * @internal
- */
+/** @internal */
 export enum LicensePlateProperty {
   /** Whether any license plate is currently detected. */
   Detected = 'detected',
@@ -30,11 +26,7 @@ export interface LicensePlateDetection extends Detection {
   ocrConfidence?: number;
 }
 
-/**
- * Property values of a license plate sensor.
- *
- * @internal
- */
+/** @internal */
 export interface LicensePlateSensorProperties {
   [LicensePlateProperty.Detected]: boolean;
   [LicensePlateProperty.Detections]: LicensePlateDetection[];
@@ -113,8 +105,7 @@ export class LicensePlateSensor<TStorage extends object = Record<string, any>> e
    */
   reportDetections(detected: boolean, detections?: LicensePlateDetection[]): void {
     const list = this._normalizeReportedDetections<LicensePlateDetection>(detected, detections, 'vehicle', { attribute: 'license_plate', plateText: '' });
-    // recognized plates accumulate while plates stay visible, so automations
-    // don't flap when the OCR misses a frame mid-presence
+    // plates accumulate while visible, so automations don't flap when the OCR misses a frame
     const recognized = list.map((d) => d.plateText).filter(Boolean);
     let plates: string[] | undefined;
     if (!detected) {
@@ -141,11 +132,7 @@ export class LicensePlateSensor<TStorage extends object = Record<string, any>> e
     this.reportDetections(false);
   }
 
-  /**
-   * Read-only sensor: external writes are ignored.
-   *
-   * @internal
-   */
+  /** @internal */
   updateValue(_property: string, _value: unknown): void {}
 }
 

@@ -41,13 +41,11 @@ type DeviceManager struct {
 	logger            *Logger
 	plugin            Plugin
 
-	mu      sync.RWMutex
-	devices map[string]*CameraDevice
-	// the cameras the master gave the plugin, GetCamera also creates devices for others
+	mu           sync.RWMutex
+	devices      map[string]*CameraDevice
 	configured   map[string]bool
 	closeRequest func()
-	// host events and the camera diff of a re-attach run one at a time
-	eventMu sync.Mutex
+	eventMu      sync.Mutex
 }
 
 func newDeviceManager(client *rpc.Client, pluginInfo *PluginInfo, logger *Logger) *DeviceManager {
@@ -145,7 +143,6 @@ func (dm *DeviceManager) configureCameras(cameras []*CameraDevice) {
 	}
 }
 
-// a new master run: the devices announce themselves again and the cameras of its START win
 func (dm *DeviceManager) reattach(cameras []Camera) error {
 	dm.mu.RLock()
 	devices := slices.Collect(maps.Values(dm.devices))
@@ -192,8 +189,7 @@ func (dm *DeviceManager) init() error {
 
 	cleanup, err := dm.client.OnRequest(ns.PluginDeviceManagerSubject, func(data []byte) (any, error) {
 		var msg deviceManagerEventMessage
-		// raw wire bytes, may be a CUIB frame when the host request carried
-		// large binaries; DecodeMessageInto handles plain msgpack unchanged
+		// may be a CUIB frame when the host request carried large binaries
 		if err := rpc.DecodeMessageInto(data, &msg); err != nil {
 			return nil, err
 		}
@@ -222,8 +218,7 @@ func (dm *DeviceManager) close() {
 		dm.closeRequest = nil
 	}
 
-	// snapshot under the lock, then release it before invoking cleanup: a device
-	// cleanup must never run while the manager mutex is held
+	// a device cleanup must never run while the manager mutex is held
 	dm.mu.Lock()
 	cleanups := make([]func(), 0, len(dm.devices))
 	for _, device := range dm.devices {

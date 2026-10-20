@@ -12,11 +12,7 @@ export enum BatteryCapability {
   Charging = 'charging',
 }
 
-/**
- * Property names of a battery info sensor.
- *
- * @internal
- */
+/** @internal */
 export enum BatteryProperty {
   /** Battery level percentage (0-100). */
   Level = 'level',
@@ -38,11 +34,7 @@ export enum ChargingState {
   Full = 'FULL',
 }
 
-/**
- * Property values of a battery info sensor.
- *
- * @internal
- */
+/** @internal */
 export interface BatteryInfoProperties {
   [BatteryProperty.Level]: number;
   [BatteryProperty.Charging]: ChargingState;
@@ -136,11 +128,7 @@ export class BatteryInfo<TStorage extends object = Record<string, any>> extends 
     this._writeState({ [BatteryProperty.Low]: value });
   }
 
-  /**
-   * Read-only sensor: external writes are ignored.
-   *
-   * @internal
-   */
+  /** @internal */
   updateValue(_property: string, _value: unknown): void {}
 }
 

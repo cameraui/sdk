@@ -6,11 +6,7 @@ import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 import type { Detection, DetectionLabel, VideoFrameData } from './detection.js';
 import type { ObjectModelSpec } from './spec.js';
 
-/**
- * Property names of an object detection sensor.
- *
- * @internal
- */
+/** @internal */
 export enum ObjectProperty {
   /** Whether any object is currently detected. */
   Detected = 'detected',
@@ -41,11 +37,7 @@ export interface TrackedDetection extends Detection {
   stationarySince?: number;
 }
 
-/**
- * Property values of an object detection sensor.
- *
- * @internal
- */
+/** @internal */
 export interface ObjectSensorProperties {
   [ObjectProperty.Detected]: boolean;
   [ObjectProperty.Detections]: TrackedDetection[];
@@ -146,11 +138,7 @@ export class ObjectSensor<TStorage extends object = Record<string, any>> extends
     this.reportDetections(false);
   }
 
-  /**
-   * Read-only sensor: external writes are ignored.
-   *
-   * @internal
-   */
+  /** @internal */
   updateValue(_property: string, _value: unknown): void {}
 }
 

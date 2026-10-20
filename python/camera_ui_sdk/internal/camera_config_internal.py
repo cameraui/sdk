@@ -7,44 +7,23 @@ from ..camera.enums import CameraRole, StreamingRole
 
 
 class CameraInputSettings(TypedDict):
-    """Camera input settings (user configuration)."""
-
     _id: str
-    """Unique source ID."""
     name: str
-    """Source display name."""
     role: CameraRole
-    """Resolution role."""
     useForSnapshot: bool
-    """Use this source for snapshots."""
     hotMode: bool
-    """Keep connection always active."""
     preload: bool
-    """Keep a keyframe cache for this source, so the view opens faster. Use ``hotMode`` to keep the stream connected."""
     muted: NotRequired[bool]
-    """Strip the audio track from this source (defaults to False)."""
     urls: list[str]
-    """User-provided stream URLs."""
     childSourceId: NotRequired[str]
-    """Child source ID (for snapshot fallback)."""
     childCameraId: NotRequired[str]
-    """Camera whose stream shows in the picture-in-picture overlay, instead of a source of this camera."""
     childCameraRole: NotRequired[StreamingRole]
-    """Role of the ``childCameraId`` stream shown in the overlay."""
 
 
 class CameraConfigPartial(TypedDict, total=False):
-    """Camera configuration subset for partial updates."""
-
     name: str
-    """Camera display name."""
     nativeId: str
-    """Native device ID from plugin."""
     isCloud: bool
-    """Whether camera streams from cloud."""
     disabled: bool
-    """Disable this camera."""
     info: CameraInformation
-    """Camera hardware information."""
     sources: list[CameraConfigInputSettings]
-    """Video input sources."""

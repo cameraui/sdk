@@ -8,8 +8,6 @@ import (
 	rpc "github.com/cameraui/rpc/go"
 )
 
-// the SDK stamps RemotePluginID for remote-hosted plugins so the master streams
-// the file via the file-serve RPC, deliberately off the public options struct
 type createDownloadWire struct {
 	CreateDownloadOptions
 	RemotePluginID string `msgpack:"remotePluginId,omitempty" json:"remotePluginId,omitempty"`
@@ -104,7 +102,6 @@ func remotePluginID() string {
 	return os.Getenv("PLUGIN_ID")
 }
 
-// expiresAt arrives as int64, float64 or uint64 depending on the encoder path
 func decodeDownloadToken(m map[string]any) DownloadToken {
 	token, _ := m["token"].(string)
 	url, _ := m["url"].(string)

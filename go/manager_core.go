@@ -154,8 +154,7 @@ func (cm *CoreManager) AssistantAccess(ctx context.Context) (*AssistantAccess, e
 
 // GetFFmpegPath returns the path to the FFmpeg binary.
 func (cm *CoreManager) GetFFmpegPath() (string, error) {
-	// remote-hosted: the master's path points at the wrong machine, the worker
-	// injects its own bundled ffmpeg at spawn time
+	// remote-hosted: the worker injects its own ffmpeg, the master's path is on another machine
 	if path := os.Getenv("CAMERAUI_FFMPEG_PATH"); path != "" {
 		return path, nil
 	}

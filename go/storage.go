@@ -14,8 +14,7 @@ import (
 
 const maxSafeStoreInt = 1<<53 - 1
 
-// bounds recursion so a circular reference errors out instead of overflowing the stack
-const maxStoreValueDepth = 64
+const maxStoreValueDepth = 64 // a circular reference errors out instead of overflowing the stack
 
 // DeviceStorage is the schema-driven configuration store for a plugin,
 // camera, or sensor. Define the fields the UI renders via DefineSchemas,
@@ -34,9 +33,7 @@ const maxStoreValueDepth = 64
 //	    log.Error("persist failed:", err)
 //	}
 type DeviceStorage struct {
-	mu sync.RWMutex
-	// held from taking the values snapshot until it is enqueued, so an older
-	// snapshot can never overwrite a newer one; never held across the flush wait
+	mu          sync.RWMutex
 	persistMu   sync.Mutex
 	persistence configPersistence
 	location    storeLocation
@@ -44,10 +41,7 @@ type DeviceStorage struct {
 	Values      map[string]any
 	logger      *Logger
 
-	// forces the next write even when the value compares unchanged: the last
-	// persist failed, or a schema change flipped a key's storable-ness
-	dirty bool
-	// guards dirty, only the persist holding the newest snapshot may clear it
+	dirty      bool
 	persistSeq uint64
 
 	closeHandler rpc.CleanupFunc
@@ -118,8 +112,7 @@ func (ds *DeviceStorage) SetValue(key string, value any) error {
 		return err
 	}
 
-	// RPC msgpack decodes numbers to the narrowest fitting type (int8, uint64, …);
-	// normalize so stored values and OnSet payloads match the load path
+	// msgpack decodes numbers to the narrowest type, normalize so stored values and OnSet payloads match the load path
 	value = normalizeStoreValue(deepCopyValue(value))
 
 	ds.mu.Lock()
@@ -138,8 +131,7 @@ func (ds *DeviceStorage) SetValue(key string, value any) error {
 	if value == nil {
 		delete(ds.Values, key)
 	} else {
-		// Store an owned copy: a caller may mutate the value it passed in and
-		// re-set it, and the next compare needs the previous state, not an alias.
+		// owned copy, a caller may mutate the value it passed in and set it again
 		ds.Values[key] = deepCopyValue(value)
 	}
 
@@ -159,7 +151,7 @@ func (ds *DeviceStorage) SetValue(key string, value any) error {
 		err = ds.persist()
 	}
 
-	// Detached: the callback may call back into this storage.
+	// detached, the callback may call back into this storage
 	if onSet != nil {
 		go onSet(value, oldValue)
 	}
@@ -267,7 +259,7 @@ func (ds *DeviceStorage) SetConfig(newConfig map[string]any) error {
 		}
 	}
 
-	// same normalization as SetValue, see there
+	// same normalization as SetValue
 	newConfig, _ = normalizeStoreValue(deepCopyValue(newConfig)).(map[string]any)
 
 	type pendingCallback struct {
@@ -301,7 +293,7 @@ func (ds *DeviceStorage) SetConfig(newConfig map[string]any) error {
 	err := ds.persist()
 
 	if len(pending) > 0 {
-		// Detached: callbacks may call back into this storage.
+		// detached, callbacks may call back into this storage
 		go func() {
 			for _, cb := range pending {
 				cb.onSet(cb.newValue, cb.oldValue)
@@ -363,8 +355,7 @@ func (ds *DeviceStorage) ChangeSchema(key string, newSchema *JsonSchema) error {
 		if ds.Schemas[i].Key == key {
 			if schemaStorable(&ds.Schemas[i]) != schemaStorable(newSchema) {
 				ds.dirty = true
-				// Bump the sequence so an in-flight persist whose snapshot
-				// predates the flip cannot clear the flag.
+				// bump the sequence so an in-flight persist from before the flip cannot clear the flag
 				ds.persistSeq++
 			}
 			ds.Schemas[i] = *newSchema
@@ -444,7 +435,7 @@ func (ds *DeviceStorage) SetInternalValue(key string, value any) error {
 		return err
 	}
 
-	// same normalization as SetValue, see there
+	// same normalization as SetValue
 	value = normalizeStoreValue(deepCopyValue(value))
 
 	ds.mu.Lock()
@@ -452,7 +443,7 @@ func (ds *DeviceStorage) SetInternalValue(key string, value any) error {
 	if value == nil {
 		delete(ds.Values, key)
 	} else {
-		// Owned copy, same reasoning as SetValue.
+		// owned copy, same as SetValue
 		ds.Values[key] = deepCopyValue(value)
 	}
 
@@ -488,8 +479,8 @@ func (ds *DeviceStorage) Destroy() error {
 	return ds.persist()
 }
 
-// caller must hold ds.mu
 func (ds *DeviceStorage) persistedValues() map[string]any {
+	// caller holds ds.mu
 	out := make(map[string]any, len(ds.Values))
 	for key, val := range ds.Values {
 		schema := ds.findSchemaByKey(key)
@@ -500,9 +491,8 @@ func (ds *DeviceStorage) persistedValues() map[string]any {
 	return out
 }
 
-// must not be called holding ds.mu or ds.persistMu, the wait blocks on disk or
-// on the master's acknowledgement
 func (ds *DeviceStorage) persist() error {
+	// never call holding ds.mu or ds.persistMu, the wait blocks on disk or on the master
 	ds.persistMu.Lock()
 	ds.mu.Lock()
 	values := ds.persistedValues()
@@ -515,7 +505,7 @@ func (ds *DeviceStorage) persist() error {
 	err := wait()
 
 	ds.mu.Lock()
-	// A newer snapshot supersedes this one: leave dirty to its persist.
+	// a newer snapshot supersedes this one, leave dirty to its persist
 	if seq == ds.persistSeq {
 		ds.dirty = err != nil
 	}
@@ -528,8 +518,8 @@ func (ds *DeviceStorage) hasValueLocked(key string) bool {
 	return ok
 }
 
-// caller must hold ds.mu; a dotted schema key also owns its top-level segment
 func (ds *DeviceStorage) schemaOwnsKey(key string) bool {
+	// caller holds ds.mu, a dotted schema key also owns its top-level segment
 	for i := range ds.Schemas {
 		k := ds.Schemas[i].Key
 		if k == key || strings.HasPrefix(k, key+".") || strings.HasPrefix(k, key+"[") {
@@ -539,8 +529,8 @@ func (ds *DeviceStorage) schemaOwnsKey(key string) bool {
 	return false
 }
 
-// caller must hold ds.mu, read or write
 func (ds *DeviceStorage) findSchemaByKey(key string) *JsonSchema {
+	// caller holds ds.mu, read or write
 	for i := range ds.Schemas {
 		if ds.Schemas[i].Key == key {
 			return &ds.Schemas[i]
@@ -556,8 +546,8 @@ func (ds *DeviceStorage) unregister() {
 	}
 }
 
-// OnGet may read back into this storage, so it runs without ds.mu held
 func (ds *DeviceStorage) resolveOnGet(schemas []JsonSchema) {
+	// OnGet may read back into this storage, so it runs without ds.mu held
 	for i := range schemas {
 		s := &schemas[i]
 		if s.OnGet == nil || s.Type == JsonSchemaTypeButton || s.Type == JsonSchemaTypeSubmit {
@@ -748,8 +738,6 @@ func checkStoreUint(n uint64, path string) error {
 	return nil
 }
 
-// numbers are normalized first, serialization paths type the same logical value
-// differently (JSON float64, msgpack int64/uint64, Go int)
 func deepEqualLoose(a, b any) bool {
 	if a == nil && b == nil {
 		return true

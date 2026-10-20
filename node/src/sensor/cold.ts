@@ -4,21 +4,13 @@ import { defineSensor, SensorDomain } from './meta.js';
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/**
- * Property names of a cold sensor.
- *
- * @internal
- */
+/** @internal */
 export enum ColdProperty {
   /** Whether abnormal cold is detected. */
   Detected = 'detected',
 }
 
-/**
- * Property values of a cold sensor.
- *
- * @internal
- */
+/** @internal */
 export interface ColdSensorProperties {
   [ColdProperty.Detected]: boolean;
 }
@@ -61,11 +53,7 @@ export class ColdSensor<TStorage extends object = Record<string, any>> extends S
     this._writeState({ [ColdProperty.Detected]: value });
   }
 
-  /**
-   * Read-only sensor: external writes are ignored.
-   *
-   * @internal
-   */
+  /** @internal */
   updateValue(_property: string, _value: unknown): void {}
 }
 

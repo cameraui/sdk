@@ -24,11 +24,7 @@ export enum PTZCapability {
   VelocityControl = 'velocityControl',
 }
 
-/**
- * Property names of a PTZ control.
- *
- * @internal
- */
+/** @internal */
 export enum PTZProperty {
   /** Current pan/tilt/zoom position. */
   Position = 'position',
@@ -86,11 +82,7 @@ export interface PTZRelativeMove {
   zoomDelta: number;
 }
 
-/**
- * Property values of a PTZ control.
- *
- * @internal
- */
+/** @internal */
 export interface PTZControlProperties {
   [PTZProperty.Position]: PTZPosition;
   [PTZProperty.Moving]: boolean;
@@ -265,11 +257,7 @@ export class PTZControl<TStorage extends object = Record<string, any>> extends S
     await this.setPosition({ pan: 0, tilt: 0, zoom: 0 });
   }
 
-  /**
-   * Routes generic property writes to the semantic setters.
-   *
-   * @internal
-   */
+  /** @internal */
   async updateValue(property: string, value: unknown): Promise<void> {
     switch (property as PTZProperty) {
       case PTZProperty.Position:

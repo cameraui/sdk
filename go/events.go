@@ -75,10 +75,9 @@ type storedSensorData struct {
 	RequiresFrames    bool              `msgpack:"requiresFrames,omitempty"`
 }
 
-// Data stays map[string]any, msgpack reflection panics on an inner any-typed Value
 type sensorEventMessage struct {
 	Type string         `msgpack:"type"`
-	Data map[string]any `msgpack:"data"`
+	Data map[string]any `msgpack:"data"` // msgpack reflection panics on an inner any-typed Value
 }
 
 type deviceManagerEventMessage struct {

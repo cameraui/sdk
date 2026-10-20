@@ -1,7 +1,6 @@
 import type { BaseCameraConfig, CameraConfigInputSettings } from '../camera/config.js';
 import type { CameraRole, StreamingRole } from '../camera/enums.js';
 
-/** Camera input settings (user configuration). */
 export interface CameraInputSettings {
   /** Unique source ID. */
   readonly _id: string;
@@ -33,5 +32,4 @@ export interface CameraInputSettings {
   childCameraRole?: StreamingRole;
 }
 
-/** Camera configuration subset for partial updates. */
 export type CameraConfigPartial = Partial<BaseCameraConfig> & { sources?: Partial<CameraConfigInputSettings>[] };

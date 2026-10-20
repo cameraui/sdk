@@ -4,21 +4,13 @@ import { defineSensor, SensorDomain } from './meta.js';
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/**
- * Property names of a doorbell trigger.
- *
- * @internal
- */
+/** @internal */
 export enum DoorbellProperty {
   /** Whether the doorbell is currently ringing. */
   Ring = 'ring',
 }
 
-/**
- * Property values of a doorbell trigger.
- *
- * @internal
- */
+/** @internal */
 export interface DoorbellTriggerProperties {
   [DoorbellProperty.Ring]: boolean;
 }
@@ -79,12 +71,9 @@ export class DoorbellTrigger<TStorage extends object = Record<string, any>> exte
     }, RING_AUTO_RESET_MS);
   }
 
-  /**
-   * Routes generic property writes to the semantic setters. Writing `ring=false` is ignored, the auto-reset timer owns the off transition.
-   *
-   * @internal
-   */
+  /** @internal */
   updateValue(property: string, value: unknown): void {
+    // ring=false is ignored, the auto-reset timer owns the off transition
     if ((property as DoorbellProperty) === DoorbellProperty.Ring && value) {
       this.trigger();
     }

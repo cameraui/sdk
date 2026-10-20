@@ -57,11 +57,7 @@ export abstract class SegmenterSensor<TStorage extends object = Record<string, a
    */
   abstract segmentObjects(frames: SegmentationFrame[]): Promise<SegmentationResult[]>;
 
-  /**
-   * Read-only sensor: external writes are ignored.
-   *
-   * @internal
-   */
+  /** @internal */
   updateValue(_property: string, _value: unknown): void {}
 }
 

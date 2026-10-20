@@ -54,68 +54,39 @@ if TYPE_CHECKING:
 
 
 class PropertyChangedEvent(TypedDict):
-    """Emitted when a sensor property value changes."""
-
     sensorId: str
-    """Sensor that changed."""
     sensorType: SensorType
-    """Type of the sensor that changed."""
     property: str
-    """Property key that changed."""
     value: object
-    """New value."""
-    previousValue: NotRequired[object]
-    """Not sent by the server, keep the last value yourself if you need it."""
-    timestamp: int
-    """Change time in epoch milliseconds."""
+    previousValue: NotRequired[object]  # never sent by the server
+    timestamp: int  # epoch ms
 
 
 PropertyUpdateFn = Callable[[dict[str, Any]], None]
-"""Receives a partial-state delta, one call per ``_write_state``."""
 
 CapabilityUpdateFn = Callable[[list[str]], None]
-"""Receives the full capability list whenever it changes."""
 
 
 class SensorSourcePatch(TypedDict):
-    """Source fields a sensor reports to the registry, only the changed ones."""
-
     sourceState: NotRequired[SensorSourceState]
     address: NotRequired[str]
 
 
 SourceUpdateFn = Callable[[SensorSourcePatch], None]
-"""Receives a source patch, one call per ``setSourceState`` / ``setAddress``."""
 
 
 class SensorJSON(TypedDict):
-    """JSON-serializable representation of a sensor for RPC transport."""
-
     id: str
-    """Sensor ID."""
     type: SensorType
-    """Sensor type."""
     name: str
-    """Internal name."""
     displayName: str
-    """Name shown in the UI."""
     category: SensorCategory
-    """Category the sensor belongs to."""
     nativeId: NotRequired[str]
-    """Device ID assigned by the plugin."""
     origin: NotRequired[str]
-    """Source system the sensor was imported from, e.g. ``'homeassistant'``."""
     pluginId: NotRequired[str]
-    """Plugin that owns the sensor."""
     properties: dict[str, Any]
-    """Current property values."""
     capabilities: NotRequired[list[str]]
-    """Capability keys the sensor reports."""
     requiresFrames: NotRequired[bool]
-    """Sensor needs a frame feed to work."""
     modelSpec: NotRequired[ModelSpec]
-    """Model the sensor runs, for ML-backed sensors."""
     sourceState: NotRequired[SensorSourceState]
-    """The plugin's view of the source behind an adopted sensor."""
     address: NotRequired[str]
-    """Current address at the source, e.g. a Home Assistant entity id."""

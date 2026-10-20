@@ -1,6 +1,5 @@
 @import 'vitepress/dist/client/theme-default/styles/vars.css';
 
-/* camera.ui brand colors — mirror ui/src/plugins/preset.ts */
 :root {
   --cui-primary-50: #fdf4f6;
   --cui-primary-100: #f7ccd4;
@@ -55,7 +54,6 @@
   --vp-custom-block-tip-code-bg: var(--vp-c-brand-soft);
 }
 
-/* dark surface palette mirrors ui preset.ts (neutral grey, not slate) */
 .dark {
   --cui-surface-0: #ffffff;
   --cui-surface-50: #f5f5f5;
@@ -107,7 +105,6 @@
   --vp-custom-block-tip-text: var(--cui-primary-200);
 }
 
-/* Pull search/box accents in line with brand */
 .dark .DocSearch {
   --docsearch-primary-color: var(--cui-primary-400);
 }

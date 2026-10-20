@@ -4,21 +4,13 @@ import { defineSensor, SensorDomain } from './meta.js';
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/**
- * Property names of a vibration sensor.
- *
- * @internal
- */
+/** @internal */
 export enum VibrationProperty {
   /** Whether vibration is detected. */
   Detected = 'detected',
 }
 
-/**
- * Property values of a vibration sensor.
- *
- * @internal
- */
+/** @internal */
 export interface VibrationSensorProperties {
   [VibrationProperty.Detected]: boolean;
 }
@@ -61,11 +53,7 @@ export class VibrationSensor<TStorage extends object = Record<string, any>> exte
     this._writeState({ [VibrationProperty.Detected]: value });
   }
 
-  /**
-   * Read-only sensor: external writes are ignored.
-   *
-   * @internal
-   */
+  /** @internal */
   updateValue(_property: string, _value: unknown): void {}
 }
 

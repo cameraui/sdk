@@ -210,7 +210,6 @@ describe('ReplaySubject', () => {
     const values: number[] = [];
     subject.subscribe((v) => values.push(v));
 
-    // Replays what was buffered before complete, but no live delivery
     expect(values).toEqual([1]);
   });
 });
@@ -384,7 +383,6 @@ describe('share', () => {
     shared.subscribe((v) => a.push(v));
     shared.subscribe((v) => b.push(v));
 
-    // Source subscribed only once
     expect(subscribeCount).toBe(1);
   });
 
@@ -417,12 +415,9 @@ describe('share', () => {
 
     subject.next(1);
 
-    // Subscribe after value was emitted; ReplaySubject should replay
+    // share() connects on the first subscribe, so the 1 emitted before it is lost
     const sub1 = shared.subscribe((v) => values.push(v));
 
-    // The source subscription happens on first subscribe, so the
-    // value emitted before any subscriber won't be caught.
-    // But subsequent values should be shared:
     subject.next(2);
     const lateValues: number[] = [];
     shared.subscribe((v) => lateValues.push(v));

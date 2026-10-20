@@ -16,10 +16,8 @@ const (
 	stopBudgetEnv   = "CAMERAUI_STOP_BUDGET_MS"
 )
 
-// a child that speaks it survives a new master run: it answers resume and takes a second start
-const handshakeLevel = 2
+const handshakeLevel = 2 // answers resume and takes a second start, so the child survives a new master run
 
-// under an older host, or started by hand, the plugin behaves as before
 func hostSpeaksStopLine() bool {
 	level, err := strconv.Atoi(os.Getenv(hostProtocolEnv))
 	return err == nil && level >= hostProtocol
@@ -45,7 +43,6 @@ func parseStopLine(line string) (time.Duration, bool) {
 	return time.Duration(request.Stop.BudgetMs * float64(time.Millisecond)), true
 }
 
-// a closed stdin means the host is gone or wants us gone, both end in the same ordered stop
 func watchHostStop(stop func(budget time.Duration)) {
 	if !hostSpeaksStopLine() {
 		return
@@ -60,6 +57,7 @@ func watchHostStop(stop func(budget time.Duration)) {
 				return
 			}
 		}
+		// stdin closed: the host is gone or wants us gone, both end in the same ordered stop
 		stop(0)
 	}()
 }

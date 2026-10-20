@@ -4,21 +4,13 @@ import { defineSensor, SensorDomain } from './meta.js';
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/**
- * Property names of an occupancy sensor.
- *
- * @internal
- */
+/** @internal */
 export enum OccupancyProperty {
   /** Whether occupancy is detected (true = occupied). */
   Detected = 'detected',
 }
 
-/**
- * Property values of an occupancy sensor.
- *
- * @internal
- */
+/** @internal */
 export interface OccupancySensorProperties {
   [OccupancyProperty.Detected]: boolean;
 }
@@ -61,11 +53,7 @@ export class OccupancySensor<TStorage extends object = Record<string, any>> exte
     this._writeState({ [OccupancyProperty.Detected]: value });
   }
 
-  /**
-   * Read-only sensor: external writes are ignored.
-   *
-   * @internal
-   */
+  /** @internal */
   updateValue(_property: string, _value: unknown): void {}
 }
 

@@ -168,11 +168,7 @@ export class Subject<T> {
     }
   }
 
-  /**
-   * Registers a handler invoked once when this Subject completes, immediately if already completed.
-   *
-   * @internal
-   */
+  /** @internal */
   _onComplete(handler: () => void): Disposable {
     if (this.#completed) {
       handler();
@@ -586,9 +582,7 @@ export function share<T>(config?: { connector: () => Subject<T> }): OperatorFn<T
 export function firstValueFrom<T>(observable: Observable<T> | Subject<T> | ReplaySubject<T> | BehaviorSubject<T>): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     let settled = false;
-    // callbacks may fire synchronously during subscribe()/_onComplete()
-    // (BehaviorSubject/ReplaySubject/already-completed), so the handles must
-    // exist before either call
+    // callbacks may fire synchronously inside subscribe()/_onComplete(), so the handles must exist first
     let valueSub: Disposable | undefined = undefined;
     let completeSub: Disposable | undefined = undefined;
     const cleanup = (): void => {

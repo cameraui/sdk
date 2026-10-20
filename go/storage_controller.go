@@ -71,8 +71,8 @@ func (sc *StorageController) createCameraStorage(cameraID string) (*DeviceStorag
 	return storage, nil
 }
 
-// sensorID must be the persistent entity id, stable across restarts
 func (sc *StorageController) createSensorStorage(sensorID string) (*DeviceStorage, error) {
+	// sensorID must be the persistent id, stable across restarts
 	key := "sensor." + sensorID
 	if existing := sc.storages[key]; existing != nil {
 		return existing, nil
@@ -92,16 +92,15 @@ func (sc *StorageController) createSensorStorage(sensorID string) (*DeviceStorag
 	return storage, nil
 }
 
-// a released camera can come back via toggle, keep schemas and persisted values, only the handler goes away
 func (sc *StorageController) releaseCameraStorage(cameraID string) {
+	// a released camera can come back via toggle, only the handler goes away
 	if storage := sc.storages["camera."+cameraID]; storage != nil {
 		storage.unregister()
 	}
 }
 
-// runs last in teardown so final writes from device and sensor cleanup have landed;
-// saves stay in order on the one config document, only the handler drains overlap
 func (sc *StorageController) close() {
+	// saves stay in order on the one config document, only the handler drains overlap
 	unregisters := make([]func(), 0, len(sc.storages))
 	for _, storage := range sc.storages {
 		if err := storage.Save(); err != nil {

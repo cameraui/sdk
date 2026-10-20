@@ -18,11 +18,7 @@ export enum SecuritySystemState {
   AlarmTriggered = 4,
 }
 
-/**
- * Property names of a security system control.
- *
- * @internal
- */
+/** @internal */
 export enum SecuritySystemProperty {
   /** The actual current state of the security system. */
   CurrentState = 'currentState',
@@ -30,11 +26,7 @@ export enum SecuritySystemProperty {
   TargetState = 'targetState',
 }
 
-/**
- * Property values of a security system control.
- *
- * @internal
- */
+/** @internal */
 export interface SecuritySystemProperties {
   [SecuritySystemProperty.CurrentState]: SecuritySystemState;
   [SecuritySystemProperty.TargetState]: SecuritySystemState;
@@ -114,11 +106,7 @@ export class SecuritySystem<TStorage extends object = Record<string, any>> exten
     this._writeState({ [SecuritySystemProperty.CurrentState]: value });
   }
 
-  /**
-   * Routes generic property writes to the semantic setters.
-   *
-   * @internal
-   */
+  /** @internal */
   async updateValue(property: string, value: unknown): Promise<void> {
     if ((property as SecuritySystemProperty) === SecuritySystemProperty.TargetState) {
       await this.setTargetState(value as SecuritySystemState);

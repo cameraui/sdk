@@ -20,33 +20,25 @@ if TYPE_CHECKING:
     from .streaming_internal import IceServer
 
 __all__ = [
-    # Events
     "AsyncEventEmitter",
-    # Manager
     "ConnectionStatus",
     "DiscoveredCameraWithState",
-    # Sensor wire-format / RPC
     "SensorJSON",
     "PropertyChangedEvent",
     "PropertyUpdateFn",
     "CapabilityUpdateFn",
     "SensorSourcePatch",
     "SourceUpdateFn",
-    # Camera wire-format
     "DetectionEventMessage",
-    # Streaming
     "IceServer",
-    # Camera enums
     "FrameType",
     "CameraFrameWorkerDecoder",
-    # Camera config
     "CameraInputSettings",
     "CameraConfigPartial",
-    # Utils
     "is_equal",
 ]
 
-# public name → (submodule, attribute), resolved lazily to avoid circular imports during SDK bootstrap
+# resolved lazily to avoid circular imports during SDK bootstrap
 _LAZY: dict[str, tuple[str, str]] = {
     "AsyncEventEmitter": (".event_emitter", "AsyncEventEmitter"),
     "ConnectionStatus": (".manager_rpc", "ConnectionStatus"),
