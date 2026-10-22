@@ -24,14 +24,17 @@ type AssistantAskImage struct {
 }
 
 // AssistantAskRequest is one completion request to the assistant model the
-// admin assigned to this plugin. TimeoutMs defaults to 45 s and is capped at
-// 300 s; pictures are sent only when the assigned model passed the picture test.
+// admin assigned to this plugin. ModelID picks another configured model by its
+// id, the plugin still needs access; an unknown id falls back to the assigned
+// model. TimeoutMs defaults to 45 s and is capped at 300 s; pictures are sent
+// only when the answering model passed the picture test.
 type AssistantAskRequest struct {
 	Prompt       string              `msgpack:"prompt" json:"prompt"`
 	System       string              `msgpack:"system,omitempty" json:"system,omitempty"`
 	Images       []AssistantAskImage `msgpack:"images,omitempty" json:"images,omitempty"`
 	OutputSchema map[string]any      `msgpack:"outputSchema,omitempty" json:"outputSchema,omitempty"`
 	TimeoutMs    int                 `msgpack:"timeoutMs,omitempty" json:"timeoutMs,omitempty"`
+	ModelID      string              `msgpack:"modelId,omitempty" json:"modelId,omitempty"`
 }
 
 // AssistantAskUsage counts the tokens one ask consumed.

@@ -43,6 +43,8 @@ export interface AssistantAskRequest {
   outputSchema?: Record<string, unknown>;
   /** Timeout in milliseconds, default 45 s, at most 300 s. */
   timeoutMs?: number;
+  /** Id of a configured model to answer with instead of the assigned one. The plugin still needs access, an unknown id falls back to the assigned model. */
+  modelId?: string;
 }
 
 /**

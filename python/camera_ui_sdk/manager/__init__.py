@@ -48,6 +48,8 @@ class AssistantAskRequest(TypedDict, total=False):
     images: list[AssistantAskImage]
     outputSchema: dict[str, Any]
     timeoutMs: int
+    modelId: str
+    """Id of a configured model to answer with instead of the assigned one. The plugin still needs access, an unknown id falls back to the assigned model."""
 
 
 class AssistantAskResult(TypedDict, total=False):
