@@ -294,9 +294,21 @@ func (d *CameraDevice) LowResolutionSource() *CameraDeviceSource {
 	return d.getSourceByRole(CameraRoleLowRes)
 }
 
-// SnapshotSource returns the snapshot source.
+// SnapshotSource returns the source GetSnapshot uses: the snapshot source or the one marked
+// for snapshots, otherwise the low, mid or high resolution source. Nil when the camera has no source.
 func (d *CameraDevice) SnapshotSource() *CameraDeviceSource {
-	return d.getSourceByRole(CameraRoleSnapshot)
+	if src := d.getSourceByRole(CameraRoleSnapshot); src != nil {
+		return src
+	}
+	if src := d.markedSnapshotSource(); src != nil {
+		return src
+	}
+	for _, role := range []CameraRole{CameraRoleLowRes, CameraRoleMidRes, CameraRoleHighRes} {
+		if src := d.getSourceByRole(role); src != nil {
+			return src
+		}
+	}
+	return nil
 }
 
 // GetSourceByID returns a source by its ID.
@@ -309,6 +321,20 @@ func (d *CameraDevice) GetSourceByID(id string) *CameraDeviceSource {
 		}
 	}
 	return nil
+}
+
+// GetSnapshot returns a JPEG snapshot from SnapshotSource, or nil when the camera has no source.
+// If forceNew is true, the snapshot cache is bypassed.
+//
+// Example:
+//
+//	jpeg, err := camera.GetSnapshot(false)
+func (d *CameraDevice) GetSnapshot(forceNew bool) ([]byte, error) {
+	src := d.SnapshotSource()
+	if src == nil {
+		return nil, nil
+	}
+	return src.Snapshot(forceNew)
 }
 
 // Implement registers a camera implementation for streaming and/or snapshot.
@@ -645,7 +671,7 @@ func (d *CameraDevice) init() error {
 			return d.getStreamURL(sourceID)
 		},
 		"snapshot": func(sourceID string, forceNew bool) ([]byte, error) {
-			return d.getSnapshot(sourceID, forceNew)
+			return d.implSnapshot(sourceID, forceNew)
 		},
 	})
 	if err != nil {
@@ -858,6 +884,17 @@ func (d *CameraDevice) getSourceByRole(role CameraRole) *CameraDeviceSource {
 	return nil
 }
 
+func (d *CameraDevice) markedSnapshotSource() *CameraDeviceSource {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+	for _, src := range d.sources {
+		if src.input.UseForSnapshot {
+			return src
+		}
+	}
+	return nil
+}
+
 func (d *CameraDevice) getStreamURL(sourceID string) (string, error) {
 	d.mu.RLock()
 	impl := d.impl
@@ -874,7 +911,7 @@ func (d *CameraDevice) getStreamURL(sourceID string) (string, error) {
 	return "", fmt.Errorf("source not found: %s", sourceID)
 }
 
-func (d *CameraDevice) getSnapshot(sourceID string, forceNew bool) ([]byte, error) {
+func (d *CameraDevice) implSnapshot(sourceID string, forceNew bool) ([]byte, error) {
 	d.mu.RLock()
 	impl := d.impl
 	d.mu.RUnlock()
@@ -1067,7 +1104,12 @@ func (s *CameraDeviceSource) Preload() bool {
 // Snapshot returns a JPEG snapshot for this source.
 // If forceNew is true, the snapshot cache is bypassed.
 func (s *CameraDeviceSource) Snapshot(forceNew bool) ([]byte, error) {
-	return s.device.getSnapshot(s.input.ID, forceNew)
+	result, err := s.device.controllerProxy.Invoke(context.Background(), "snapshot", s.input.ID, forceNew)
+	if err != nil {
+		return nil, fmt.Errorf("snapshot: %w", err)
+	}
+	data, _ := result.([]byte)
+	return data, nil
 }
 
 // ProbeStream probes this source for codec and track information.

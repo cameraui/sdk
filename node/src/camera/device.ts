@@ -128,7 +128,7 @@ export interface CameraDevice {
   readonly midResolutionSource: CameraDeviceSource | undefined;
   /** Low resolution source (if available). */
   readonly lowResolutionSource: CameraDeviceSource | undefined;
-  /** Snapshot source (if available). */
+  /** Source that getSnapshot uses: the snapshot source or the one marked for snapshots, otherwise the low, mid or high resolution source. */
   readonly snapshotSource: CameraSource | undefined;
   /** Whether camera is connected. */
   readonly connected: boolean;
@@ -151,6 +151,18 @@ export interface CameraDevice {
    * @returns The matching source, or undefined if not found
    */
   getSourceById(id: string): CameraDeviceSource | undefined;
+
+  /**
+   * Get a snapshot from the snapshot source, see `snapshotSource`.
+   *
+   * @param forceNew - Force fresh snapshot (ignore cache)
+   *
+   * @returns JPEG image data, or undefined if the camera has no source or no picture
+   *
+   * @example
+   * const jpeg = await camera.getSnapshot();
+   */
+  getSnapshot(forceNew?: boolean): Promise<ArrayBuffer | undefined>;
 
   /**
    * Create storage for plugin-specific camera configuration.

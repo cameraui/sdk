@@ -355,6 +355,18 @@ FrameWorkerConnected returns whether the frame worker is currently connected.
 
 FrameWorkerSettings returns the frame worker settings.
 
+<a name="CameraDevice.GetSnapshot"></a>
+### func \(\*CameraDevice\) GetSnapshot
+
+	func (d *CameraDevice) GetSnapshot(forceNew bool) ([]byte, error)
+
+GetSnapshot returns a JPEG snapshot from SnapshotSource, or nil when the camera has no source. If forceNew is true, the snapshot cache is bypassed.
+
+Example:
+
+	jpeg, err := camera.GetSnapshot(false)
+	
+
 <a name="CameraDevice.GetSourceByID"></a>
 ### func \(\*CameraDevice\) GetSourceByID
 
@@ -521,7 +533,7 @@ SnapshotSettings returns the snapshot settings.
 
 	func (d *CameraDevice) SnapshotSource() *CameraDeviceSource
 
-SnapshotSource returns the snapshot source.
+SnapshotSource returns the source GetSnapshot uses: the snapshot source or the one marked for snapshots, otherwise the low, mid or high resolution source. Nil when the camera has no source.
 
 <a name="CameraDevice.Snooze"></a>
 ### func \(\*CameraDevice\) Snooze

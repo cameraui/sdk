@@ -245,7 +245,7 @@ class CameraDevice(Protocol):
 
     @property
     def snapshotSource(self) -> CameraSource | None:
-        """Snapshot source (if available)."""
+        """Source that getSnapshot uses: the snapshot source or the one marked for snapshots, otherwise the low, mid or high resolution source."""
         ...
 
     @property
@@ -293,6 +293,21 @@ class CameraDevice(Protocol):
 
         Returns:
             The matching source, or None if not found.
+        """
+        ...
+
+    async def getSnapshot(self, forceNew: bool = False) -> bytes | None:
+        """
+        Get a snapshot from the snapshot source, see ``snapshotSource``.
+
+        Args:
+            forceNew: Force fresh snapshot (ignore cache).
+
+        Returns:
+            JPEG image data, or None if the camera has no source or no picture.
+
+        Example:
+            jpeg = await camera.getSnapshot()
         """
         ...
 
