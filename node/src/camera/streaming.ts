@@ -226,6 +226,8 @@ export interface RtpSessionOptions {
     height?: number;
     /** Maximum output bitrate in bits per second. */
     bitrate?: number;
+    /** Transcode even when the camera already sends the requested codec, so size, frame rate and bitrate apply. */
+    transcode?: boolean;
     /** Additional encoder options. */
     encoderOptions?: Record<string, string | number | boolean | undefined | null>;
   };
@@ -312,6 +314,12 @@ export interface RtpSession extends Subscribed {
    */
   sendAudioPacket(rtp: RtpPacket | Buffer): Promise<void>;
 
+  /**
+   * Encode the next video frame as a keyframe, so a receiver that lost packets can resync.
+   * Only applies while the session transcodes the video, a stream passed through keeps the camera's keyframes.
+   */
+  requestKeyframe(): void;
+
   /** Stop the stream and cleanup resources. */
   stop(): Promise<void>;
 }
@@ -346,6 +354,8 @@ export interface Fmp4SessionOptions {
     height?: number;
     /** Maximum video bitrate in bits per second. */
     bitrate?: number;
+    /** Transcode to H.264 even when the camera already sends a supported codec, so size, frame rate and bitrate apply. */
+    transcode?: boolean;
     /** Additional encoder options. */
     encoderOptions?: Record<string, string | number | boolean | undefined | null>;
   };
