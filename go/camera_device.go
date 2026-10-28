@@ -401,12 +401,7 @@ func (d *CameraDevice) addSensor(s Sensor) error {
 	}
 	si.setPluginID(d.info.ID)
 
-	sensorJSON := si.ToJSON()
-
-	// derived nativeId keeps per-camera instances of same-named sensors distinct
-	if sensorJSON.NativeID == "" {
-		sensorJSON.NativeID = fmt.Sprintf("%s:%s:%s", d.camera.ID, s.GetType(), s.GetName())
-	}
+	sensorJSON := d.registrationJSON(s, si)
 
 	// resolve the id before registering, the registration data (modelSpec) may read sensor storage
 	ctx := context.Background()
@@ -540,6 +535,15 @@ func (d *CameraDevice) addSensor(s Sensor) error {
 	setActiveWithLifecycle(s, true)
 
 	return nil
+}
+
+func (d *CameraDevice) registrationJSON(s Sensor, si sensorInternalInit) sensorJSON {
+	out := si.ToJSON()
+	// derived nativeId keeps per-camera instances of same-named sensors distinct
+	if out.NativeID == "" {
+		out.NativeID = fmt.Sprintf("%s:%s:%s", d.camera.ID, s.GetType(), s.GetName())
+	}
+	return out
 }
 
 // RemoveSensor unregisters a sensor this plugin registered on this camera.
@@ -707,7 +711,7 @@ func (d *CameraDevice) reattach() error {
 		if !ok {
 			continue
 		}
-		sensorJSON := si.ToJSON()
+		sensorJSON := d.registrationJSON(s, si)
 		sensorJSON.ModelSpec = detectorModelSpec(s)
 		result, err := d.registryProxy.Invoke(ctx, "registerSensor", sensorJSON, d.info.ID, map[string]any{"assignCameraId": d.camera.ID})
 		if err != nil {
