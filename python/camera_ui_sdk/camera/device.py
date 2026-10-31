@@ -14,6 +14,7 @@ from .config import (
     CameraPropertyObservableObject,
     CameraPublicProperties,
     CameraUiSettings,
+    PluginAssignments,
 )
 from .detection import (
     CameraDetectionSettings,
@@ -181,6 +182,11 @@ class CameraDevice(Protocol):
     @property
     def isCloud(self) -> bool:
         """Whether camera streams from cloud."""
+        ...
+
+    @property
+    def assignments(self) -> PluginAssignments:
+        """Which plugin provides each sensor type of the camera."""
         ...
 
     @property

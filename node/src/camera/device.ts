@@ -2,7 +2,7 @@ import type { Observable } from '../observable/index.js';
 import type { Sensor } from '../sensor/base.js';
 import type { DeviceStorage, JsonSchema } from '../storage/index.js';
 import type { LoggerService } from '../types.js';
-import type { Camera, CameraInformation, CameraInput, CameraPluginInfo, CameraUiSettings } from './config.js';
+import type { Camera, CameraInformation, CameraInput, CameraPluginInfo, CameraUiSettings, PluginAssignments } from './config.js';
 import type { CameraDetectionSettings, CameraZones, PtzAutotrackSettings } from './detection.js';
 import type { CameraRecordingSettings } from './recording.js';
 import type { CameraType, DetectionEventType } from './enums.js';
@@ -104,6 +104,8 @@ export interface CameraDevice {
   readonly info: CameraInformation;
   /** Whether camera streams from cloud. */
   readonly isCloud: boolean;
+  /** Which plugin provides each sensor type of the camera. */
+  readonly assignments: PluginAssignments;
   /** Zone configurations, one list per purpose. */
   readonly zones: CameraZones;
   /** Detection settings. */

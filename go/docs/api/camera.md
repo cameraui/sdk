@@ -306,6 +306,13 @@ AddSensor registers a sensor that belongs to this camera's hardware \(spotlight,
 
 Registering here declares "this sensor belongs to this camera and no other": the assignment is locked, users cannot re\-assign it. Sensors the user should assign freely come in through SensorDiscoveryProvider instead.
 
+<a name="CameraDevice.Assignments"></a>
+### func \(\*CameraDevice\) Assignments
+
+	func (d *CameraDevice) Assignments() PluginAssignments
+
+Assignments returns which plugin provides each sensor type of the camera.
+
 <a name="CameraDevice.Connect"></a>
 ### func \(\*CameraDevice\) Connect
 

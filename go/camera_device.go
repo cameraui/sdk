@@ -192,6 +192,13 @@ func (d *CameraDevice) IsCloud() bool {
 	return d.camera.IsCloud
 }
 
+// Assignments returns which plugin provides each sensor type of the camera.
+func (d *CameraDevice) Assignments() PluginAssignments {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+	return d.camera.Assignments
+}
+
 // Zones returns the camera's zone configurations, one list per purpose.
 func (d *CameraDevice) Zones() CameraZones {
 	d.mu.RLock()
