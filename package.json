@@ -29,7 +29,7 @@
     "test:unit": "npm run test:unit:node && npm run test:unit:go && npm run test:unit:python",
     "test": "npm run test:unit",
     "release": "bash scripts/release.sh",
-    "update": "updates -M npm,pypi,go,cargo,docker,make --update ./ && updates -M npm,pypi,go,cargo,docker,make --file go,node,python --update ./"
+    "update": "updates -M npm,pypi,go,cargo,docker --update ./ && updates -M npm,pypi,go,cargo,docker --file go,node,python --update ./"
   },
   "homepage": "https://github.com/cameraui/sdk#readme",
   "bugs": {
