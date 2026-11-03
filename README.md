@@ -16,4 +16,4 @@ Available for three runtimes:
 
 ---
 
-_Part of the camera.ui ecosystem - A comprehensive camera management solution._
+_Part of camera.ui, the local-first camera and NVR platform._
