@@ -42,7 +42,7 @@
     "globals": "^17.14.0",
     "prettier": "^3.9.10",
     "rimraf": "^6.1.4",
-    "rollup": "^4.67.4",
+    "rollup": "^4.67.5",
     "rollup-plugin-dts": "^6.5.1",
     "tslib": "^2.9.1",
     "tsyringe": "^4.10.0",
