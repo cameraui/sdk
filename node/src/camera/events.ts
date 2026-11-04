@@ -38,6 +38,8 @@ export interface EventTrigger {
   firstSeen: number;
   /** Last detection time (Unix ms). */
   lastSeen: number;
+  /** Start and end (Unix ms) of each time the trigger fired, a pause starts a new entry. Not kept for motion. */
+  occurrences?: [number, number][];
   /** Name of the crossed line (only for line-crossing triggers). */
   lineName?: string;
   /** Crossing direction (only for line-crossing triggers). */
