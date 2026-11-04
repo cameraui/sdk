@@ -43,7 +43,7 @@ type EventTrigger struct {
 	FirstSeen int64 `msgpack:"firstSeen" json:"firstSeen"`
 	// LastSeen is the last detection time (Unix ms).
 	LastSeen int64 `msgpack:"lastSeen" json:"lastSeen"`
-	// Occurrences are the start and end (Unix ms) of each time the trigger fired, a pause starts a new entry. Not kept for motion.
+	// Occurrences are the start and end (Unix ms) of each time the trigger fired, a pause starts a new entry.
 	Occurrences [][2]int64 `msgpack:"occurrences,omitempty" json:"occurrences,omitempty"`
 	// LineName is the name of the crossed line (only for line-crossing triggers).
 	LineName string `msgpack:"lineName,omitempty" json:"lineName,omitempty"`

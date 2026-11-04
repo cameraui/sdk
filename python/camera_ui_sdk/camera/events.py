@@ -58,7 +58,7 @@ class EventTrigger(TypedDict):
     lastSeen: int
     """Last detection time (Unix ms)."""
     occurrences: NotRequired[list[list[int]]]
-    """Start and end (Unix ms) of each time the trigger fired, a pause starts a new entry. Not kept for motion."""
+    """Start and end (Unix ms) of each time the trigger fired, a pause starts a new entry."""
     lineName: NotRequired[str]
     """Name of the crossed line (only for line-crossing triggers)."""
     crossingDirection: NotRequired[str]
