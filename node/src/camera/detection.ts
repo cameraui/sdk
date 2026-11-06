@@ -1,3 +1,4 @@
+import type { BaseAudioLabel } from '../sensor/audio.js';
 import type { DetectionAttribute, DetectionLabel, ObjectDetectionLabel } from '../sensor/detection.js';
 import type { LineDirection, MotionResolution, Point, ZoneType } from './enums.js';
 
@@ -174,6 +175,11 @@ export interface AudioDetectionSettings {
   timeout: number;
   /** Minimum confidence threshold (0 - 1) for a labelled audio detection to count. */
   confidence?: number;
+  /**
+   * Sounds that count, by a detection's `attribute`, else its `label`. `'other'` admits names
+   * outside `BASE_AUDIO_LABELS`, an empty list drops every sound, unset counts every sound.
+   */
+  labels?: (BaseAudioLabel | 'other')[];
 }
 
 /** Face detection settings. */

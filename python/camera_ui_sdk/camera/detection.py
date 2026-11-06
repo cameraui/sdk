@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Literal, NotRequired, TypedDict
 
+from ..sensor.audio import BaseAudioLabel
 from ..sensor.detection import DetectionAttribute, DetectionLabel, ObjectDetectionLabel
 from .enums import LineDirection, MotionResolution, Point, ZoneType
 
@@ -161,6 +162,8 @@ class AudioDetectionSettings(TypedDict):
     """Audio dwell time in seconds."""
     confidence: NotRequired[float]
     """Minimum confidence threshold (0 - 1) for a labelled audio detection to count."""
+    labels: NotRequired[list[BaseAudioLabel | Literal["other"]]]
+    """Sounds that count, by a detection's `attribute`, else its `label`. `"other"` admits names outside `BASE_AUDIO_LABELS`, an empty list drops every sound, unset counts every sound."""
 
 
 FaceMatchSensitivity = Literal["strict", "balanced", "relaxed"]
