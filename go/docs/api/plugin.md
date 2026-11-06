@@ -412,6 +412,9 @@ AudioDetectionSettings is the audio detection settings.
 	    Timeout int `msgpack:"timeout" json:"timeout"`
 	    // Confidence is the minimum confidence threshold (0 - 1) for a labelled audio detection to count.
 	    Confidence *float64 `msgpack:"confidence,omitempty" json:"confidence,omitempty"`
+	    // Labels lists the sounds that count, by a detection's Attribute, else its Label. "other" admits names
+	    // outside BaseAudioLabels, an empty list drops every sound, nil counts every sound.
+	    Labels []AudioLabel `msgpack:"labels" json:"labels"`
 	}
 
 <a name="AudioDetector"></a>
