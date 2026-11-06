@@ -36,6 +36,8 @@ export interface CameraInput {
   muted?: boolean;
   /** Drop the talk channel of this source, so clients get no microphone (defaults to false). */
   backchannelDisabled?: boolean;
+  /** Leave this source out of the ONVIF export (defaults to false). */
+  onvifDisabled?: boolean;
   /** Seconds without media before the stream reconnects. Unset means the host default: 5 for cameras, 60 for plugin-served sources. */
   timeout?: number;
   /** Seconds allowed per RTSP request while connecting. Raise it for cameras that wake slowly. Unset means 5. */

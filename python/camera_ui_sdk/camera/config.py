@@ -63,6 +63,8 @@ class CameraInput(TypedDict):
     """Strip the audio track from this source (defaults to False)."""
     backchannelDisabled: NotRequired[bool]
     """Drop the talk channel of this source, so clients get no microphone (defaults to False)."""
+    onvifDisabled: NotRequired[bool]
+    """Leave this source out of the ONVIF export (defaults to False)."""
     timeout: NotRequired[int]
     """Seconds without media before the stream reconnects. Unset means the host default: 5 for cameras, 60 for plugin-served sources."""
     handshakeTimeout: NotRequired[int]
@@ -100,6 +102,8 @@ class CameraConfigInputSettings(TypedDict):
     """Strip the audio track from this source (defaults to False)."""
     backchannelDisabled: NotRequired[bool]
     """Drop the talk channel of this source, so clients get no microphone (defaults to False)."""
+    onvifDisabled: NotRequired[bool]
+    """Leave this source out of the ONVIF export (defaults to False)."""
     timeout: NotRequired[int]
     """Seconds without media before the stream reconnects. Unset means the host default: 5 for cameras, 60 for plugin-served sources."""
     handshakeTimeout: NotRequired[int]

@@ -243,6 +243,8 @@ CameraConfigInputSettings is a camera input/source definition supplied when crea
 	    Muted bool `msgpack:"muted,omitempty" json:"muted,omitempty"`
 	    // BackchannelDisabled drops the talk channel of this source, so clients get no microphone.
 	    BackchannelDisabled bool `msgpack:"backchannelDisabled,omitempty" json:"backchannelDisabled,omitempty"`
+	    // OnvifDisabled leaves this source out of the ONVIF export.
+	    OnvifDisabled bool `msgpack:"onvifDisabled,omitempty" json:"onvifDisabled,omitempty"`
 	    // Timeout is the seconds without media before the stream reconnects. Zero
 	    // means the host default: 5 for cameras, 60 for plugin-served sources.
 	    Timeout int `msgpack:"timeout,omitempty" json:"timeout,omitempty"`
@@ -756,6 +758,8 @@ CameraInput is a camera video input/source with resolved URLs.
 	    Muted bool `msgpack:"muted,omitempty" json:"muted,omitempty"`
 	    // BackchannelDisabled drops the talk channel of this source, so clients get no microphone.
 	    BackchannelDisabled bool `msgpack:"backchannelDisabled,omitempty" json:"backchannelDisabled,omitempty"`
+	    // OnvifDisabled leaves this source out of the ONVIF export.
+	    OnvifDisabled bool `msgpack:"onvifDisabled,omitempty" json:"onvifDisabled,omitempty"`
 	    // Timeout is the seconds without media before the stream reconnects. Zero
 	    // means the host default: 5 for cameras, 60 for plugin-served sources.
 	    Timeout int `msgpack:"timeout,omitempty" json:"timeout,omitempty"`
