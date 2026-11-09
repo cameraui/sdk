@@ -2,7 +2,7 @@ import type { Observable } from '../observable/index.js';
 import type { Sensor } from '../sensor/base.js';
 import type { DeviceStorage, JsonSchema } from '../storage/index.js';
 import type { LoggerService } from '../types.js';
-import type { Camera, CameraInformation, CameraInput, CameraPluginInfo, CameraUiSettings, PluginAssignments } from './config.js';
+import type { Camera, CameraConfigInputSettings, CameraInformation, CameraInput, CameraPluginInfo, CameraUiSettings, PluginAssignments } from './config.js';
 import type { CameraDetectionSettings, CameraZones, PtzAutotrackSettings } from './detection.js';
 import type { CameraRecordingSettings } from './recording.js';
 import type { CameraType, DetectionEventType } from './enums.js';
@@ -186,6 +186,30 @@ export interface CameraDevice {
    * Only the plugin that owns this camera (via pluginInfo) may disconnect it.
    */
   disconnect(): Promise<void>;
+
+  /**
+   * Add a source to this camera, after adoption.
+   * Only the plugin that owns this camera (via pluginInfo) may change its sources.
+   * The source is validated like one from `onAdoptCamera()`: leave `urls` empty for a source the plugin serves through `streamUrl()`.
+   * The name must be unique within the camera, and each role can only be used once.
+   *
+   * @param source - The source to add
+   *
+   * @returns The added source
+   *
+   * @example
+   * const medium = await camera.addSource({ name: 'medium', role: 'mid-resolution', useForSnapshot: false, hotMode: false, preload: false });
+   */
+  addSource(source: CameraConfigInputSettings): Promise<CameraDeviceSource>;
+
+  /**
+   * Remove a source from this camera.
+   * Only the plugin that owns this camera (via pluginInfo) may change its sources.
+   * The camera must keep at least one high, mid or low resolution source.
+   *
+   * @param sourceId - ID of the source to remove
+   */
+  removeSource(sourceId: string): Promise<void>;
 
   /**
    * Observe camera property changes.
