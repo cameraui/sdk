@@ -22,8 +22,7 @@ class CoreManagerEvent(TypedDict):
     """
     Core manager event payload.
 
-    The host currently publishes one event type, ``cloudAccountChanged``.
-    Subscribe via ``coreManager.onEvent`` to react to it.
+    Subscribe via ``coreManager.onEvent`` to react to it; the event types are listed there.
     """
 
     type: str
@@ -120,7 +119,8 @@ class CoreManager(Protocol):
     @property
     def onEvent(self) -> Observable[CoreManagerEvent]:
         """
-        Observable for core manager events (e.g. cloud account changes).
+        Observable for core manager events (e.g. cloud account changes, ``assistantModelChanged``
+        with ``{pluginId, configured}``, ``languageChanged`` with ``{language}``).
 
         Example:
             ```python
@@ -250,6 +250,27 @@ class CoreManager(Protocol):
 
         Returns:
             Installation id
+        """
+        ...
+
+    async def getLanguage(self) -> str:
+        """
+        Get the instance language the admin picked under Settings, System.
+
+        Notifications and other texts a plugin writes without a user in front
+        use it. It is a language code like ``de``. Subscribe to the
+        ``languageChanged`` event to learn about changes while running.
+
+        Returns:
+            Language code, for example ``en`` or ``de``
+
+        Example:
+            ```python
+            try:
+                language = await api.coreManager.getLanguage()
+            except Exception:
+                language = "en"
+            ```
         """
         ...
 

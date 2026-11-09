@@ -57,8 +57,10 @@ type AssistantAskResult struct {
 
 // AssistantAccess says whether this plugin may use the assistant model and
 // what the assigned entry can do. Model is empty when not allowed, Vision is
-// nil until the picture probe ran, Language is the answer language of the
-// assistant settings (for example "de") and empty when it follows the interface.
+// nil until the picture probe ran, Language is the language the assistant
+// answers in (for example "de"): the one picked in the assistant settings,
+// otherwise the instance language. Servers older than 2.4.10 leave it empty
+// when it follows the user interface.
 type AssistantAccess struct {
 	Allowed  bool   `msgpack:"allowed" json:"allowed"`
 	Model    string `msgpack:"model,omitempty" json:"model,omitempty"`
@@ -71,10 +73,8 @@ type assistantAskWire struct {
 	PluginID string `msgpack:"pluginId" json:"pluginId"`
 }
 
-// CoreManagerEvent is the payload emitted by CoreManager.OnEvent.
-//
-// The host currently publishes one event type, "cloudAccountChanged".
-// Subscribe via OnEvent to react to it.
+// CoreManagerEvent is the payload emitted by CoreManager.OnEvent. The event
+// types are listed there.
 type CoreManagerEvent struct {
 	// Type is the event type identifier (e.g. "cloudAccountChanged").
 	Type string
@@ -116,7 +116,9 @@ func newCoreManager(client *rpc.Client, logger *Logger) *CoreManager {
 	}
 }
 
-// OnEvent returns an Observable for core manager events (e.g. cloud account changes).
+// OnEvent returns an Observable for core manager events (e.g. cloud account
+// changes, "assistantModelChanged" with pluginId and configured,
+// "languageChanged" with language).
 func (cm *CoreManager) OnEvent() *Observable[CoreManagerEvent] {
 	return cm.event.AsObservable()
 }
@@ -264,6 +266,32 @@ func (cm *CoreManager) GetInstanceID() (string, error) {
 		return "", fmt.Errorf("getInstanceId: unexpected result type %T", result)
 	}
 	return id, nil
+}
+
+// GetLanguage returns the instance language the admin picked under Settings,
+// System, a language code like "de".
+//
+// Notifications and other texts a plugin writes without a user in front use
+// it. Subscribe to OnEvent for "languageChanged" to learn about changes while
+// running.
+//
+// Example:
+//
+//	language, err := api.CoreManager.GetLanguage()
+//	if err != nil {
+//		language = "en"
+//	}
+func (cm *CoreManager) GetLanguage() (string, error) {
+	ctx := context.Background()
+	result, err := cm.proxy.Invoke(ctx, "getLanguage")
+	if err != nil {
+		return "", fmt.Errorf("getLanguage: %w", err)
+	}
+	language, ok := result.(string)
+	if !ok {
+		return "", fmt.Errorf("getLanguage: unexpected result type %T", result)
+	}
+	return language, nil
 }
 
 // GetPluginsByInterface returns all installed, enabled plugins that implement a

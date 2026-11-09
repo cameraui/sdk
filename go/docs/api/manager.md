@@ -75,6 +75,23 @@ A copy of the server made from a backup gets a new id, while a move or an undone
 
 Servers older than 2.4.0 do not know the call and return an error.
 
+<a name="CoreManager.GetLanguage"></a>
+### func \(\*CoreManager\) GetLanguage
+
+	func (cm *CoreManager) GetLanguage() (string, error)
+
+GetLanguage returns the instance language the admin picked under Settings, System, a language code like "de".
+
+Notifications and other texts a plugin writes without a user in front use it. Subscribe to OnEvent for "languageChanged" to learn about changes while running.
+
+Example:
+
+	language, err := api.CoreManager.GetLanguage()
+	if err != nil {
+		language = "en"
+	}
+	
+
 <a name="CoreManager.GetPluginsByInterface"></a>
 ### func \(\*CoreManager\) GetPluginsByInterface
 
@@ -112,15 +129,13 @@ It is the escape hatch for host methods that have no typed wrapper here, which a
 
 	func (cm *CoreManager) OnEvent() *Observable[CoreManagerEvent]
 
-OnEvent returns an Observable for core manager events \(e.g. cloud account changes\).
+OnEvent returns an Observable for core manager events \(e.g. cloud account changes, "assistantModelChanged" with pluginId and configured, "languageChanged" with language\).
 
 <a name="CoreManagerEvent"></a>
 
 ## type CoreManagerEvent
 
-CoreManagerEvent is the payload emitted by CoreManager.OnEvent.
-
-The host currently publishes one event type, "cloudAccountChanged". Subscribe via OnEvent to react to it.
+CoreManagerEvent is the payload emitted by CoreManager.OnEvent. The event types are listed there.
 
 	type CoreManagerEvent struct {
 	    // Type is the event type identifier (e.g. "cloudAccountChanged").

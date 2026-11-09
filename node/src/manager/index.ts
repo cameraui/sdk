@@ -19,8 +19,7 @@ export interface SensorHistoryEntry {
 
 /**
  * Core manager event payload.
- * The host currently publishes one event type, 'cloudAccountChanged'.
- * Subscribe via `coreManager.onEvent` to react to it.
+ * Subscribe via `coreManager.onEvent` to react to it; the event types are listed there.
  */
 export interface CoreManagerEvent {
   /** Event type identifier (e.g. 'cloudAccountChanged'). */
@@ -64,7 +63,7 @@ export interface AssistantAccess {
   model: string | null;
   /** Result of the picture probe for the assigned entry, null when unknown. */
   vision: boolean | null;
-  /** Answer language of the assistant settings (for example `de`), null when it follows the user interface. */
+  /** Language the assistant answers in (`de`), the instance language unless the assistant settings pick another one. Can be null on servers before 2.4.10. */
   language: string | null;
 }
 
@@ -173,6 +172,22 @@ export interface CoreManager {
   getInstanceId(): Promise<string>;
 
   /**
+   * Get the instance language the admin picked under Settings, System.
+   *
+   * Notifications and other texts a plugin writes without a user in front use it.
+   * It is a language code like `de`. Subscribe to the `languageChanged` event to
+   * learn about changes while running.
+   *
+   * @returns Language code, for example `en` or `de`
+   *
+   * @example
+   * ```typescript
+   * const language = await api.coreManager.getLanguage().catch(() => 'en');
+   * ```
+   */
+  getLanguage(): Promise<string>;
+
+  /**
    * Get all installed, enabled plugins that implement a specific interface.
    * Plugins the admin disabled are excluded. A returned plugin may still be
    * starting up or may have crashed, so a call into one can fail.
@@ -213,7 +228,8 @@ export interface CoreManager {
   assistantAccess(): Promise<AssistantAccess>;
 
   /**
-   * Observable for core manager events (e.g. cloud account changes, `assistantModelChanged` with `{ pluginId, configured }`).
+   * Observable for core manager events (e.g. cloud account changes, `assistantModelChanged` with `{ pluginId, configured }`,
+   * `languageChanged` with `{ language }`).
    *
    * @example
    * ```typescript
