@@ -2,6 +2,7 @@ package sdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"maps"
 	"reflect"
@@ -316,6 +317,74 @@ func (d *CameraDevice) SnapshotSource() *CameraDeviceSource {
 		}
 	}
 	return nil
+}
+
+// cameraSourceChange is the host's answer to addCameraSource and removeCameraSource.
+type cameraSourceChange struct {
+	Camera   Camera `msgpack:"camera" json:"camera"`
+	SourceID string `msgpack:"sourceId,omitempty" json:"sourceId,omitempty"`
+}
+
+// AddSource adds a source to this camera, after adoption.
+// Only the plugin that owns this camera (via pluginInfo) may change its sources.
+// The source is validated like one from OnAdoptCamera: leave Urls empty for a
+// source the plugin serves through StreamURL. The name must be unique within
+// the camera, and each role can only be used once.
+func (d *CameraDevice) AddSource(source CameraConfigInputSettings) (*CameraDeviceSource, error) {
+	if err := d.checkSourceOwner(); err != nil {
+		return nil, err
+	}
+	change, err := d.invokeSourceChange("addCameraSource", source)
+	if err != nil {
+		return nil, fmt.Errorf("addSource: %w", err)
+	}
+	added := d.GetSourceByID(change.SourceID)
+	if added == nil {
+		return nil, fmt.Errorf("addSource: source %q missing after it was added", change.SourceID)
+	}
+	return added, nil
+}
+
+// RemoveSource removes a source from this camera.
+// Only the plugin that owns this camera (via pluginInfo) may change its sources.
+// The camera must keep at least one high, mid or low resolution source.
+func (d *CameraDevice) RemoveSource(sourceID string) error {
+	if err := d.checkSourceOwner(); err != nil {
+		return err
+	}
+	if _, err := d.invokeSourceChange("removeCameraSource", sourceID); err != nil {
+		return fmt.Errorf("removeSource: %w", err)
+	}
+	return nil
+}
+
+func (d *CameraDevice) checkSourceOwner() error {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+	if d.camera.PluginInfo == nil || d.camera.PluginInfo.ID != d.info.ID {
+		return errors.New("only the plugin that controls this camera can change its sources")
+	}
+	return nil
+}
+
+// invokeSourceChange asks the host to change a source and applies the updated
+// camera right away, so Sources() reflects the change when this returns.
+func (d *CameraDevice) invokeSourceChange(method string, arg any) (*cameraSourceChange, error) {
+	proxy := d.client.CreateProxy(getDeviceManagerNamespaces().DeviceManagerRPC)
+	result, err := proxy.Invoke(context.Background(), method, d.info.ID, d.ID(), arg)
+	if err != nil {
+		return nil, err
+	}
+	encoded, err := rpc.Encode(result)
+	if err != nil {
+		return nil, fmt.Errorf("encode: %w", err)
+	}
+	var change cameraSourceChange
+	if err := rpc.Decode(encoded, &change); err != nil {
+		return nil, fmt.Errorf("decode: %w", err)
+	}
+	d.applyCamera(&change.Camera)
+	return &change, nil
 }
 
 // GetSourceByID returns a source by its ID.

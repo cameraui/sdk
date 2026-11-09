@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from ..types import LoggerService
 
 from .config import (
+    CameraConfigInputSettings,
     CameraInformation,
     CameraPluginInfo,
     CameraPropertyObservableObject,
@@ -342,6 +343,35 @@ class CameraDevice(Protocol):
         Tell the server this camera is offline.
 
         Only the plugin that owns this camera (via pluginInfo) may disconnect it.
+        """
+        ...
+
+    async def addSource(self, source: CameraConfigInputSettings) -> CameraDeviceSource:
+        """
+        Add a source to this camera, after adoption.
+
+        Only the plugin that owns this camera (via pluginInfo) may change its sources.
+        The source is validated like one from ``onAdoptCamera()``: leave ``urls`` empty
+        for a source the plugin serves through ``streamUrl()``. The name must be unique
+        within the camera, and each role can only be used once.
+
+        Args:
+            source: The source to add.
+
+        Returns:
+            The added source.
+        """
+        ...
+
+    async def removeSource(self, sourceId: str) -> None:
+        """
+        Remove a source from this camera.
+
+        Only the plugin that owns this camera (via pluginInfo) may change its sources.
+        The camera must keep at least one high, mid or low resolution source.
+
+        Args:
+            sourceId: ID of the source to remove.
         """
         ...
 
