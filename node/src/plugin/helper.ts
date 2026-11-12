@@ -99,8 +99,8 @@ export function getContractValidationErrors(contract: unknown): string[] {
   }
 
   if (c.pythonVersion !== undefined) {
-    if (!['3.11', '3.12'].includes(c.pythonVersion as string)) {
-      errors.push(`Invalid pythonVersion "${c.pythonVersion as string}". Valid versions: 3.11, 3.12`);
+    if (!['3.11', '3.12', '3.13', '3.14'].includes(c.pythonVersion as string)) {
+      errors.push(`Invalid pythonVersion "${c.pythonVersion as string}". Valid versions: 3.11, 3.12, 3.13, 3.14`);
     }
   }
 

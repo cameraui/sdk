@@ -13,7 +13,7 @@ bundle (``cameraui.protocolLevel`` in the bundle package.json); the server
 compares that stamp with its own level and refuses to start plugins outside
 its supported range."""
 
-PythonVersion = Literal["3.11", "3.12"]
+PythonVersion = Literal["3.11", "3.12", "3.13", "3.14"]
 """Python interpreter major.minor version a Python plugin requires. The host
 ensures a matching interpreter exists in its venv pool before launching the
 plugin; Node and Go plugins ignore this field."""

@@ -98,8 +98,8 @@ def get_contract_validation_errors(contract: object) -> list[str]:
                         f'Invalid capability in "capabilities": "{cap}". Valid capabilities: {", ".join(valid_capabilities)}'
                     )
 
-    if "pythonVersion" in c and c["pythonVersion"] not in ["3.11", "3.12"]:
-        errors.append(f'Invalid pythonVersion "{c["pythonVersion"]}". Valid versions: 3.11, 3.12')
+    if "pythonVersion" in c and c["pythonVersion"] not in ["3.11", "3.12", "3.13", "3.14"]:
+        errors.append(f'Invalid pythonVersion "{c["pythonVersion"]}". Valid versions: 3.11, 3.12, 3.13, 3.14')
 
     if "dependencies" in c and not isinstance(c["dependencies"], list):
         errors.append(f'Field "dependencies" must be an array. Got: {type(c["dependencies"]).__name__}')

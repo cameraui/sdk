@@ -1478,6 +1478,10 @@ PythonVersion is the Python interpreter major.minor version a Python plugin requ
 	    PythonVersion311 PythonVersion = "3.11"
 	    // PythonVersion312 requests a CPython 3.12 interpreter.
 	    PythonVersion312 PythonVersion = "3.12"
+	    // PythonVersion313 requests a CPython 3.13 interpreter.
+	    PythonVersion313 PythonVersion = "3.13"
+	    // PythonVersion314 requests a CPython 3.14 interpreter.
+	    PythonVersion314 PythonVersion = "3.14"
 	)
 
 <a name="RTSPAudioCodec"></a>

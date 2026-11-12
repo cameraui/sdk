@@ -50,7 +50,7 @@ The host instantiates the class with three arguments: a `LoggerService`, a `Plug
 - **`provides`** — sensor types the plugin attaches to cameras (e.g. `[SensorType.Motion]`).
 - **`consumes`** — sensor types the plugin reads from other plugins.
 - **`interfaces`** — capability flags (`DiscoveryProvider`, `Notifier`, detection types, …).
-- **`pythonVersion`** *(optional)* — `"3.11"` or `"3.12"`. The host picks a matching interpreter from its venv pool. Ignored by Node / Go plugins.
+- **`pythonVersion`** *(optional)* — `"3.11"`, `"3.12"`, `"3.13"` or `"3.14"`. The host picks a matching interpreter from its venv pool. Ignored by Node / Go plugins.
 - **`dependencies`** *(optional)* — extra PyPI packages installed into the plugin's venv at adoption time.
 
 | Role | Use when |

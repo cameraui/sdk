@@ -15,7 +15,7 @@ export const PROTOCOL_LEVEL = 2;
  * ensures a matching interpreter exists in its venv pool before launching the
  * plugin; Node and Go plugins ignore this field.
  */
-export type PythonVersion = '3.11' | '3.12';
+export type PythonVersion = '3.11' | '3.12' | '3.13' | '3.14';
 
 /**
  * Role a plugin plays in the system. The role decides which lifecycle hooks
