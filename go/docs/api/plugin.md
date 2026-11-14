@@ -799,7 +799,8 @@ NotifierDevice represents a single push\-target managed by a notifier plugin \(o
 	type NotifierDevice struct {
 	    // ID is the plugin-assigned device id, unique within the notifier.
 	    ID  string `msgpack:"id" json:"id"`
-	    // OwnerUserID is the user the device belongs to.
+	    // OwnerUserID is the user the device belongs to. Empty for a device of
+	    // the whole instance, which only admins see and manage.
 	    OwnerUserID string `msgpack:"ownerUserId" json:"ownerUserId"`
 	    // Name is the display name shown in the UI.
 	    Name string `msgpack:"name" json:"name"`

@@ -37,7 +37,7 @@ class NotifierDevice(TypedDict):
     """Plugin-assigned device id, unique within the notifier."""
 
     ownerUserId: str
-    """User the device belongs to."""
+    """User the device belongs to. Empty for a device of the whole instance, which only admins see and manage."""
 
     name: str
     """Display name shown in the UI."""
