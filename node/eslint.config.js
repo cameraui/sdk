@@ -130,7 +130,7 @@ export default [
       '@typescript-eslint/no-redundant-type-constituents': 'off',
       '@typescript-eslint/no-namespace': 'off',
       '@typescript-eslint/no-this-alias': 'off',
-
+      '@stylistic/list-style': 'off',
       '@stylistic/generator-star-spacing': 'off',
       '@stylistic/max-len': ['error', { code: 170, tabWidth: 2 }],
       '@stylistic/quotes': ['error', 'single', { avoidEscape: true }],
