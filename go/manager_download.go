@@ -3,7 +3,9 @@ package sdk
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
+	"time"
 
 	rpc "github.com/cameraui/rpc/go"
 )
@@ -17,6 +19,17 @@ type createStreamDownloadWire struct {
 	CreateStreamDownloadOptions
 	RemotePluginID string `msgpack:"remotePluginId,omitempty" json:"remotePluginId,omitempty"`
 }
+
+type createPipeDownloadWire struct {
+	CreatePipeDownloadOptions
+	PluginID string `msgpack:"pluginId" json:"pluginId"`
+	PipeID   string `msgpack:"pipeId" json:"pipeId"`
+}
+
+// PipeDownloadSource writes the bytes of a pipe download to w, as fast as the
+// client reads them. ctx ends when the client is gone, a returned error fails
+// the download.
+type PipeDownloadSource func(ctx context.Context, w io.Writer) error
 
 // DownloadManager provides token-based file downloads.
 //
@@ -36,12 +49,14 @@ type createStreamDownloadWire struct {
 //	})
 type DownloadManager struct {
 	proxy *rpc.Proxy
+	pipes *pipeServer
 }
 
-func newDownloadManager(client *rpc.Client) *DownloadManager {
+func newDownloadManager(client *rpc.Client, pipes *pipeServer) *DownloadManager {
 	ns := getDownloadManagerNamespaces()
 	return &DownloadManager{
 		proxy: client.CreateProxy(ns.DownloadManagerRPC),
+		pipes: pipes,
 	}
 }
 
@@ -79,6 +94,46 @@ func (dm *DownloadManager) CreateStreamDownload(options *CreateStreamDownloadOpt
 	m, ok := result.(map[string]any)
 	if !ok {
 		return DownloadToken{}, fmt.Errorf("createStreamDownload: unexpected result type %T", result)
+	}
+
+	return decodeDownloadToken(m), nil
+}
+
+// CreatePipeDownload registers a download whose bytes the plugin writes
+// while the client receives them. Nothing is written to disk and one request
+// gets the bytes: source runs once, when the client fetches the download.
+//
+// Example:
+//
+//	tok, err := api.DownloadManager.CreatePipeDownload(&sdk.CreatePipeDownloadOptions{
+//	    Filename: "events.csv",
+//	    MimeType: "text/csv",
+//	}, func(ctx context.Context, w io.Writer) error {
+//	    return writeRows(ctx, w)
+//	})
+func (dm *DownloadManager) CreatePipeDownload(options *CreatePipeDownloadOptions, source PipeDownloadSource) (DownloadToken, error) {
+	ttl := defaultPipeTTL
+	if options.TTLMs > 0 {
+		ttl = time.Duration(options.TTLMs) * time.Millisecond
+	}
+	pipeID, err := dm.pipes.add(source, ttl)
+	if err != nil {
+		return DownloadToken{}, fmt.Errorf("createPipeDownload: %w", err)
+	}
+
+	payload := createPipeDownloadWire{CreatePipeDownloadOptions: *options, PluginID: os.Getenv("PLUGIN_ID"), PipeID: pipeID}
+
+	ctx := context.Background()
+	result, err := dm.proxy.Invoke(ctx, "createPipeDownload", &payload)
+	if err != nil {
+		dm.pipes.drop(pipeID)
+		return DownloadToken{}, fmt.Errorf("createPipeDownload: %w", err)
+	}
+
+	m, ok := result.(map[string]any)
+	if !ok {
+		dm.pipes.drop(pipeID)
+		return DownloadToken{}, fmt.Errorf("createPipeDownload: unexpected result type %T", result)
 	}
 
 	return decodeDownloadToken(m), nil

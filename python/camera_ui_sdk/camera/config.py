@@ -65,6 +65,8 @@ class CameraInput(TypedDict):
     """Drop the talk channel of this source, so clients get no microphone (defaults to False)."""
     onvifDisabled: NotRequired[bool]
     """Leave this source out of the ONVIF export (defaults to False)."""
+    rtmpDisabled: NotRequired[bool]
+    """Keep this source off the RTMP server (defaults to False)."""
     timeout: NotRequired[int]
     """Seconds without media before the stream reconnects. Unset means the host default: 5 for cameras, 60 for plugin-served sources."""
     handshakeTimeout: NotRequired[int]
@@ -104,6 +106,8 @@ class CameraConfigInputSettings(TypedDict):
     """Drop the talk channel of this source, so clients get no microphone (defaults to False)."""
     onvifDisabled: NotRequired[bool]
     """Leave this source out of the ONVIF export (defaults to False)."""
+    rtmpDisabled: NotRequired[bool]
+    """Keep this source off the RTMP server (defaults to False)."""
     timeout: NotRequired[int]
     """Seconds without media before the stream reconnects. Unset means the host default: 5 for cameras, 60 for plugin-served sources."""
     handshakeTimeout: NotRequired[int]

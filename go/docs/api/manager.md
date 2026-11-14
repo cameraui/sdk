@@ -166,6 +166,23 @@ CreateDownloadOptions specifies how to register an existing file as a downloadab
 	    Cleanup DownloadCleanup `msgpack:"cleanup,omitempty" json:"cleanup,omitempty"`
 	}
 
+<a name="CreatePipeDownloadOptions"></a>
+
+## type CreatePipeDownloadOptions
+
+CreatePipeDownloadOptions specifies a download whose bytes the plugin writes while the client receives them.
+
+	type CreatePipeDownloadOptions struct {
+	    // Filename is the value used in the Content-Disposition header.
+	    Filename string `msgpack:"filename" json:"filename"`
+	    // MimeType is the value used in the Content-Type header
+	    // (defaults to "application/octet-stream").
+	    MimeType string `msgpack:"mimeType,omitempty" json:"mimeType,omitempty"`
+	    // TTLMs is how long the download waits to be fetched, in milliseconds
+	    // (defaults to 10 minutes).
+	    TTLMs int64 `msgpack:"ttlMs,omitempty" json:"ttlMs,omitempty"`
+	}
+
 <a name="CreateStreamDownloadOptions"></a>
 
 ## type CreateStreamDownloadOptions
@@ -274,6 +291,23 @@ Example:
 
 CreateDownload registers a file for HTTP download and returns a token\-based URL.
 
+<a name="DownloadManager.CreatePipeDownload"></a>
+### func \(\*DownloadManager\) CreatePipeDownload
+
+	func (dm *DownloadManager) CreatePipeDownload(options *CreatePipeDownloadOptions, source PipeDownloadSource) (DownloadToken, error)
+
+CreatePipeDownload registers a download whose bytes the plugin writes while the client receives them. Nothing is written to disk and one request gets the bytes: source runs once, when the client fetches the download.
+
+Example:
+
+	tok, err := api.DownloadManager.CreatePipeDownload(&sdk.CreatePipeDownloadOptions{
+	    Filename: "events.csv",
+	    MimeType: "text/csv",
+	}, func(ctx context.Context, w io.Writer) error {
+	    return writeRows(ctx, w)
+	})
+	
+
 <a name="DownloadManager.CreateStreamDownload"></a>
 ### func \(\*DownloadManager\) CreateStreamDownload
 
@@ -347,6 +381,14 @@ Example:
 	
 
 <a name="NotificationSpeed"></a>
+
+## type PipeDownloadSource
+
+PipeDownloadSource writes the bytes of a pipe download to w, as fast as the client reads them. ctx ends when the client is gone, a returned error fails the download.
+
+	type PipeDownloadSource func(ctx context.Context, w io.Writer) error
+
+<a name="PlaybackSource"></a>
 
 ## type PluginCallOptions
 

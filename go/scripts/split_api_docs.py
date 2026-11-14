@@ -290,6 +290,8 @@ BUCKETS: dict[str, str] = {
     "CreateDownloadOptions": "manager",
     "NotificationManager": "manager",
     "CreateStreamDownloadOptions": "manager",
+    "CreatePipeDownloadOptions": "manager",
+    "PipeDownloadSource": "manager",
     "Observable": "observable",
     "NewObservable": "observable",
     "Subject": "observable",

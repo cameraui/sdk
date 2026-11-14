@@ -32,6 +32,7 @@ type pluginNamespaces struct {
 	PluginStorageRPC           string
 	PluginConfigStoreRPC       string
 	PluginFileServeRPC         string
+	PluginPipeRPC              string
 }
 
 type cameraNamespaces struct {
@@ -113,6 +114,7 @@ func getPluginNamespaces(pluginID string) pluginNamespaces {
 		PluginStorageRPC:           fmt.Sprintf("plugin.%s.storage.rpc", pluginID),
 		PluginConfigStoreRPC:       fmt.Sprintf("plugin.%s.configstore.rpc", pluginID),
 		PluginFileServeRPC:         fmt.Sprintf("plugin.%s.fileserve.rpc", pluginID),
+		PluginPipeRPC:              fmt.Sprintf("plugin.%s.pipe.rpc", pluginID),
 	}
 }
 

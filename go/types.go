@@ -56,6 +56,19 @@ type CreateStreamDownloadOptions struct {
 	MarkerPath string `msgpack:"markerPath" json:"markerPath"`
 }
 
+// CreatePipeDownloadOptions specifies a download whose bytes the plugin writes
+// while the client receives them.
+type CreatePipeDownloadOptions struct {
+	// Filename is the value used in the Content-Disposition header.
+	Filename string `msgpack:"filename" json:"filename"`
+	// MimeType is the value used in the Content-Type header
+	// (defaults to "application/octet-stream").
+	MimeType string `msgpack:"mimeType,omitempty" json:"mimeType,omitempty"`
+	// TTLMs is how long the download waits to be fetched, in milliseconds
+	// (defaults to 10 minutes).
+	TTLMs int64 `msgpack:"ttlMs,omitempty" json:"ttlMs,omitempty"`
+}
+
 // DownloadToken is returned after registering a download.
 type DownloadToken struct {
 	// Token is the unique download token (also embedded in URL/PublicURL).

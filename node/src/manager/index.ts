@@ -357,6 +357,25 @@ export interface DownloadManager {
   createStreamDownload(options: CreateStreamDownloadOptions): Promise<DownloadToken>;
 
   /**
+   * Register a download whose bytes the plugin produces while the client
+   * receives them. Nothing is written to disk, and one request gets the bytes.
+   *
+   * @param options - Pipe download options
+   *
+   * @param source - Yields the bytes, called once when the client fetches the download
+   *
+   * @returns Token, URL, and expiry information
+   *
+   * @example
+   * ```typescript
+   * const { url } = await api.downloadManager.createPipeDownload({ filename: 'events.csv', mimeType: 'text/csv' }, async function* () {
+   *   for await (const row of rows()) yield Buffer.from(row);
+   * });
+   * ```
+   */
+  createPipeDownload(options: CreatePipeDownloadOptions, source: PipeDownloadSource): Promise<DownloadToken>;
+
+  /**
    * Remove a download token and optionally delete the file.
    *
    * @param token - The download token to remove
@@ -369,6 +388,22 @@ export interface CreateStreamDownloadOptions extends CreateDownloadOptions {
   /** Path to a marker file that signals export is still in progress, inside the plugin's storage folder. */
   markerPath: string;
 }
+
+/** Options for creating a pipe download (bytes straight from the plugin). */
+export interface CreatePipeDownloadOptions {
+  /** Filename for Content-Disposition header. */
+  filename: string;
+  /** MIME type for Content-Type header (defaults to application/octet-stream). */
+  mimeType?: string;
+  /** How long the download waits to be fetched, in milliseconds (defaults to 10 minutes). */
+  ttlMs?: number;
+}
+
+/**
+ * Yields the bytes of a pipe download, as fast as the client reads them.
+ * `signal` aborts when the client is gone, a thrown error fails the download.
+ */
+export type PipeDownloadSource = (signal: AbortSignal) => AsyncIterable<Uint8Array>;
 
 /**
  * When the file on disk gets deleted. The registry entry always expires at TTL,

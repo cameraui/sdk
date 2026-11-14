@@ -20,6 +20,8 @@ export interface CameraInputSettings {
   backchannelDisabled?: boolean;
   /** Leave this source out of the ONVIF export (defaults to false). */
   onvifDisabled?: boolean;
+  /** Keep this source off the RTMP server (defaults to false). */
+  rtmpDisabled?: boolean;
   /** Seconds without media before the stream reconnects. Unset means the host default: 5 for cameras, 60 for plugin-served sources. */
   timeout?: number;
   /** Seconds allowed per RTSP request while connecting. Raise it for cameras that wake slowly. Unset means 5. */

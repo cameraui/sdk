@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import AsyncIterator, Callable
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -482,6 +483,25 @@ class CreateStreamDownloadOptions(CreateDownloadOptions):
     """Path to a marker file that signals export is still in progress, inside the plugin's storage folder."""
 
 
+class CreatePipeDownloadOptions(TypedDict):
+    """Options for creating a pipe download (bytes straight from the plugin)."""
+
+    filename: str
+    """Filename for Content-Disposition header."""
+
+    mimeType: NotRequired[str]
+    """MIME type for Content-Type header (defaults to application/octet-stream)."""
+
+    ttlMs: NotRequired[int]
+    """How long the download waits to be fetched, in milliseconds (defaults to 10 minutes)."""
+
+
+PipeDownloadSource = Callable[[], AsyncIterator[bytes]]
+"""Yields the bytes of a pipe download, as fast as the client reads them.
+
+The iterator is closed when the client is gone, a raised error fails the download."""
+
+
 class DownloadToken(TypedDict):
     """Token returned after registering a download."""
 
@@ -555,6 +575,36 @@ class DownloadManager(Protocol):
         """
         ...
 
+    async def createPipeDownload(
+        self, options: CreatePipeDownloadOptions, source: PipeDownloadSource
+    ) -> DownloadToken:
+        """
+        Register a download whose bytes the plugin produces while the client receives them.
+
+        Nothing is written to disk, and one request gets the bytes.
+
+        Args:
+            options: Pipe download options
+            source: Yields the bytes, called once when the client fetches the download
+
+        Returns:
+            Token, URL, and expiry information
+
+        Example:
+            ```python
+            async def rows() -> AsyncIterator[bytes]:
+                async for row in read_rows():
+                    yield row.encode()
+
+
+            result = await api.downloadManager.createPipeDownload(
+                {"filename": "events.csv", "mimeType": "text/csv"},
+                rows,
+            )
+            ```
+        """
+        ...
+
     async def deleteDownload(self, token: str) -> None:
         """
         Remove a download token and optionally delete the file.
@@ -621,8 +671,10 @@ __all__ = [
     "SensorManager",
     # Download types
     "CreateDownloadOptions",
+    "CreatePipeDownloadOptions",
     "CreateStreamDownloadOptions",
     "DownloadToken",
+    "PipeDownloadSource",
     # Discovery types
     "DiscoveredCamera",
 ]

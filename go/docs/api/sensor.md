@@ -2298,7 +2298,7 @@ PersonEmbeddingResult is the return value of PersonEmbedder.EmbedPersons.
 	    EmbeddingModel string    `msgpack:"embeddingModel" json:"embeddingModel"` // Identifier of the embedding model that produced the vector
 	}
 
-<a name="PlaybackSource"></a>
+<a name="PipeDownloadSource"></a>
 
 ## type SecuritySystem
 

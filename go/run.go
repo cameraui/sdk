@@ -73,6 +73,7 @@ type pluginRuntime struct {
 	plugin            Plugin
 	cleanupRPC        rpc.CleanupFunc
 	fileSrv           *fileServer
+	pipeSrv           *pipeServer
 	persistence       configPersistence
 	coreManager       *CoreManager
 	deviceManager     *DeviceManager
@@ -406,7 +407,12 @@ func (r *pluginRuntime) startPlugin(load *processLoadMessage) error {
 
 	r.coreManager = newCoreManager(client, logger)
 	r.deviceManager = newDeviceManager(client, &pluginInfo, logger)
-	downloadManager := newDownloadManager(client)
+	pipes, err := newPipeServer(client, pluginInfo.ID)
+	if err != nil {
+		return fmt.Errorf("failed to register pipe server: %w", err)
+	}
+	r.pipeSrv = pipes
+	downloadManager := newDownloadManager(client, pipes)
 
 	if os.Getenv("PLUGIN_REMOTE_MODE") != "" {
 		fs, err := newFileServer(client, pluginInfo.ID)
@@ -534,6 +540,9 @@ func (r *pluginRuntime) teardown() {
 			}
 			if r.fileSrv != nil {
 				closers = append(closers, r.fileSrv.close)
+			}
+			if r.pipeSrv != nil {
+				closers = append(closers, r.pipeSrv.close)
 			}
 			runTogether(closers)
 

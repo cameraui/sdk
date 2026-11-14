@@ -245,6 +245,8 @@ CameraConfigInputSettings is a camera input/source definition supplied when crea
 	    BackchannelDisabled bool `msgpack:"backchannelDisabled,omitempty" json:"backchannelDisabled,omitempty"`
 	    // OnvifDisabled leaves this source out of the ONVIF export.
 	    OnvifDisabled bool `msgpack:"onvifDisabled,omitempty" json:"onvifDisabled,omitempty"`
+	    // RtmpDisabled keeps this source off the RTMP server.
+	    RtmpDisabled bool `msgpack:"rtmpDisabled,omitempty" json:"rtmpDisabled,omitempty"`
 	    // Timeout is the seconds without media before the stream reconnects. Zero
 	    // means the host default: 5 for cameras, 60 for plugin-served sources.
 	    Timeout int `msgpack:"timeout,omitempty" json:"timeout,omitempty"`
@@ -760,6 +762,8 @@ CameraInput is a camera video input/source with resolved URLs.
 	    BackchannelDisabled bool `msgpack:"backchannelDisabled,omitempty" json:"backchannelDisabled,omitempty"`
 	    // OnvifDisabled leaves this source out of the ONVIF export.
 	    OnvifDisabled bool `msgpack:"onvifDisabled,omitempty" json:"onvifDisabled,omitempty"`
+	    // RtmpDisabled keeps this source off the RTMP server.
+	    RtmpDisabled bool `msgpack:"rtmpDisabled,omitempty" json:"rtmpDisabled,omitempty"`
 	    // Timeout is the seconds without media before the stream reconnects. Zero
 	    // means the host default: 5 for cameras, 60 for plugin-served sources.
 	    Timeout int `msgpack:"timeout,omitempty" json:"timeout,omitempty"`

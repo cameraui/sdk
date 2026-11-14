@@ -57,7 +57,8 @@ func watchHostStop(stop func(budget time.Duration)) {
 				return
 			}
 		}
-		// stdin closed: the host is gone or wants us gone, both end in the same ordered stop
+		// stdin closed or failed: the host is gone or wants us gone, both end in the same ordered stop
+		_ = scanner.Err()
 		stop(0)
 	}()
 }
