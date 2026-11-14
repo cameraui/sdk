@@ -1,5 +1,5 @@
-github.com/cameraui/rpc/go v1.1.2 h1:DeXmGWMGIfseRibtpM3C6HmGtCb2nE5nzNO6E1i218o=
-github.com/cameraui/rpc/go v1.1.2/go.mod h1:I+p4LrtKYRNsTpDWmbEBS4GI5754Yjoc0vSf5ow/sMc=
+github.com/cameraui/rpc/go v1.1.3 h1:dHTa+ImWzcqaB/vtU+pmndrcdCf9KQQB+GzZnhLQO9M=
+github.com/cameraui/rpc/go v1.1.3/go.mod h1:I+p4LrtKYRNsTpDWmbEBS4GI5754Yjoc0vSf5ow/sMc=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/klauspost/compress v1.20.0 h1:a3C1ke2ohxFymNlb2HWAHjDeKCI90scRskErZkR0ezA=
