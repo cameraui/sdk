@@ -63,7 +63,7 @@ export interface AssistantAccess {
   model: string | null;
   /** Result of the picture probe for the assigned entry, null when unknown. */
   vision: boolean | null;
-  /** Language the assistant answers in (`de`), the instance language unless the assistant settings pick another one. Can be null on servers before 2.4.10. */
+  /** Language the assistant answers in (`de`), the instance language unless the assistant settings pick another one. Can be null on servers before 2.5.0. */
   language: string | null;
 }
 

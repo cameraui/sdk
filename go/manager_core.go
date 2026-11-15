@@ -59,7 +59,7 @@ type AssistantAskResult struct {
 // what the assigned entry can do. Model is empty when not allowed, Vision is
 // nil until the picture probe ran, Language is the language the assistant
 // answers in (for example "de"): the one picked in the assistant settings,
-// otherwise the instance language. Servers older than 2.4.10 leave it empty
+// otherwise the instance language. Servers older than 2.5.0 leave it empty
 // when it follows the user interface.
 type AssistantAccess struct {
 	Allowed  bool   `msgpack:"allowed" json:"allowed"`
