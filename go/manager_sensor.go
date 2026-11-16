@@ -37,6 +37,7 @@ type SensorConsumer interface {
 // Accessed via api.SensorManager in plugins.
 type SensorManager struct {
 	mu            sync.RWMutex
+	eventMu       sync.Mutex
 	client        *rpc.Client
 	registryProxy *rpc.Proxy
 	storageCtrl   *StorageController
@@ -247,27 +248,12 @@ func (m *SensorManager) init() error {
 		return nil
 	}
 
-	ctx := context.Background()
-	result, err := m.registryProxy.Invoke(ctx, "getSensors", m.info.ID)
-	if err == nil {
-		if sensorsRaw, ok := result.([]any); ok {
-			for _, raw := range sensorsRaw {
-				encoded, err := rpc.Encode(raw)
-				if err != nil {
-					continue
-				}
-				var data storedSensorData
-				if !decodeMsgpack(m.logger, encoded, &data, "storedSensorData") {
-					continue
-				}
-				if !m.isConsumable(&data) {
-					continue
-				}
-				m.addConsumed(&data)
-			}
-		}
-	}
+	// what the registry announces while the list is read applies on top of it
+	m.eventMu.Lock()
+	defer m.eventMu.Unlock()
+
 	// on error: registry not reachable yet, sensors arrive via events
+	m.syncSensors()
 
 	if consumer, ok := m.plugin.(SensorConsumer); ok {
 		m.mu.RLock()
@@ -589,6 +575,8 @@ func (m *SensorManager) ensureGlobalSubscription() error {
 		if !decodeMsgpack(m.logger, data, &msg, "sensorRegistryEventMessage") {
 			return
 		}
+		m.eventMu.Lock()
+		defer m.eventMu.Unlock()
 		m.handleGlobalSensorEvent(msg)
 	})
 	if err != nil {
@@ -620,7 +608,22 @@ func (m *SensorManager) addConsumed(data *storedSensorData) *sensorProxy {
 	proxy := newSensorProxy(m.client, m.logger, data)
 	m.consumed[data.ID] = proxy
 	m.mu.Unlock()
+
+	// the data is older than the subscription, a change in between only shows in a read
+	if data.Connected {
+		m.resyncConsumed(data.ID)
+	}
 	return proxy
+}
+
+func (m *SensorManager) announceConsumed(proxy *sensorProxy) {
+	consumer, ok := m.plugin.(SensorConsumer)
+	if !ok {
+		return
+	}
+	if err := consumer.OnSensorAdded(proxy); err != nil {
+		m.logger.Warn(fmt.Sprintf("OnSensorAdded failed: %v", err))
+	}
 }
 
 func (m *SensorManager) reattach() error {
@@ -648,13 +651,81 @@ func (m *SensorManager) reattach() error {
 		si.setAssignedCameras(registration.AssignedCameraIDs)
 	}
 
-	m.resyncAllConsumed()
+	m.syncAndAnnounce()
 	return nil
 }
 
 func (m *SensorManager) resync() {
 	m.sendUnsent()
-	m.resyncAllConsumed()
+	m.syncAndAnnounce()
+}
+
+func (m *SensorManager) syncAndAnnounce() {
+	m.eventMu.Lock()
+	defer m.eventMu.Unlock()
+	for _, proxy := range m.syncSensors() {
+		m.announceConsumed(proxy)
+	}
+}
+
+func (m *SensorManager) syncSensors() []*sensorProxy {
+	m.mu.RLock()
+	marks := make(map[string]map[string]uint64, len(m.consumed))
+	for id, proxy := range m.consumed {
+		marks[id] = proxy.eventMarks()
+	}
+	m.mu.RUnlock()
+
+	result, err := m.registryProxy.Invoke(context.Background(), "getSensors", m.info.ID)
+	if err != nil {
+		return nil
+	}
+	sensorsRaw, _ := result.([]any)
+
+	var added []*sensorProxy
+	for _, raw := range sensorsRaw {
+		encoded, err := rpc.Encode(raw)
+		if err != nil {
+			continue
+		}
+		var data storedSensorData
+		if !decodeMsgpack(m.logger, encoded, &data, "storedSensorData") {
+			continue
+		}
+
+		m.mu.RLock()
+		own := m.owned[data.ID]
+		if own == nil {
+			own = m.external[data.ID]
+		}
+		held := m.consumed[data.ID]
+		m.mu.RUnlock()
+
+		switch {
+		case own != nil:
+			syncAssignedCameras(own, data.AssignedCameraIDs)
+		case !m.isConsumable(&data):
+			// a sensor missing from the list stays, the registry may not have loaded it yet
+			if held != nil && !data.Exposed {
+				m.releaseConsumed(data.ID)
+			}
+		case held == nil:
+			added = append(added, m.addConsumed(&data))
+		default:
+			held.setConnected(data.Connected)
+			syncAssignedCameras(held, data.AssignedCameraIDs)
+			// a disconnected sensor only has its saved values, its owner brings the current ones
+			if data.Connected {
+				held.applyRefreshedState(sensorRefreshedState{
+					Type:         data.Type,
+					Properties:   data.Properties,
+					Capabilities: data.Capabilities,
+					DisplayName:  data.DisplayName,
+				}, marks[data.ID])
+			}
+		}
+	}
+	return added
 }
 
 func (m *SensorManager) sendUnsent() {
@@ -689,19 +760,6 @@ func (m *SensorManager) sendUnsent() {
 	}
 }
 
-func (m *SensorManager) resyncAllConsumed() {
-	m.mu.RLock()
-	ids := make([]string, 0, len(m.consumed))
-	for id := range m.consumed {
-		ids = append(ids, id)
-	}
-	m.mu.RUnlock()
-
-	for _, id := range ids {
-		m.resyncConsumed(id)
-	}
-}
-
 func (m *SensorManager) resyncConsumed(sensorID string) {
 	m.mu.RLock()
 	proxy := m.consumed[sensorID]
@@ -710,6 +768,7 @@ func (m *SensorManager) resyncConsumed(sensorID string) {
 		return
 	}
 
+	marks := proxy.eventMarks()
 	result, err := m.registryProxy.Invoke(context.Background(), "getSensorState", sensorID)
 	if err != nil || result == nil {
 		return
@@ -723,7 +782,7 @@ func (m *SensorManager) resyncConsumed(sensorID string) {
 		return
 	}
 
-	proxy.applyRefreshedState(state)
+	proxy.applyRefreshedState(state, marks)
 }
 
 func (m *SensorManager) releaseConsumed(sensorID string) {
@@ -775,18 +834,13 @@ func (m *SensorManager) handleGlobalSensorEvent(msg sensorRegistryEventMessage) 
 		}
 		if alreadyConsumed {
 			// re-announced while held: the payload is authoritative, take it over the stale view
-			consumed.applyRefreshedState(added.State)
+			consumed.applyRefreshedState(added.State, consumed.eventMarks())
 			return
 		}
 		if !m.isConsumable(&added.Sensor) {
 			return
 		}
-		proxy := m.addConsumed(&added.Sensor)
-		if consumer, ok := m.plugin.(SensorConsumer); ok {
-			if err := consumer.OnSensorAdded(proxy); err != nil {
-				m.logger.Warn(fmt.Sprintf("OnSensorAdded failed: %v", err))
-			}
-		}
+		m.announceConsumed(m.addConsumed(&added.Sensor))
 
 	case "sensor:adopted":
 		encoded, err := rpc.Encode(msg.Data)
@@ -878,12 +932,7 @@ func (m *SensorManager) handleGlobalSensorEvent(msg sensorRegistryEventMessage) 
 		if !m.isConsumable(&data) {
 			return
 		}
-		proxy := m.addConsumed(&data)
-		if consumer, ok := m.plugin.(SensorConsumer); ok {
-			if err := consumer.OnSensorAdded(proxy); err != nil {
-				m.logger.Warn(fmt.Sprintf("OnSensorAdded failed: %v", err))
-			}
-		}
+		m.announceConsumed(m.addConsumed(&data))
 
 	case "sensor:assignment:changed":
 		encoded, err := rpc.Encode(msg.Data)
@@ -923,6 +972,15 @@ func (m *SensorManager) handleGlobalSensorEvent(msg sensorRegistryEventMessage) 
 				si.setAssignedCameras(next)
 			}
 		}
+	}
+}
+
+func syncAssignedCameras(target Sensor, cameraIDs []string) {
+	if isEqual(target.GetAssignedCameraIDs(), cameraIDs, true) {
+		return
+	}
+	if si, ok := target.(sensorInternalInit); ok {
+		si.setAssignedCameras(cameraIDs)
 	}
 }
 

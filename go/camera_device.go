@@ -73,6 +73,10 @@ type CameraDevice struct {
 	refreshMu sync.Mutex
 	eventSubs map[string]func()
 
+	cameraEvents      refreshGuard
+	connectedEvents   refreshGuard
+	frameWorkerEvents refreshGuard
+
 	impl       any
 	cleanupFns []func()
 }
@@ -779,6 +783,8 @@ func (d *CameraDevice) applyStates() (stateSubject, ok bool) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	cameraMark, connectedMark, frameWorkerMark := d.cameraEvents.mark(), d.connectedEvents.mark(), d.frameWorkerEvents.mark()
+
 	result, err := d.controllerProxy.Invoke(ctx, "refreshStates")
 	if err != nil {
 		d.logger.Error("Failed to refresh camera states:", err)
@@ -807,18 +813,24 @@ func (d *CameraDevice) applyStates() (stateSubject, ok bool) {
 	}
 
 	// a resync must not wake subscribers for state they already hold
-	d.mu.RLock()
-	sameCamera := isEqual(d.camera, states.Camera, false)
-	d.mu.RUnlock()
-	if !sameCamera {
-		d.applyCamera(&states.Camera)
-	}
-	if d.cameraState.Value() != states.CameraState {
-		d.cameraState.Next(states.CameraState)
-	}
-	if d.frameWorkerState.Value() != states.FrameWorkerState {
-		d.frameWorkerState.Next(states.FrameWorkerState)
-	}
+	d.cameraEvents.answer(cameraMark, func() {
+		d.mu.RLock()
+		sameCamera := isEqual(d.camera, states.Camera, false)
+		d.mu.RUnlock()
+		if !sameCamera {
+			d.applyCamera(&states.Camera)
+		}
+	})
+	d.connectedEvents.answer(connectedMark, func() {
+		if d.cameraState.Value() != states.CameraState {
+			d.cameraState.Next(states.CameraState)
+		}
+	})
+	d.frameWorkerEvents.answer(frameWorkerMark, func() {
+		if d.frameWorkerState.Value() != states.FrameWorkerState {
+			d.frameWorkerState.Next(states.FrameWorkerState)
+		}
+	})
 	return states.StateSubject, true
 }
 
@@ -956,14 +968,14 @@ func (d *CameraDevice) handleCameraEvent(msg cameraEventMessage) {
 			return
 		}
 
-		d.applyCamera(&cam)
+		d.cameraEvents.event(func() { d.applyCamera(&cam) })
 
 	case "cameraState":
 		if msg.Data == nil {
 			return
 		}
 		if state, ok := msg.Data.(bool); ok {
-			d.cameraState.Next(state)
+			d.connectedEvents.event(func() { d.cameraState.Next(state) })
 		}
 
 	case "frameWorkerState":
@@ -971,7 +983,7 @@ func (d *CameraDevice) handleCameraEvent(msg cameraEventMessage) {
 			return
 		}
 		if state, ok := msg.Data.(bool); ok {
-			d.frameWorkerState.Next(state)
+			d.frameWorkerEvents.event(func() { d.frameWorkerState.Next(state) })
 		}
 	}
 }
@@ -1172,6 +1184,33 @@ func (s *CameraDeviceSource) GenerateRTSPUrl(options *RTSPUrlOptions) (string, e
 // GenerateSnapshotUrl generates a snapshot URL for this source with the given options.
 func (s *CameraDeviceSource) GenerateSnapshotUrl(options *SnapshotUrlOptions) (string, error) {
 	return BuildSnapshotUrl(s.device.Name(), s.Name(), s.Urls().Snapshot.JPEG, options)
+}
+
+type refreshGuard struct {
+	mu     sync.Mutex
+	events uint64
+}
+
+func (g *refreshGuard) event(apply func()) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	g.events++
+	apply()
+}
+
+func (g *refreshGuard) mark() uint64 {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	return g.events
+}
+
+func (g *refreshGuard) answer(mark uint64, apply func()) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	// an event since the mark is newer than the answer
+	if g.events == mark {
+		apply()
+	}
 }
 
 func decodeSensorRegistration(result any) (*sensorRegistration, error) {

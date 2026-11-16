@@ -4,6 +4,7 @@ import (
 	"context"
 	"maps"
 	"math"
+	"sync"
 
 	rpc "github.com/cameraui/rpc/go"
 )
@@ -18,6 +19,9 @@ type sensorProxy struct {
 	connected  bool
 	proxy      *rpc.Proxy
 	unsubEvent func()
+
+	eventMu     sync.Mutex
+	eventCounts map[string]uint64
 }
 
 func newSensorProxy(client *rpc.Client, logger *Logger, data *storedSensorData) *sensorProxy {
@@ -30,6 +34,8 @@ func newSensorProxy(client *rpc.Client, logger *Logger, data *storedSensorData) 
 		category:   category,
 		exposed:    data.Exposed,
 		connected:  data.Connected,
+
+		eventCounts: map[string]uint64{},
 	}
 	s.id = data.ID
 	s.nativeID = data.NativeID
@@ -80,20 +86,33 @@ func (s *sensorProxy) Exposed() bool {
 	return s.exposed
 }
 
-func (s *sensorProxy) applyRefreshedState(state sensorRefreshedState) {
-	if state.DisplayName != "" {
+func (s *sensorProxy) eventMarks() map[string]uint64 {
+	s.eventMu.Lock()
+	defer s.eventMu.Unlock()
+	return maps.Clone(s.eventCounts)
+}
+
+func (s *sensorProxy) applyRefreshedState(state sensorRefreshedState, marks map[string]uint64) {
+	s.eventMu.Lock()
+	defer s.eventMu.Unlock()
+	// an event since the marks is newer than the state
+	current := func(key string) bool { return s.eventCounts[key] == marks[key] }
+
+	if state.DisplayName != "" && current("displayName") {
 		s.SetDisplayName(state.DisplayName)
 	}
 
 	s.mu.RLock()
 	stale := !isEqual(s.capabilities, state.Capabilities, true)
 	s.mu.RUnlock()
-	if stale {
+	if stale && current("capabilities") {
 		s.SetCapabilities(state.Capabilities)
 	}
 
 	for property, value := range state.Properties {
-		s.onBackendPropertyChanged(property, coercePropertyValue(s.sensorType, property, value))
+		if current("property:" + property) {
+			s.onBackendPropertyChanged(property, coercePropertyValue(s.sensorType, property, value))
+		}
 	}
 }
 
@@ -143,10 +162,13 @@ func (s *sensorProxy) setConnected(connected bool) {
 }
 
 func (s *sensorProxy) handleSensorEvent(msg sensorEventMessage) {
+	s.eventMu.Lock()
+	defer s.eventMu.Unlock()
 	switch msg.Type {
 	case "property:changed":
 		property, _ := msg.Data["property"].(string)
 		if property != "" {
+			s.eventCounts["property:"+property]++
 			value := coercePropertyValue(s.sensorType, property, msg.Data["value"])
 			timestamp, _ := toInt64(msg.Data["timestamp"])
 			s.setPropertyWithTimestamp(property, value, timestamp)
@@ -155,11 +177,13 @@ func (s *sensorProxy) handleSensorEvent(msg sensorEventMessage) {
 		if rawCaps, ok := msg.Data["capabilities"]; ok && rawCaps != nil {
 			caps := toStringSlice(rawCaps)
 			if caps != nil {
+				s.eventCounts["capabilities"]++
 				s.SetCapabilities(caps)
 			}
 		}
 	case "sensor:displayName:changed":
 		if name, ok := msg.Data["displayName"].(string); ok && name != "" {
+			s.eventCounts["displayName"]++
 			s.SetDisplayName(name)
 		}
 	}

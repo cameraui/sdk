@@ -102,3 +102,67 @@ func TestCameraStateSubjectSwitch(t *testing.T) {
 		t.Fatalf("held %v after cleanup", got)
 	}
 }
+
+func TestRefreshKeepsEventsThatOvertookIt(t *testing.T) {
+	server := liveClient(t, "controller")
+	client := liveClient(t, "plugin")
+
+	cam := Camera{}
+	cam.ID = "cam-2"
+	cam.Name = "cam-2"
+	renamed := cam
+	renamed.Name = "cam-2 renamed"
+	ns := getCameraNamespaces("cam-2")
+
+	var d *CameraDevice
+	settled := func() bool {
+		d.mu.RLock()
+		defer d.mu.RUnlock()
+		return d.cameraState.Value() && d.frameWorkerState.Value() && d.camera.Name == renamed.Name
+	}
+	if _, err := server.RegisterHandler(ns.CameraControllerRPC, map[string]any{
+		"refreshStates": func() (map[string]any, error) {
+			states := map[string]any{"camera": cam, "cameraState": false, "frameWorkerState": false, "stateSubject": true}
+			// the changes happen right after the read and reach the plugin before the answer
+			_ = server.Publish(ns.CameraStateSubject, map[string]any{"type": "updated", "data": renamed})
+			_ = server.Publish(ns.CameraStateSubject, map[string]any{"type": "cameraState", "data": true})
+			_ = server.Publish(ns.CameraStateSubject, map[string]any{"type": "frameWorkerState", "data": true})
+			for deadline := time.Now().Add(2 * time.Second); !settled() && time.Now().Before(deadline); {
+				time.Sleep(5 * time.Millisecond)
+			}
+			return states, nil
+		},
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	d = &CameraDevice{
+		client:           client,
+		camera:           cam,
+		logger:           newLogger(&loggerOptions{Prefix: "test"}),
+		controllerProxy:  client.CreateProxy(ns.CameraControllerRPC),
+		cameraSubject:    NewBehaviorSubject(cam),
+		cameraState:      NewBehaviorSubject(false),
+		frameWorkerState: NewBehaviorSubject(false),
+		detectionEvent:   NewSubject[DetectionEventData](),
+		sensorCleanups:   map[string]func(){},
+		initialized:      true,
+	}
+	t.Cleanup(func() { d.dropEventSubjects("") })
+	for _, subject := range []string{ns.CameraSubject, ns.CameraStateSubject} {
+		if err := d.subscribeEvents(subject); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	d.refreshStates()
+	if !d.cameraState.Value() {
+		t.Error("the older answer put the camera back to disconnected")
+	}
+	if !d.frameWorkerState.Value() {
+		t.Error("the older answer put the frame worker back to disconnected")
+	}
+	if got := d.cameraSubject.Value().Name; got != renamed.Name {
+		t.Errorf("the older answer put the camera back to %q", got)
+	}
+}
