@@ -68,5 +68,9 @@
   "keywords": [
     "camera.ui",
     "sdk"
-  ]
+  ],
+  "allowScripts": {
+    "esbuild": true,
+    "fsevents": true
+  }
 }
