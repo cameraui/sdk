@@ -189,6 +189,9 @@ func (ds *DeviceStorage) SubmitValue(key string, value any) map[string]any {
 		}
 		result["schema"] = schemas
 	}
+	if resp.Open != "" {
+		result["open"] = resp.Open
+	}
 	return result
 }
 
@@ -550,7 +553,7 @@ func (ds *DeviceStorage) resolveOnGet(schemas []JsonSchema) {
 	// OnGet may read back into this storage, so it runs without ds.mu held
 	for i := range schemas {
 		s := &schemas[i]
-		if s.OnGet == nil || s.Type == JsonSchemaTypeButton || s.Type == JsonSchemaTypeSubmit {
+		if s.OnGet == nil || s.storesNoValue() {
 			continue
 		}
 		val := s.OnGet()
@@ -564,15 +567,14 @@ func (ds *DeviceStorage) resolveOnGet(schemas []JsonSchema) {
 }
 
 func schemaStorable(schema *JsonSchema) bool {
-	return schema.Store != nil && *schema.Store &&
-		schema.Type != JsonSchemaTypeButton && schema.Type != JsonSchemaTypeSubmit
+	return schema.Store != nil && *schema.Store && !schema.storesNoValue()
 }
 
 func generateConfigFromSchemas(schemas []JsonSchema) map[string]any {
 	config := make(map[string]any, len(schemas))
 	for i := range schemas {
 		s := &schemas[i]
-		if s.Type == JsonSchemaTypeButton || s.Type == JsonSchemaTypeSubmit {
+		if s.storesNoValue() {
 			continue
 		}
 		config[s.Key] = generateDefaultValue(s)
@@ -605,7 +607,7 @@ func generateDefaultValue(s *JsonSchema) any {
 		obj := make(map[string]any, len(s.Properties))
 		for i := range s.Properties {
 			p := &s.Properties[i]
-			if p.Type == JsonSchemaTypeButton || p.Type == JsonSchemaTypeSubmit {
+			if p.storesNoValue() {
 				continue
 			}
 			obj[p.Key] = generateDefaultValue(p)

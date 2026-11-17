@@ -323,6 +323,7 @@ from .storage import (
     JsonSchemaButton,
     JsonSchemaEnum,
     JsonSchemaEnumWithoutCallbacks,
+    JsonSchemaLink,
     JsonSchemaNumber,
     JsonSchemaNumberWithoutCallbacks,
     JsonSchemaObject,
@@ -548,6 +549,7 @@ __all__ = [
     "JsonSchemaObject",
     "JsonSchemaButton",
     "JsonSchemaSubmit",
+    "JsonSchemaLink",
     # Combined schema types (without callbacks)
     "JsonSchemaStringWithoutCallbacks",
     "JsonSchemaNumberWithoutCallbacks",

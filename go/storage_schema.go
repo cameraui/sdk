@@ -19,6 +19,8 @@ const (
 	JsonSchemaTypeButton JsonSchemaType = "button"
 	// JsonSchemaTypeSubmit renders a button that submits the form to OnClick.
 	JsonSchemaTypeSubmit JsonSchemaType = "submit"
+	// JsonSchemaTypeLink renders a link that opens URL; no value is stored.
+	JsonSchemaTypeLink JsonSchemaType = "link"
 )
 
 // StringFormat selects a specialized UI control for a string field.
@@ -134,12 +136,15 @@ type ToastMessage struct {
 // FormSubmitResponse is returned by JsonSchema.OnClick (Type=submit).
 //
 // Used to react to a user-triggered submit (e.g. "Test connection",
-// "Pair device") with optional UI feedback.
+// "Pair device") with optional UI feedback, or to open a page such as a
+// sign-in page the handler just built.
 type FormSubmitResponse struct {
 	// Toast is an optional banner to display after the submit completes.
 	Toast *ToastMessage `json:"toast,omitempty" msgpack:"toast,omitempty"`
 	// Schema optionally replaces the rendered form fields (full replacement).
 	Schema []JsonSchema `json:"schema,omitempty" msgpack:"schema,omitempty"`
+	// Open is an optional page to open, with the same rules as JsonSchema.URL.
+	Open string `json:"open,omitempty" msgpack:"open,omitempty"`
 }
 
 // JsonSchema represents a single configuration field rendered in the UI.
@@ -149,7 +154,7 @@ type FormSubmitResponse struct {
 // Use this struct in the slice you pass to DeviceStorage.DefineSchemas or
 // .AddSchema.
 type JsonSchema struct {
-	// Type is the field type (string/number/boolean/array/button/submit).
+	// Type is the field type (string/number/boolean/array/object/button/submit/link).
 	Type JsonSchemaType `json:"type" msgpack:"type"`
 	// Key uniquely identifies this field within the storage scope.
 	Key string `json:"key" msgpack:"key"`
@@ -206,6 +211,11 @@ type JsonSchema struct {
 
 	// Color is the button color variant (Type=button or Type=submit only).
 	Color ButtonColor `json:"color,omitempty" msgpack:"color,omitempty"`
+
+	// URL is the page a link opens (Type=link only): an http(s) address opens in
+	// a new tab, a path such as "/settings/recordings" opens that page of
+	// camera.ui. Other addresses are not opened.
+	URL string `json:"url,omitempty" msgpack:"url,omitempty"`
 
 	// OnSet is invoked after SetValue writes the key, changed or not; SetConfig
 	// calls it only for keys that changed. Receives (newValue, oldValue).
@@ -292,6 +302,9 @@ func (s *JsonSchema) ToMap() map[string]any {
 	if s.Color != "" {
 		m["color"] = string(s.Color)
 	}
+	if s.URL != "" {
+		m["url"] = s.URL
+	}
 	if len(s.Condition) == 1 {
 		c := map[string]any{
 			"key":   s.Condition[0].Key,
@@ -317,4 +330,8 @@ func (s *JsonSchema) ToMap() map[string]any {
 	}
 
 	return m
+}
+
+func (s *JsonSchema) storesNoValue() bool {
+	return s.Type == JsonSchemaTypeButton || s.Type == JsonSchemaTypeSubmit || s.Type == JsonSchemaTypeLink
 }

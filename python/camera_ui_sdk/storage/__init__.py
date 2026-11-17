@@ -32,7 +32,7 @@ OnGetCallback = (
 )
 """Callback type for onGet handlers."""
 
-JsonSchemaType = Literal["string", "number", "boolean", "array", "object", "button", "submit"]
+JsonSchemaType = Literal["string", "number", "boolean", "array", "object", "button", "submit", "link"]
 """Available schema field types for configuration UI."""
 
 StringFormat = Literal[
@@ -457,6 +457,45 @@ class JsonSchemaSubmit(TypedDict, total=False):
     """Button color variant."""
 
 
+class JsonSchemaLink(TypedDict, total=False):
+    """
+    Link schema: opens a page and stores no value.
+
+    An ``http(s)`` address opens in a new tab, a path such as
+    ``/settings/recordings`` opens that page of camera.ui. Other addresses are
+    not opened.
+
+    Example:
+        ```python
+        {
+            "type": "link",
+            "key": "account",
+            "title": "Manage account",
+            "description": "Opens the account page of the service",
+            "url": "https://example.com/account",
+        }
+        ```
+    """
+
+    type: Required[Literal["link"]]
+    """Schema type discriminator."""
+
+    key: Required[str]
+    """Unique field identifier."""
+
+    title: Required[str]
+    """Display title."""
+
+    description: Required[str]
+    """Field description/help text."""
+
+    url: Required[str]
+    """``http(s)`` address, or a camera.ui path starting with ``/``."""
+
+    group: str
+    """Optional group name for organizing fields."""
+
+
 JsonSchema = (
     JsonSchemaString
     | JsonSchemaNumber
@@ -466,6 +505,7 @@ JsonSchema = (
     | JsonSchemaObject
     | JsonSchemaButton
     | JsonSchemaSubmit
+    | JsonSchemaLink
 )
 """Union of every top-level schema type (with callbacks).
 
@@ -483,6 +523,7 @@ JsonSchemaWithoutKey = (
     | JsonSchemaObject
     | JsonSchemaButton
     | JsonSchemaSubmit
+    | JsonSchemaLink
 )
 """Schema accepted where the key is supplied externally, e.g. as a dict property."""
 
@@ -525,11 +566,12 @@ class FormSubmitResponse(TypedDict, total=False):
     Form submit response, returned by ``JsonSchemaSubmit.onClick``.
 
     Used to react to a user-triggered submit (e.g. "Test connection",
-    "Pair device") with optional UI feedback. Either field may be set:
+    "Pair device") with optional UI feedback. Any field may be set:
 
     - ``toast`` shows a transient banner.
     - ``schema`` replaces the current form schema, useful for multi-step
       flows where the next step depends on the submitted values.
+    - ``open`` opens a page, for example a sign-in page the handler just built.
     """
 
     toast: ToastMessage
@@ -537,6 +579,9 @@ class FormSubmitResponse(TypedDict, total=False):
 
     schema: list[JsonSchemaWithoutCallbacks]
     """Optional updated schema definitions (full replacement of fields)."""
+
+    open: str
+    """Optional page to open, an ``http(s)`` address or a camera.ui path, same rules as ``JsonSchemaLink.url``."""
 
 
 class SchemaConfig(TypedDict):
@@ -808,6 +853,7 @@ __all__ = [
     "JsonSchemaArray",
     "JsonSchemaButton",
     "JsonSchemaSubmit",
+    "JsonSchemaLink",
     # Combined schema types (without callbacks)
     "JsonSchemaStringWithoutCallbacks",
     "JsonSchemaNumberWithoutCallbacks",

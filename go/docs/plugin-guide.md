@@ -342,11 +342,12 @@ sensor.Storage().DefineSchemas([]cameraui.JsonSchema{
 
 Field types:
 
-- `cameraui.JsonSchemaTypeNumber` — slider/input with optional `Minimum`, `Maximum`, `Step`.
-- `cameraui.JsonSchemaTypeString` — text input; add `Enum: []string{...}` for a dropdown, `Format: cameraui.StringFormatPassword` to mask, `Format: cameraui.StringFormatImage` / `StringFormatQRCode` for media display.
-- `cameraui.JsonSchemaTypeBoolean` — toggle.
-- `cameraui.JsonSchemaTypeButton` — fires `OnSet()` on click; stores no value. Useful for actions like "Test connection" or "Reset".
-- `cameraui.JsonSchemaTypeSubmit` — fires `OnClick(value any) *FormSubmitResponse` and lets you echo a toast back to the UI.
+- `cameraui.JsonSchemaTypeNumber`: slider/input with optional `Minimum`, `Maximum`, `Step`.
+- `cameraui.JsonSchemaTypeString`: text input; add `Enum: []string{...}` for a dropdown, `Format: cameraui.StringFormatPassword` to mask, `Format: cameraui.StringFormatImage` / `StringFormatQRCode` for media display.
+- `cameraui.JsonSchemaTypeBoolean`: toggle.
+- `cameraui.JsonSchemaTypeButton`: fires `OnSet()` on click; stores no value. Useful for actions like "Test connection" or "Reset".
+- `cameraui.JsonSchemaTypeSubmit`: fires `OnClick(value any) *FormSubmitResponse` and lets you echo a toast back to the UI.
+- `cameraui.JsonSchemaTypeLink`: opens `URL` on click; stores no value. An http(s) address opens in a new tab, a path such as `/settings/recordings` opens that page of camera.ui. A submit handler can open a page the same way through `FormSubmitResponse.Open`.
 
 `OnSet(oldValue, newValue)` runs after the host has persisted the new value. Use it to re-warm caches, restart sessions, or anything else that depends on the changed setting. The return value is unused by the SDK — feel free to return `nil`. The host doesn't block UI on it; keep work scoped to the plugin.
 

@@ -13,6 +13,7 @@ func TestDefineSchemasSeedsTypedDefaults(t *testing.T) {
 		{Type: JsonSchemaTypeBoolean, Key: "b"},
 		{Type: JsonSchemaTypeArray, Key: "a"},
 		{Type: JsonSchemaTypeButton, Key: "btn"},
+		{Type: JsonSchemaTypeLink, Key: "lnk", URL: "https://example.com"},
 	})
 
 	if got := ds.GetValue("s"); got != "" {
@@ -29,6 +30,27 @@ func TestDefineSchemasSeedsTypedDefaults(t *testing.T) {
 	}
 	if ds.HasValue("btn") {
 		t.Error("button type must not seed a value")
+	}
+	if ds.HasValue("lnk") {
+		t.Error("link type must not seed a value")
+	}
+}
+
+func TestLinkAndOpenReachTheWire(t *testing.T) {
+	ds := newDeviceStorage(newMemPersistence(), storeLocation{kind: storeLocationPlugin}, testLogger())
+	ds.DefineSchemas([]JsonSchema{
+		{Type: JsonSchemaTypeLink, Key: "account", Title: "Account", URL: "https://example.com/account"},
+		{Type: JsonSchemaTypeSubmit, Key: "signIn", OnClick: func(any) *FormSubmitResponse {
+			return &FormSubmitResponse{Open: "/settings/recordings"}
+		}},
+	})
+
+	schemas, _ := ds.GetConfig()["schema"].([]map[string]any)
+	if len(schemas) != 2 || schemas[0]["url"] != "https://example.com/account" {
+		t.Errorf("link url missing from the schema: %v", schemas)
+	}
+	if got := ds.SubmitValue("signIn", nil); got["open"] != "/settings/recordings" {
+		t.Errorf("open missing from the submit response: %v", got)
 	}
 }
 

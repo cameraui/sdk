@@ -5,7 +5,7 @@
 export type PluginConfig<T = Record<string, any>> = T;
 
 /** Available schema field types for configuration UI. */
-export type JsonSchemaType = 'string' | 'number' | 'boolean' | 'array' | 'object' | 'button' | 'submit';
+export type JsonSchemaType = 'string' | 'number' | 'boolean' | 'array' | 'object' | 'button' | 'submit' | 'link';
 
 /** Condition operator for conditional field visibility. */
 export type SchemaConditionOperator = 'eq' | 'neq' | 'gt' | 'lt' | 'in' | 'nin';
@@ -262,6 +262,26 @@ export interface JsonSchemaSubmit extends JsonFactorySchema {
 }
 
 /**
+ * Link schema: opens a page and stores no value.
+ *
+ * An `http(s)` address opens in a new tab, a path such as
+ * `/settings/recordings` opens that page of camera.ui. Other addresses are
+ * not opened.
+ *
+ * @example
+ * ```typescript
+ * { type: 'link', key: 'account', title: 'Manage account', description: 'Opens the account page of the service',
+ *   url: 'https://example.com/account' }
+ * ```
+ */
+export interface JsonSchemaLink extends JsonFactorySchema {
+  /** Schema type discriminator. */
+  type: 'link';
+  /** `http(s)` address, or a camera.ui path starting with `/`. */
+  url: string;
+}
+
+/**
  * Union of every top-level schema type (with callbacks).
  *
  * Use this when defining the schemas you pass to `defineSchemas`,
@@ -269,7 +289,7 @@ export interface JsonSchemaSubmit extends JsonFactorySchema {
  * field rendered in the UI; the discriminator is the `type` property.
  */
 export type JsonSchema =
-  JsonSchemaString | JsonSchemaNumber | JsonSchemaBoolean | JsonSchemaEnum | JsonSchemaArray | JsonSchemaObject | JsonSchemaButton | JsonSchemaSubmit;
+  JsonSchemaString | JsonSchemaNumber | JsonSchemaBoolean | JsonSchemaEnum | JsonSchemaArray | JsonSchemaObject | JsonSchemaButton | JsonSchemaSubmit | JsonSchemaLink;
 
 /**
  * Schema variant without the `key` field.
@@ -313,16 +333,19 @@ export interface FormSubmitSchema {
  * Form submit response, returned by `JsonSchemaSubmit.onClick`.
  *
  * Used to react to a user-triggered submit (e.g. "Test connection",
- * "Pair device") with optional UI feedback. Either field may be set:
+ * "Pair device") with optional UI feedback. Any field may be set:
  * - `toast` shows a transient banner.
  * - `schema` replaces the current form schema, useful for multi-step
  *   flows where the next step depends on the submitted values.
+ * - `open` opens a page, for example a sign-in page the handler just built.
  */
 export interface FormSubmitResponse {
   /** Optional toast banner to display after the submit completes. */
   toast?: ToastMessage;
   /** Optional updated schema definitions (full replacement of fields). */
   schema?: JsonSchemaWithoutCallbacks[];
+  /** Optional page to open, an `http(s)` address or a camera.ui path, same rules as `JsonSchemaLink.url`. */
+  open?: string;
 }
 
 /**

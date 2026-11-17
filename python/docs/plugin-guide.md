@@ -189,6 +189,7 @@ A standalone sensor works exactly the same once it runs, only nobody registers i
 ```python
 from camera_ui_sdk import AdoptedSensor, LockControl
 
+
 async def onSensorAdopted(self, sensor: AdoptedSensor) -> LockControl:
     return LockControl(sensor["name"], native_id=sensor["nativeId"], address=sensor.get("address"))
 ```
@@ -263,7 +264,9 @@ class ConfigurableMotion(MotionDetectorSensor[ConfigurableMotionStorage]):
                 "title": "Sensitivity",
                 "description": "Higher = trigger on smaller motion",
                 "defaultValue": 50,
-                "minimum": 0, "maximum": 100, "step": 1,
+                "minimum": 0,
+                "maximum": 100,
+                "step": 1,
                 "store": True,
                 "onSet": lambda *_: self._reconfigure(),
             },
@@ -300,10 +303,11 @@ class ConfigurableMotion(MotionDetectorSensor[ConfigurableMotionStorage]):
 
 Field types:
 
-- `number` — slider/input with optional `minimum`, `maximum`, `step`.
-- `string` — text input; add `"enum": [...]` for a dropdown, `"format": "password"` to mask, `"format": "image"` / `"qrCode"` for media display.
-- `boolean` — toggle.
-- `button` — fires `onSet()` on click; stores no value. Useful for actions like "Test connection" or "Reset".
+- `number`: slider/input with optional `minimum`, `maximum`, `step`.
+- `string`: text input; add `"enum": [...]` for a dropdown, `"format": "password"` to mask, `"format": "image"` / `"qrCode"` for media display.
+- `boolean`: toggle.
+- `button`: fires `onSet()` on click; stores no value. Useful for actions like "Test connection" or "Reset".
+- `link`: opens `url` on click; stores no value. An http(s) address opens in a new tab, a path such as `/settings/recordings` opens that page of camera.ui. A submit handler can open a page the same way by returning `open`.
 
 `onSet(new_value, old_value)` runs after the host has persisted the new value. Use it to re-warm caches, restart sessions, or anything else that depends on the changed setting. It can be sync or async, but the host doesn't block UI on it — keep work scoped to the plugin.
 
@@ -322,9 +326,16 @@ from urllib.parse import quote
 from typing import TypedDict
 
 from camera_ui_sdk import (
-    API_EVENT, BasePlugin, CameraConfig, CameraDevice, DeviceStorage,
-    DiscoveredCamera, DiscoveryProvider, JsonSchemaWithoutCallbacks,
-    LoggerService, PluginAPI,
+    API_EVENT,
+    BasePlugin,
+    CameraConfig,
+    CameraDevice,
+    DeviceStorage,
+    DiscoveredCamera,
+    DiscoveryProvider,
+    JsonSchemaWithoutCallbacks,
+    LoggerService,
+    PluginAPI,
 )
 
 
@@ -364,17 +375,26 @@ class CameraProvider(BasePlugin, DiscoveryProvider):
         adopted = {c.nativeId for c in self.cameras.values()}
         return [
             {"id": d["id"], "name": d["name"], "manufacturer": d["manufacturer"], "model": d["model"]}
-            for d in FAKE_DEVICES if d["id"] not in adopted
+            for d in FAKE_DEVICES
+            if d["id"] not in adopted
         ]
 
     async def onGetCameraSettings(self, camera: DiscoveredCamera) -> list[JsonSchemaWithoutCallbacks]:
         return [
             {"type": "string", "key": "username", "title": "Username", "description": "", "required": True},
-            {"type": "string", "key": "password", "title": "Password", "description": "",
-             "format": "password", "required": True},
+            {
+                "type": "string",
+                "key": "password",
+                "title": "Password",
+                "description": "",
+                "format": "password",
+                "required": True,
+            },
         ]
 
-    async def onAdoptCamera(self, camera: DiscoveredCamera, cameraSettings: dict[str, object]) -> CameraConfig:
+    async def onAdoptCamera(
+        self, camera: DiscoveredCamera, cameraSettings: dict[str, object]
+    ) -> CameraConfig:
         device = next((d for d in FAKE_DEVICES if d["id"] == camera["id"]), None)
         if device is None:
             raise ValueError(f"Unknown device: {camera['id']}")
@@ -384,14 +404,16 @@ class CameraProvider(BasePlugin, DiscoveryProvider):
             "name": device["name"],
             "nativeId": device["id"],
             "info": {"manufacturer": device["manufacturer"], "model": device["model"]},
-            "sources": [{
-                "name": "main",
-                "role": "high-resolution",
-                "urls": [f"rtsp://{u}:{p}@{device['host']}/stream0"],
-                "useForSnapshot": True,
-                "hotMode": True,
-                "preload": True,
-            }],
+            "sources": [
+                {
+                    "name": "main",
+                    "role": "high-resolution",
+                    "urls": [f"rtsp://{u}:{p}@{device['host']}/stream0"],
+                    "useForSnapshot": True,
+                    "hotMode": True,
+                    "preload": True,
+                }
+            ],
         }
 ```
 
@@ -407,8 +429,15 @@ from datetime import datetime, timezone
 from typing import Any
 
 from camera_ui_sdk import (
-    API_EVENT, BasePlugin, CameraDevice, DeviceStorage, LoggerService,
-    Notification, NotifierDevice, NotifierInterface, PluginAPI,
+    API_EVENT,
+    BasePlugin,
+    CameraDevice,
+    DeviceStorage,
+    LoggerService,
+    Notification,
+    NotifierDevice,
+    NotifierInterface,
+    PluginAPI,
 )
 
 
@@ -479,8 +508,11 @@ Motion as a worked example:
 from typing import Any
 
 from camera_ui_sdk import (
-    BasePlugin, JsonSchema, MotionDetectionInterface,
-    MotionDetectionPluginResponse, VideoFrameData,
+    BasePlugin,
+    JsonSchema,
+    MotionDetectionInterface,
+    MotionDetectionPluginResponse,
+    VideoFrameData,
 )
 
 
@@ -488,25 +520,41 @@ class MotionPlugin(BasePlugin, MotionDetectionInterface):
     # ... lifecycle methods omitted ...
 
     async def testMotionDetection(
-        self, video_data: bytes, config: dict[str, Any],
+        self,
+        video_data: bytes,
+        config: dict[str, Any],
     ) -> MotionDetectionPluginResponse | None:
         detections = await self._run_on_encoded_clip(video_data)
         return {"detected": len(detections) > 0, "detections": detections}
 
     async def detectMotion(
-        self, frames: list[VideoFrameData], config: dict[str, Any] | None = None,
+        self,
+        frames: list[VideoFrameData],
+        config: dict[str, Any] | None = None,
     ) -> MotionDetectionPluginResponse | None:
         detections = await self._run_on_frames(frames)
         return {"detected": len(detections) > 0, "detections": detections}
 
     async def motionDetectionSettings(self) -> list[JsonSchema] | None:
         return [
-            {"type": "number", "key": "minArea", "title": "Min area (%)", "description": "",
-             "defaultValue": 1, "minimum": 0, "maximum": 100, "step": 1, "store": True},
+            {
+                "type": "number",
+                "key": "minArea",
+                "title": "Min area (%)",
+                "description": "",
+                "defaultValue": 1,
+                "minimum": 0,
+                "maximum": 100,
+                "step": 1,
+                "store": True,
+            },
         ]
 
-    async def _run_on_encoded_clip(self, v: bytes) -> list: return []
-    async def _run_on_frames(self, f: list[VideoFrameData]) -> list: return []
+    async def _run_on_encoded_clip(self, v: bytes) -> list:
+        return []
+
+    async def _run_on_frames(self, f: list[VideoFrameData]) -> list:
+        return []
 ```
 
 The image-based detection interfaces (`ObjectDetectionInterface`, `FaceDetectionInterface`, `LicensePlateDetectionInterface`, `ClassifierDetectionInterface`, `ClipDetectionInterface`) take an extra `metadata: ImageMetadata` argument with `width` / `height` on the `test*` method. The audio interface takes `metadata: AudioMetadata` with the `mimeType`. Otherwise the wiring is identical to the motion example above — add the matching `PluginInterface.X` flag to the contract and implement the `test*` / optional `detect*` / optional settings trio.
@@ -530,8 +578,17 @@ The sensor reports its source on itself: `setSourceState("connected" | "unavaila
 
 ```python
 from camera_ui_sdk import (
-    AdoptedSensor, BasePlugin, ContactSensor, DeviceStorage, DiscoveredSensor,
-    LockControl, LoggerService, PluginAPI, Sensor, SensorDiscoveryProvider, SensorType,
+    AdoptedSensor,
+    BasePlugin,
+    ContactSensor,
+    DeviceStorage,
+    DiscoveredSensor,
+    LockControl,
+    LoggerService,
+    PluginAPI,
+    Sensor,
+    SensorDiscoveryProvider,
+    SensorType,
 )
 
 
@@ -611,8 +668,15 @@ A complete Hub consumer that reacts to motion state and connectivity:
 from typing import Any
 
 from camera_ui_sdk import (
-    API_EVENT, BasePlugin, CameraDevice, DeviceStorage, Disposable,
-    LoggerService, PluginAPI, SensorLike, SensorType,
+    API_EVENT,
+    BasePlugin,
+    CameraDevice,
+    DeviceStorage,
+    Disposable,
+    LoggerService,
+    PluginAPI,
+    SensorLike,
+    SensorType,
 )
 
 
@@ -676,11 +740,13 @@ To use one of the language models configured in camera.ui, call `self.api.coreMa
 ```python
 access = await self.api.coreManager.assistantAccess()
 if access["allowed"]:
-    answer = await self.api.coreManager.assistantAsk({
-        "system": "Answer with one word.",
-        "prompt": "Is there a person in this picture?",
-        "images": [{"data": jpeg_bytes, "mimeType": "image/jpeg"}],
-    })
+    answer = await self.api.coreManager.assistantAsk(
+        {
+            "system": "Answer with one word.",
+            "prompt": "Is there a person in this picture?",
+            "images": [{"data": jpeg_bytes, "mimeType": "image/jpeg"}],
+        }
+    )
     text = answer["text"] if answer["ok"] else None
 ```
 
@@ -688,8 +754,17 @@ A plugin can also go the other way and **bring a model**: list ``PluginInterface
 
 ```python
 async def assistantModels(self) -> list[AssistantModelSpec]:
-    return [{"id": "local", "name": "Local model", "contextTokens": 8192,
-             "vision": True, "toolCalling": True, "structuredOutput": True}]
+    return [
+        {
+            "id": "local",
+            "name": "Local model",
+            "contextTokens": 8192,
+            "vision": True,
+            "toolCalling": True,
+            "structuredOutput": True,
+        }
+    ]
+
 
 async def assistantGenerate(self, request: AssistantModelRequest, ctx: AssistantModelContext):
     async for delta in self.session.stream(request, ctx["timeoutMs"]):
@@ -705,7 +780,11 @@ A model that has to be downloaded or loaded first implements ``assistantModelSta
 async def assistantModelStatus(self) -> AssistantModelStatus:
     if self.session.ready:
         return {"ready": True}
-    return {"ready": False, "message": "Loading the model", "progress": self.session.loaded / self.session.total}
+    return {
+        "ready": False,
+        "message": "Loading the model",
+        "progress": self.session.loaded / self.session.total,
+    }
 ```
 
 
