@@ -50,7 +50,7 @@ func watchHostStop(stop func(budget time.Duration)) {
 	// a ctrl-c in the host's terminal reaches the whole group, the host stops us itself
 	signal.Ignore(os.Interrupt)
 	go func() {
-		scanner := bufio.NewScanner(os.Stdin)
+		scanner := bufio.NewScanner(hostStopInput())
 		for scanner.Scan() {
 			if budget, ok := parseStopLine(scanner.Text()); ok {
 				stop(budget)
