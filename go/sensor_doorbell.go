@@ -8,6 +8,10 @@ const (
 
 const ringAutoResetMs = 2000
 
+type doorbellSetters interface {
+	Trigger()
+}
+
 // DoorbellTrigger fires doorbell ring events.
 //
 // Plugin authors call Trigger to fire an event. The ring property is set to
@@ -75,7 +79,7 @@ func (s *DoorbellTrigger) UpdateValue(property string, value any) error {
 		truthy = v != 0
 	}
 	if truthy {
-		s.Trigger()
+		outerOr[doorbellSetters](&s.BaseSensor, s).Trigger()
 	}
 	return nil
 }

@@ -14,6 +14,10 @@ const (
 	lockPropertyTargetState  = "targetState"
 )
 
+type lockSetters interface {
+	SetTargetState(value LockState)
+}
+
 // LockControl is a lock/unlock control sensor. Override SetTargetState (by
 // embedding LockControl in your own type and shadowing the method) to drive
 // hardware and call the embedded LockControl's SetTargetState once the
@@ -81,7 +85,7 @@ func (s *LockControl) SetCurrentState(value LockState) {
 func (s *LockControl) UpdateValue(property string, value any) error {
 	if property == lockPropertyTargetState {
 		if v, ok := toInt64(value); ok {
-			s.SetTargetState(LockState(v))
+			outerOr[lockSetters](&s.BaseSensor, s).SetTargetState(LockState(v))
 		}
 	}
 	return nil

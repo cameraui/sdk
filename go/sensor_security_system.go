@@ -16,6 +16,10 @@ const (
 	securitySystemPropertyTargetState  = "targetState"
 )
 
+type securitySystemSetters interface {
+	SetTargetState(value SecuritySystemState)
+}
+
 // SecuritySystem is a security system arm/disarm control sensor.
 type SecuritySystem struct{ BaseSensor }
 
@@ -76,7 +80,7 @@ func (s *SecuritySystem) SetCurrentState(value SecuritySystemState) {
 func (s *SecuritySystem) UpdateValue(property string, value any) error {
 	if property == securitySystemPropertyTargetState {
 		if v, ok := toInt64(value); ok {
-			s.SetTargetState(SecuritySystemState(v))
+			outerOr[securitySystemSetters](&s.BaseSensor, s).SetTargetState(SecuritySystemState(v))
 		}
 	}
 	return nil

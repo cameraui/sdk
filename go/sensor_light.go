@@ -10,6 +10,12 @@ const (
 	lightPropertyBrightness = "brightness"
 )
 
+type lightSetters interface {
+	SetOn()
+	SetOff()
+	SetBrightness(value int)
+}
+
 // LightControl is a light on/off and brightness control sensor. Override
 // SetOn / SetOff (by embedding LightControl in your own type and shadowing
 // the methods) to drive your hardware, then call the embedded LightControl's
@@ -88,6 +94,7 @@ func (s *LightControl) SetBrightness(value int) {
 // UpdateValue routes generic property writes to the semantic setters.
 // Only on and brightness are externally writable.
 func (s *LightControl) UpdateValue(property string, value any) error {
+	setters := outerOr[lightSetters](&s.BaseSensor, s)
 	switch property {
 	case lightPropertyOn:
 		on := false
@@ -97,13 +104,13 @@ func (s *LightControl) UpdateValue(property string, value any) error {
 			on = v != 0
 		}
 		if on {
-			s.SetOn()
+			setters.SetOn()
 		} else {
-			s.SetOff()
+			setters.SetOff()
 		}
 	case lightPropertyBrightness:
 		if v, ok := toInt64(value); ok {
-			s.SetBrightness(int(v))
+			setters.SetBrightness(int(v))
 		}
 	}
 	return nil

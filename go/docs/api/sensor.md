@@ -2124,7 +2124,7 @@ Set capabilities to advertise supported axes and features. Use SetPresets to pub
 
 	func (s *PTZControl) GoHome()
 
-GoHome moves the PTZ to the home position \(0, 0, 0\). To drive a hardware home command, shadow UpdateValue and handle "home" there: UpdateValue calls the embedded GoHome, so shadowing GoHome alone is never reached.
+GoHome moves the PTZ to the home position \(0, 0, 0\).
 
 Example:
 

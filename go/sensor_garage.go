@@ -17,6 +17,10 @@ const (
 	garagePropertyObstructionDetected = "obstructionDetected"
 )
 
+type garageSetters interface {
+	SetTargetState(value GarageState)
+}
+
 // GarageControl is a garage door control sensor. Override SetTargetState (by
 // embedding GarageControl in your own type and shadowing the method) to drive
 // hardware and call the embedded GarageControl's SetTargetState once the
@@ -100,7 +104,7 @@ func (s *GarageControl) SetObstructionDetected(detected bool) {
 func (s *GarageControl) UpdateValue(property string, value any) error {
 	if property == garagePropertyTargetState {
 		if v, ok := toInt64(value); ok {
-			s.SetTargetState(GarageState(v))
+			outerOr[garageSetters](&s.BaseSensor, s).SetTargetState(GarageState(v))
 		}
 	}
 	return nil

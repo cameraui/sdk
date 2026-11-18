@@ -174,6 +174,7 @@ type BaseSensor struct {
 	capabilities         []string
 	properties           map[string]any
 	storage              *DeviceStorage
+	outer                Sensor
 	updateFn             propertyUpdateFn
 	capabilitiesUpdateFn func([]string)
 	sourceUpdateFn       sourceUpdateFn
@@ -417,6 +418,12 @@ func (s *BaseSensor) setPluginID(id string) {
 
 func (s *BaseSensor) setID(id string) {
 	s.id = id
+}
+
+func (s *BaseSensor) setOuter(outer Sensor) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.outer = outer
 }
 
 func (s *BaseSensor) setAssignmentLocked() {
@@ -720,4 +727,15 @@ func fireSensorLifecycle(outer any, active bool) {
 			}
 		}
 	}()
+}
+
+func outerOr[T any](s *BaseSensor, own T) T {
+	s.mu.RLock()
+	outer := s.outer
+	s.mu.RUnlock()
+	// an embedded method never reaches the plugin's shadowing one, the registered value does
+	if t, ok := outer.(T); ok {
+		return t
+	}
+	return own
 }

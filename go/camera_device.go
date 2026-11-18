@@ -27,6 +27,7 @@ type SnapshotInterface interface {
 type sensorInternalInit interface {
 	setID(id string)
 	setPluginID(id string)
+	setOuter(outer Sensor)
 	setAssignedCameras(cameraIDs []string)
 	setAssignmentLocked()
 	setStorage(storage *DeviceStorage)
@@ -411,6 +412,7 @@ func (d *CameraDevice) addSensor(s Sensor) error {
 		return fmt.Errorf("sensor %s does not embed BaseSensor", s.GetName())
 	}
 	si.setPluginID(d.info.ID)
+	si.setOuter(s)
 
 	sensorJSON := d.registrationJSON(s, si)
 

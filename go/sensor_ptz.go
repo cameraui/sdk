@@ -58,6 +58,14 @@ type PTZRelativeMove struct {
 	ZoomDelta float64 `msgpack:"zoomDelta" json:"zoomDelta"`
 }
 
+type ptzSetters interface {
+	SetPosition(value PTZPosition)
+	SetVelocity(value PTZDirection)
+	SetRelativeMove(value PTZRelativeMove)
+	SetTargetPreset(value string)
+	GoHome()
+}
+
 // PTZControl is a pan-tilt-zoom camera control sensor. Override SetPosition /
 // SetVelocity / SetTargetPreset (by embedding PTZControl in your own type and
 // shadowing the methods) to drive hardware, then call the corresponding
@@ -175,38 +183,37 @@ func (s *PTZControl) SetMoving(value bool) {
 	s.writeState(map[string]any{ptzPropertyMoving: value})
 }
 
-// GoHome moves the PTZ to the home position (0, 0, 0). To drive a hardware home
-// command, shadow UpdateValue and handle "home" there: UpdateValue calls the
-// embedded GoHome, so shadowing GoHome alone is never reached.
+// GoHome moves the PTZ to the home position (0, 0, 0).
 //
 // Example:
 //
 //	ptz.GoHome()
 func (s *PTZControl) GoHome() {
-	s.SetPosition(PTZPosition{Pan: 0, Tilt: 0, Zoom: 0})
+	outerOr[ptzSetters](&s.BaseSensor, s).SetPosition(PTZPosition{Pan: 0, Tilt: 0, Zoom: 0})
 }
 
 // UpdateValue routes generic property writes to the semantic setters.
 func (s *PTZControl) UpdateValue(property string, value any) error {
+	setters := outerOr[ptzSetters](&s.BaseSensor, s)
 	switch property {
 	case ptzPropertyPosition:
 		if pos, ok := coercePTZPosition(value); ok {
-			s.SetPosition(pos)
+			setters.SetPosition(pos)
 		}
 	case ptzPropertyVelocity:
 		if dir, ok := coercePTZDirection(value); ok {
-			s.SetVelocity(dir)
+			setters.SetVelocity(dir)
 		}
 	case ptzPropertyTargetPreset:
 		if str, ok := value.(string); ok {
-			s.SetTargetPreset(str)
+			setters.SetTargetPreset(str)
 		}
 	case ptzPropertyRelativeMove:
 		if move, ok := coercePTZRelativeMove(value); ok {
-			s.SetRelativeMove(move)
+			setters.SetRelativeMove(move)
 		}
 	case ptzPropertyHome:
-		s.GoHome()
+		setters.GoHome()
 	}
 	return nil
 }

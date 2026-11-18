@@ -4,6 +4,11 @@ const (
 	switchPropertyOn = "on"
 )
 
+type switchSetters interface {
+	SetOn()
+	SetOff()
+}
+
 // SwitchControl is a generic on/off switch control sensor. Override SetOn /
 // SetOff (by embedding SwitchControl in your own type and shadowing the
 // methods) to drive hardware, then call the embedded SwitchControl's methods
@@ -49,6 +54,7 @@ func (s *SwitchControl) SetOff() {
 
 // UpdateValue routes generic property writes to the semantic setters.
 func (s *SwitchControl) UpdateValue(property string, value any) error {
+	setters := outerOr[switchSetters](&s.BaseSensor, s)
 	if property == switchPropertyOn {
 		on := false
 		if b, ok := value.(bool); ok {
@@ -57,9 +63,9 @@ func (s *SwitchControl) UpdateValue(property string, value any) error {
 			on = v != 0
 		}
 		if on {
-			s.SetOn()
+			setters.SetOn()
 		} else {
-			s.SetOff()
+			setters.SetOff()
 		}
 	}
 	return nil

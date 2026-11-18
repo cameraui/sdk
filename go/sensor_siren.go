@@ -10,6 +10,12 @@ const (
 	sirenPropertyVolume = "volume"
 )
 
+type sirenSetters interface {
+	SetActive()
+	SetInactive()
+	SetVolume(value int)
+}
+
 // SirenControl is a siren on/off and volume control sensor. Override
 // SetActive / SetInactive (by embedding SirenControl in your own type and
 // shadowing the methods) to drive your hardware, then call the embedded
@@ -78,6 +84,7 @@ func (s *SirenControl) SetVolume(value int) {
 
 // UpdateValue routes generic property writes to the semantic setters.
 func (s *SirenControl) UpdateValue(property string, value any) error {
+	setters := outerOr[sirenSetters](&s.BaseSensor, s)
 	switch property {
 	case sirenPropertyActive:
 		active := false
@@ -87,13 +94,13 @@ func (s *SirenControl) UpdateValue(property string, value any) error {
 			active = v != 0
 		}
 		if active {
-			s.SetActive()
+			setters.SetActive()
 		} else {
-			s.SetInactive()
+			setters.SetInactive()
 		}
 	case sirenPropertyVolume:
 		if v, ok := toInt64(value); ok {
-			s.SetVolume(int(v))
+			setters.SetVolume(int(v))
 		}
 	}
 	return nil

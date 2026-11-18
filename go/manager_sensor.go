@@ -379,6 +379,7 @@ func (m *SensorManager) bind(s Sensor, recordID string) error {
 	}
 
 	si.setPluginID(m.info.ID)
+	si.setOuter(s)
 	si.setID(recordID)
 
 	sensorJSON := si.ToJSON()
