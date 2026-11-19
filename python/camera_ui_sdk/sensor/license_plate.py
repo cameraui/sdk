@@ -107,14 +107,17 @@ class LicensePlateSensor(Sensor[LicensePlateSensorProperties, TStorage, str], Ge
 
     @property
     def detected(self) -> bool:
+        """Whether any license plate is currently detected."""
         return bool(self.props.detected)
 
     @property
     def detections(self) -> list[LicensePlateDetection]:
+        """List of detected plates with OCR text. The plugin that owns the sensor does not get the backend's updates of it."""
         return self.props.detections or []
 
     @property
     def plates(self) -> list[str]:
+        """Plate texts recognized during the active detection phase."""
         return list(self.props.plates or [])
 
     def reportDetections(
@@ -197,7 +200,9 @@ class LicensePlateDetectorSensor(LicensePlateSensor[TStorage], Generic[TStorage]
 
     @property
     @abstractmethod
-    def modelSpec(self) -> ModelSpec: ...
+    def modelSpec(self) -> ModelSpec:
+        """Declares the expected input dimensions and trigger labels. The runtime scales frames to match."""
+        ...
 
     @abstractmethod
     async def detectLicensePlates(self, frames: list[VideoFrameData]) -> list[LicensePlateResult]:

@@ -76,6 +76,7 @@ class SwitchControl(Sensor[SwitchControlProperties, TStorage, str], Generic[TSto
 
     @property
     def on(self) -> bool:
+        """Whether the switch is on."""
         return bool(self.props.on)
 
     async def setOn(self) -> None:

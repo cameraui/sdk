@@ -18,7 +18,7 @@ export enum SecuritySystemState {
   AlarmTriggered = 4,
 }
 
-/** @internal */
+/** Property names of a security system control. */
 export enum SecuritySystemProperty {
   /** The actual current state of the security system. */
   CurrentState = 'currentState',
@@ -26,7 +26,7 @@ export enum SecuritySystemProperty {
   TargetState = 'targetState',
 }
 
-/** @internal */
+/** Property values of a security system control. */
 export interface SecuritySystemProperties {
   [SecuritySystemProperty.CurrentState]: SecuritySystemState;
   [SecuritySystemProperty.TargetState]: SecuritySystemState;
@@ -60,10 +60,12 @@ export class SecuritySystem<TStorage extends object = Record<string, any>> exten
     });
   }
 
+  /** The actual current state of the security system. */
   get currentState(): SecuritySystemState {
     return this.props.currentState;
   }
 
+  /** The desired target state (set by user, transitions to currentState). Never `AlarmTriggered`. */
   get targetState(): SecuritySystemState {
     return this.props.targetState;
   }

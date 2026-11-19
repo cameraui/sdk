@@ -4,13 +4,13 @@ import { defineSensor, SensorDomain } from './meta.js';
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/** @internal */
+/** Property names of an illuminance sensor. */
 export enum IlluminanceProperty {
   /** Current illuminance in lux. */
   Current = 'current',
 }
 
-/** @internal */
+/** Property values of an illuminance sensor. */
 export interface IlluminanceInfoProperties {
   [IlluminanceProperty.Current]: number;
 }
@@ -35,6 +35,7 @@ export class IlluminanceInfo<TStorage extends object = Record<string, any>> exte
     this._writeState({ [IlluminanceProperty.Current]: 0 });
   }
 
+  /** Current illuminance in lux. */
   get current(): number {
     return this.props.current;
   }

@@ -9,9 +9,13 @@ const (
 	LockStateUnknown   LockState = 2 // State cannot be determined, e.g. while a motorized lock is moving
 )
 
+// LockProperty is a property name of a lock control.
+type LockProperty = string
+
+// Property names of a lock control.
 const (
-	lockPropertyCurrentState = "currentState"
-	lockPropertyTargetState  = "targetState"
+	LockPropertyCurrentState LockProperty = "currentState" // The actual current state of the lock
+	LockPropertyTargetState  LockProperty = "targetState"  // The desired target state (set by user, transitions to currentState)
 )
 
 type lockSetters interface {
@@ -28,11 +32,12 @@ type lockSetters interface {
 // SetTargetState and write currentState separately when transitions complete.
 type LockControl struct{ BaseSensor }
 
+// NewLockControl creates a lock control with the given name and options.
 func NewLockControl(name string, opts ...SensorOption) *LockControl {
 	s := &LockControl{BaseSensor: NewBaseSensor(name, opts...)}
 	s.writeState(map[string]any{
-		lockPropertyCurrentState: int(LockStateSecured),
-		lockPropertyTargetState:  int(LockStateSecured),
+		LockPropertyCurrentState: int(LockStateSecured),
+		LockPropertyTargetState:  int(LockStateSecured),
 	})
 	return s
 }
@@ -41,15 +46,17 @@ func (s *LockControl) GetType() SensorType         { return SensorTypeLock }
 func (s *LockControl) GetCategory() SensorCategory { return SensorCategoryControl }
 func (s *LockControl) ToJSON() sensorJSON          { return s.toBaseJSON(s.GetType(), s.GetCategory()) }
 
+// GetCurrentState returns the actual current state of the lock.
 func (s *LockControl) GetCurrentState() LockState {
-	if v, ok := s.GetValue(lockPropertyCurrentState).(int); ok {
+	if v, ok := s.GetValue(LockPropertyCurrentState).(int); ok {
 		return LockState(v)
 	}
 	return LockStateSecured
 }
 
+// GetTargetState returns the desired target state (set by user, transitions to the current state).
 func (s *LockControl) GetTargetState() LockState {
-	if v, ok := s.GetValue(lockPropertyTargetState).(int); ok {
+	if v, ok := s.GetValue(LockPropertyTargetState).(int); ok {
 		return LockState(v)
 	}
 	return LockStateSecured
@@ -62,8 +69,8 @@ func (s *LockControl) GetTargetState() LockState {
 //	lock.SetTargetState(LockStateSecured)
 func (s *LockControl) SetTargetState(value LockState) {
 	s.writeState(map[string]any{
-		lockPropertyTargetState:  int(value),
-		lockPropertyCurrentState: int(value),
+		LockPropertyTargetState:  int(value),
+		LockPropertyCurrentState: int(value),
 	})
 }
 
@@ -77,13 +84,13 @@ func (s *LockControl) SetTargetState(value LockState) {
 //
 //	lock.SetCurrentState(LockStateUnknown)
 func (s *LockControl) SetCurrentState(value LockState) {
-	s.writeState(map[string]any{lockPropertyCurrentState: int(value)})
+	s.writeState(map[string]any{LockPropertyCurrentState: int(value)})
 }
 
 // UpdateValue routes generic property writes to the semantic setters.
 // Only targetState is externally writable, currentState is observed-only.
 func (s *LockControl) UpdateValue(property string, value any) error {
-	if property == lockPropertyTargetState {
+	if property == LockPropertyTargetState {
 		if v, ok := toInt64(value); ok {
 			outerOr[lockSetters](&s.BaseSensor, s).SetTargetState(LockState(v))
 		}

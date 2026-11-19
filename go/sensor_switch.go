@@ -1,7 +1,11 @@
 package sdk
 
+// SwitchProperty is a property name of a switch control.
+type SwitchProperty = string
+
+// Property names of a switch control.
 const (
-	switchPropertyOn = "on"
+	SwitchPropertyOn SwitchProperty = "on" // Whether the switch is on
 )
 
 type switchSetters interface {
@@ -17,10 +21,11 @@ type switchSetters interface {
 // and only syncs state.
 type SwitchControl struct{ BaseSensor }
 
+// NewSwitchControl creates a switch control with the given name and options.
 func NewSwitchControl(name string, opts ...SensorOption) *SwitchControl {
 	s := &SwitchControl{BaseSensor: NewBaseSensor(name, opts...)}
 	s.writeState(map[string]any{
-		switchPropertyOn: false,
+		SwitchPropertyOn: false,
 	})
 	return s
 }
@@ -29,8 +34,9 @@ func (s *SwitchControl) GetType() SensorType         { return SensorTypeSwitch }
 func (s *SwitchControl) GetCategory() SensorCategory { return SensorCategoryControl }
 func (s *SwitchControl) ToJSON() sensorJSON          { return s.toBaseJSON(s.GetType(), s.GetCategory()) }
 
+// IsOn reports whether the switch is on.
 func (s *SwitchControl) IsOn() bool {
-	v, _ := s.GetValue(switchPropertyOn).(bool)
+	v, _ := s.GetValue(SwitchPropertyOn).(bool)
 	return v
 }
 
@@ -40,7 +46,7 @@ func (s *SwitchControl) IsOn() bool {
 //
 //	sw.SetOn()
 func (s *SwitchControl) SetOn() {
-	s.writeState(map[string]any{switchPropertyOn: true})
+	s.writeState(map[string]any{SwitchPropertyOn: true})
 }
 
 // SetOff turns the switch off.
@@ -49,13 +55,13 @@ func (s *SwitchControl) SetOn() {
 //
 //	sw.SetOff()
 func (s *SwitchControl) SetOff() {
-	s.writeState(map[string]any{switchPropertyOn: false})
+	s.writeState(map[string]any{SwitchPropertyOn: false})
 }
 
 // UpdateValue routes generic property writes to the semantic setters.
 func (s *SwitchControl) UpdateValue(property string, value any) error {
 	setters := outerOr[switchSetters](&s.BaseSensor, s)
-	if property == switchPropertyOn {
+	if property == SwitchPropertyOn {
 		on := false
 		if b, ok := value.(bool); ok {
 			on = b

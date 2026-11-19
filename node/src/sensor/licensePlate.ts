@@ -6,7 +6,7 @@ import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 import type { Detection, VideoFrameData } from './detection.js';
 import type { ModelSpec } from './spec.js';
 
-/** @internal */
+/** Property names of a license plate sensor. */
 export enum LicensePlateProperty {
   /** Whether any license plate is currently detected. */
   Detected = 'detected',
@@ -26,7 +26,7 @@ export interface LicensePlateDetection extends Detection {
   ocrConfidence?: number;
 }
 
-/** @internal */
+/** Property values of a license plate sensor. */
 export interface LicensePlateSensorProperties {
   [LicensePlateProperty.Detected]: boolean;
   [LicensePlateProperty.Detections]: LicensePlateDetection[];
@@ -64,14 +64,17 @@ export class LicensePlateSensor<TStorage extends object = Record<string, any>> e
     });
   }
 
+  /** Whether any license plate is currently detected. */
   get detected(): boolean {
     return this.props.detected;
   }
 
+  /** List of detected plates with OCR text. The plugin that owns the sensor does not get the backend's updates of it. */
   get detections(): LicensePlateDetection[] {
     return this.props.detections;
   }
 
+  /** Plate texts recognized during the active detection phase. */
   get plates(): string[] {
     return this.props.plates;
   }
@@ -150,8 +153,10 @@ export interface LicensePlateResult {
  * detection and OCR.
  */
 export abstract class LicensePlateDetectorSensor<TStorage extends object = Record<string, any>> extends LicensePlateSensor<TStorage> {
+  /** @internal */
   _requiresFrames = true;
 
+  /** Declares the expected input dimensions and trigger labels. The runtime scales frames to match. */
   abstract get modelSpec(): ModelSpec;
 
   /**

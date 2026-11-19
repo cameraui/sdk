@@ -83,6 +83,23 @@ AudioModelSpec describes an audio detection model.
 	    Input        AudioInputSpec `msgpack:"input" json:"input"` // Required input audio format
 	}
 
+<a name="AudioProperty"></a>
+
+## type AudioProperty
+
+AudioProperty is a property name of an audio sensor.
+
+	type AudioProperty = string
+
+<a name="AudioPropertyDetected"></a>Property names of an audio sensor.
+
+	const (
+	    AudioPropertyDetected      AudioProperty = "detected"      // Whether an audio event is currently detected
+	    AudioPropertyDetections    AudioProperty = "detections"    // List of detected audio events (e.g. glass break, scream). The plugin that owns the sensor does not get the backend's updates of it
+	    AudioPropertyDecibels      AudioProperty = "decibels"      // Current audio level in decibels. The plugin that owns the sensor does not get the backend's updates of it
+	    AudioPropertyLastTriggered AudioProperty = "lastTriggered" // Timestamp in milliseconds of the last detection trigger, set by the backend
+	)
+
 <a name="AudioResult"></a>
 
 ## type AudioResult
@@ -133,14 +150,14 @@ ClearDetections explicitly clears audio detection state \(detected = false, dete
 
 	func (s *AudioSensor) GetDecibels() float64
 
-
+GetDecibels returns the current audio level in decibels. The plugin that owns the sensor does not get the backend's updates of it.
 
 <a name="AudioSensor.GetDetections"></a>
 ### func \(\*AudioSensor\) GetDetections
 
 	func (s *AudioSensor) GetDetections() []Detection
 
-
+GetDetections returns the detected audio events \(e.g. glass break, scream\). The plugin that owns the sensor does not get the backend's updates of it.
 
 <a name="AudioSensor.GetType"></a>
 ### func \(\*AudioSensor\) GetType
@@ -154,7 +171,7 @@ ClearDetections explicitly clears audio detection state \(detected = false, dete
 
 	func (s *AudioSensor) IsDetected() bool
 
-
+IsDetected reports whether an audio event is currently detected.
 
 <a name="AudioSensor.ReportDetections"></a>
 ### func \(\*AudioSensor\) ReportDetections
@@ -232,91 +249,98 @@ Example:
 
 	func (s *BaseSensor) AssignmentLocked() bool
 
-
+AssignmentLocked reports whether the sensor is bound to the camera it was added to, so the user cannot assign it elsewhere.
 
 <a name="BaseSensor.Connected"></a>
 ### func \(\*BaseSensor\) Connected
 
 	func (s *BaseSensor) Connected() bool
 
-
+Connected reports whether the sensor is registered and its plugin is connected.
 
 <a name="BaseSensor.GetAddress"></a>
 ### func \(\*BaseSensor\) GetAddress
 
 	func (s *BaseSensor) GetAddress() string
 
-
+GetAddress returns the current address at the source, e.g. a Home Assistant entity id. Display only.
 
 <a name="BaseSensor.GetAssignedCameraIDs"></a>
 ### func \(\*BaseSensor\) GetAssignedCameraIDs
 
 	func (s *BaseSensor) GetAssignedCameraIDs() []string
 
-
+GetAssignedCameraIDs returns the ids of the cameras the user assigned the sensor to.
 
 <a name="BaseSensor.GetCapabilities"></a>
 ### func \(\*BaseSensor\) GetCapabilities
 
 	func (s *BaseSensor) GetCapabilities() []string
 
-
+GetCapabilities returns the capabilities the sensor advertises.
 
 <a name="BaseSensor.GetDisplayName"></a>
 ### func \(\*BaseSensor\) GetDisplayName
 
 	func (s *BaseSensor) GetDisplayName() string
 
-
+GetDisplayName returns the name shown to the user, the plugin's name until the user renames the sensor.
 
 <a name="BaseSensor.GetID"></a>
 ### func \(\*BaseSensor\) GetID
 
 	func (s *BaseSensor) GetID() string
 
-
+GetID returns the entity id of the sensor, provisional on a new sensor until registration.
 
 <a name="BaseSensor.GetName"></a>
 ### func \(\*BaseSensor\) GetName
 
 	func (s *BaseSensor) GetName() string
 
-
+GetName returns the name the plugin gave the sensor.
 
 <a name="BaseSensor.GetNativeID"></a>
 ### func \(\*BaseSensor\) GetNativeID
 
 	func (s *BaseSensor) GetNativeID() string
 
+GetNativeID returns the durable identity the plugin supplied, e.g. an upstream device id.
 
+<a name="BaseSensor.GetOrigin"></a>
+### func \(\*BaseSensor\) GetOrigin
+
+	func (s *BaseSensor) GetOrigin() string
+
+GetOrigin returns the source system the sensor was imported from, e.g. "homeassistant".
 
 <a name="BaseSensor.GetPluginID"></a>
 ### func \(\*BaseSensor\) GetPluginID
 
 	func (s *BaseSensor) GetPluginID() string
 
-
+GetPluginID returns the id of the plugin that owns the sensor, set at registration.
 
 <a name="BaseSensor.GetSourceState"></a>
 ### func \(\*BaseSensor\) GetSourceState
 
 	func (s *BaseSensor) GetSourceState() SensorSourceState
 
-
+GetSourceState returns the state of the source behind an adopted sensor, as reported with SetSourceState.
 
 <a name="BaseSensor.GetValue"></a>
 ### func \(\*BaseSensor\) GetValue
 
 	func (s *BaseSensor) GetValue(property string) any
 
-
+GetValue returns the current value of a sensor property.
 
 <a name="BaseSensor.GetValues"></a>
 ### func \(\*BaseSensor\) GetValues
 
 	func (s *BaseSensor) GetValues() map[string]any
 
-
+GetValues returns a snapshot copy of all property values.
 
 <a name="BaseSensor.HasCapability"></a>
 ### func \(\*BaseSensor\) HasCapability
@@ -335,7 +359,7 @@ Example:
 
 	func (s *BaseSensor) IsAssigned() bool
 
-
+IsAssigned reports whether the sensor is assigned to at least one camera.
 
 <a name="BaseSensor.OnAssignmentChanged"></a>
 ### func \(\*BaseSensor\) OnAssignmentChanged
@@ -418,7 +442,7 @@ Example:
 
 	func (s *BaseSensor) Storage() *DeviceStorage
 
-
+Storage returns the per\-sensor storage, nil before registration.
 
 <a name="BatteryInfo"></a>
 
@@ -449,14 +473,14 @@ NewBatteryInfo creates a battery info sensor with the given name and options.
 
 	func (s *BatteryInfo) GetCharging() ChargingState
 
-
+GetCharging returns the current charging state.
 
 <a name="BatteryInfo.GetLevel"></a>
 ### func \(\*BatteryInfo\) GetLevel
 
 	func (s *BatteryInfo) GetLevel() int
 
-
+GetLevel returns the battery level percentage \(0\-100\).
 
 <a name="BatteryInfo.GetType"></a>
 ### func \(\*BatteryInfo\) GetType
@@ -470,7 +494,7 @@ NewBatteryInfo creates a battery info sensor with the given name and options.
 
 	func (s *BatteryInfo) IsLow() bool
 
-
+IsLow reports whether the battery is critically low.
 
 <a name="BatteryInfo.SetCharging"></a>
 ### func \(\*BatteryInfo\) SetCharging
@@ -522,6 +546,22 @@ Example:
 
 UpdateValue on a read\-only sensor: external writes are ignored.
 
+<a name="BatteryProperty"></a>
+
+## type BatteryProperty
+
+BatteryProperty is a property name of a battery info sensor.
+
+	type BatteryProperty = string
+
+<a name="BatteryPropertyLevel"></a>Property names of a battery info sensor.
+
+	const (
+	    BatteryPropertyLevel    BatteryProperty = "level"    // Battery level percentage (0-100)
+	    BatteryPropertyCharging BatteryProperty = "charging" // Current charging state
+	    BatteryPropertyLow      BatteryProperty = "low"      // Whether the battery is critically low
+	)
+
 <a name="BehaviorSubject"></a>
 
 ## type BoundingBox
@@ -536,6 +576,34 @@ BoundingBox is the bounding box of a detection. All coordinates are normalized t
 	}
 
 <a name="ButtonColor"></a>
+
+## type CarbonDioxideProperty
+
+CarbonDioxideProperty is a property name of a carbon dioxide sensor.
+
+	type CarbonDioxideProperty = string
+
+<a name="CarbonDioxidePropertyCurrent"></a>Property names of a carbon dioxide sensor.
+
+	const (
+	    CarbonDioxidePropertyCurrent CarbonDioxideProperty = "current" // Current CO2 concentration in parts per million
+	)
+
+<a name="CarbonMonoxideProperty"></a>
+
+## type CarbonMonoxideProperty
+
+CarbonMonoxideProperty is a property name of a carbon monoxide sensor.
+
+	type CarbonMonoxideProperty = string
+
+<a name="CarbonMonoxidePropertyDetected"></a>Property names of a carbon monoxide sensor.
+
+	const (
+	    CarbonMonoxidePropertyDetected CarbonMonoxideProperty = "detected" // Whether carbon monoxide is detected
+	)
+
+<a name="CarbonMonoxideSensor"></a>
 
 ## type ChargingState
 
@@ -598,6 +666,22 @@ ClassifierDetectorSensor is a classifier sensor that consumes video frames from 
 
 NewClassifierDetectorSensor creates a classifier detector sensor with the given name and options.
 
+<a name="ClassifierProperty"></a>
+
+## type ClassifierProperty
+
+ClassifierProperty is a property name of a classifier sensor.
+
+	type ClassifierProperty = string
+
+<a name="ClassifierPropertyDetected"></a>Property names of a classifier sensor.
+
+	const (
+	    ClassifierPropertyDetected   ClassifierProperty = "detected"   // Whether any classification result is active
+	    ClassifierPropertyDetections ClassifierProperty = "detections" // List of classification results with labels and confidence. The plugin that owns the sensor does not get the backend's updates of it
+	    ClassifierPropertyLabels     ClassifierProperty = "labels"     // Labels recognized during the active detection phase (auto-derived when reporting detections)
+	)
+
 <a name="ClassifierResult"></a>
 
 ## type ClassifierResult
@@ -645,14 +729,14 @@ ClearDetections explicitly clears classifier state \(detected = false, detection
 
 	func (s *ClassifierSensor) GetDetections() []ClassifierDetection
 
-
+GetDetections returns the classification results with labels and confidence. The plugin that owns the sensor does not get the backend's updates of it.
 
 <a name="ClassifierSensor.GetLabels"></a>
 ### func \(\*ClassifierSensor\) GetLabels
 
 	func (s *ClassifierSensor) GetLabels() []string
 
-
+GetLabels returns the labels recognized during the active detection phase \(auto\-derived when reporting detections\).
 
 <a name="ClassifierSensor.GetType"></a>
 ### func \(\*ClassifierSensor\) GetType
@@ -666,7 +750,7 @@ ClearDetections explicitly clears classifier state \(detected = false, detection
 
 	func (s *ClassifierSensor) IsDetected() bool
 
-
+IsDetected reports whether any classification result is active.
 
 <a name="ClassifierSensor.ReportDetections"></a>
 ### func \(\*ClassifierSensor\) ReportDetections
@@ -786,6 +870,34 @@ ClipResult is the return value of ClipDetector.DetectEmbeddings.
 
 <a name="ClipTextEmbeddingResult"></a>
 
+## type ColdProperty
+
+ColdProperty is a property name of a cold sensor.
+
+	type ColdProperty = string
+
+<a name="ColdPropertyDetected"></a>Property names of a cold sensor.
+
+	const (
+	    ColdPropertyDetected ColdProperty = "detected" // Whether abnormal cold is detected
+	)
+
+<a name="ColdSensor"></a>
+
+## type ContactProperty
+
+ContactProperty is a property name of a contact sensor.
+
+	type ContactProperty = string
+
+<a name="ContactPropertyDetected"></a>Property names of a contact sensor.
+
+	const (
+	    ContactPropertyDetected ContactProperty = "detected" // Whether the contact is open (true = open, false = closed)
+	)
+
+<a name="ContactSensor"></a>
+
 ## type ContactSensor
 
 ContactSensor reports door/window open\-close state.
@@ -818,7 +930,7 @@ NewContactSensor creates a contact sensor with the given name and options.
 
 	func (s *ContactSensor) IsDetected() bool
 
-
+IsDetected reports whether the contact is open \(true = open, false = closed\).
 
 <a name="ContactSensor.SetDetected"></a>
 ### func \(\*ContactSensor\) SetDetected
@@ -877,6 +989,20 @@ DetectionLabel is a label identifying a type of detection.
 
 <a name="DetectionLine"></a>
 
+## type DoorbellProperty
+
+DoorbellProperty is a property name of a doorbell trigger.
+
+	type DoorbellProperty = string
+
+<a name="DoorbellPropertyRing"></a>Property names of a doorbell trigger.
+
+	const (
+	    DoorbellPropertyRing DoorbellProperty = "ring" // Whether the doorbell is currently ringing
+	)
+
+<a name="DoorbellTrigger"></a>
+
 ## type DoorbellTrigger
 
 DoorbellTrigger fires doorbell ring events.
@@ -914,7 +1040,7 @@ NewDoorbellTrigger creates a doorbell trigger with the given name and options.
 
 	func (s *DoorbellTrigger) IsRinging() bool
 
-
+IsRinging reports whether the doorbell is currently ringing.
 
 <a name="DoorbellTrigger.ToJSON"></a>
 ### func \(\*DoorbellTrigger\) ToJSON
@@ -989,6 +1115,22 @@ NewFaceDetectorSensor creates a face detector sensor with the given name and opt
 
 <a name="FaceEmbedder"></a>
 
+## type FaceProperty
+
+FaceProperty is a property name of a face sensor.
+
+	type FaceProperty = string
+
+<a name="FacePropertyDetected"></a>Property names of a face sensor.
+
+	const (
+	    FacePropertyDetected   FaceProperty = "detected"   // Whether any face is currently detected
+	    FacePropertyDetections FaceProperty = "detections" // List of detected faces, with an identity where one was matched. The plugin that owns the sensor does not get the backend's updates of it
+	    FacePropertyIdentities FaceProperty = "identities" // Names of the faces recognized during the active detection phase
+	)
+
+<a name="FaceResult"></a>
+
 ## type FaceResult
 
 FaceResult is the return value of FaceDetector.DetectFaces.
@@ -1034,7 +1176,7 @@ ClearDetections explicitly clears face detection state \(detected = false, detec
 
 	func (s *FaceSensor) GetDetections() []FaceDetection
 
-
+GetDetections returns the detected faces, with an identity where one was matched. The plugin that owns the sensor does not get the backend's updates of it.
 
 <a name="FaceSensor.GetIdentities"></a>
 ### func \(\*FaceSensor\) GetIdentities
@@ -1055,7 +1197,7 @@ GetIdentities returns the names of the faces recognized during the active detect
 
 	func (s *FaceSensor) IsDetected() bool
 
-
+IsDetected reports whether any face is currently detected.
 
 <a name="FaceSensor.ReportDetections"></a>
 ### func \(\*FaceSensor\) ReportDetections
@@ -1119,14 +1261,14 @@ NewGarageControl creates a garage door control with the given name and options.
 
 	func (s *GarageControl) GetCurrentState() GarageState
 
-
+GetCurrentState returns the actual current state of the garage door.
 
 <a name="GarageControl.GetTargetState"></a>
 ### func \(\*GarageControl\) GetTargetState
 
 	func (s *GarageControl) GetTargetState() GarageState
 
-
+GetTargetState returns the desired target state \(set by user, transitions to the current state\).
 
 <a name="GarageControl.GetType"></a>
 ### func \(\*GarageControl\) GetType
@@ -1140,7 +1282,7 @@ NewGarageControl creates a garage door control with the given name and options.
 
 	func (s *GarageControl) IsObstructionDetected() bool
 
-
+IsObstructionDetected reports whether an obstruction is detected.
 
 <a name="GarageControl.SetCurrentState"></a>
 ### func \(\*GarageControl\) SetCurrentState
@@ -1192,6 +1334,22 @@ Example:
 
 UpdateValue routes generic property writes to the semantic setters. Only targetState is externally writable.
 
+<a name="GarageProperty"></a>
+
+## type GarageProperty
+
+GarageProperty is a property name of a garage control.
+
+	type GarageProperty = string
+
+<a name="GaragePropertyCurrentState"></a>Property names of a garage control.
+
+	const (
+	    GaragePropertyCurrentState        GarageProperty = "currentState"        // The actual current state of the garage door
+	    GaragePropertyTargetState         GarageProperty = "targetState"         // The desired target state (set by user, transitions to currentState)
+	    GaragePropertyObstructionDetected GarageProperty = "obstructionDetected" // Whether an obstruction is detected
+	)
+
 <a name="GarageState"></a>
 
 ## type GarageState
@@ -1210,7 +1368,35 @@ GarageState defines garage door states.
 	    GarageStateStopped GarageState = 4 // Door stopped part-way
 	)
 
+<a name="GasProperty"></a>
+
+## type GasProperty
+
+GasProperty is a property name of a gas sensor.
+
+	type GasProperty = string
+
+<a name="GasPropertyDetected"></a>Property names of a gas sensor.
+
+	const (
+	    GasPropertyDetected GasProperty = "detected" // Whether gas is detected
+	)
+
 <a name="GasSensor"></a>
+
+## type HeatProperty
+
+HeatProperty is a property name of a heat sensor.
+
+	type HeatProperty = string
+
+<a name="HeatPropertyDetected"></a>Property names of a heat sensor.
+
+	const (
+	    HeatPropertyDetected HeatProperty = "detected" // Whether abnormal heat is detected
+	)
+
+<a name="HeatSensor"></a>
 
 ## type HumidityInfo
 
@@ -1223,7 +1409,7 @@ HumidityInfo reports current relative humidity \(0\-100%\).
 
 	func NewHumidityInfo(name string, opts ...SensorOption) *HumidityInfo
 
-
+NewHumidityInfo creates a humidity info sensor with the given name and options.
 
 <a name="HumidityInfo.GetCategory"></a>
 ### func \(\*HumidityInfo\) GetCategory
@@ -1237,7 +1423,7 @@ HumidityInfo reports current relative humidity \(0\-100%\).
 
 	func (s *HumidityInfo) GetCurrent() float64
 
-
+GetCurrent returns the current relative humidity \(0\-100%\).
 
 <a name="HumidityInfo.GetType"></a>
 ### func \(\*HumidityInfo\) GetType
@@ -1272,7 +1458,49 @@ Example:
 
 UpdateValue on a read\-only sensor: external writes are ignored.
 
+<a name="HumidityProperty"></a>
+
+## type HumidityProperty
+
+HumidityProperty is a property name of a humidity sensor.
+
+	type HumidityProperty = string
+
+<a name="HumidityPropertyCurrent"></a>Property names of a humidity sensor.
+
+	const (
+	    HumidityPropertyCurrent HumidityProperty = "current" // Current relative humidity (0-100%)
+	)
+
 <a name="IlluminanceInfo"></a>
+
+## type IlluminanceProperty
+
+IlluminanceProperty is a property name of an illuminance sensor.
+
+	type IlluminanceProperty = string
+
+<a name="IlluminancePropertyCurrent"></a>Property names of an illuminance sensor.
+
+	const (
+	    IlluminancePropertyCurrent IlluminanceProperty = "current" // Current illuminance in lux
+	)
+
+<a name="ImageMetadata"></a>
+
+## type LeakProperty
+
+LeakProperty is a property name of a leak sensor.
+
+	type LeakProperty = string
+
+<a name="LeakPropertyDetected"></a>Property names of a leak sensor.
+
+	const (
+	    LeakPropertyDetected LeakProperty = "detected" // Whether a leak is detected
+	)
+
+<a name="LeakSensor"></a>
 
 ## type LeakSensor
 
@@ -1285,7 +1513,7 @@ LeakSensor reports water leak detection state.
 
 	func NewLeakSensor(name string, opts ...SensorOption) *LeakSensor
 
-
+NewLeakSensor creates a leak sensor with the given name and options.
 
 <a name="LeakSensor.GetCategory"></a>
 ### func \(\*LeakSensor\) GetCategory
@@ -1306,7 +1534,7 @@ LeakSensor reports water leak detection state.
 
 	func (s *LeakSensor) IsDetected() bool
 
-
+IsDetected reports whether a leak is detected.
 
 <a name="LeakSensor.SetDetected"></a>
 ### func \(\*LeakSensor\) SetDetected
@@ -1378,7 +1606,23 @@ LicensePlateDetectorSensor is a license plate sensor that consumes video frames 
 
 	func NewLicensePlateDetectorSensor(name string, opts ...SensorOption) *LicensePlateDetectorSensor
 
+NewLicensePlateDetectorSensor creates a license plate detector sensor with the given name and options.
 
+<a name="LicensePlateProperty"></a>
+
+## type LicensePlateProperty
+
+LicensePlateProperty is a property name of a license plate sensor.
+
+	type LicensePlateProperty = string
+
+<a name="LicensePlatePropertyDetected"></a>Property names of a license plate sensor.
+
+	const (
+	    LicensePlatePropertyDetected   LicensePlateProperty = "detected"   // Whether any license plate is currently detected
+	    LicensePlatePropertyDetections LicensePlateProperty = "detections" // List of detected plates with OCR text. The plugin that owns the sensor does not get the backend's updates of it
+	    LicensePlatePropertyPlates     LicensePlateProperty = "plates"     // Plate texts recognized during the active detection phase
+	)
 
 <a name="LicensePlateResult"></a>
 
@@ -1406,7 +1650,7 @@ Plugin authors call ReportDetections to push detected plates. The detected flag 
 
 	func NewLicensePlateSensor(name string, opts ...SensorOption) *LicensePlateSensor
 
-
+NewLicensePlateSensor creates a license plate sensor with the given name and options.
 
 <a name="LicensePlateSensor.ClearDetections"></a>
 ### func \(\*LicensePlateSensor\) ClearDetections
@@ -1427,7 +1671,7 @@ ClearDetections explicitly clears license plate state \(detected = false, detect
 
 	func (s *LicensePlateSensor) GetDetections() []LicensePlateDetection
 
-
+GetDetections returns the detected plates with OCR text. The plugin that owns the sensor does not get the backend's updates of it.
 
 <a name="LicensePlateSensor.GetPlates"></a>
 ### func \(\*LicensePlateSensor\) GetPlates
@@ -1448,7 +1692,7 @@ GetPlates returns the plate texts recognized during the active detection phase.
 
 	func (s *LicensePlateSensor) IsDetected() bool
 
-
+IsDetected reports whether any license plate is currently detected.
 
 <a name="LicensePlateSensor.ReportDetections"></a>
 ### func \(\*LicensePlateSensor\) ReportDetections
@@ -1500,14 +1744,14 @@ For hardware\-pushed updates \(someone manually flipped the switch\), call the e
 
 	func NewLightControl(name string, opts ...SensorOption) *LightControl
 
-
+NewLightControl creates a light control with the given name and options.
 
 <a name="LightControl.GetBrightness"></a>
 ### func \(\*LightControl\) GetBrightness
 
 	func (s *LightControl) GetBrightness() int
 
-
+GetBrightness returns the brightness level \(0\-100\).
 
 <a name="LightControl.GetCategory"></a>
 ### func \(\*LightControl\) GetCategory
@@ -1528,7 +1772,7 @@ For hardware\-pushed updates \(someone manually flipped the switch\), call the e
 
 	func (s *LightControl) IsOn() bool
 
-
+IsOn reports whether the light is on.
 
 <a name="LightControl.SetBrightness"></a>
 ### func \(\*LightControl\) SetBrightness
@@ -1580,6 +1824,21 @@ Example:
 
 UpdateValue routes generic property writes to the semantic setters. Only on and brightness are externally writable.
 
+<a name="LightProperty"></a>
+
+## type LightProperty
+
+LightProperty is a property name of a light control.
+
+	type LightProperty = string
+
+<a name="LightPropertyOn"></a>Property names of a light control.
+
+	const (
+	    LightPropertyOn         LightProperty = "on"         // Whether the light is on
+	    LightPropertyBrightness LightProperty = "brightness" // Brightness level (0-100)
+	)
+
 <a name="LineDirection"></a>
 
 ## type LockControl
@@ -1595,7 +1854,7 @@ For asymmetric flows \(long\-running unlock with intermediate state\) override S
 
 	func NewLockControl(name string, opts ...SensorOption) *LockControl
 
-
+NewLockControl creates a lock control with the given name and options.
 
 <a name="LockControl.GetCategory"></a>
 ### func \(\*LockControl\) GetCategory
@@ -1609,14 +1868,14 @@ For asymmetric flows \(long\-running unlock with intermediate state\) override S
 
 	func (s *LockControl) GetCurrentState() LockState
 
-
+GetCurrentState returns the actual current state of the lock.
 
 <a name="LockControl.GetTargetState"></a>
 ### func \(\*LockControl\) GetTargetState
 
 	func (s *LockControl) GetTargetState() LockState
 
-
+GetTargetState returns the desired target state \(set by user, transitions to the current state\).
 
 <a name="LockControl.GetType"></a>
 ### func \(\*LockControl\) GetType
@@ -1662,6 +1921,21 @@ Example:
 	func (s *LockControl) UpdateValue(property string, value any) error
 
 UpdateValue routes generic property writes to the semantic setters. Only targetState is externally writable, currentState is observed\-only.
+
+<a name="LockProperty"></a>
+
+## type LockProperty
+
+LockProperty is a property name of a lock control.
+
+	type LockProperty = string
+
+<a name="LockPropertyCurrentState"></a>Property names of a lock control.
+
+	const (
+	    LockPropertyCurrentState LockProperty = "currentState" // The actual current state of the lock
+	    LockPropertyTargetState  LockProperty = "targetState"  // The desired target state (set by user, transitions to currentState)
+	)
 
 <a name="LockState"></a>
 
@@ -1718,7 +1992,24 @@ MotionDetectorSensor is a motion sensor that consumes video frames from the back
 
 	func NewMotionDetectorSensor(name string, opts ...SensorOption) *MotionDetectorSensor
 
+NewMotionDetectorSensor creates a motion detector sensor with the given name and options.
 
+<a name="MotionProperty"></a>
+
+## type MotionProperty
+
+MotionProperty is a property name of a motion sensor.
+
+	type MotionProperty = string
+
+<a name="MotionPropertyDetected"></a>Property names of a motion sensor.
+
+	const (
+	    MotionPropertyDetected      MotionProperty = "detected"      // Whether motion is currently detected
+	    MotionPropertyDetections    MotionProperty = "detections"    // List of detection results with bounding boxes. The plugin that owns the sensor does not get the backend's updates of it
+	    MotionPropertyBlocked       MotionProperty = "blocked"       // When true, detection updates are suppressed (set by the backend dwell logic)
+	    MotionPropertyLastTriggered MotionProperty = "lastTriggered" // Timestamp in milliseconds of the last detection trigger, set by the backend
+	)
 
 <a name="MotionResolution"></a>
 
@@ -1748,7 +2039,7 @@ Plugin authors call ReportDetections to push detection results. The detected fla
 
 	func NewMotionSensor(name string, opts ...SensorOption) *MotionSensor
 
-
+NewMotionSensor creates a motion sensor with the given name and options.
 
 <a name="MotionSensor.ClearDetections"></a>
 ### func \(\*MotionSensor\) ClearDetections
@@ -1769,7 +2060,7 @@ ClearDetections explicitly clears motion state \(detected = false, detections = 
 
 	func (s *MotionSensor) GetDetections() []Detection
 
-
+GetDetections returns the detection results with bounding boxes. The plugin that owns the sensor does not get the backend's updates of it.
 
 <a name="MotionSensor.GetType"></a>
 ### func \(\*MotionSensor\) GetType
@@ -1783,14 +2074,14 @@ ClearDetections explicitly clears motion state \(detected = false, detections = 
 
 	func (s *MotionSensor) IsBlocked() bool
 
-
+IsBlocked reports whether detection updates are suppressed \(set by the backend dwell logic\).
 
 <a name="MotionSensor.IsDetected"></a>
 ### func \(\*MotionSensor\) IsDetected
 
 	func (s *MotionSensor) IsDetected() bool
 
-
+IsDetected reports whether motion is currently detected.
 
 <a name="MotionSensor.ReportDetections"></a>
 ### func \(\*MotionSensor\) ReportDetections
@@ -1855,7 +2146,7 @@ ObjectDetectorSensor is an object sensor that consumes video frames from the bac
 
 	func NewObjectDetectorSensor(name string, opts ...SensorOption) *ObjectDetectorSensor
 
-
+NewObjectDetectorSensor creates an object detector sensor with the given name and options.
 
 <a name="ObjectDetectorSensor.RPCConcurrency"></a>
 ### func \(\*ObjectDetectorSensor\) RPCConcurrency
@@ -1893,6 +2184,23 @@ ObjectModelSpec describes an object detection model. Only declares input dimensi
 	    Input        VideoInputSpec `msgpack:"input" json:"input"` // Required input frame dimensions and pixel format
 	}
 
+<a name="ObjectProperty"></a>
+
+## type ObjectProperty
+
+ObjectProperty is a property name of an object detection sensor.
+
+	type ObjectProperty = string
+
+<a name="ObjectPropertyDetected"></a>Property names of an object detection sensor.
+
+	const (
+	    ObjectPropertyDetected         ObjectProperty = "detected"         // Whether any object is currently detected
+	    ObjectPropertyDetections       ObjectProperty = "detections"       // List of detected objects with labels and bounding boxes. The plugin that owns the sensor does not get the backend's updates of it
+	    ObjectPropertyLabels           ObjectProperty = "labels"           // Unique labels of the current detections (auto-derived when reporting detections)
+	    ObjectPropertyStaticDetections ObjectProperty = "staticDetections" // Settled objects hidden from events, kept visible for overlays. Written by the backend. The plugin that owns the sensor does not get the backend's updates of it
+	)
+
 <a name="ObjectResult"></a>
 
 ## type ObjectResult
@@ -1921,7 +2229,7 @@ Plugin authors call ReportDetections to push detection results. The detected fla
 
 	func NewObjectSensor(name string, opts ...SensorOption) *ObjectSensor
 
-
+NewObjectSensor creates an object sensor with the given name and options.
 
 <a name="ObjectSensor.ClearDetections"></a>
 ### func \(\*ObjectSensor\) ClearDetections
@@ -1942,14 +2250,14 @@ ClearDetections explicitly clears detection state \(detected = false, detections
 
 	func (s *ObjectSensor) GetDetections() []TrackedDetection
 
-
+GetDetections returns the detected objects with labels and bounding boxes. The plugin that owns the sensor does not get the backend's updates of it.
 
 <a name="ObjectSensor.GetLabels"></a>
 ### func \(\*ObjectSensor\) GetLabels
 
 	func (s *ObjectSensor) GetLabels() []string
 
-
+GetLabels returns the unique labels of the current detections \(auto\-derived when reporting detections\).
 
 <a name="ObjectSensor.GetType"></a>
 ### func \(\*ObjectSensor\) GetType
@@ -1963,7 +2271,7 @@ ClearDetections explicitly clears detection state \(detected = false, detections
 
 	func (s *ObjectSensor) IsDetected() bool
 
-
+IsDetected reports whether any object is currently detected.
 
 <a name="ObjectSensor.ReportDetections"></a>
 ### func \(\*ObjectSensor\) ReportDetections
@@ -2000,6 +2308,20 @@ UpdateValue on a read\-only sensor: external writes are ignored.
 
 <a name="ObjectZone"></a>
 
+## type OccupancyProperty
+
+OccupancyProperty is a property name of an occupancy sensor.
+
+	type OccupancyProperty = string
+
+<a name="OccupancyPropertyDetected"></a>Property names of an occupancy sensor.
+
+	const (
+	    OccupancyPropertyDetected OccupancyProperty = "detected" // Whether occupancy is detected (true = occupied)
+	)
+
+<a name="OccupancySensor"></a>
+
 ## type OccupancySensor
 
 OccupancySensor reports occupancy/presence state.
@@ -2011,7 +2333,7 @@ OccupancySensor reports occupancy/presence state.
 
 	func NewOccupancySensor(name string, opts ...SensorOption) *OccupancySensor
 
-
+NewOccupancySensor creates an occupancy sensor with the given name and options.
 
 <a name="OccupancySensor.GetCategory"></a>
 ### func \(\*OccupancySensor\) GetCategory
@@ -2032,7 +2354,7 @@ OccupancySensor reports occupancy/presence state.
 
 	func (s *OccupancySensor) IsDetected() bool
 
-
+IsDetected reports whether occupancy is detected \(true = occupied\).
 
 <a name="OccupancySensor.SetDetected"></a>
 ### func \(\*OccupancySensor\) SetDetected
@@ -2075,7 +2397,7 @@ Set capabilities to advertise supported axes and features. Use SetPresets to pub
 
 	func NewPTZControl(name string, opts ...SensorOption) *PTZControl
 
-
+NewPTZControl creates a PTZ control with the given name and options.
 
 <a name="PTZControl.GetCategory"></a>
 ### func \(\*PTZControl\) GetCategory
@@ -2089,21 +2411,21 @@ Set capabilities to advertise supported axes and features. Use SetPresets to pub
 
 	func (s *PTZControl) GetPosition() PTZPosition
 
-
+GetPosition returns the current pan/tilt/zoom position.
 
 <a name="PTZControl.GetPresets"></a>
 ### func \(\*PTZControl\) GetPresets
 
 	func (s *PTZControl) GetPresets() []string
 
-
+GetPresets returns the available preset names, empty until SetPresets runs.
 
 <a name="PTZControl.GetTargetPreset"></a>
 ### func \(\*PTZControl\) GetTargetPreset
 
 	func (s *PTZControl) GetTargetPreset() (string, bool)
 
-
+GetTargetPreset returns the target preset to move to. ok is false until a preset was requested.
 
 <a name="PTZControl.GetType"></a>
 ### func \(\*PTZControl\) GetType
@@ -2117,7 +2439,7 @@ Set capabilities to advertise supported axes and features. Use SetPresets to pub
 
 	func (s *PTZControl) GetVelocity() (PTZDirection, bool)
 
-
+GetVelocity returns the current movement velocity \(continuous move\). ok is false until a continuous move was issued.
 
 <a name="PTZControl.GoHome"></a>
 ### func \(\*PTZControl\) GoHome
@@ -2136,7 +2458,7 @@ Example:
 
 	func (s *PTZControl) IsMoving() bool
 
-
+IsMoving reports whether the camera is currently moving.
 
 <a name="PTZControl.SetMoving"></a>
 ### func \(\*PTZControl\) SetMoving
@@ -2228,6 +2550,26 @@ UpdateValue routes generic property writes to the semantic setters.
 
 <a name="PTZDirection"></a>
 
+## type PTZProperty
+
+PTZProperty is a property name of a PTZ control.
+
+	type PTZProperty = string
+
+<a name="PTZPropertyPosition"></a>Property names of a PTZ control.
+
+	const (
+	    PTZPropertyPosition     PTZProperty = "position"     // Current pan/tilt/zoom position
+	    PTZPropertyMoving       PTZProperty = "moving"       // Whether the camera is currently moving
+	    PTZPropertyPresets      PTZProperty = "presets"      // List of available preset names. Empty until `setPresets()` runs
+	    PTZPropertyVelocity     PTZProperty = "velocity"     // Current movement velocity (continuous move). Undefined until a continuous move was issued
+	    PTZPropertyTargetPreset PTZProperty = "targetPreset" // Target preset to move to. Undefined until a preset was requested
+	    PTZPropertyRelativeMove PTZProperty = "relativeMove" // Relative displacement move command (write-only)
+	    PTZPropertyHome         PTZProperty = "home"         // Move to the home position (write-only command, carries no state)
+	)
+
+<a name="PTZRelativeMove"></a>
+
 ## type PersonEmbedder
 
 PersonEmbedder is implemented by plugins that turn the crop of a person into a vector of their appearance.
@@ -2300,6 +2642,34 @@ PersonEmbeddingResult is the return value of PersonEmbedder.EmbedPersons.
 
 <a name="PipeDownloadSource"></a>
 
+## type PowerProperty
+
+PowerProperty is a property name of a power sensor.
+
+	type PowerProperty = string
+
+<a name="PowerPropertyDetected"></a>Property names of a power sensor.
+
+	const (
+	    PowerPropertyDetected PowerProperty = "detected" // Whether power is detected
+	)
+
+<a name="PowerSensor"></a>
+
+## type ProblemProperty
+
+ProblemProperty is a property name of a problem sensor.
+
+	type ProblemProperty = string
+
+<a name="ProblemPropertyDetected"></a>Property names of a problem sensor.
+
+	const (
+	    ProblemPropertyDetected ProblemProperty = "detected" // Whether a problem is detected
+	)
+
+<a name="ProblemSensor"></a>
+
 ## type SecuritySystem
 
 SecuritySystem is a security system arm/disarm control sensor.
@@ -2311,7 +2681,7 @@ SecuritySystem is a security system arm/disarm control sensor.
 
 	func NewSecuritySystem(name string, opts ...SensorOption) *SecuritySystem
 
-
+NewSecuritySystem creates a security system with the given name and options.
 
 <a name="SecuritySystem.GetCategory"></a>
 ### func \(\*SecuritySystem\) GetCategory
@@ -2325,14 +2695,14 @@ SecuritySystem is a security system arm/disarm control sensor.
 
 	func (s *SecuritySystem) GetCurrentState() SecuritySystemState
 
-
+GetCurrentState returns the actual current state of the security system.
 
 <a name="SecuritySystem.GetTargetState"></a>
 ### func \(\*SecuritySystem\) GetTargetState
 
 	func (s *SecuritySystem) GetTargetState() SecuritySystemState
 
-
+GetTargetState returns the desired target state \(set by user, transitions to the current state\), never SecuritySystemStateAlarmTriggered.
 
 <a name="SecuritySystem.GetType"></a>
 ### func \(\*SecuritySystem\) GetType
@@ -2378,6 +2748,21 @@ Example:
 	func (s *SecuritySystem) UpdateValue(property string, value any) error
 
 UpdateValue routes generic property writes to the semantic setters.
+
+<a name="SecuritySystemProperty"></a>
+
+## type SecuritySystemProperty
+
+SecuritySystemProperty is a property name of a security system control.
+
+	type SecuritySystemProperty = string
+
+<a name="SecuritySystemPropertyCurrentState"></a>Property names of a security system control.
+
+	const (
+	    SecuritySystemPropertyCurrentState SecuritySystemProperty = "currentState" // The actual current state of the security system
+	    SecuritySystemPropertyTargetState  SecuritySystemProperty = "targetState"  // The desired target state (set by user, transitions to currentState). Never `AlarmTriggered`
+	)
 
 <a name="SecuritySystemState"></a>
 
@@ -2488,15 +2873,25 @@ Sensor is the interface all sensors must implement.
 State\-modifying methods \(SetOn, ReportDetections, etc.\) live on the concrete sensor types, not on Sensor. Code that holds a Sensor reference can read state and observe changes, plus invoke UpdateValue for cross\-process generic property writes.
 
 	type Sensor interface {
+	    // GetID returns the entity id of the sensor, provisional on a new sensor until registration.
 	    GetID() string
+	    // GetType returns the type of the sensor, fixed per sensor class.
 	    GetType() SensorType
+	    // GetName returns the name the plugin gave the sensor.
 	    GetName() string
+	    // GetDisplayName returns the name shown to the user, the plugin's name until the user renames the sensor.
 	    GetDisplayName() string
+	    // GetNativeID returns the durable identity the plugin supplied, e.g. an upstream device id.
 	    GetNativeID() string
+	    // GetPluginID returns the id of the plugin that owns the sensor, set at registration.
 	    GetPluginID() string
+	    // GetAssignedCameraIDs returns the ids of the cameras the user assigned the sensor to.
 	    GetAssignedCameraIDs() []string
+	    // Connected reports whether the sensor is registered and its plugin is connected.
 	    Connected() bool
+	    // GetCapabilities returns the capabilities the sensor advertises.
 	    GetCapabilities() []string
+	    // AssignmentLocked reports whether the sensor is bound to the camera it was added to, so the user cannot assign it elsewhere.
 	    AssignmentLocked() bool
 	    // HasCapability reports whether the sensor advertises a capability.
 	    HasCapability(cap string) bool
@@ -2657,7 +3052,7 @@ SirenControl is a siren on/off and volume control sensor. Override SetActive / S
 
 	func NewSirenControl(name string, opts ...SensorOption) *SirenControl
 
-
+NewSirenControl creates a siren control with the given name and options.
 
 <a name="SirenControl.GetCategory"></a>
 ### func \(\*SirenControl\) GetCategory
@@ -2678,14 +3073,14 @@ SirenControl is a siren on/off and volume control sensor. Override SetActive / S
 
 	func (s *SirenControl) GetVolume() int
 
-
+GetVolume returns the volume level \(0\-100\).
 
 <a name="SirenControl.IsActive"></a>
 ### func \(\*SirenControl\) IsActive
 
 	func (s *SirenControl) IsActive() bool
 
-
+IsActive reports whether the siren is currently active.
 
 <a name="SirenControl.SetActive"></a>
 ### func \(\*SirenControl\) SetActive
@@ -2737,6 +3132,35 @@ Example:
 
 UpdateValue routes generic property writes to the semantic setters.
 
+<a name="SirenProperty"></a>
+
+## type SirenProperty
+
+SirenProperty is a property name of a siren control.
+
+	type SirenProperty = string
+
+<a name="SirenPropertyActive"></a>Property names of a siren control.
+
+	const (
+	    SirenPropertyActive SirenProperty = "active" // Whether the siren is currently active
+	    SirenPropertyVolume SirenProperty = "volume" // Volume level (0-100)
+	)
+
+<a name="SmokeProperty"></a>
+
+## type SmokeProperty
+
+SmokeProperty is a property name of a smoke sensor.
+
+	type SmokeProperty = string
+
+<a name="SmokePropertyDetected"></a>Property names of a smoke sensor.
+
+	const (
+	    SmokePropertyDetected SmokeProperty = "detected" // Whether smoke is detected
+	)
+
 <a name="SmokeSensor"></a>
 
 ## type SmokeSensor
@@ -2750,7 +3174,7 @@ SmokeSensor reports smoke detection state.
 
 	func NewSmokeSensor(name string, opts ...SensorOption) *SmokeSensor
 
-
+NewSmokeSensor creates a smoke sensor with the given name and options.
 
 <a name="SmokeSensor.GetCategory"></a>
 ### func \(\*SmokeSensor\) GetCategory
@@ -2771,7 +3195,7 @@ SmokeSensor reports smoke detection state.
 
 	func (s *SmokeSensor) IsDetected() bool
 
-
+IsDetected reports whether smoke is detected.
 
 <a name="SmokeSensor.SetDetected"></a>
 ### func \(\*SmokeSensor\) SetDetected
@@ -2812,7 +3236,7 @@ SwitchControl is a generic on/off switch control sensor. Override SetOn / SetOff
 
 	func NewSwitchControl(name string, opts ...SensorOption) *SwitchControl
 
-
+NewSwitchControl creates a switch control with the given name and options.
 
 <a name="SwitchControl.GetCategory"></a>
 ### func \(\*SwitchControl\) GetCategory
@@ -2833,7 +3257,7 @@ SwitchControl is a generic on/off switch control sensor. Override SetOn / SetOff
 
 	func (s *SwitchControl) IsOn() bool
 
-
+IsOn reports whether the switch is on.
 
 <a name="SwitchControl.SetOff"></a>
 ### func \(\*SwitchControl\) SetOff
@@ -2873,6 +3297,34 @@ Example:
 
 UpdateValue routes generic property writes to the semantic setters.
 
+<a name="SwitchProperty"></a>
+
+## type SwitchProperty
+
+SwitchProperty is a property name of a switch control.
+
+	type SwitchProperty = string
+
+<a name="SwitchPropertyOn"></a>Property names of a switch control.
+
+	const (
+	    SwitchPropertyOn SwitchProperty = "on" // Whether the switch is on
+	)
+
+<a name="TamperProperty"></a>
+
+## type TamperProperty
+
+TamperProperty is a property name of a tamper sensor.
+
+	type TamperProperty = string
+
+<a name="TamperPropertyDetected"></a>Property names of a tamper sensor.
+
+	const (
+	    TamperPropertyDetected TamperProperty = "detected" // Whether tampering is detected
+	)
+
 <a name="TamperSensor"></a>
 
 ## type TemperatureInfo
@@ -2886,7 +3338,7 @@ TemperatureInfo reports the current temperature in degrees Celsius.
 
 	func NewTemperatureInfo(name string, opts ...SensorOption) *TemperatureInfo
 
-
+NewTemperatureInfo creates a temperature info sensor with the given name and options.
 
 <a name="TemperatureInfo.GetCategory"></a>
 ### func \(\*TemperatureInfo\) GetCategory
@@ -2900,7 +3352,7 @@ TemperatureInfo reports the current temperature in degrees Celsius.
 
 	func (s *TemperatureInfo) GetCurrent() float64
 
-
+GetCurrent returns the current temperature in degrees Celsius.
 
 <a name="TemperatureInfo.GetType"></a>
 ### func \(\*TemperatureInfo\) GetType
@@ -2935,14 +3387,30 @@ Example:
 
 UpdateValue on a read\-only sensor: external writes are ignored.
 
+<a name="TemperatureProperty"></a>
+
+## type TemperatureProperty
+
+TemperatureProperty is a property name of a temperature sensor.
+
+	type TemperatureProperty = string
+
+<a name="TemperaturePropertyCurrent"></a>Property names of a temperature sensor.
+
+	const (
+	    TemperaturePropertyCurrent TemperatureProperty = "current" // Current temperature in degrees Celsius
+	)
+
 <a name="TimeWindow"></a>
 
 ## type TrackVelocity
 
-TrackVelocity is the signed centroid velocity in normalized units per second. Positive X = moving right, positive Y = moving down. Prefer it over deriving velocity from frame\-to\-frame position deltas.
+TrackVelocity is the signed centroid velocity in normalized units per second. Prefer it over deriving velocity from frame\-to\-frame position deltas.
 
 	type TrackVelocity struct {
+	    // X is the horizontal velocity, positive moves right.
 	    X   float64 `msgpack:"x" json:"x"`
+	    // Y is the vertical velocity, positive moves down.
 	    Y   float64 `msgpack:"y" json:"y"`
 	}
 
@@ -2961,5 +3429,19 @@ TrackedDetection extends Detection with tracking metadata \(stable IDs, velocity
 	    TrackLost       *bool          `msgpack:"trackLost,omitempty" json:"trackLost,omitempty"`             // True if the object was not matched in the current frame
 	    StationarySince *float64       `msgpack:"stationarySince,omitempty" json:"stationarySince,omitempty"` // Epoch ms since the object has been still; only present while it is settled
 	}
+
+<a name="VibrationProperty"></a>
+
+## type VibrationProperty
+
+VibrationProperty is a property name of a vibration sensor.
+
+	type VibrationProperty = string
+
+<a name="VibrationPropertyDetected"></a>Property names of a vibration sensor.
+
+	const (
+	    VibrationPropertyDetected VibrationProperty = "detected" // Whether vibration is detected
+	)
 
 <a name="VibrationSensor"></a>

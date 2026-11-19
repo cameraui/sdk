@@ -11,10 +11,14 @@ const (
 	GarageStateStopped GarageState = 4 // Door stopped part-way
 )
 
+// GarageProperty is a property name of a garage control.
+type GarageProperty = string
+
+// Property names of a garage control.
 const (
-	garagePropertyCurrentState        = "currentState"
-	garagePropertyTargetState         = "targetState"
-	garagePropertyObstructionDetected = "obstructionDetected"
+	GaragePropertyCurrentState        GarageProperty = "currentState"        // The actual current state of the garage door
+	GaragePropertyTargetState         GarageProperty = "targetState"         // The desired target state (set by user, transitions to currentState)
+	GaragePropertyObstructionDetected GarageProperty = "obstructionDetected" // Whether an obstruction is detected
 )
 
 type garageSetters interface {
@@ -35,9 +39,9 @@ type GarageControl struct{ BaseSensor }
 func NewGarageControl(name string, opts ...SensorOption) *GarageControl {
 	s := &GarageControl{BaseSensor: NewBaseSensor(name, opts...)}
 	s.writeState(map[string]any{
-		garagePropertyCurrentState:        int(GarageStateClosed),
-		garagePropertyTargetState:         int(GarageStateClosed),
-		garagePropertyObstructionDetected: false,
+		GaragePropertyCurrentState:        int(GarageStateClosed),
+		GaragePropertyTargetState:         int(GarageStateClosed),
+		GaragePropertyObstructionDetected: false,
 	})
 	return s
 }
@@ -46,22 +50,25 @@ func (s *GarageControl) GetType() SensorType         { return SensorTypeGarage }
 func (s *GarageControl) GetCategory() SensorCategory { return SensorCategoryControl }
 func (s *GarageControl) ToJSON() sensorJSON          { return s.toBaseJSON(s.GetType(), s.GetCategory()) }
 
+// GetCurrentState returns the actual current state of the garage door.
 func (s *GarageControl) GetCurrentState() GarageState {
-	if v, ok := s.GetValue(garagePropertyCurrentState).(int); ok {
+	if v, ok := s.GetValue(GaragePropertyCurrentState).(int); ok {
 		return GarageState(v)
 	}
 	return GarageStateClosed
 }
 
+// GetTargetState returns the desired target state (set by user, transitions to the current state).
 func (s *GarageControl) GetTargetState() GarageState {
-	if v, ok := s.GetValue(garagePropertyTargetState).(int); ok {
+	if v, ok := s.GetValue(GaragePropertyTargetState).(int); ok {
 		return GarageState(v)
 	}
 	return GarageStateClosed
 }
 
+// IsObstructionDetected reports whether an obstruction is detected.
 func (s *GarageControl) IsObstructionDetected() bool {
-	v, _ := s.GetValue(garagePropertyObstructionDetected).(bool)
+	v, _ := s.GetValue(GaragePropertyObstructionDetected).(bool)
 	return v
 }
 
@@ -72,8 +79,8 @@ func (s *GarageControl) IsObstructionDetected() bool {
 //	garage.SetTargetState(GarageStateOpen)
 func (s *GarageControl) SetTargetState(value GarageState) {
 	s.writeState(map[string]any{
-		garagePropertyTargetState:  int(value),
-		garagePropertyCurrentState: int(value),
+		GaragePropertyTargetState:  int(value),
+		GaragePropertyCurrentState: int(value),
 	})
 }
 
@@ -86,7 +93,7 @@ func (s *GarageControl) SetTargetState(value GarageState) {
 //
 //	garage.SetCurrentState(GarageStateClosing)
 func (s *GarageControl) SetCurrentState(value GarageState) {
-	s.writeState(map[string]any{garagePropertyCurrentState: int(value)})
+	s.writeState(map[string]any{GaragePropertyCurrentState: int(value)})
 }
 
 // SetObstructionDetected publishes the obstruction-detected state. Read-only
@@ -96,13 +103,13 @@ func (s *GarageControl) SetCurrentState(value GarageState) {
 //
 //	garage.SetObstructionDetected(true)
 func (s *GarageControl) SetObstructionDetected(detected bool) {
-	s.writeState(map[string]any{garagePropertyObstructionDetected: detected})
+	s.writeState(map[string]any{GaragePropertyObstructionDetected: detected})
 }
 
 // UpdateValue routes generic property writes to the semantic setters.
 // Only targetState is externally writable.
 func (s *GarageControl) UpdateValue(property string, value any) error {
-	if property == garagePropertyTargetState {
+	if property == GaragePropertyTargetState {
 		if v, ok := toInt64(value); ok {
 			outerOr[garageSetters](&s.BaseSensor, s).SetTargetState(GarageState(v))
 		}

@@ -116,14 +116,17 @@ class BatteryInfo(Sensor[BatteryInfoProperties, TStorage, BatteryCapability], Ge
 
     @property
     def level(self) -> int:
+        """Battery level percentage (0-100)."""
         return int(self.props.level or 0)
 
     @property
     def charging(self) -> ChargingState:
+        """Current charging state."""
         return self.props.charging  # type: ignore[no-any-return]
 
     @property
     def low(self) -> bool:
+        """Whether the battery is critically low."""
         return bool(self.props.low)
 
     def setLevel(self, value: int) -> None:

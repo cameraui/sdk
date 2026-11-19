@@ -92,7 +92,7 @@ Dispose detaches the subscription and runs the teardown. Safe from any goroutine
 
 IsClosed reports whether Dispose has already run.
 
-<a name="DoorbellTrigger"></a>
+<a name="DoorbellProperty"></a>
 
 ## type Observable
 
@@ -194,7 +194,7 @@ Example:
 	defer sub.Dispose()
 	
 
-<a name="OccupancySensor"></a>
+<a name="OccupancyProperty"></a>
 
 ## type ReplaySubject
 

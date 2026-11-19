@@ -23,7 +23,9 @@ from .detection import (
 )
 from .enums import CameraRole, CameraType, StreamingRole
 from .events import DetectionEventPayload
+from .export import CameraExportSettings
 from .frames import CameraFrameWorkerSettings, SnapshotSettings
+from .notification import CameraNotificationSettings
 from .recording import CameraRecordingSettings
 from .streaming import (
     ProbeConfig,
@@ -207,6 +209,16 @@ class CameraDevice(Protocol):
     @property
     def recordingSettings(self) -> CameraRecordingSettings:
         """Recording settings."""
+        ...
+
+    @property
+    def notificationSettings(self) -> CameraNotificationSettings:
+        """Push notification settings."""
+        ...
+
+    @property
+    def exportSettings(self) -> CameraExportSettings:
+        """How other apps reach the camera."""
         ...
 
     @property

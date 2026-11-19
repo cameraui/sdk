@@ -101,10 +101,12 @@ class LightControl(Sensor[LightControlProperties, TStorage, LightCapability], Ge
 
     @property
     def on(self) -> bool:
+        """Whether the light is on."""
         return bool(self.props.on)
 
     @property
     def brightness(self) -> int:
+        """Brightness level (0-100)."""
         value = self.props.brightness
         return int(value) if value is not None else 0
 

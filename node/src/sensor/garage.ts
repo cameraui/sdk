@@ -18,7 +18,7 @@ export enum GarageState {
   Stopped = 4,
 }
 
-/** @internal */
+/** Property names of a garage control. */
 export enum GarageProperty {
   /** The actual current state of the garage door. */
   CurrentState = 'currentState',
@@ -28,7 +28,7 @@ export enum GarageProperty {
   ObstructionDetected = 'obstructionDetected',
 }
 
-/** @internal */
+/** Property values of a garage control. */
 export interface GarageControlProperties {
   [GarageProperty.CurrentState]: GarageState;
   [GarageProperty.TargetState]: GarageState;
@@ -68,14 +68,17 @@ export class GarageControl<TStorage extends object = Record<string, any>> extend
     });
   }
 
+  /** The actual current state of the garage door. */
   get currentState(): GarageState {
     return this.props.currentState;
   }
 
+  /** The desired target state (set by user, transitions to currentState). */
   get targetState(): GarageState {
     return this.props.targetState;
   }
 
+  /** Whether an obstruction is detected. */
   get obstructionDetected(): boolean {
     return this.props.obstructionDetected;
   }

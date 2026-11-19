@@ -10,7 +10,7 @@ export enum SirenCapability {
   Volume = 'volume',
 }
 
-/** @internal */
+/** Property names of a siren control. */
 export enum SirenProperty {
   /** Whether the siren is currently active. */
   Active = 'active',
@@ -18,7 +18,7 @@ export enum SirenProperty {
   Volume = 'volume',
 }
 
-/** @internal */
+/** Property values of a siren control. */
 export interface SirenControlProperties {
   [SirenProperty.Active]: boolean;
   [SirenProperty.Volume]: number;
@@ -54,10 +54,12 @@ export class SirenControl<TStorage extends object = Record<string, any>> extends
     });
   }
 
+  /** Whether the siren is currently active. */
   get active(): boolean {
     return this.props.active;
   }
 
+  /** Volume level (0-100). */
   get volume(): number {
     return this.props.volume;
   }

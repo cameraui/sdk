@@ -20,10 +20,15 @@ var BaseAudioLabels = []string{
 	"scream", "cat", "car_alarm", "smoke_alarm",
 }
 
+// AudioProperty is a property name of an audio sensor.
+type AudioProperty = string
+
+// Property names of an audio sensor.
 const (
-	audioPropertyDetected   = "detected"
-	audioPropertyDetections = "detections"
-	audioPropertyDecibels   = "decibels"
+	AudioPropertyDetected      AudioProperty = "detected"      // Whether an audio event is currently detected
+	AudioPropertyDetections    AudioProperty = "detections"    // List of detected audio events (e.g. glass break, scream). The plugin that owns the sensor does not get the backend's updates of it
+	AudioPropertyDecibels      AudioProperty = "decibels"      // Current audio level in decibels. The plugin that owns the sensor does not get the backend's updates of it
+	AudioPropertyLastTriggered AudioProperty = "lastTriggered" // Timestamp in milliseconds of the last detection trigger, set by the backend
 )
 
 // AudioFrameData is audio frame data delivered to audio detector sensors by
@@ -67,9 +72,9 @@ type AudioSensor struct {
 func NewAudioSensor(name string, opts ...SensorOption) *AudioSensor {
 	s := &AudioSensor{BaseSensor: NewBaseSensor(name, opts...)}
 	s.writeState(map[string]any{
-		audioPropertyDetected:   false,
-		audioPropertyDetections: []Detection{},
-		audioPropertyDecibels:   0.0,
+		AudioPropertyDetected:   false,
+		AudioPropertyDetections: []Detection{},
+		AudioPropertyDecibels:   0.0,
 	})
 	return s
 }
@@ -78,18 +83,21 @@ func (s *AudioSensor) GetType() SensorType         { return SensorTypeAudio }
 func (s *AudioSensor) GetCategory() SensorCategory { return SensorCategorySensor }
 func (s *AudioSensor) ToJSON() sensorJSON          { return s.toBaseJSON(s.GetType(), s.GetCategory()) }
 
+// IsDetected reports whether an audio event is currently detected.
 func (s *AudioSensor) IsDetected() bool {
-	v, _ := s.GetValue(audioPropertyDetected).(bool)
+	v, _ := s.GetValue(AudioPropertyDetected).(bool)
 	return v
 }
 
+// GetDetections returns the detected audio events (e.g. glass break, scream). The plugin that owns the sensor does not get the backend's updates of it.
 func (s *AudioSensor) GetDetections() []Detection {
-	v, _ := s.GetValue(audioPropertyDetections).([]Detection)
+	v, _ := s.GetValue(AudioPropertyDetections).([]Detection)
 	return v
 }
 
+// GetDecibels returns the current audio level in decibels. The plugin that owns the sensor does not get the backend's updates of it.
 func (s *AudioSensor) GetDecibels() float64 {
-	v, _ := s.GetValue(audioPropertyDecibels).(float64)
+	v, _ := s.GetValue(AudioPropertyDecibels).(float64)
 	return v
 }
 
@@ -109,8 +117,8 @@ func (s *AudioSensor) GetDecibels() float64 {
 func (s *AudioSensor) ReportDetections(detected bool, detections []Detection) {
 	list := normalizeReportedDetections(detected, detections, func(d *Detection) *Detection { return d }, "audio", "")
 	s.writeState(map[string]any{
-		audioPropertyDetected:   detected,
-		audioPropertyDetections: list,
+		AudioPropertyDetected:   detected,
+		AudioPropertyDetections: list,
 	})
 }
 
@@ -125,7 +133,7 @@ func (s *AudioSensor) ClearDetections() {
 //
 //	sensor.SetDecibels(72)
 func (s *AudioSensor) SetDecibels(value float64) {
-	s.writeState(map[string]any{audioPropertyDecibels: value})
+	s.writeState(map[string]any{AudioPropertyDecibels: value})
 }
 
 // UpdateValue on a read-only sensor: external writes are ignored.

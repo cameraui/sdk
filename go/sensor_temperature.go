@@ -1,16 +1,21 @@
 package sdk
 
+// TemperatureProperty is a property name of a temperature sensor.
+type TemperatureProperty = string
+
+// Property names of a temperature sensor.
 const (
-	temperaturePropertyCurrent = "current"
+	TemperaturePropertyCurrent TemperatureProperty = "current" // Current temperature in degrees Celsius
 )
 
 // TemperatureInfo reports the current temperature in degrees Celsius.
 type TemperatureInfo struct{ BaseSensor }
 
+// NewTemperatureInfo creates a temperature info sensor with the given name and options.
 func NewTemperatureInfo(name string, opts ...SensorOption) *TemperatureInfo {
 	s := &TemperatureInfo{BaseSensor: NewBaseSensor(name, opts...)}
 	s.writeState(map[string]any{
-		temperaturePropertyCurrent: 20.0,
+		TemperaturePropertyCurrent: 20.0,
 	})
 	return s
 }
@@ -19,8 +24,9 @@ func (s *TemperatureInfo) GetType() SensorType         { return SensorTypeTemper
 func (s *TemperatureInfo) GetCategory() SensorCategory { return SensorCategoryInfo }
 func (s *TemperatureInfo) ToJSON() sensorJSON          { return s.toBaseJSON(s.GetType(), s.GetCategory()) }
 
+// GetCurrent returns the current temperature in degrees Celsius.
 func (s *TemperatureInfo) GetCurrent() float64 {
-	v, _ := s.GetValue(temperaturePropertyCurrent).(float64)
+	v, _ := s.GetValue(TemperaturePropertyCurrent).(float64)
 	return v
 }
 
@@ -36,7 +42,7 @@ func (s *TemperatureInfo) SetCurrent(value float64) {
 	if value > 100 {
 		value = 100
 	}
-	s.writeState(map[string]any{temperaturePropertyCurrent: value})
+	s.writeState(map[string]any{TemperaturePropertyCurrent: value})
 }
 
 // UpdateValue on a read-only sensor: external writes are ignored.

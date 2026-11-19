@@ -6,7 +6,7 @@ import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 import type { Detection, VideoFrameData } from './detection.js';
 import type { ModelSpec } from './spec.js';
 
-/** @internal */
+/** Property names of a classifier sensor. */
 export enum ClassifierProperty {
   /** Whether any classification result is active. */
   Detected = 'detected',
@@ -24,7 +24,7 @@ export interface ClassifierDetection extends Detection {
   subAttribute: string;
 }
 
-/** @internal */
+/** Property values of a classifier sensor. */
 export interface ClassifierSensorProperties {
   [ClassifierProperty.Detected]: boolean;
   [ClassifierProperty.Detections]: ClassifierDetection[];
@@ -52,6 +52,7 @@ export class ClassifierSensor<TStorage extends object = Record<string, any>> ext
   readonly type = SensorType.Classifier;
   readonly category = SensorCategory.Sensor;
 
+  /** @internal */
   _requiresFrames = false;
 
   constructor(name = 'Classifier', options?: SensorOptions) {
@@ -64,14 +65,17 @@ export class ClassifierSensor<TStorage extends object = Record<string, any>> ext
     });
   }
 
+  /** Whether any classification result is active. */
   get detected(): boolean {
     return this.props.detected;
   }
 
+  /** List of classification results with labels and confidence. The plugin that owns the sensor does not get the backend's updates of it. */
   get detections(): ClassifierDetection[] {
     return this.props.detections;
   }
 
+  /** Labels recognized during the active detection phase (auto-derived when reporting detections). */
   get labels(): string[] {
     return this.props.labels;
   }
@@ -150,8 +154,10 @@ export interface ClassifierResult {
  * classification models against trigger regions.
  */
 export abstract class ClassifierDetectorSensor<TStorage extends object = Record<string, any>> extends ClassifierSensor<TStorage> {
+  /** @internal */
   override _requiresFrames = true;
 
+  /** Declares the expected input dimensions and trigger labels. The runtime scales frames to match. */
   abstract get modelSpec(): ModelSpec;
 
   /**

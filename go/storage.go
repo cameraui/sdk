@@ -37,9 +37,11 @@ type DeviceStorage struct {
 	persistMu   sync.Mutex
 	persistence configPersistence
 	location    storeLocation
-	Schemas     []JsonSchema
-	Values      map[string]any
-	logger      *Logger
+	// Schemas holds the current schema definitions.
+	Schemas []JsonSchema
+	// Values holds the current configuration values.
+	Values map[string]any
+	logger *Logger
 
 	dirty      bool
 	persistSeq uint64

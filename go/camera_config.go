@@ -19,10 +19,6 @@ type CameraInput struct {
 	Muted bool `msgpack:"muted,omitempty" json:"muted,omitempty"`
 	// BackchannelDisabled drops the talk channel of this source, so clients get no microphone.
 	BackchannelDisabled bool `msgpack:"backchannelDisabled,omitempty" json:"backchannelDisabled,omitempty"`
-	// OnvifDisabled leaves this source out of the ONVIF export.
-	OnvifDisabled bool `msgpack:"onvifDisabled,omitempty" json:"onvifDisabled,omitempty"`
-	// RtmpDisabled keeps this source off the RTMP server.
-	RtmpDisabled bool `msgpack:"rtmpDisabled,omitempty" json:"rtmpDisabled,omitempty"`
 	// Timeout is the seconds without media before the stream reconnects. Zero
 	// means the host default: 5 for cameras, 60 for plugin-served sources.
 	Timeout int `msgpack:"timeout,omitempty" json:"timeout,omitempty"`
@@ -200,6 +196,8 @@ type BaseCamera struct {
 	RecordingSettings CameraRecordingSettings `msgpack:"recordingSettings,omitempty" json:"recordingSettings"`
 	// NotificationSettings is the push notification configuration.
 	NotificationSettings CameraNotificationSettings `msgpack:"notificationSettings,omitempty" json:"notificationSettings"`
+	// ExportSettings decide how other apps reach the camera.
+	ExportSettings CameraExportSettings `msgpack:"exportSettings,omitempty" json:"exportSettings"`
 	// FrameWorkerSettings is the frame worker configuration.
 	FrameWorkerSettings CameraFrameWorkerSettings `msgpack:"frameWorkerSettings,omitempty" json:"frameWorkerSettings"`
 	// InterfaceSettings is the UI display settings.
@@ -259,10 +257,6 @@ type CameraConfigInputSettings struct {
 	Muted bool `msgpack:"muted,omitempty" json:"muted,omitempty"`
 	// BackchannelDisabled drops the talk channel of this source, so clients get no microphone.
 	BackchannelDisabled bool `msgpack:"backchannelDisabled,omitempty" json:"backchannelDisabled,omitempty"`
-	// OnvifDisabled leaves this source out of the ONVIF export.
-	OnvifDisabled bool `msgpack:"onvifDisabled,omitempty" json:"onvifDisabled,omitempty"`
-	// RtmpDisabled keeps this source off the RTMP server.
-	RtmpDisabled bool `msgpack:"rtmpDisabled,omitempty" json:"rtmpDisabled,omitempty"`
 	// Timeout is the seconds without media before the stream reconnects. Zero
 	// means the host default: 5 for cameras, 60 for plugin-served sources.
 	Timeout int `msgpack:"timeout,omitempty" json:"timeout,omitempty"`

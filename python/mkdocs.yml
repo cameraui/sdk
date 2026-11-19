@@ -71,6 +71,8 @@ plugins:
             members_order: source
             docstring_style: google
             merge_init_into_class: true
+            extensions:
+              - griffe_inherited_docstrings
             filters:
               - "!^_"
               - "!^internal$"

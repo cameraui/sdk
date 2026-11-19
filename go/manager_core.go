@@ -11,60 +11,75 @@ import (
 
 // SensorHistoryEntry is one recorded change of one sensor property.
 type SensorHistoryEntry struct {
-	SensorID  string `msgpack:"sensorId" json:"sensorId"`
-	Property  string `msgpack:"property" json:"property"`
-	Value     any    `msgpack:"value" json:"value"`
-	Timestamp int64  `msgpack:"timestamp" json:"timestamp"`
+	// SensorID is the id of the sensor it belongs to.
+	SensorID string `msgpack:"sensorId" json:"sensorId"`
+	// Property is the property name, e.g. "detected" or "current".
+	Property string `msgpack:"property" json:"property"`
+	// Value is the value it changed to.
+	Value any `msgpack:"value" json:"value"`
+	// Timestamp is when it changed, in milliseconds.
+	Timestamp int64 `msgpack:"timestamp" json:"timestamp"`
 }
 
 // AssistantAskImage is one picture of an AssistantAskRequest.
 type AssistantAskImage struct {
-	Data     []byte `msgpack:"data" json:"data"`
+	// Data is the encoded picture.
+	Data []byte `msgpack:"data" json:"data"`
+	// MimeType is the media type of the picture, e.g. "image/jpeg".
 	MimeType string `msgpack:"mimeType" json:"mimeType"`
 }
 
 // AssistantAskRequest is one completion request to the assistant model the
-// admin assigned to this plugin. ModelID picks another configured model by its
-// id, the plugin still needs access; an unknown id falls back to the assigned
-// model. TimeoutMs defaults to 45 s and is capped at 300 s; pictures are sent
-// only when the answering model passed the picture test.
+// admin assigned to this plugin.
 type AssistantAskRequest struct {
-	Prompt       string              `msgpack:"prompt" json:"prompt"`
-	System       string              `msgpack:"system,omitempty" json:"system,omitempty"`
-	Images       []AssistantAskImage `msgpack:"images,omitempty" json:"images,omitempty"`
-	OutputSchema map[string]any      `msgpack:"outputSchema,omitempty" json:"outputSchema,omitempty"`
-	TimeoutMs    int                 `msgpack:"timeoutMs,omitempty" json:"timeoutMs,omitempty"`
-	ModelID      string              `msgpack:"modelId,omitempty" json:"modelId,omitempty"`
+	// Prompt is the user message.
+	Prompt string `msgpack:"prompt" json:"prompt"`
+	// System is an optional system instruction.
+	System string `msgpack:"system,omitempty" json:"system,omitempty"`
+	// Images are the pictures for the request, sent only when the answering model sees pictures.
+	Images []AssistantAskImage `msgpack:"images,omitempty" json:"images,omitempty"`
+	// OutputSchema is the JSON schema of the expected answer; the result then carries JSON.
+	OutputSchema map[string]any `msgpack:"outputSchema,omitempty" json:"outputSchema,omitempty"`
+	// TimeoutMs is the timeout in milliseconds, default 45 s, at most 300 s.
+	TimeoutMs int `msgpack:"timeoutMs,omitempty" json:"timeoutMs,omitempty"`
+	// ModelID is the id of a configured model to answer with instead of the assigned one. The plugin still needs access, an unknown id falls back to the assigned model.
+	ModelID string `msgpack:"modelId,omitempty" json:"modelId,omitempty"`
 }
 
 // AssistantAskUsage counts the tokens one ask consumed.
 type AssistantAskUsage struct {
-	PromptTokens     int `msgpack:"promptTokens" json:"promptTokens"`
+	// PromptTokens is the number of tokens of the request.
+	PromptTokens int `msgpack:"promptTokens" json:"promptTokens"`
+	// CompletionTokens is the number of tokens of the answer.
 	CompletionTokens int `msgpack:"completionTokens" json:"completionTokens"`
 }
 
-// AssistantAskResult is the answer of CoreManager.AssistantAsk: Text (and
-// JSON when a schema was given) with OK true, otherwise Reason and Message
-// say why the call did not run (not_allowed, unconfigured, timeout, error).
+// AssistantAskResult is the answer of CoreManager.AssistantAsk.
 type AssistantAskResult struct {
-	OK      bool              `msgpack:"ok" json:"ok"`
-	Text    string            `msgpack:"text,omitempty" json:"text,omitempty"`
-	JSON    any               `msgpack:"json,omitempty" json:"json,omitempty"`
-	Usage   AssistantAskUsage `msgpack:"usage,omitempty" json:"usage"`
-	Reason  string            `msgpack:"reason,omitempty" json:"reason,omitempty"`
-	Message string            `msgpack:"message,omitempty" json:"message,omitempty"`
+	// OK reports whether the model answered, otherwise Reason and Message say why the call did not run.
+	OK bool `msgpack:"ok" json:"ok"`
+	// Text is the answer text.
+	Text string `msgpack:"text,omitempty" json:"text,omitempty"`
+	// JSON is the parsed answer, set when OutputSchema was given.
+	JSON any `msgpack:"json,omitempty" json:"json,omitempty"`
+	// Usage counts the tokens the call consumed.
+	Usage AssistantAskUsage `msgpack:"usage,omitempty" json:"usage"`
+	// Reason says why the call did not run: not_allowed, unconfigured, timeout or error.
+	Reason string `msgpack:"reason,omitempty" json:"reason,omitempty"`
+	// Message describes the failure.
+	Message string `msgpack:"message,omitempty" json:"message,omitempty"`
 }
 
 // AssistantAccess says whether this plugin may use the assistant model and
-// what the assigned entry can do. Model is empty when not allowed, Vision is
-// nil until the picture probe ran, Language is the language the assistant
-// answers in (for example "de"): the one picked in the assistant settings,
-// otherwise the instance language. Servers older than 2.5.0 leave it empty
-// when it follows the user interface.
+// what the assigned entry can do.
 type AssistantAccess struct {
-	Allowed  bool   `msgpack:"allowed" json:"allowed"`
-	Model    string `msgpack:"model,omitempty" json:"model,omitempty"`
-	Vision   *bool  `msgpack:"vision" json:"vision"`
+	// Allowed is true when the admin allowed this plugin under Settings, Assistant.
+	Allowed bool `msgpack:"allowed" json:"allowed"`
+	// Model is the model id of the assigned entry, empty when not allowed.
+	Model string `msgpack:"model,omitempty" json:"model,omitempty"`
+	// Vision is the result of the picture probe for the assigned entry, nil when unknown.
+	Vision *bool `msgpack:"vision" json:"vision"`
+	// Language is the language the assistant answers in ("de"), the instance language unless the assistant settings pick another one. Can be empty on servers before 2.5.0.
 	Language string `msgpack:"language,omitempty" json:"language,omitempty"`
 }
 

@@ -75,6 +75,7 @@ from .events import (
     EventSegment,
     EventTrigger,
 )
+from .export import CameraExportSettings
 from .frames import (
     CameraFrameWorkerSettings,
     FrameWorkerDecoderHardware,
@@ -173,6 +174,7 @@ __all__ = [
     "TimeWindow",
     "CameraDetectionSettings",
     "CameraNotificationSettings",
+    "CameraExportSettings",
     "CameraRecordingSettings",
     "FrameWorkerDecoderHardware",
     "FrameWorkerDecoderSettings",

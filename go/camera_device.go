@@ -245,6 +245,13 @@ func (d *CameraDevice) NotificationSettings() CameraNotificationSettings {
 	return d.camera.NotificationSettings
 }
 
+// ExportSettings returns the settings that decide how other apps reach the camera.
+func (d *CameraDevice) ExportSettings() CameraExportSettings {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+	return d.camera.ExportSettings
+}
+
 // FrameWorkerSettings returns the frame worker settings.
 func (d *CameraDevice) FrameWorkerSettings() CameraFrameWorkerSettings {
 	d.mu.RLock()

@@ -89,10 +89,14 @@ type EventDetection struct {
 // DetectionPath holds the normalized box centers (0-1) of a tracked object's
 // first and last sighting in a segment.
 type DetectionPath struct {
+	// EnterX is the horizontal box center at the first sighting.
 	EnterX float64 `msgpack:"enterX" json:"enterX"`
+	// EnterY is the vertical box center at the first sighting.
 	EnterY float64 `msgpack:"enterY" json:"enterY"`
-	ExitX  float64 `msgpack:"exitX" json:"exitX"`
-	ExitY  float64 `msgpack:"exitY" json:"exitY"`
+	// ExitX is the horizontal box center at the last sighting.
+	ExitX float64 `msgpack:"exitX" json:"exitX"`
+	// ExitY is the vertical box center at the last sighting.
+	ExitY float64 `msgpack:"exitY" json:"exitY"`
 }
 
 // EventAttribute is a unified attribute within a segment (face identity, license plate, classifier result).

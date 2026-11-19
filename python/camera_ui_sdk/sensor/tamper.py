@@ -71,6 +71,7 @@ class TamperSensor(Sensor[TamperSensorProperties, TStorage, str], Generic[TStora
 
     @property
     def detected(self) -> bool:
+        """Whether tampering is detected."""
         return bool(self.props.detected)
 
     def setDetected(self, value: bool) -> None:

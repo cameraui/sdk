@@ -100,11 +100,13 @@ class LockControl(Sensor[LockControlProperties, TStorage, str], Generic[TStorage
 
     @property
     def currentState(self) -> LockState:
+        """The actual current state of the lock."""
         value = self.props.currentState
         return LockState(value) if value is not None else LockState.Secured
 
     @property
     def targetState(self) -> LockState:
+        """The desired target state (set by user, transitions to currentState)."""
         value = self.props.targetState
         return LockState(value) if value is not None else LockState.Secured
 

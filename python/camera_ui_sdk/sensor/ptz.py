@@ -67,9 +67,8 @@ class PTZDirection(TypedDict):
     - ``0`` = stop movement
     - ``1`` = maximum speed in positive direction
 
-    Conventions: positive ``panSpeed`` = right, positive ``tiltSpeed`` = up,
-    positive ``zoomSpeed`` = zoom in. Plugins should clamp values to ``[-1, 1]``
-    and map them to hardware-specific speeds.
+    Plugins should clamp values to ``[-1, 1]`` and map them to hardware-specific
+    speeds.
     """
 
     panSpeed: float
@@ -82,9 +81,8 @@ class PTZRelativeMove(TypedDict):
 
     Deltas are normalized to the camera's field of view: ``panDelta: 1`` moves
     the view by one full frame width, ``tiltDelta: 1`` by one full frame height.
-    Conventions match :class:`PTZDirection`: positive ``panDelta`` = right,
-    positive ``tiltDelta`` = up, positive ``zoomDelta`` = zoom in. Plugins map
-    the deltas to hardware-specific translation spaces (e.g. ONVIF RelativeMove).
+    Plugins map the deltas to hardware-specific translation spaces (e.g. ONVIF
+    RelativeMove).
     """
 
     panDelta: float
@@ -181,22 +179,27 @@ class PTZControl(Sensor[PTZControlProperties, TStorage, PTZCapability], Generic[
 
     @property
     def position(self) -> PTZPosition:
+        """Current pan/tilt/zoom position."""
         return self.props.position  # type: ignore[no-any-return]
 
     @property
     def moving(self) -> bool:
+        """Whether the camera is currently moving."""
         return bool(self.props.moving)
 
     @property
     def presets(self) -> list[str]:
+        """List of available preset names, empty until `setPresets()` runs."""
         return self.props.presets or []
 
     @property
     def velocity(self) -> PTZDirection | None:
+        """Current movement velocity (continuous move), None until one was issued."""
         return self.props.velocity  # type: ignore[no-any-return]
 
     @property
     def targetPreset(self) -> str | None:
+        """Target preset to move to, None until a preset was requested."""
         return self.props.targetPreset  # type: ignore[no-any-return]
 
     async def setPosition(self, value: PTZPosition) -> None:

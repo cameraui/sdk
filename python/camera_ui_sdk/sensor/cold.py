@@ -71,6 +71,7 @@ class ColdSensor(Sensor[ColdSensorProperties, TStorage, str], Generic[TStorage])
 
     @property
     def detected(self) -> bool:
+        """Whether abnormal cold is detected."""
         return bool(self.props.detected)
 
     def setDetected(self, value: bool) -> None:

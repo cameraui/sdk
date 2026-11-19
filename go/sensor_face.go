@@ -1,9 +1,13 @@
 package sdk
 
+// FaceProperty is a property name of a face sensor.
+type FaceProperty = string
+
+// Property names of a face sensor.
 const (
-	facePropertyDetected   = "detected"
-	facePropertyDetections = "detections"
-	facePropertyIdentities = "identities"
+	FacePropertyDetected   FaceProperty = "detected"   // Whether any face is currently detected
+	FacePropertyDetections FaceProperty = "detections" // List of detected faces, with an identity where one was matched. The plugin that owns the sensor does not get the backend's updates of it
+	FacePropertyIdentities FaceProperty = "identities" // Names of the faces recognized during the active detection phase
 )
 
 // FaceDetection is a face detection result, extending Detection with
@@ -43,9 +47,9 @@ type FaceSensor struct{ BaseSensor }
 func NewFaceSensor(name string, opts ...SensorOption) *FaceSensor {
 	s := &FaceSensor{BaseSensor: NewBaseSensor(name, opts...)}
 	s.writeState(map[string]any{
-		facePropertyDetected:   false,
-		facePropertyDetections: []FaceDetection{},
-		facePropertyIdentities: []string{},
+		FacePropertyDetected:   false,
+		FacePropertyDetections: []FaceDetection{},
+		FacePropertyIdentities: []string{},
 	})
 	return s
 }
@@ -54,20 +58,22 @@ func (s *FaceSensor) GetType() SensorType         { return SensorTypeFace }
 func (s *FaceSensor) GetCategory() SensorCategory { return SensorCategorySensor }
 func (s *FaceSensor) ToJSON() sensorJSON          { return s.toBaseJSON(s.GetType(), s.GetCategory()) }
 
+// IsDetected reports whether any face is currently detected.
 func (s *FaceSensor) IsDetected() bool {
-	v, _ := s.GetValue(facePropertyDetected).(bool)
+	v, _ := s.GetValue(FacePropertyDetected).(bool)
 	return v
 }
 
+// GetDetections returns the detected faces, with an identity where one was matched. The plugin that owns the sensor does not get the backend's updates of it.
 func (s *FaceSensor) GetDetections() []FaceDetection {
-	v, _ := s.GetValue(facePropertyDetections).([]FaceDetection)
+	v, _ := s.GetValue(FacePropertyDetections).([]FaceDetection)
 	return v
 }
 
 // GetIdentities returns the names of the faces recognized during the active
 // detection phase.
 func (s *FaceSensor) GetIdentities() []string {
-	v, _ := s.GetValue(facePropertyIdentities).([]string)
+	v, _ := s.GetValue(FacePropertyIdentities).([]string)
 	return v
 }
 
@@ -88,8 +94,8 @@ func (s *FaceSensor) GetIdentities() []string {
 func (s *FaceSensor) ReportDetections(detected bool, detections []FaceDetection) {
 	list := normalizeReportedDetections(detected, detections, func(d *FaceDetection) *Detection { return &d.Detection }, "person", "face")
 	state := map[string]any{
-		facePropertyDetected:   detected,
-		facePropertyDetections: list,
+		FacePropertyDetected:   detected,
+		FacePropertyDetections: list,
 	}
 	// names accumulate while faces stay visible, so automations don't flap on a missed recognition
 	recognized := make([]string, 0, len(list))
@@ -99,9 +105,9 @@ func (s *FaceSensor) ReportDetections(detected bool, detections []FaceDetection)
 		}
 	}
 	if !detected {
-		state[facePropertyIdentities] = []string{}
+		state[FacePropertyIdentities] = []string{}
 	} else if len(recognized) > 0 {
-		state[facePropertyIdentities] = mergeSortedUnique(s.GetIdentities(), recognized)
+		state[FacePropertyIdentities] = mergeSortedUnique(s.GetIdentities(), recognized)
 	}
 	s.writeState(state)
 }

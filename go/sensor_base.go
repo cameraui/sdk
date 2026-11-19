@@ -82,15 +82,25 @@ const (
 // sensor types, not on Sensor. Code that holds a Sensor reference can read state
 // and observe changes, plus invoke UpdateValue for cross-process generic property writes.
 type Sensor interface {
+	// GetID returns the entity id of the sensor, provisional on a new sensor until registration.
 	GetID() string
+	// GetType returns the type of the sensor, fixed per sensor class.
 	GetType() SensorType
+	// GetName returns the name the plugin gave the sensor.
 	GetName() string
+	// GetDisplayName returns the name shown to the user, the plugin's name until the user renames the sensor.
 	GetDisplayName() string
+	// GetNativeID returns the durable identity the plugin supplied, e.g. an upstream device id.
 	GetNativeID() string
+	// GetPluginID returns the id of the plugin that owns the sensor, set at registration.
 	GetPluginID() string
+	// GetAssignedCameraIDs returns the ids of the cameras the user assigned the sensor to.
 	GetAssignedCameraIDs() []string
+	// Connected reports whether the sensor is registered and its plugin is connected.
 	Connected() bool
+	// GetCapabilities returns the capabilities the sensor advertises.
 	GetCapabilities() []string
+	// AssignmentLocked reports whether the sensor is bound to the camera it was added to, so the user cannot assign it elsewhere.
 	AssignmentLocked() bool
 	// HasCapability reports whether the sensor advertises a capability.
 	HasCapability(cap string) bool
@@ -219,14 +229,17 @@ func NewBaseSensor(name string, opts ...SensorOption) BaseSensor {
 	}
 }
 
+// GetID returns the entity id of the sensor, provisional on a new sensor until registration.
 func (s *BaseSensor) GetID() string {
 	return s.id
 }
 
+// GetName returns the name the plugin gave the sensor.
 func (s *BaseSensor) GetName() string {
 	return s.name
 }
 
+// GetDisplayName returns the name shown to the user, the plugin's name until the user renames the sensor.
 func (s *BaseSensor) GetDisplayName() string {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -245,14 +258,22 @@ func (s *BaseSensor) SetDisplayName(name string) {
 	s.displayName = name
 }
 
+// GetNativeID returns the durable identity the plugin supplied, e.g. an upstream device id.
 func (s *BaseSensor) GetNativeID() string {
 	return s.nativeID
 }
 
+// GetOrigin returns the source system the sensor was imported from, e.g. "homeassistant".
+func (s *BaseSensor) GetOrigin() string {
+	return s.origin
+}
+
+// GetPluginID returns the id of the plugin that owns the sensor, set at registration.
 func (s *BaseSensor) GetPluginID() string {
 	return s.pluginID
 }
 
+// GetSourceState returns the state of the source behind an adopted sensor, as reported with SetSourceState.
 func (s *BaseSensor) GetSourceState() SensorSourceState {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -281,6 +302,7 @@ func (s *BaseSensor) SetSourceState(state SensorSourceState) {
 	}
 }
 
+// GetAddress returns the current address at the source, e.g. a Home Assistant entity id. Display only.
 func (s *BaseSensor) GetAddress() string {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -308,6 +330,7 @@ func (s *BaseSensor) SetAddress(address string) {
 	}
 }
 
+// GetAssignedCameraIDs returns the ids of the cameras the user assigned the sensor to.
 func (s *BaseSensor) GetAssignedCameraIDs() []string {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -316,12 +339,14 @@ func (s *BaseSensor) GetAssignedCameraIDs() []string {
 	return ids
 }
 
+// AssignmentLocked reports whether the sensor is bound to the camera it was added to, so the user cannot assign it elsewhere.
 func (s *BaseSensor) AssignmentLocked() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.assignmentLocked
 }
 
+// Connected reports whether the sensor is registered and its plugin is connected.
 func (s *BaseSensor) Connected() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -333,6 +358,7 @@ func (s *BaseSensor) OnConnectedChanged(callback func(bool)) *Disposable {
 	return s.connectedChanged.Subscribe(callback)
 }
 
+// GetCapabilities returns the capabilities the sensor advertises.
 func (s *BaseSensor) GetCapabilities() []string {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -377,12 +403,14 @@ func (s *BaseSensor) HasCapability(cap string) bool {
 	return slices.Contains(s.capabilities, cap)
 }
 
+// GetValue returns the current value of a sensor property.
 func (s *BaseSensor) GetValue(property string) any {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.properties[property]
 }
 
+// GetValues returns a snapshot copy of all property values.
 func (s *BaseSensor) GetValues() map[string]any {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -391,6 +419,7 @@ func (s *BaseSensor) GetValues() map[string]any {
 	return result
 }
 
+// Storage returns the per-sensor storage, nil before registration.
 func (s *BaseSensor) Storage() *DeviceStorage {
 	return s.storage
 }
@@ -406,6 +435,7 @@ func (s *BaseSensor) OnAssignmentChanged(callback func([]string)) *Disposable {
 	return s.assignmentChanged.Subscribe(callback)
 }
 
+// IsAssigned reports whether the sensor is assigned to at least one camera.
 func (s *BaseSensor) IsAssigned() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()

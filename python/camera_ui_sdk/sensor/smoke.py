@@ -71,6 +71,7 @@ class SmokeSensor(Sensor[SmokeSensorProperties, TStorage, str], Generic[TStorage
 
     @property
     def detected(self) -> bool:
+        """Whether smoke is detected."""
         return bool(self.props.detected)
 
     def setDetected(self, value: bool) -> None:

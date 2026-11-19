@@ -71,6 +71,7 @@ class OccupancySensor(Sensor[OccupancySensorProperties, TStorage, str], Generic[
 
     @property
     def detected(self) -> bool:
+        """Whether occupancy is detected (true = occupied)."""
         return bool(self.props.detected)
 
     def setDetected(self, value: bool) -> None:

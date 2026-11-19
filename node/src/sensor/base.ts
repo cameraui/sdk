@@ -167,9 +167,16 @@ export enum SensorCategory {
   Info = 'info',
 }
 
-/** Creates a discriminated union of property change events from a properties interface. The timestamp is the origin time in ms. */
+/** Creates a discriminated union of property change events from a properties interface. */
 export type PropertyChangeOf<TProps> = {
-  [K in keyof TProps & string]: { property: K; value: TProps[K]; timestamp: number };
+  [K in keyof TProps & string]: {
+    /** Name of the changed property. */
+    property: K;
+    /** New value of the property. */
+    value: TProps[K];
+    /** Origin timestamp in milliseconds since epoch. */
+    timestamp: number;
+  };
 }[keyof TProps & string];
 
 /**
@@ -181,19 +188,40 @@ export type PropertyChangeOf<TProps> = {
  * reference can only read state and observe changes.
  */
 export interface SensorLike {
+  /** Entity id of the sensor, provisional on a new sensor until registration. */
   readonly id: string;
+  /** Type of the sensor, fixed per sensor class. */
   readonly type: SensorType;
+  /** Name the plugin gave the sensor. */
   readonly name: string;
+  /** Name shown to the user, the plugin's name until the user renames the sensor. */
   readonly displayName: string;
+  /** Durable identity the plugin supplied, e.g. an upstream device id. */
   readonly nativeId?: string;
+  /** Id of the plugin that owns the sensor, set at registration. */
   readonly pluginId?: string;
+  /** Capabilities the sensor advertises. */
   readonly capabilities: string[];
+  /** Whether the sensor is registered and its plugin is connected. */
   readonly connected: boolean;
+  /** Ids of the cameras the user assigned the sensor to. */
   readonly assignedCameraIds: readonly string[];
+  /** Whether the sensor is bound to the camera it was added to, so the user cannot assign it elsewhere. */
   readonly assignmentLocked: boolean;
-  readonly onPropertyChanged: Observable<{ property: string; value: unknown; timestamp: number }>;
+  /** Emits on every property change. */
+  readonly onPropertyChanged: Observable<{
+    /** Name of the changed property. */
+    property: string;
+    /** New value of the property. */
+    value: unknown;
+    /** Origin timestamp in milliseconds since epoch. */
+    timestamp: number;
+  }>;
+  /** Emits the full capability list whenever it changes. */
   readonly onCapabilitiesChanged: Observable<string[]>;
+  /** Emits when the connected state changes. */
   readonly onConnectedChanged: Observable<boolean>;
+  /** Emits the camera id list whenever the user changes the sensor's camera assignments. */
   readonly onAssignmentChanged: Observable<readonly string[]>;
 
   /** Get the current value of a sensor property. */
@@ -233,6 +261,7 @@ export interface SensorLike {
  */
 export abstract class Sensor<TProperties extends object, TStorage extends object = Record<string, any>, TCapability extends string = string> implements SensorLike {
   abstract readonly type: SensorType;
+  /** Category of the sensor: detection sensor, control, trigger or info. */
   abstract readonly category: SensorCategory;
 
   readonly name: string;
@@ -289,14 +318,17 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     return this._nativeId;
   }
 
+  /** Source system the sensor was imported from, e.g. `'homeassistant'`. */
   get origin(): string | undefined {
     return this._origin;
   }
 
+  /** State of the source behind an adopted sensor, as reported with `setSourceState()`. */
   get sourceState(): SensorSourceState | undefined {
     return this._sourceState;
   }
 
+  /** Current address at the source, e.g. a Home Assistant entity id. Display only. */
   get address(): string | undefined {
     return this._address;
   }
@@ -305,6 +337,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     return this._displayName || this.name;
   }
 
+  /** Whether the sensor is assigned to at least one camera. */
   get isAssigned(): boolean {
     return this._assignedCameraIds.length > 0;
   }
@@ -325,6 +358,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     return this._pluginId;
   }
 
+  /** Per-sensor storage. Throws before registration. */
   get storage(): DeviceStorage<TStorage> {
     if (!this._storage) {
       throw new Error('Storage not initialized - sensor not registered yet');
@@ -332,6 +366,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     return this._storage;
   }
 
+  /** JSON schema of the per-sensor settings. Override it to get a settings UI. */
   get storageSchema(): JsonSchema[] {
     return [];
   }
@@ -555,6 +590,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     this.#connectedChangedSubject.complete();
   }
 
+  /** Read-only view of the property values. */
   protected get props(): Readonly<TProperties> {
     return this._propertiesStore;
   }

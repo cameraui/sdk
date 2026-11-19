@@ -105,11 +105,13 @@ class SecuritySystem(Sensor[SecuritySystemProperties, TStorage, str], Generic[TS
 
     @property
     def currentState(self) -> SecuritySystemState:
+        """The actual current state of the security system."""
         value = self.props.currentState
         return SecuritySystemState(value) if value is not None else SecuritySystemState.Disarmed
 
     @property
     def targetState(self) -> SecuritySystemState:
+        """The desired target state (set by user, transitions to currentState), never AlarmTriggered."""
         value = self.props.targetState
         return SecuritySystemState(value) if value is not None else SecuritySystemState.Disarmed
 

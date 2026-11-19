@@ -4,13 +4,13 @@ import { defineSensor, SensorDomain } from './meta.js';
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/** @internal */
+/** Property names of a humidity sensor. */
 export enum HumidityProperty {
   /** Current relative humidity (0-100%). */
   Current = 'current',
 }
 
-/** @internal */
+/** Property values of a humidity sensor. */
 export interface HumidityInfoProperties {
   [HumidityProperty.Current]: number;
 }
@@ -35,6 +35,7 @@ export class HumidityInfo<TStorage extends object = Record<string, any>> extends
     this._writeState({ [HumidityProperty.Current]: 50 });
   }
 
+  /** Current relative humidity (0-100%). */
   get current(): number {
     return this.props.current;
   }

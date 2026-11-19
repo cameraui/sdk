@@ -110,16 +110,19 @@ class GarageControl(Sensor[GarageControlProperties, TStorage, str], Generic[TSto
 
     @property
     def currentState(self) -> GarageState:
+        """The actual current state of the garage door."""
         value = self.props.currentState
         return GarageState(value) if value is not None else GarageState.Closed
 
     @property
     def targetState(self) -> GarageState:
+        """The desired target state (set by user, transitions to currentState)."""
         value = self.props.targetState
         return GarageState(value) if value is not None else GarageState.Closed
 
     @property
     def obstructionDetected(self) -> bool:
+        """Whether an obstruction is detected."""
         return bool(self.props.obstructionDetected)
 
     async def setTargetState(self, value: GarageState) -> None:

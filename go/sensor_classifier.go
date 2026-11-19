@@ -1,9 +1,13 @@
 package sdk
 
+// ClassifierProperty is a property name of a classifier sensor.
+type ClassifierProperty = string
+
+// Property names of a classifier sensor.
 const (
-	classifierPropertyDetected   = "detected"
-	classifierPropertyDetections = "detections"
-	classifierPropertyLabels     = "labels"
+	ClassifierPropertyDetected   ClassifierProperty = "detected"   // Whether any classification result is active
+	ClassifierPropertyDetections ClassifierProperty = "detections" // List of classification results with labels and confidence. The plugin that owns the sensor does not get the backend's updates of it
+	ClassifierPropertyLabels     ClassifierProperty = "labels"     // Labels recognized during the active detection phase (auto-derived when reporting detections)
 )
 
 // ClassifierDetection is a classifier detection result with an open
@@ -44,9 +48,9 @@ type ClassifierSensor struct{ BaseSensor }
 func NewClassifierSensor(name string, opts ...SensorOption) *ClassifierSensor {
 	s := &ClassifierSensor{BaseSensor: NewBaseSensor(name, opts...)}
 	s.writeState(map[string]any{
-		classifierPropertyDetected:   false,
-		classifierPropertyDetections: []ClassifierDetection{},
-		classifierPropertyLabels:     []string{},
+		ClassifierPropertyDetected:   false,
+		ClassifierPropertyDetections: []ClassifierDetection{},
+		ClassifierPropertyLabels:     []string{},
 	})
 	return s
 }
@@ -55,18 +59,21 @@ func (s *ClassifierSensor) GetType() SensorType         { return SensorTypeClass
 func (s *ClassifierSensor) GetCategory() SensorCategory { return SensorCategorySensor }
 func (s *ClassifierSensor) ToJSON() sensorJSON          { return s.toBaseJSON(s.GetType(), s.GetCategory()) }
 
+// IsDetected reports whether any classification result is active.
 func (s *ClassifierSensor) IsDetected() bool {
-	v, _ := s.GetValue(classifierPropertyDetected).(bool)
+	v, _ := s.GetValue(ClassifierPropertyDetected).(bool)
 	return v
 }
 
+// GetDetections returns the classification results with labels and confidence. The plugin that owns the sensor does not get the backend's updates of it.
 func (s *ClassifierSensor) GetDetections() []ClassifierDetection {
-	v, _ := s.GetValue(classifierPropertyDetections).([]ClassifierDetection)
+	v, _ := s.GetValue(ClassifierPropertyDetections).([]ClassifierDetection)
 	return v
 }
 
+// GetLabels returns the labels recognized during the active detection phase (auto-derived when reporting detections).
 func (s *ClassifierSensor) GetLabels() []string {
-	v, _ := s.GetValue(classifierPropertyLabels).([]string)
+	v, _ := s.GetValue(ClassifierPropertyLabels).([]string)
 	return v
 }
 
@@ -88,8 +95,8 @@ func (s *ClassifierSensor) GetLabels() []string {
 func (s *ClassifierSensor) ReportDetections(detected bool, detections []ClassifierDetection) {
 	list := normalizeReportedDetections(detected, detections, func(d *ClassifierDetection) *Detection { return &d.Detection }, "motion", "")
 	state := map[string]any{
-		classifierPropertyDetected:   detected,
-		classifierPropertyDetections: list,
+		ClassifierPropertyDetected:   detected,
+		ClassifierPropertyDetections: list,
 	}
 	// the specific answer (subAttribute) wins, labels accumulate while it fires so automations don't flap
 	recognized := make([]string, 0, len(list))
@@ -106,9 +113,9 @@ func (s *ClassifierSensor) ReportDetections(detected bool, detections []Classifi
 		}
 	}
 	if !detected {
-		state[classifierPropertyLabels] = []string{}
+		state[ClassifierPropertyLabels] = []string{}
 	} else if len(recognized) > 0 {
-		state[classifierPropertyLabels] = mergeSortedUnique(s.GetLabels(), recognized)
+		state[ClassifierPropertyLabels] = mergeSortedUnique(s.GetLabels(), recognized)
 	}
 	s.writeState(state)
 }

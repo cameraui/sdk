@@ -5,7 +5,7 @@ import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 import type { Detection, VideoFrameData } from './detection.js';
 
-/** @internal */
+/** Property names of a motion sensor. */
 export enum MotionProperty {
   /** Whether motion is currently detected. */
   Detected = 'detected',
@@ -17,7 +17,7 @@ export enum MotionProperty {
   LastTriggered = 'lastTriggered',
 }
 
-/** @internal */
+/** Property values of a motion sensor. */
 export interface MotionSensorProperties {
   [MotionProperty.Detected]: boolean;
   [MotionProperty.Detections]: Detection[];
@@ -46,6 +46,7 @@ export class MotionSensor<TStorage extends object = Record<string, any>> extends
   readonly type = SensorType.Motion;
   readonly category = SensorCategory.Sensor;
 
+  /** @internal */
   override _requiresFrames = false;
 
   constructor(name = 'Motion Sensor', options?: SensorOptions) {
@@ -58,14 +59,17 @@ export class MotionSensor<TStorage extends object = Record<string, any>> extends
     });
   }
 
+  /** Whether motion is currently detected. */
   get detected(): boolean {
     return this.props.detected;
   }
 
+  /** List of detection results with bounding boxes. The plugin that owns the sensor does not get the backend's updates of it. */
   get detections(): Detection[] {
     return this.props.detections;
   }
 
+  /** When true, detection updates are suppressed (set by the backend dwell logic). */
   get blocked(): boolean {
     return this.props.blocked;
   }
@@ -135,6 +139,7 @@ export interface MotionResult {
  * no detections reports no motion.
  */
 export abstract class MotionDetectorSensor<TStorage extends object = Record<string, any>> extends MotionSensor<TStorage> {
+  /** @internal */
   override _requiresFrames = true;
 
   /** Analyze a single video frame for motion. Called by the backend at the configured interval. */

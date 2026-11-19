@@ -71,6 +71,7 @@ class CarbonMonoxideSensor(Sensor[CarbonMonoxideSensorProperties, TStorage, str]
 
     @property
     def detected(self) -> bool:
+        """Whether carbon monoxide is detected."""
         return bool(self.props.detected)
 
     def setDetected(self, value: bool) -> None:

@@ -4,13 +4,13 @@ import { defineSensor, SensorDomain } from './meta.js';
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/** @internal */
+/** Property names of a smoke sensor. */
 export enum SmokeProperty {
   /** Whether smoke is detected. */
   Detected = 'detected',
 }
 
-/** @internal */
+/** Property values of a smoke sensor. */
 export interface SmokeSensorProperties {
   [SmokeProperty.Detected]: boolean;
 }
@@ -35,6 +35,7 @@ export class SmokeSensor<TStorage extends object = Record<string, any>> extends 
     this._writeState({ [SmokeProperty.Detected]: false });
   }
 
+  /** Whether smoke is detected. */
   get detected(): boolean {
     return this.props.detected;
   }

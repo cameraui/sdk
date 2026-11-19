@@ -4,13 +4,13 @@ import { defineSensor, SensorDomain } from './meta.js';
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/** @internal */
+/** Property names of a switch control. */
 export enum SwitchProperty {
   /** Whether the switch is on. */
   On = 'on',
 }
 
-/** @internal */
+/** Property values of a switch control. */
 export interface SwitchControlProperties {
   [SwitchProperty.On]: boolean;
 }
@@ -40,6 +40,7 @@ export class SwitchControl<TStorage extends object = Record<string, any>> extend
     this._writeState({ [SwitchProperty.On]: false });
   }
 
+  /** Whether the switch is on. */
   get on(): boolean {
     return this.props.on;
   }

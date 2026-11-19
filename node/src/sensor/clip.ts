@@ -31,12 +31,14 @@ export interface ClipResult {
 export abstract class ClipDetectorSensor<TStorage extends object = Record<string, any>> extends Sensor<Record<string, never>, TStorage> {
   readonly type = SensorType.Clip;
   readonly category = SensorCategory.Sensor;
+  /** @internal */
   _requiresFrames = true;
 
   constructor(name = 'CLIP Sensor', options?: SensorOptions) {
     super(name, options);
   }
 
+  /** Declares the expected input dimensions and trigger labels. */
   abstract get modelSpec(): ModelSpec;
 
   /**

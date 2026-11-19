@@ -71,6 +71,7 @@ class ProblemSensor(Sensor[ProblemSensorProperties, TStorage, str], Generic[TSto
 
     @property
     def detected(self) -> bool:
+        """Whether a problem is detected."""
         return bool(self.props.detected)
 
     def setDetected(self, value: bool) -> None:

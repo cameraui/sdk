@@ -4,13 +4,13 @@ import { defineSensor, SensorDomain } from './meta.js';
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/** @internal */
+/** Property names of a contact sensor. */
 export enum ContactProperty {
   /** Whether the contact is open (true = open, false = closed). */
   Detected = 'detected',
 }
 
-/** @internal */
+/** Property values of a contact sensor. */
 export interface ContactSensorProperties {
   [ContactProperty.Detected]: boolean;
 }
@@ -35,6 +35,7 @@ export class ContactSensor<TStorage extends object = Record<string, any>> extend
     this._writeState({ [ContactProperty.Detected]: false });
   }
 
+  /** Whether the contact is open (true = open, false = closed). */
   get detected(): boolean {
     return this.props.detected;
   }

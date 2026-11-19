@@ -31,12 +31,14 @@ export interface FaceEmbeddingResult {
 export abstract class FaceEmbedderSensor<TStorage extends object = Record<string, any>> extends Sensor<Record<string, never>, TStorage> {
   readonly type = SensorType.FaceEmbedder;
   readonly category = SensorCategory.Sensor;
+  /** @internal */
   _requiresFrames = true;
 
   constructor(name = 'Face Embedder', options?: SensorOptions) {
     super(name, options);
   }
 
+  /** Declares the expected input dimensions and trigger labels. */
   abstract get modelSpec(): ModelSpec;
 
   /**

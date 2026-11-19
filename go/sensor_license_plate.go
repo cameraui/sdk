@@ -1,9 +1,13 @@
 package sdk
 
+// LicensePlateProperty is a property name of a license plate sensor.
+type LicensePlateProperty = string
+
+// Property names of a license plate sensor.
 const (
-	licensePlatePropertyDetected   = "detected"
-	licensePlatePropertyDetections = "detections"
-	licensePlatePropertyPlates     = "plates"
+	LicensePlatePropertyDetected   LicensePlateProperty = "detected"   // Whether any license plate is currently detected
+	LicensePlatePropertyDetections LicensePlateProperty = "detections" // List of detected plates with OCR text. The plugin that owns the sensor does not get the backend's updates of it
+	LicensePlatePropertyPlates     LicensePlateProperty = "plates"     // Plate texts recognized during the active detection phase
 )
 
 // LicensePlateDetection is a license plate detection result, extending
@@ -40,12 +44,13 @@ type LicensePlateDetector interface {
 // flag is auto-derived from the detection list.
 type LicensePlateSensor struct{ BaseSensor }
 
+// NewLicensePlateSensor creates a license plate sensor with the given name and options.
 func NewLicensePlateSensor(name string, opts ...SensorOption) *LicensePlateSensor {
 	s := &LicensePlateSensor{BaseSensor: NewBaseSensor(name, opts...)}
 	s.writeState(map[string]any{
-		licensePlatePropertyDetected:   false,
-		licensePlatePropertyDetections: []LicensePlateDetection{},
-		licensePlatePropertyPlates:     []string{},
+		LicensePlatePropertyDetected:   false,
+		LicensePlatePropertyDetections: []LicensePlateDetection{},
+		LicensePlatePropertyPlates:     []string{},
 	})
 	return s
 }
@@ -56,20 +61,22 @@ func (s *LicensePlateSensor) ToJSON() sensorJSON {
 	return s.toBaseJSON(s.GetType(), s.GetCategory())
 }
 
+// IsDetected reports whether any license plate is currently detected.
 func (s *LicensePlateSensor) IsDetected() bool {
-	v, _ := s.GetValue(licensePlatePropertyDetected).(bool)
+	v, _ := s.GetValue(LicensePlatePropertyDetected).(bool)
 	return v
 }
 
+// GetDetections returns the detected plates with OCR text. The plugin that owns the sensor does not get the backend's updates of it.
 func (s *LicensePlateSensor) GetDetections() []LicensePlateDetection {
-	v, _ := s.GetValue(licensePlatePropertyDetections).([]LicensePlateDetection)
+	v, _ := s.GetValue(LicensePlatePropertyDetections).([]LicensePlateDetection)
 	return v
 }
 
 // GetPlates returns the plate texts recognized during the active detection
 // phase.
 func (s *LicensePlateSensor) GetPlates() []string {
-	v, _ := s.GetValue(licensePlatePropertyPlates).([]string)
+	v, _ := s.GetValue(LicensePlatePropertyPlates).([]string)
 	return v
 }
 
@@ -89,8 +96,8 @@ func (s *LicensePlateSensor) GetPlates() []string {
 func (s *LicensePlateSensor) ReportDetections(detected bool, detections []LicensePlateDetection) {
 	list := normalizeReportedDetections(detected, detections, func(d *LicensePlateDetection) *Detection { return &d.Detection }, "vehicle", "license_plate")
 	state := map[string]any{
-		licensePlatePropertyDetected:   detected,
-		licensePlatePropertyDetections: list,
+		LicensePlatePropertyDetected:   detected,
+		LicensePlatePropertyDetections: list,
 	}
 	// plates accumulate while they stay visible, so automations don't flap when the OCR misses a frame
 	recognized := make([]string, 0, len(list))
@@ -100,9 +107,9 @@ func (s *LicensePlateSensor) ReportDetections(detected bool, detections []Licens
 		}
 	}
 	if !detected {
-		state[licensePlatePropertyPlates] = []string{}
+		state[LicensePlatePropertyPlates] = []string{}
 	} else if len(recognized) > 0 {
-		state[licensePlatePropertyPlates] = mergeSortedUnique(s.GetPlates(), recognized)
+		state[LicensePlatePropertyPlates] = mergeSortedUnique(s.GetPlates(), recognized)
 	}
 	s.writeState(state)
 }
@@ -124,6 +131,7 @@ type LicensePlateDetectorSensor struct {
 	LicensePlateSensor
 }
 
+// NewLicensePlateDetectorSensor creates a license plate detector sensor with the given name and options.
 func NewLicensePlateDetectorSensor(name string, opts ...SensorOption) *LicensePlateDetectorSensor {
 	s := &LicensePlateDetectorSensor{LicensePlateSensor: *NewLicensePlateSensor(name, opts...)}
 	s.requiresFrames = true

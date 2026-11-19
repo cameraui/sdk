@@ -71,6 +71,7 @@ class HumidityInfo(Sensor[HumidityInfoProperties, TStorage, str], Generic[TStora
 
     @property
     def current(self) -> float:
+        """Current relative humidity (0-100%)."""
         return float(self.props.current or 0.0)
 
     def setCurrent(self, value: float) -> None:

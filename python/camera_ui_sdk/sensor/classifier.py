@@ -21,7 +21,7 @@ class ClassifierProperty(StrEnum):
     Detections = "detections"
     """List of classification results with labels and confidence. The plugin that owns the sensor does not get the backend's updates of it."""
     Labels = "labels"
-    """Unique labels of the current detections (auto-derived when reporting detections)."""
+    """Labels recognized during the active detection phase (auto-derived when reporting detections)."""
 
 
 class ClassifierDetection(Detection):
@@ -105,14 +105,17 @@ class ClassifierSensor(Sensor[ClassifierSensorProperties, TStorage, str], Generi
 
     @property
     def detected(self) -> bool:
+        """Whether any classification result is active."""
         return bool(self.props.detected)
 
     @property
     def detections(self) -> list[ClassifierDetection]:
+        """List of classification results with labels and confidence. The plugin that owns the sensor does not get the backend's updates of it."""
         return self.props.detections or []
 
     @property
     def labels(self) -> list[str]:
+        """Labels recognized during the active detection phase (auto-derived when reporting detections)."""
         return self.props.labels or []
 
     def reportDetections(self, detected: bool, detections: list[ClassifierDetection] | None = None) -> None:
@@ -195,7 +198,9 @@ class ClassifierDetectorSensor(ClassifierSensor[TStorage], Generic[TStorage]):
 
     @property
     @abstractmethod
-    def modelSpec(self) -> ModelSpec: ...
+    def modelSpec(self) -> ModelSpec:
+        """Declares the expected input dimensions and trigger labels. The runtime scales frames to match."""
+        ...
 
     @abstractmethod
     async def detectClassifications(self, frames: list[VideoFrameData]) -> list[ClassifierResult]:

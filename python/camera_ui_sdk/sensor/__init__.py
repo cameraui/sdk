@@ -5,11 +5,16 @@ from .audio import (
     AudioDetectorSensor,
     AudioFrameData,
     AudioLabel,
+    AudioProperty,
+    AudioPropertyChangeData,
     AudioResult,
     AudioSensor,
+    AudioSensorLike,
+    AudioSensorProperties,
     BaseAudioLabel,
 )
 from .base import (
+    PropertiesProxy,
     Sensor,
     SensorCategory,
     SensorLike,
@@ -20,19 +25,35 @@ from .base import (
 from .battery import (
     BatteryCapability,
     BatteryInfo,
+    BatteryInfoLike,
+    BatteryInfoProperties,
+    BatteryProperty,
+    BatteryPropertyChangeData,
     ChargingState,
 )
 from .carbon_dioxide import (
     CarbonDioxideInfo,
+    CarbonDioxideInfoLike,
+    CarbonDioxideInfoProperties,
+    CarbonDioxideProperty,
+    CarbonDioxidePropertyChangeData,
 )
 from .carbon_monoxide import (
+    CarbonMonoxideProperty,
+    CarbonMonoxidePropertyChangeData,
     CarbonMonoxideSensor,
+    CarbonMonoxideSensorLike,
+    CarbonMonoxideSensorProperties,
 )
 from .classifier import (
     ClassifierDetection,
     ClassifierDetectorSensor,
+    ClassifierProperty,
+    ClassifierPropertyChangeData,
     ClassifierResult,
     ClassifierSensor,
+    ClassifierSensorLike,
+    ClassifierSensorProperties,
 )
 from .clip import (
     ClipDetectorSensor,
@@ -40,10 +61,18 @@ from .clip import (
     ClipResult,
 )
 from .cold import (
+    ColdProperty,
+    ColdPropertyChangeData,
     ColdSensor,
+    ColdSensorLike,
+    ColdSensorProperties,
 )
 from .contact import (
+    ContactProperty,
+    ContactPropertyChangeData,
     ContactSensor,
+    ContactSensorLike,
+    ContactSensorProperties,
 )
 from .detection import (
     DETECTION_ATTRIBUTES,
@@ -57,13 +86,21 @@ from .detection import (
     VideoFrameData,
 )
 from .doorbell import (
+    DoorbellProperty,
+    DoorbellPropertyChangeData,
     DoorbellTrigger,
+    DoorbellTriggerLike,
+    DoorbellTriggerProperties,
 )
 from .face import (
     FaceDetection,
     FaceDetectorSensor,
+    FaceProperty,
+    FacePropertyChangeData,
     FaceResult,
     FaceSensor,
+    FaceSensorLike,
+    FaceSensorProperties,
 )
 from .face_embedder import (
     FaceEmbedderSensor,
@@ -71,70 +108,135 @@ from .face_embedder import (
 )
 from .garage import (
     GarageControl,
+    GarageControlLike,
+    GarageControlProperties,
+    GarageProperty,
+    GaragePropertyChangeData,
     GarageState,
 )
 from .gas import (
+    GasProperty,
+    GasPropertyChangeData,
     GasSensor,
+    GasSensorLike,
+    GasSensorProperties,
 )
 from .heat import (
+    HeatProperty,
+    HeatPropertyChangeData,
     HeatSensor,
+    HeatSensorLike,
+    HeatSensorProperties,
 )
 from .humidity import (
     HumidityInfo,
+    HumidityInfoLike,
+    HumidityInfoProperties,
+    HumidityProperty,
+    HumidityPropertyChangeData,
 )
 from .illuminance import (
     IlluminanceInfo,
+    IlluminanceInfoLike,
+    IlluminanceInfoProperties,
+    IlluminanceProperty,
+    IlluminancePropertyChangeData,
 )
 from .leak import (
+    LeakProperty,
+    LeakPropertyChangeData,
     LeakSensor,
+    LeakSensorLike,
+    LeakSensorProperties,
 )
 from .license_plate import (
     LicensePlateDetection,
     LicensePlateDetectorSensor,
+    LicensePlateProperty,
+    LicensePlatePropertyChangeData,
     LicensePlateResult,
     LicensePlateSensor,
+    LicensePlateSensorLike,
+    LicensePlateSensorProperties,
 )
 from .light import (
     LightCapability,
     LightControl,
+    LightControlLike,
+    LightControlProperties,
+    LightProperty,
+    LightPropertyChangeData,
 )
 from .lock import (
     LockControl,
+    LockControlLike,
+    LockControlProperties,
+    LockProperty,
+    LockPropertyChangeData,
     LockState,
 )
 from .motion import (
     MotionDetectorSensor,
+    MotionProperty,
+    MotionPropertyChangeData,
     MotionResult,
     MotionSensor,
+    MotionSensorLike,
+    MotionSensorProperties,
 )
 from .object import (
     ObjectDetectorSensor,
+    ObjectProperty,
+    ObjectPropertyChangeData,
     ObjectResult,
     ObjectSensor,
+    ObjectSensorLike,
+    ObjectSensorProperties,
     TrackedDetection,
+    TrackVelocity,
 )
 from .occupancy import (
+    OccupancyProperty,
+    OccupancyPropertyChangeData,
     OccupancySensor,
+    OccupancySensorLike,
+    OccupancySensorProperties,
 )
 from .person_embedder import (
     PersonEmbedderSensor,
     PersonEmbeddingResult,
 )
 from .power import (
+    PowerProperty,
+    PowerPropertyChangeData,
     PowerSensor,
+    PowerSensorLike,
+    PowerSensorProperties,
 )
 from .problem import (
+    ProblemProperty,
+    ProblemPropertyChangeData,
     ProblemSensor,
+    ProblemSensorLike,
+    ProblemSensorProperties,
 )
 from .ptz import (
     PTZCapability,
     PTZControl,
+    PTZControlLike,
+    PTZControlProperties,
     PTZDirection,
     PTZPosition,
+    PTZProperty,
+    PTZPropertyChangeData,
     PTZRelativeMove,
 )
 from .security_system import (
     SecuritySystem,
+    SecuritySystemLike,
+    SecuritySystemProperties,
+    SecuritySystemProperty,
+    SecuritySystemPropertyChangeData,
     SecuritySystemState,
 )
 from .segmenter import (
@@ -146,9 +248,17 @@ from .segmenter import (
 from .siren import (
     SirenCapability,
     SirenControl,
+    SirenControlLike,
+    SirenControlProperties,
+    SirenProperty,
+    SirenPropertyChangeData,
 )
 from .smoke import (
+    SmokeProperty,
+    SmokePropertyChangeData,
     SmokeSensor,
+    SmokeSensorLike,
+    SmokeSensorProperties,
 )
 from .spec import (
     AudioInputSpec,
@@ -161,15 +271,31 @@ from .spec import (
 )
 from .switch import (
     SwitchControl,
+    SwitchControlLike,
+    SwitchControlProperties,
+    SwitchProperty,
+    SwitchPropertyChangeData,
 )
 from .tamper import (
+    TamperProperty,
+    TamperPropertyChangeData,
     TamperSensor,
+    TamperSensorLike,
+    TamperSensorProperties,
 )
 from .temperature import (
     TemperatureInfo,
+    TemperatureInfoLike,
+    TemperatureInfoProperties,
+    TemperatureProperty,
+    TemperaturePropertyChangeData,
 )
 from .vibration import (
+    VibrationProperty,
+    VibrationPropertyChangeData,
     VibrationSensor,
+    VibrationSensorLike,
+    VibrationSensorProperties,
 )
 
 if TYPE_CHECKING:
@@ -273,4 +399,135 @@ __all__ = [
     "LockState",
     "GarageState",
     "SecuritySystemState",
+    # Property names
+    "AudioProperty",
+    "BatteryProperty",
+    "CarbonDioxideProperty",
+    "CarbonMonoxideProperty",
+    "ClassifierProperty",
+    "ColdProperty",
+    "ContactProperty",
+    "DoorbellProperty",
+    "FaceProperty",
+    "GarageProperty",
+    "GasProperty",
+    "HeatProperty",
+    "HumidityProperty",
+    "IlluminanceProperty",
+    "LeakProperty",
+    "LicensePlateProperty",
+    "LightProperty",
+    "LockProperty",
+    "MotionProperty",
+    "ObjectProperty",
+    "OccupancyProperty",
+    "PTZProperty",
+    "PowerProperty",
+    "ProblemProperty",
+    "SecuritySystemProperty",
+    "SirenProperty",
+    "SmokeProperty",
+    "SwitchProperty",
+    "TamperProperty",
+    "TemperatureProperty",
+    "VibrationProperty",
+    # Property values
+    "AudioSensorProperties",
+    "BatteryInfoProperties",
+    "CarbonDioxideInfoProperties",
+    "CarbonMonoxideSensorProperties",
+    "ClassifierSensorProperties",
+    "ColdSensorProperties",
+    "ContactSensorProperties",
+    "DoorbellTriggerProperties",
+    "FaceSensorProperties",
+    "GarageControlProperties",
+    "GasSensorProperties",
+    "HeatSensorProperties",
+    "HumidityInfoProperties",
+    "IlluminanceInfoProperties",
+    "LeakSensorProperties",
+    "LicensePlateSensorProperties",
+    "LightControlProperties",
+    "LockControlProperties",
+    "MotionSensorProperties",
+    "ObjectSensorProperties",
+    "OccupancySensorProperties",
+    "PTZControlProperties",
+    "PowerSensorProperties",
+    "ProblemSensorProperties",
+    "SecuritySystemProperties",
+    "SirenControlProperties",
+    "SmokeSensorProperties",
+    "SwitchControlProperties",
+    "TamperSensorProperties",
+    "TemperatureInfoProperties",
+    "VibrationSensorProperties",
+    # Property change events
+    "AudioPropertyChangeData",
+    "BatteryPropertyChangeData",
+    "CarbonDioxidePropertyChangeData",
+    "CarbonMonoxidePropertyChangeData",
+    "ClassifierPropertyChangeData",
+    "ColdPropertyChangeData",
+    "ContactPropertyChangeData",
+    "DoorbellPropertyChangeData",
+    "FacePropertyChangeData",
+    "GaragePropertyChangeData",
+    "GasPropertyChangeData",
+    "HeatPropertyChangeData",
+    "HumidityPropertyChangeData",
+    "IlluminancePropertyChangeData",
+    "LeakPropertyChangeData",
+    "LicensePlatePropertyChangeData",
+    "LightPropertyChangeData",
+    "LockPropertyChangeData",
+    "MotionPropertyChangeData",
+    "ObjectPropertyChangeData",
+    "OccupancyPropertyChangeData",
+    "PTZPropertyChangeData",
+    "PowerPropertyChangeData",
+    "ProblemPropertyChangeData",
+    "SecuritySystemPropertyChangeData",
+    "SirenPropertyChangeData",
+    "SmokePropertyChangeData",
+    "SwitchPropertyChangeData",
+    "TamperPropertyChangeData",
+    "TemperaturePropertyChangeData",
+    "VibrationPropertyChangeData",
+    # Read-only sensor proxies
+    "AudioSensorLike",
+    "BatteryInfoLike",
+    "CarbonDioxideInfoLike",
+    "CarbonMonoxideSensorLike",
+    "ClassifierSensorLike",
+    "ColdSensorLike",
+    "ContactSensorLike",
+    "DoorbellTriggerLike",
+    "FaceSensorLike",
+    "GarageControlLike",
+    "GasSensorLike",
+    "HeatSensorLike",
+    "HumidityInfoLike",
+    "IlluminanceInfoLike",
+    "LeakSensorLike",
+    "LicensePlateSensorLike",
+    "LightControlLike",
+    "LockControlLike",
+    "MotionSensorLike",
+    "ObjectSensorLike",
+    "OccupancySensorLike",
+    "PTZControlLike",
+    "PowerSensorLike",
+    "ProblemSensorLike",
+    "SecuritySystemLike",
+    "SirenControlLike",
+    "SmokeSensorLike",
+    "SwitchControlLike",
+    "TamperSensorLike",
+    "TemperatureInfoLike",
+    "VibrationSensorLike",
+    # Helper types
+    "PropertiesProxy",
+    "TrackVelocity",
 ]

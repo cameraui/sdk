@@ -55,7 +55,9 @@ class FaceEmbedderSensor(Sensor[dict[str, Any], TStorage, str], Generic[TStorage
 
     @property
     @abstractmethod
-    def modelSpec(self) -> ModelSpec: ...
+    def modelSpec(self) -> ModelSpec:
+        """Declares the expected input dimensions and trigger labels."""
+        ...
 
     @abstractmethod
     async def embedFaces(self, frames: list[VideoFrameData]) -> list[FaceEmbeddingResult]:

@@ -28,13 +28,15 @@ class ObjectProperty(StrEnum):
 
 
 class TrackVelocity(TypedDict):
-    """Signed centroid velocity in normalized units per second. Positive x = moving
-    right, positive y = moving down. Prefer this over deriving velocity from
-    position deltas.
+    """Signed centroid velocity in normalized units per second. Prefer this over
+    deriving velocity from position deltas.
     """
 
     x: float
+    """Horizontal velocity, positive moves right."""
+
     y: float
+    """Vertical velocity, positive moves down."""
 
 
 class TrackedDetection(Detection, total=False):
@@ -125,14 +127,17 @@ class ObjectSensor(Sensor[ObjectSensorProperties, TStorage, str], Generic[TStora
 
     @property
     def detected(self) -> bool:
+        """Whether any object is currently detected."""
         return bool(self.props.detected)
 
     @property
     def detections(self) -> list[TrackedDetection]:
+        """List of detected objects with labels and bounding boxes. The plugin that owns the sensor does not get the backend's updates of it."""
         return self.props.detections or []
 
     @property
     def labels(self) -> list[DetectionLabel]:
+        """Unique labels of the current detections (auto-derived when reporting detections)."""
         return self.props.labels or []
 
     def reportDetections(
@@ -215,7 +220,9 @@ class ObjectDetectorSensor(ObjectSensor[TStorage], Generic[TStorage]):
 
     @property
     @abstractmethod
-    def modelSpec(self) -> ObjectModelSpec: ...
+    def modelSpec(self) -> ObjectModelSpec:
+        """Declares the expected input dimensions."""
+        ...
 
     @abstractmethod
     async def detectObjects(self, frame: VideoFrameData) -> ObjectResult:

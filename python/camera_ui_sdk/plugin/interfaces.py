@@ -221,8 +221,11 @@ class BasePlugin(ABC, Generic[StorageT]):
 
     def __init__(self, logger: LoggerService, api: PluginAPI, storage: DeviceStorage[StorageT]) -> None:
         self.logger = logger
+        """Writes to the host log, prefixed with the plugin name."""
         self.api = api
+        """Handle to the host services the plugin may call."""
         self.storage: DeviceStorage[StorageT] = storage
+        """Plugin-level storage the host persists."""
 
     @property
     def storage_schema(self) -> list[JsonSchema]:

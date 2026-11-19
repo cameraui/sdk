@@ -1,6 +1,7 @@
 import type { CameraInputSettings } from '../internal/camera-config-internal.js';
 import type { SENSOR_META } from '../sensor/registry.js';
 import type { CameraDetectionSettings, CameraZones, PtzAutotrackSettings } from './detection.js';
+import type { CameraExportSettings } from './export.js';
 import type { CameraNotificationSettings } from './notification.js';
 import type { CameraRecordingSettings } from './recording.js';
 import type {
@@ -36,10 +37,6 @@ export interface CameraInput {
   muted?: boolean;
   /** Drop the talk channel of this source, so clients get no microphone (defaults to false). */
   backchannelDisabled?: boolean;
-  /** Leave this source out of the ONVIF export (defaults to false). */
-  onvifDisabled?: boolean;
-  /** Keep this source off the RTMP server (defaults to false). */
-  rtmpDisabled?: boolean;
   /** Seconds without media before the stream reconnects. Unset means the host default: 5 for cameras, 60 for plugin-served sources. */
   timeout?: number;
   /** Seconds allowed per RTSP request while connecting. Raise it for cameras that wake slowly. Unset means 5. */
@@ -101,7 +98,10 @@ export interface CameraInformation {
 }
 
 /** Full camera configuration with sources. */
-export type CameraConfig = BaseCameraConfig & { sources: CameraConfigInputSettings[] };
+export type CameraConfig = BaseCameraConfig & {
+  /** Video input sources. */
+  sources: CameraConfigInputSettings[];
+};
 
 /** UI display settings for a camera. */
 export interface CameraUiSettings {
@@ -138,7 +138,9 @@ type MultiProviderAssignmentKey = Extract<(typeof SENSOR_META)[number], { multiP
  */
 export type PluginAssignments = Partial<Record<SingleProviderAssignmentKey, AssignedPlugin>> &
   Partial<Record<MultiProviderAssignmentKey, AssignedPlugin[]>> & {
+    /** Camera controller plugin. */
     cameraController?: AssignedPlugin;
+    /** Hub/bridge plugins. */
     hub?: AssignedPlugin[];
   };
 
@@ -182,6 +184,8 @@ export interface BaseCamera {
   recordingSettings: CameraRecordingSettings;
   /** Push notification settings. */
   notificationSettings: CameraNotificationSettings;
+  /** How other apps reach the camera. */
+  exportSettings: CameraExportSettings;
   /** Frame worker settings. */
   frameWorkerSettings: CameraFrameWorkerSettings;
   /** UI display settings. */

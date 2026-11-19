@@ -122,14 +122,17 @@ class MotionSensor(Sensor[MotionSensorProperties, TStorage, str], Generic[TStora
 
     @property
     def detected(self) -> bool:
+        """Whether motion is currently detected."""
         return bool(self.props.detected)
 
     @property
     def detections(self) -> list[Detection]:
+        """List of detection results with bounding boxes. The plugin that owns the sensor does not get the backend's updates of it."""
         return self.props.detections or []
 
     @property
     def blocked(self) -> bool:
+        """When true, detection updates are suppressed (set by the backend dwell logic)."""
         return bool(self.props.blocked)
 
     def reportDetections(self, detected: bool, detections: list[Detection] | None = None) -> None:

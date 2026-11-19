@@ -71,6 +71,7 @@ class PowerSensor(Sensor[PowerSensorProperties, TStorage, str], Generic[TStorage
 
     @property
     def detected(self) -> bool:
+        """Whether power is detected."""
         return bool(self.props.detected)
 
     def setDetected(self, value: bool) -> None:

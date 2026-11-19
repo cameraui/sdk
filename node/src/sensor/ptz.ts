@@ -24,7 +24,7 @@ export enum PTZCapability {
   VelocityControl = 'velocityControl',
 }
 
-/** @internal */
+/** Property names of a PTZ control. */
 export enum PTZProperty {
   /** Current pan/tilt/zoom position. */
   Position = 'position',
@@ -44,8 +44,11 @@ export enum PTZProperty {
 
 /** Absolute PTZ position. */
 export interface PTZPosition {
+  /** Horizontal position. */
   pan: number;
+  /** Vertical position. */
   tilt: number;
+  /** Zoom level. */
   zoom: number;
 }
 
@@ -57,13 +60,15 @@ export interface PTZPosition {
  * - `0` = stop movement
  * - `1` = maximum speed in positive direction
  *
- * Conventions: positive `panSpeed` = right, positive `tiltSpeed` = up,
- * positive `zoomSpeed` = zoom in. Plugins should clamp values to `[-1, 1]`
- * and map them to hardware-specific speeds.
+ * Plugins should clamp values to `[-1, 1]` and map them to hardware-specific
+ * speeds.
  */
 export interface PTZDirection {
+  /** Horizontal speed, positive moves right. */
   panSpeed: number;
+  /** Vertical speed, positive moves up. */
   tiltSpeed: number;
+  /** Zoom speed, positive zooms in. */
   zoomSpeed: number;
 }
 
@@ -72,17 +77,19 @@ export interface PTZDirection {
  *
  * Deltas are normalized to the camera's field of view: `panDelta: 1` moves the
  * view by one full frame width, `tiltDelta: 1` by one full frame height.
- * Conventions match {@link PTZDirection}: positive `panDelta` = right,
- * positive `tiltDelta` = up, positive `zoomDelta` = zoom in. Plugins map the
- * deltas to hardware-specific translation spaces (e.g. ONVIF RelativeMove).
+ * Plugins map the deltas to hardware-specific translation spaces (e.g. ONVIF
+ * RelativeMove).
  */
 export interface PTZRelativeMove {
+  /** Horizontal move, positive moves right. */
   panDelta: number;
+  /** Vertical move, positive moves up. */
   tiltDelta: number;
+  /** Zoom change, positive zooms in. */
   zoomDelta: number;
 }
 
-/** @internal */
+/** Property values of a PTZ control. */
 export interface PTZControlProperties {
   [PTZProperty.Position]: PTZPosition;
   [PTZProperty.Moving]: boolean;
@@ -131,22 +138,27 @@ export class PTZControl<TStorage extends object = Record<string, any>> extends S
     });
   }
 
+  /** Current pan/tilt/zoom position. */
   get position(): PTZPosition {
     return this.props.position;
   }
 
+  /** Whether the camera is currently moving. */
   get moving(): boolean {
     return this.props.moving;
   }
 
+  /** List of available preset names. Empty until `setPresets()` runs. */
   get presets(): string[] {
     return this.props.presets;
   }
 
+  /** Current movement velocity (continuous move). Undefined until a continuous move was issued. */
   get velocity(): PTZDirection | undefined {
     return this.props.velocity;
   }
 
+  /** Target preset to move to. Undefined until a preset was requested. */
   get targetPreset(): string | undefined {
     return this.props.targetPreset;
   }

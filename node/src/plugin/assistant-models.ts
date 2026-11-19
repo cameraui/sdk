@@ -42,7 +42,21 @@ export interface AssistantModelSpec {
  * Part of a message. Images arrive only for a model whose spec says `vision`,
  * and only when the instance allows pictures to reach the model.
  */
-export type AssistantModelContent = { type: 'text'; text: string } | { type: 'image'; data: string; mimeType: 'image/jpeg' | 'image/png' | 'image/webp' };
+export type AssistantModelContent =
+  | {
+    /** Always `text`. */
+    type: 'text';
+    /** The text itself. */
+    text: string;
+  }
+  | {
+    /** Always `image`. */
+    type: 'image';
+    /** Base64-encoded image bytes. */
+    data: string;
+    /** MIME type of `data`. */
+    mimeType: 'image/jpeg' | 'image/png' | 'image/webp';
+  };
 
 /**
  * One message of the conversation. `tool` messages carry the result of the
@@ -104,10 +118,34 @@ export interface AssistantModelRequest {
  * `done` exactly once at the end.
  */
 export type AssistantModelChunk =
-  | { type: 'text'; delta: string }
-  | { type: 'tool_call'; call: AssistantModelToolCall }
-  | { type: 'usage'; promptTokens: number; completionTokens: number }
-  | { type: 'done'; finish: 'stop' | 'tool_calls' | 'length' | 'error'; message?: string };
+  | {
+    /** Always `text`. */
+    type: 'text';
+    /** The text generated since the last chunk. */
+    delta: string;
+  }
+  | {
+    /** Always `tool_call`. */
+    type: 'tool_call';
+    /** The call itself. */
+    call: AssistantModelToolCall;
+  }
+  | {
+    /** Always `usage`. */
+    type: 'usage';
+    /** Tokens the request consumed. */
+    promptTokens: number;
+    /** Tokens the answer consumed. */
+    completionTokens: number;
+  }
+  | {
+    /** Always `done`. */
+    type: 'done';
+    /** Why the model stopped. */
+    finish: 'stop' | 'tool_calls' | 'length' | 'error';
+    /** What went wrong, with `error`. */
+    message?: string;
+  };
 
 /**
  * Whether the plugin can answer right now. A model that has to be downloaded or

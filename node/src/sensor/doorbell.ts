@@ -4,13 +4,13 @@ import { defineSensor, SensorDomain } from './meta.js';
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/** @internal */
+/** Property names of a doorbell trigger. */
 export enum DoorbellProperty {
   /** Whether the doorbell is currently ringing. */
   Ring = 'ring',
 }
 
-/** @internal */
+/** Property values of a doorbell trigger. */
 export interface DoorbellTriggerProperties {
   [DoorbellProperty.Ring]: boolean;
 }
@@ -47,6 +47,7 @@ export class DoorbellTrigger<TStorage extends object = Record<string, any>> exte
     this._writeState({ [DoorbellProperty.Ring]: false });
   }
 
+  /** Whether the doorbell is currently ringing. */
   get ring(): boolean {
     return this.props.ring;
   }

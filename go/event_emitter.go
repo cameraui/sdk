@@ -24,12 +24,14 @@ func newEventEmitter() *eventEmitter {
 	}
 }
 
+// On subscribes to a lifecycle event.
 func (e *eventEmitter) On(event string, handler eventHandler) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	e.listeners[event] = append(e.listeners[event], eventEntry{handler: handler})
 }
 
+// Once subscribes to a lifecycle event for one delivery only.
 func (e *eventEmitter) Once(event string, handler eventHandler) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
@@ -44,6 +46,7 @@ func (e *eventEmitter) Off(event string, handler eventHandler) {
 	delete(e.listeners, event)
 }
 
+// Emit calls the listeners of event with args, once listeners only the first time.
 func (e *eventEmitter) Emit(event string, args ...any) {
 	e.mu.RLock()
 	entries := make([]eventEntry, len(e.listeners[event]))

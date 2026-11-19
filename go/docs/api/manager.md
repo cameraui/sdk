@@ -429,10 +429,14 @@ SensorConsumer is an OPTIONAL interface plugins implement to consume other plugi
 SensorHistoryEntry is one recorded change of one sensor property.
 
 	type SensorHistoryEntry struct {
-	    SensorID  string `msgpack:"sensorId" json:"sensorId"`
-	    Property  string `msgpack:"property" json:"property"`
-	    Value     any    `msgpack:"value" json:"value"`
-	    Timestamp int64  `msgpack:"timestamp" json:"timestamp"`
+	    // SensorID is the id of the sensor it belongs to.
+	    SensorID string `msgpack:"sensorId" json:"sensorId"`
+	    // Property is the property name, e.g. "detected" or "current".
+	    Property string `msgpack:"property" json:"property"`
+	    // Value is the value it changed to.
+	    Value any `msgpack:"value" json:"value"`
+	    // Timestamp is when it changed, in milliseconds.
+	    Timestamp int64 `msgpack:"timestamp" json:"timestamp"`
 	}
 
 <a name="SensorManager"></a>

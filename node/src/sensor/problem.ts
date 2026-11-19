@@ -4,13 +4,13 @@ import { defineSensor, SensorDomain } from './meta.js';
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/** @internal */
+/** Property names of a problem sensor. */
 export enum ProblemProperty {
   /** Whether a problem is detected. */
   Detected = 'detected',
 }
 
-/** @internal */
+/** Property values of a problem sensor. */
 export interface ProblemSensorProperties {
   [ProblemProperty.Detected]: boolean;
 }
@@ -35,6 +35,7 @@ export class ProblemSensor<TStorage extends object = Record<string, any>> extend
     this._writeState({ [ProblemProperty.Detected]: false });
   }
 
+  /** Whether a problem is detected. */
   get detected(): boolean {
     return this.props.detected;
   }

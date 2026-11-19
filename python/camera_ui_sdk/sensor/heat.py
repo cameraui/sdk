@@ -71,6 +71,7 @@ class HeatSensor(Sensor[HeatSensorProperties, TStorage, str], Generic[TStorage])
 
     @property
     def detected(self) -> bool:
+        """Whether abnormal heat is detected."""
         return bool(self.props.detected)
 
     def setDetected(self, value: bool) -> None:

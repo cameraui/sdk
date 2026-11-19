@@ -10,7 +10,7 @@ export enum LightCapability {
   Brightness = 'brightness',
 }
 
-/** @internal */
+/** Property names of a light control. */
 export enum LightProperty {
   /** Whether the light is on. */
   On = 'on',
@@ -18,7 +18,7 @@ export enum LightProperty {
   Brightness = 'brightness',
 }
 
-/** @internal */
+/** Property values of a light control. */
 export interface LightControlProperties {
   [LightProperty.On]: boolean;
   [LightProperty.Brightness]: number;
@@ -59,10 +59,12 @@ export class LightControl<TStorage extends object = Record<string, any>> extends
     });
   }
 
+  /** Whether the light is on. */
   get on(): boolean {
     return this.props.on;
   }
 
+  /** Brightness level (0-100). */
   get brightness(): number {
     return this.props.brightness;
   }

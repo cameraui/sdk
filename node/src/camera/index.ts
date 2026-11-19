@@ -3,6 +3,7 @@ export * from './detection.js';
 export * from './device.js';
 export * from './enums.js';
 export * from './events.js';
+export * from './export.js';
 export * from './frames.js';
 export * from './notification.js';
 export * from './recording.js';

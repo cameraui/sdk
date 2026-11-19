@@ -150,6 +150,8 @@ BaseCamera is the stored camera data structure \(database row\) without resolved
 	    RecordingSettings CameraRecordingSettings `msgpack:"recordingSettings,omitempty" json:"recordingSettings"`
 	    // NotificationSettings is the push notification configuration.
 	    NotificationSettings CameraNotificationSettings `msgpack:"notificationSettings,omitempty" json:"notificationSettings"`
+	    // ExportSettings decide how other apps reach the camera.
+	    ExportSettings CameraExportSettings `msgpack:"exportSettings,omitempty" json:"exportSettings"`
 	    // FrameWorkerSettings is the frame worker configuration.
 	    FrameWorkerSettings CameraFrameWorkerSettings `msgpack:"frameWorkerSettings,omitempty" json:"frameWorkerSettings"`
 	    // InterfaceSettings is the UI display settings.
@@ -243,10 +245,6 @@ CameraConfigInputSettings is a camera input/source definition supplied when crea
 	    Muted bool `msgpack:"muted,omitempty" json:"muted,omitempty"`
 	    // BackchannelDisabled drops the talk channel of this source, so clients get no microphone.
 	    BackchannelDisabled bool `msgpack:"backchannelDisabled,omitempty" json:"backchannelDisabled,omitempty"`
-	    // OnvifDisabled leaves this source out of the ONVIF export.
-	    OnvifDisabled bool `msgpack:"onvifDisabled,omitempty" json:"onvifDisabled,omitempty"`
-	    // RtmpDisabled keeps this source off the RTMP server.
-	    RtmpDisabled bool `msgpack:"rtmpDisabled,omitempty" json:"rtmpDisabled,omitempty"`
 	    // Timeout is the seconds without media before the stream reconnects. Zero
 	    // means the host default: 5 for cameras, 60 for plugin-served sources.
 	    Timeout int `msgpack:"timeout,omitempty" json:"timeout,omitempty"`
@@ -351,6 +349,13 @@ Disabled returns whether the camera is disabled.
 	func (d *CameraDevice) Disconnect() error
 
 Disconnect tells the server this camera is offline. Only the plugin that owns this camera \(via pluginInfo\) may disconnect it.
+
+<a name="CameraDevice.ExportSettings"></a>
+### func \(\*CameraDevice\) ExportSettings
+
+	func (d *CameraDevice) ExportSettings() CameraExportSettings
+
+ExportSettings returns the settings that decide how other apps reach the camera.
 
 <a name="CameraDevice.FrameWorkerConnected"></a>
 ### func \(\*CameraDevice\) FrameWorkerConnected
@@ -691,6 +696,21 @@ Urls returns the generated stream URLs for this source.
 
 UseForSnapshot returns whether this source is used for snapshots.
 
+<a name="CameraExportSettings"></a>
+
+## type CameraExportSettings
+
+CameraExportSettings decide how other apps reach a camera.
+
+	type CameraExportSettings struct {
+	    // Onvif gives the camera an ONVIF device of its own on OnvifPort.
+	    Onvif bool `msgpack:"onvif" json:"onvif"`
+	    // OnvifPort is the port of the camera's own ONVIF device, set while Onvif is on.
+	    OnvifPort int `msgpack:"onvifPort,omitempty" json:"onvifPort,omitempty"`
+	    // Rtmp offers the camera's streams on the RTMP server.
+	    Rtmp bool `msgpack:"rtmp" json:"rtmp"`
+	}
+
 <a name="CameraFrameWorkerSettings"></a>
 
 ## type CameraFrameWorkerSettings
@@ -760,10 +780,6 @@ CameraInput is a camera video input/source with resolved URLs.
 	    Muted bool `msgpack:"muted,omitempty" json:"muted,omitempty"`
 	    // BackchannelDisabled drops the talk channel of this source, so clients get no microphone.
 	    BackchannelDisabled bool `msgpack:"backchannelDisabled,omitempty" json:"backchannelDisabled,omitempty"`
-	    // OnvifDisabled leaves this source out of the ONVIF export.
-	    OnvifDisabled bool `msgpack:"onvifDisabled,omitempty" json:"onvifDisabled,omitempty"`
-	    // RtmpDisabled keeps this source off the RTMP server.
-	    RtmpDisabled bool `msgpack:"rtmpDisabled,omitempty" json:"rtmpDisabled,omitempty"`
 	    // Timeout is the seconds without media before the stream reconnects. Zero
 	    // means the host default: 5 for cameras, 60 for plugin-served sources.
 	    Timeout int `msgpack:"timeout,omitempty" json:"timeout,omitempty"`
@@ -1104,7 +1120,7 @@ Go2RtcWSSource contains WebSocket streaming URLs from go2rtc.
 	    MSE string `msgpack:"mse,omitempty" json:"mse,omitempty"`
 	}
 
-<a name="HeatSensor"></a>
+<a name="HeatProperty"></a>
 
 ## type LineDirection
 
@@ -1167,11 +1183,14 @@ PTZCapability is an optional capability of a PTZ control.
 
 PTZDirection represents PTZ movement speed for continuous move commands.
 
-Speeds are in normalized range \[\-1, 1\] where \-1 is maximum speed in the negative direction, 0 stops movement, and 1 is maximum speed in the positive direction. Conventions: positive PanSpeed = right, positive TiltSpeed = up, positive ZoomSpeed = zoom in. Plugins should clamp values to \[\-1, 1\] and map them to hardware\-specific speeds.
+Speeds are in normalized range \[\-1, 1\] where \-1 is maximum speed in the negative direction, 0 stops movement, and 1 is maximum speed in the positive direction. Plugins should clamp values to \[\-1, 1\] and map them to hardware\-specific speeds.
 
 	type PTZDirection struct {
-	    PanSpeed  float64 `msgpack:"panSpeed" json:"panSpeed"`
+	    // PanSpeed is the horizontal speed, positive moves right.
+	    PanSpeed float64 `msgpack:"panSpeed" json:"panSpeed"`
+	    // TiltSpeed is the vertical speed, positive moves up.
 	    TiltSpeed float64 `msgpack:"tiltSpeed" json:"tiltSpeed"`
+	    // ZoomSpeed is the zoom speed, positive zooms in.
 	    ZoomSpeed float64 `msgpack:"zoomSpeed" json:"zoomSpeed"`
 	}
 
@@ -1182,12 +1201,15 @@ Speeds are in normalized range \[\-1, 1\] where \-1 is maximum speed in the nega
 PTZPosition represents an absolute PTZ position.
 
 	type PTZPosition struct {
-	    Pan  float64 `msgpack:"pan" json:"pan"`
+	    // Pan is the horizontal position.
+	    Pan float64 `msgpack:"pan" json:"pan"`
+	    // Tilt is the vertical position.
 	    Tilt float64 `msgpack:"tilt" json:"tilt"`
+	    // Zoom is the zoom level.
 	    Zoom float64 `msgpack:"zoom" json:"zoom"`
 	}
 
-<a name="PTZRelativeMove"></a>
+<a name="PTZProperty"></a>
 
 ## type Point
 
@@ -1195,7 +1217,7 @@ Point is a zone polygon coordinate as \[x, y\] \(0\-100 percentage\).
 
 	type Point [2]float64
 
-<a name="PowerSensor"></a>
+<a name="PowerProperty"></a>
 
 ## type ProbeAudioCodec
 
@@ -1242,7 +1264,7 @@ ProbeStream is the stream probe result containing SDP and track information.
 	    Video []VideoStreamInfo `msgpack:"video,omitempty" json:"video,omitempty"`
 	}
 
-<a name="ProblemSensor"></a>
+<a name="ProblemProperty"></a>
 
 ## type PropertyChangeEvent
 

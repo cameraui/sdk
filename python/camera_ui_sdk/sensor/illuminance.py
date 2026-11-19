@@ -71,6 +71,7 @@ class IlluminanceInfo(Sensor[IlluminanceInfoProperties, TStorage, str], Generic[
 
     @property
     def current(self) -> float:
+        """Current illuminance in lux."""
         value = self.props.current
         return float(value) if value is not None else 0.0
 

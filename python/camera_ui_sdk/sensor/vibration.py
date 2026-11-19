@@ -71,6 +71,7 @@ class VibrationSensor(Sensor[VibrationSensorProperties, TStorage, str], Generic[
 
     @property
     def detected(self) -> bool:
+        """Whether vibration is detected."""
         return bool(self.props.detected)
 
     def setDetected(self, value: bool) -> None:

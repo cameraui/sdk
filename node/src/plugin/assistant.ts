@@ -3,11 +3,54 @@
  * supported model provider accepts unchanged.
  */
 export type AssistantToolProperty =
-  | { type: 'string'; description?: string; enum?: string[]; format?: 'date-time' | 'date' | 'time' }
-  | { type: 'number' | 'integer'; description?: string; minimum?: number; maximum?: number }
-  | { type: 'boolean'; description?: string }
-  | { type: 'array'; description?: string; items: AssistantToolProperty; minItems?: number; maxItems?: number }
-  | { type: 'object'; description?: string; properties: Record<string, AssistantToolProperty>; required?: string[] };
+  | {
+    /** Always `string`. */
+    type: 'string';
+    /** What the argument means, written for the model. */
+    description?: string;
+    /** Allowed values. */
+    enum?: string[];
+    /** Expected text format. */
+    format?: 'date-time' | 'date' | 'time';
+  }
+  | {
+    /** `number` or `integer`. */
+    type: 'number' | 'integer';
+    /** What the argument means, written for the model. */
+    description?: string;
+    /** Smallest allowed value. */
+    minimum?: number;
+    /** Largest allowed value. */
+    maximum?: number;
+  }
+  | {
+    /** Always `boolean`. */
+    type: 'boolean';
+    /** What the argument means, written for the model. */
+    description?: string;
+  }
+  | {
+    /** Always `array`. */
+    type: 'array';
+    /** What the argument means, written for the model. */
+    description?: string;
+    /** Schema of each element. */
+    items: AssistantToolProperty;
+    /** Fewest elements allowed. */
+    minItems?: number;
+    /** Most elements allowed. */
+    maxItems?: number;
+  }
+  | {
+    /** Always `object`. */
+    type: 'object';
+    /** What the argument means, written for the model. */
+    description?: string;
+    /** Named members of the object. */
+    properties: Record<string, AssistantToolProperty>;
+    /** Members the model has to provide. */
+    required?: string[];
+  };
 
 /**
  * Input schema of a tool: always an object schema. The model fills the

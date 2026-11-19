@@ -37,17 +37,30 @@ class AssistantAskImage(TypedDict):
     """One picture of an assistant request."""
 
     data: bytes
+    """Encoded picture."""
+
     mimeType: str
+    """Media type of the picture, e.g. ``image/jpeg``."""
 
 
 class AssistantAskRequest(TypedDict, total=False):
     """One completion request to the assistant model the admin assigned to this plugin."""
 
     prompt: str
+    """The user message."""
+
     system: str
+    """Optional system instruction."""
+
     images: list[AssistantAskImage]
+    """Pictures for the request, sent only when the answering model sees pictures."""
+
     outputSchema: dict[str, Any]
+    """JSON schema of the expected answer; the result then carries ``json``."""
+
     timeoutMs: int
+    """Timeout in milliseconds, default 45 s, at most 300 s."""
+
     modelId: str
     """Id of a configured model to answer with instead of the assigned one. The plugin still needs access, an unknown id falls back to the assigned model."""
 
@@ -56,29 +69,54 @@ class AssistantAskResult(TypedDict, total=False):
     """Answer of ``CoreManager.assistantAsk``: text (and ``json`` when a schema was given) or the reason it did not run."""
 
     ok: bool
+    """Whether the model answered, otherwise ``reason`` and ``message`` say why the call did not run."""
+
     text: str
+    """Answer text."""
+
     json: Any
+    """Parsed answer, set when ``outputSchema`` was given."""
+
     usage: dict[str, int]
+    """Tokens the call consumed, ``promptTokens`` and ``completionTokens``."""
+
     reason: str
+    """Why the call did not run: ``not_allowed``, ``unconfigured``, ``timeout`` or ``error``."""
+
     message: str
+    """Readable description of the failure."""
 
 
 class AssistantAccess(TypedDict):
     """Whether this plugin may use the assistant model, and what the assigned model can do."""
 
     allowed: bool
+    """True when the admin allowed this plugin under Settings, Assistant."""
+
     model: str | None
+    """Model id of the assigned entry, ``None`` when not allowed."""
+
     vision: bool | None
+    """Result of the picture probe for the assigned entry, ``None`` when unknown."""
+
     language: str | None
+    """Language the assistant answers in (``de``), the instance language unless the assistant settings pick another one. Can be ``None`` on servers before 2.5.0."""
 
 
 class SensorHistoryEntry(TypedDict):
     """One recorded change of one sensor property."""
 
     sensorId: str
+    """The sensor it belongs to."""
+
     property: str
+    """Property name, e.g. ``detected`` or ``current``."""
+
     value: str | float | bool | None
+    """The value it changed to."""
+
     timestamp: int
+    """When it changed, in milliseconds."""
 
 
 class PluginCallOptions(TypedDict):

@@ -1,16 +1,21 @@
 package sdk
 
+// PowerProperty is a property name of a power sensor.
+type PowerProperty = string
+
+// Property names of a power sensor.
 const (
-	powerPropertyDetected = "detected"
+	PowerPropertyDetected PowerProperty = "detected" // Whether power is detected
 )
 
 // PowerSensor reports power detection state.
 type PowerSensor struct{ BaseSensor }
 
+// NewPowerSensor creates a power sensor with the given name and options.
 func NewPowerSensor(name string, opts ...SensorOption) *PowerSensor {
 	s := &PowerSensor{BaseSensor: NewBaseSensor(name, opts...)}
 	s.writeState(map[string]any{
-		powerPropertyDetected: false,
+		PowerPropertyDetected: false,
 	})
 	return s
 }
@@ -19,8 +24,9 @@ func (s *PowerSensor) GetType() SensorType         { return SensorTypePower }
 func (s *PowerSensor) GetCategory() SensorCategory { return SensorCategorySensor }
 func (s *PowerSensor) ToJSON() sensorJSON          { return s.toBaseJSON(s.GetType(), s.GetCategory()) }
 
+// IsDetected reports whether power is detected.
 func (s *PowerSensor) IsDetected() bool {
-	v, _ := s.GetValue(powerPropertyDetected).(bool)
+	v, _ := s.GetValue(PowerPropertyDetected).(bool)
 	return v
 }
 
@@ -30,7 +36,7 @@ func (s *PowerSensor) IsDetected() bool {
 //
 //	power.SetDetected(true)
 func (s *PowerSensor) SetDetected(detected bool) {
-	s.writeState(map[string]any{powerPropertyDetected: detected})
+	s.writeState(map[string]any{PowerPropertyDetected: detected})
 }
 
 // UpdateValue on a read-only sensor: external writes are ignored.

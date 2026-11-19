@@ -4,13 +4,13 @@ import { defineSensor, SensorDomain } from './meta.js';
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/** @internal */
+/** Property names of a vibration sensor. */
 export enum VibrationProperty {
   /** Whether vibration is detected. */
   Detected = 'detected',
 }
 
-/** @internal */
+/** Property values of a vibration sensor. */
 export interface VibrationSensorProperties {
   [VibrationProperty.Detected]: boolean;
 }
@@ -35,6 +35,7 @@ export class VibrationSensor<TStorage extends object = Record<string, any>> exte
     this._writeState({ [VibrationProperty.Detected]: false });
   }
 
+  /** Whether vibration is detected. */
   get detected(): boolean {
     return this.props.detected;
   }

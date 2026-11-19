@@ -103,14 +103,17 @@ class FaceSensor(Sensor[FaceSensorProperties, TStorage, str], Generic[TStorage])
 
     @property
     def detected(self) -> bool:
+        """Whether any face is currently detected."""
         return bool(self.props.detected)
 
     @property
     def detections(self) -> list[FaceDetection]:
+        """List of detected faces, with an identity where one was matched. The plugin that owns the sensor does not get the backend's updates of it."""
         return self.props.detections or []
 
     @property
     def identities(self) -> list[str]:
+        """Names of the faces recognized during the active detection phase."""
         return list(self.props.identities or [])
 
     def reportDetections(self, detected: bool, detections: list[FaceDetection] | None = None) -> None:
@@ -191,7 +194,9 @@ class FaceDetectorSensor(FaceSensor[TStorage], Generic[TStorage]):
 
     @property
     @abstractmethod
-    def modelSpec(self) -> ModelSpec: ...
+    def modelSpec(self) -> ModelSpec:
+        """Declares the expected input dimensions and trigger labels. The runtime scales frames to match."""
+        ...
 
     @abstractmethod
     async def detectFaces(self, frames: list[VideoFrameData]) -> list[FaceResult]:

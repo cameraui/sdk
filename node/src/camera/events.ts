@@ -68,9 +68,13 @@ export interface EventDetection {
 
 /** Normalized box centers (0-1) of a tracked object's first and last sighting in a segment. */
 export interface DetectionPath {
+  /** Horizontal box center at the first sighting. */
   enterX: number;
+  /** Vertical box center at the first sighting. */
   enterY: number;
+  /** Horizontal box center at the last sighting. */
   exitX: number;
+  /** Vertical box center at the last sighting. */
   exitY: number;
 }
 

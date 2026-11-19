@@ -131,14 +131,17 @@ class AudioSensor(Sensor[AudioSensorProperties, TStorage, str], Generic[TStorage
 
     @property
     def detected(self) -> bool:
+        """Whether an audio event is currently detected."""
         return bool(self.props.detected)
 
     @property
     def detections(self) -> list[Detection]:
+        """List of detected audio events (e.g. glass break, scream). The plugin that owns the sensor does not get the backend's updates of it."""
         return self.props.detections or []
 
     @property
     def decibels(self) -> float:
+        """Current audio level in decibels. The plugin that owns the sensor does not get the backend's updates of it."""
         return float(self.props.decibels or 0.0)
 
     def reportDetections(self, detected: bool, detections: list[Detection] | None = None) -> None:
@@ -239,7 +242,9 @@ class AudioDetectorSensor(AudioSensor[TStorage], Generic[TStorage]):
 
     @property
     @abstractmethod
-    def modelSpec(self) -> AudioModelSpec: ...
+    def modelSpec(self) -> AudioModelSpec:
+        """Declares the expected audio input format."""
+        ...
 
     @abstractmethod
     async def detectAudio(self, audio: AudioFrameData) -> AudioResult:

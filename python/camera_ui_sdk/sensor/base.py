@@ -156,49 +156,77 @@ class SensorLike(Protocol):
     """
 
     @property
-    def id(self) -> str: ...
+    def id(self) -> str:
+        """Entity id of the sensor, provisional on a new sensor until registration."""
+        ...
 
     @property
-    def type(self) -> SensorType: ...
+    def type(self) -> SensorType:
+        """Type of the sensor, fixed per sensor class."""
+        ...
 
     @property
-    def name(self) -> str: ...
+    def name(self) -> str:
+        """Name the plugin gave the sensor."""
+        ...
 
     @property
-    def nativeId(self) -> str | None: ...
+    def nativeId(self) -> str | None:
+        """Durable identity the plugin supplied, e.g. an upstream device id."""
+        ...
 
     @property
-    def pluginId(self) -> str | None: ...
+    def pluginId(self) -> str | None:
+        """Id of the plugin that owns the sensor, set at registration."""
+        ...
 
     @property
-    def capabilities(self) -> list[str]: ...
+    def capabilities(self) -> list[str]:
+        """Capabilities the sensor advertises."""
+        ...
 
     @property
-    def connected(self) -> bool: ...
+    def connected(self) -> bool:
+        """Whether the sensor is registered and its plugin is connected."""
+        ...
 
     @property
-    def assignedCameraIds(self) -> list[str]: ...
+    def assignedCameraIds(self) -> list[str]:
+        """Ids of the cameras the user assigned the sensor to."""
+        ...
 
     @property
-    def assignmentLocked(self) -> bool: ...
+    def assignmentLocked(self) -> bool:
+        """Whether the sensor is bound to the camera it was added to, so the user cannot assign it elsewhere."""
+        ...
 
     @property
-    def displayName(self) -> str: ...
+    def displayName(self) -> str:
+        """Name shown to the user, the plugin's name until the user renames the sensor."""
+        ...
 
     @displayName.setter
     def displayName(self, value: str) -> None: ...
 
     @property
-    def onPropertyChanged(self) -> Observable[Any]: ...
+    def onPropertyChanged(self) -> Observable[Any]:
+        """Emits on every property change."""
+        ...
 
     @property
-    def onCapabilitiesChanged(self) -> Observable[Any]: ...
+    def onCapabilitiesChanged(self) -> Observable[Any]:
+        """Emits the full capability list whenever it changes."""
+        ...
 
     @property
-    def onConnectedChanged(self) -> Observable[bool]: ...
+    def onConnectedChanged(self) -> Observable[bool]:
+        """Emits when the connected state changes."""
+        ...
 
     @property
-    def onAssignmentChanged(self) -> Observable[list[str]]: ...
+    def onAssignmentChanged(self) -> Observable[list[str]]:
+        """Emits the camera id list whenever the user changes the sensor's camera assignments."""
+        ...
 
     def getValue(self, property: str) -> Any | None:
         """Get the current value of a sensor property."""
@@ -259,6 +287,7 @@ class PropertiesProxy(Generic[TProperties]):
         return store.get(key)
 
     def get(self, key: str, default: Any = None) -> Any:
+        """Value of the property ``key``, or ``default`` when it has none."""
         store: dict[str, Any] = object.__getattribute__(self, "_store")
         return store.get(key, default)
 
@@ -317,34 +346,49 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
 
     @property
     @abstractmethod
-    def type(self) -> SensorType: ...
+    def type(self) -> SensorType:
+        """Type of the sensor, fixed per sensor class."""
+        ...
 
     @property
     @abstractmethod
-    def category(self) -> SensorCategory: ...
+    def category(self) -> SensorCategory:
+        """Category of the sensor: detection sensor, control, trigger or info."""
+        ...
 
     @property
     def id(self) -> str:
+        """Entity id of the sensor, provisional on a new sensor until registration."""
         return self._id
 
     @property
     def nativeId(self) -> str | None:
+        """Durable identity the plugin supplied, e.g. an upstream device id."""
         return self._native_id
 
     @property
+    def origin(self) -> str | None:
+        """Source system the sensor was imported from, e.g. ``"homeassistant"``."""
+        return self._origin
+
+    @property
     def sourceState(self) -> SensorSourceState | None:
+        """State of the source behind an adopted sensor, as reported with ``setSourceState()``."""
         return self._source_state
 
     @property
     def address(self) -> str | None:
+        """Current address at the source, e.g. a Home Assistant entity id. Display only."""
         return self._address
 
     @property
     def name(self) -> str:
+        """Name the plugin gave the sensor."""
         return self._name
 
     @property
     def displayName(self) -> str:
+        """Name shown to the user, the plugin's name until the user renames the sensor."""
         return self._display_name
 
     @displayName.setter
@@ -353,22 +397,27 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
 
     @property
     def pluginId(self) -> str | None:
+        """Id of the plugin that owns the sensor, set at registration."""
         return self._plugin_id
 
     @property
     def assignedCameraIds(self) -> list[str]:
+        """Ids of the cameras the user assigned the sensor to."""
         return self._assigned_camera_ids.copy()
 
     @property
     def assignmentLocked(self) -> bool:
+        """Whether the sensor is bound to the camera it was added to, so the user cannot assign it elsewhere."""
         return self._assignment_locked
 
     @property
     def connected(self) -> bool:
+        """Whether the sensor is registered and its plugin is connected."""
         return self._registered
 
     @property
     def capabilities(self) -> list[TCapability]:
+        """Capabilities the sensor advertises."""
         return self._capabilities.copy()
 
     @capabilities.setter
@@ -382,43 +431,53 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
 
     @property
     def requiresFrames(self) -> bool:
+        """Whether the host feeds the sensor video frames."""
         return self._requires_frames
 
     @property
     def storage_schema(self) -> list[JsonSchema]:
+        """JSON schema of the per-sensor settings. Override it to get a settings UI."""
         return []
 
     @property
     def storage(self) -> DeviceStorage[TStorage]:
+        """Per-sensor storage. Raises before registration."""
         assert self._storage is not None, "Storage not initialized - sensor not registered yet"
         return self._storage
 
     @property
     def isAssigned(self) -> bool:
+        """Whether the sensor is assigned to at least one camera."""
         return len(self._assigned_camera_ids) > 0
 
     @property
     def props(self) -> PropertiesProxy[TProperties]:
+        """Read-only view of the property values."""
         return self._properties_proxy
 
     @property
     def rawProps(self) -> dict[str, Any]:
+        """Property store as a plain dict. Change values through the semantic methods."""
         return self._properties_store
 
     @property
     def onAssignmentChanged(self) -> Observable[list[str]]:
+        """Emits the camera id list whenever the user changes the sensor's camera assignments."""
         return self._assignment_changed_subject.as_observable()
 
     @property
     def onConnectedChanged(self) -> Observable[bool]:
+        """Emits when the connected state changes."""
         return self._connected_changed_subject.as_observable()
 
     @property
     def onPropertyChanged(self) -> Observable[SensorPropertyChangeData]:
+        """Emits on every property change."""
         return self._property_changed_subject.as_observable()
 
     @property
     def onCapabilitiesChanged(self) -> Observable[list[TCapability]]:
+        """Emits the full capability list whenever it changes."""
         return self._capabilities_changed_subject.as_observable()
 
     def on_start(self) -> Any:

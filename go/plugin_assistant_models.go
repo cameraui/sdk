@@ -178,5 +178,6 @@ type AssistantModelProvider interface {
 //		return sdk.AssistantModelStatus{Ready: true}
 //	}
 type AssistantModelStatusReporter interface {
+	// AssistantModelStatus reports whether the models can answer right now.
 	AssistantModelStatus() AssistantModelStatus
 }

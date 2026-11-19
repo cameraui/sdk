@@ -51,7 +51,9 @@ class PersonEmbedderSensor(Sensor[dict[str, Any], TStorage, str], Generic[TStora
 
     @property
     @abstractmethod
-    def modelSpec(self) -> ModelSpec: ...
+    def modelSpec(self) -> ModelSpec:
+        """Declares the expected input dimensions and trigger labels."""
+        ...
 
     @abstractmethod
     async def embedPersons(self, frames: list[VideoFrameData]) -> list[PersonEmbeddingResult]:

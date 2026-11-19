@@ -6,7 +6,7 @@ import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 import type { Detection, VideoFrameData } from './detection.js';
 import type { ModelSpec } from './spec.js';
 
-/** @internal */
+/** Property names of a face sensor. */
 export enum FaceProperty {
   /** Whether any face is currently detected. */
   Detected = 'detected',
@@ -24,7 +24,7 @@ export interface FaceDetection extends Detection {
   identity?: string;
 }
 
-/** @internal */
+/** Property values of a face sensor. */
 export interface FaceSensorProperties {
   [FaceProperty.Detected]: boolean;
   [FaceProperty.Detections]: FaceDetection[];
@@ -62,14 +62,17 @@ export class FaceSensor<TStorage extends object = Record<string, any>> extends S
     });
   }
 
+  /** Whether any face is currently detected. */
   get detected(): boolean {
     return this.props.detected;
   }
 
+  /** List of detected faces, with an identity where one was matched. The plugin that owns the sensor does not get the backend's updates of it. */
   get detections(): FaceDetection[] {
     return this.props.detections;
   }
 
+  /** Names of the faces recognized during the active detection phase. */
   get identities(): string[] {
     return this.props.identities;
   }
@@ -150,8 +153,10 @@ export interface FaceResult {
  * and recognition.
  */
 export abstract class FaceDetectorSensor<TStorage extends object = Record<string, any>> extends FaceSensor<TStorage> {
+  /** @internal */
   _requiresFrames = true;
 
+  /** Declares the expected input dimensions and trigger labels. The runtime scales frames to match. */
   abstract get modelSpec(): ModelSpec;
 
   /**

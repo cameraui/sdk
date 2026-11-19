@@ -83,6 +83,7 @@ class DoorbellTrigger(Sensor[DoorbellTriggerProperties, TStorage, str], Generic[
 
     @property
     def ring(self) -> bool:
+        """Whether the doorbell is currently ringing."""
         return bool(self.props.ring)
 
     def trigger(self) -> None:

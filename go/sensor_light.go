@@ -5,9 +5,13 @@ const (
 	LightCapabilityBrightness = "brightness" // Light supports brightness adjustment (0-100)
 )
 
+// LightProperty is a property name of a light control.
+type LightProperty = string
+
+// Property names of a light control.
 const (
-	lightPropertyOn         = "on"
-	lightPropertyBrightness = "brightness"
+	LightPropertyOn         LightProperty = "on"         // Whether the light is on
+	LightPropertyBrightness LightProperty = "brightness" // Brightness level (0-100)
 )
 
 type lightSetters interface {
@@ -29,11 +33,12 @@ type lightSetters interface {
 // That bypasses any plugin override and only syncs state.
 type LightControl struct{ BaseSensor }
 
+// NewLightControl creates a light control with the given name and options.
 func NewLightControl(name string, opts ...SensorOption) *LightControl {
 	s := &LightControl{BaseSensor: NewBaseSensor(name, opts...)}
 	s.writeState(map[string]any{
-		lightPropertyOn:         false,
-		lightPropertyBrightness: 100,
+		LightPropertyOn:         false,
+		LightPropertyBrightness: 100,
 	})
 	return s
 }
@@ -42,13 +47,15 @@ func (s *LightControl) GetType() SensorType         { return SensorTypeLight }
 func (s *LightControl) GetCategory() SensorCategory { return SensorCategoryControl }
 func (s *LightControl) ToJSON() sensorJSON          { return s.toBaseJSON(s.GetType(), s.GetCategory()) }
 
+// IsOn reports whether the light is on.
 func (s *LightControl) IsOn() bool {
-	v, _ := s.GetValue(lightPropertyOn).(bool)
+	v, _ := s.GetValue(LightPropertyOn).(bool)
 	return v
 }
 
+// GetBrightness returns the brightness level (0-100).
 func (s *LightControl) GetBrightness() int {
-	if v, ok := s.GetValue(lightPropertyBrightness).(int); ok {
+	if v, ok := s.GetValue(LightPropertyBrightness).(int); ok {
 		return v
 	}
 	return 0
@@ -61,7 +68,7 @@ func (s *LightControl) GetBrightness() int {
 //
 //	light.SetOn()
 func (s *LightControl) SetOn() {
-	s.writeState(map[string]any{lightPropertyOn: true})
+	s.writeState(map[string]any{LightPropertyOn: true})
 }
 
 // SetOff turns the light off. Override (via embedding) to drive hardware and
@@ -71,7 +78,7 @@ func (s *LightControl) SetOn() {
 //
 //	light.SetOff()
 func (s *LightControl) SetOff() {
-	s.writeState(map[string]any{lightPropertyOn: false})
+	s.writeState(map[string]any{LightPropertyOn: false})
 }
 
 // SetBrightness sets the brightness level (clamped to [0, 100]). Override
@@ -88,7 +95,7 @@ func (s *LightControl) SetBrightness(value int) {
 	if value > 100 {
 		value = 100
 	}
-	s.writeState(map[string]any{lightPropertyBrightness: value})
+	s.writeState(map[string]any{LightPropertyBrightness: value})
 }
 
 // UpdateValue routes generic property writes to the semantic setters.
@@ -96,7 +103,7 @@ func (s *LightControl) SetBrightness(value int) {
 func (s *LightControl) UpdateValue(property string, value any) error {
 	setters := outerOr[lightSetters](&s.BaseSensor, s)
 	switch property {
-	case lightPropertyOn:
+	case LightPropertyOn:
 		on := false
 		if b, ok := value.(bool); ok {
 			on = b
@@ -108,7 +115,7 @@ func (s *LightControl) UpdateValue(property string, value any) error {
 		} else {
 			setters.SetOff()
 		}
-	case lightPropertyBrightness:
+	case LightPropertyBrightness:
 		if v, ok := toInt64(value); ok {
 			setters.SetBrightness(int(v))
 		}

@@ -4,13 +4,13 @@ import { defineSensor, SensorDomain } from './meta.js';
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/** @internal */
+/** Property names of a tamper sensor. */
 export enum TamperProperty {
   /** Whether tampering is detected. */
   Detected = 'detected',
 }
 
-/** @internal */
+/** Property values of a tamper sensor. */
 export interface TamperSensorProperties {
   [TamperProperty.Detected]: boolean;
 }
@@ -35,6 +35,7 @@ export class TamperSensor<TStorage extends object = Record<string, any>> extends
     this._writeState({ [TamperProperty.Detected]: false });
   }
 
+  /** Whether tampering is detected. */
   get detected(): boolean {
     return this.props.detected;
   }

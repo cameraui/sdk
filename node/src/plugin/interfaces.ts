@@ -165,8 +165,11 @@ export interface ClipTextEmbeddingResult {
  */
 export abstract class BasePlugin<T extends Record<string, any> = Record<string, any>> {
   constructor(
+    /** Writes to the host log, prefixed with the plugin name. */
     public logger: LoggerService,
+    /** Handle to the host services the plugin may call. */
     public api: PluginAPI,
+    /** Plugin-level storage the host persists. */
     public storage: DeviceStorage<T>,
   ) {}
 

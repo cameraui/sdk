@@ -41,12 +41,14 @@ export interface SegmentationResult {
 export abstract class SegmenterSensor<TStorage extends object = Record<string, any>> extends Sensor<Record<string, never>, TStorage> {
   readonly type = SensorType.Segmenter;
   readonly category = SensorCategory.Sensor;
+  /** @internal */
   _requiresFrames = true;
 
   constructor(name = 'Segmenter', options?: SensorOptions) {
     super(name, options);
   }
 
+  /** Declares the expected input dimensions and trigger labels. */
   abstract get modelSpec(): ModelSpec;
 
   /**

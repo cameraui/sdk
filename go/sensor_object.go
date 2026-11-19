@@ -2,20 +2,25 @@ package sdk
 
 import rpc "github.com/cameraui/rpc/go"
 
+// ObjectProperty is a property name of an object detection sensor.
+type ObjectProperty = string
+
+// Property names of an object detection sensor.
 const (
-	objectPropertyDetected         = "detected"
-	objectPropertyDetections       = "detections"
-	objectPropertyLabels           = "labels"
-	objectPropertyStaticDetections = "staticDetections"
+	ObjectPropertyDetected         ObjectProperty = "detected"         // Whether any object is currently detected
+	ObjectPropertyDetections       ObjectProperty = "detections"       // List of detected objects with labels and bounding boxes. The plugin that owns the sensor does not get the backend's updates of it
+	ObjectPropertyLabels           ObjectProperty = "labels"           // Unique labels of the current detections (auto-derived when reporting detections)
+	ObjectPropertyStaticDetections ObjectProperty = "staticDetections" // Settled objects hidden from events, kept visible for overlays. Written by the backend. The plugin that owns the sensor does not get the backend's updates of it
 )
 
 var _ rpc.RPCMethodConcurrency = (*ObjectDetectorSensor)(nil)
 
 // TrackVelocity is the signed centroid velocity in normalized units per second.
-// Positive X = moving right, positive Y = moving down. Prefer it over deriving
-// velocity from frame-to-frame position deltas.
+// Prefer it over deriving velocity from frame-to-frame position deltas.
 type TrackVelocity struct {
+	// X is the horizontal velocity, positive moves right.
 	X float64 `msgpack:"x" json:"x"`
+	// Y is the vertical velocity, positive moves down.
 	Y float64 `msgpack:"y" json:"y"`
 }
 
@@ -55,12 +60,13 @@ type ObjectSensor struct {
 	BaseSensor
 }
 
+// NewObjectSensor creates an object sensor with the given name and options.
 func NewObjectSensor(name string, opts ...SensorOption) *ObjectSensor {
 	s := &ObjectSensor{BaseSensor: NewBaseSensor(name, opts...)}
 	s.writeState(map[string]any{
-		objectPropertyDetected:   false,
-		objectPropertyDetections: []TrackedDetection{},
-		objectPropertyLabels:     []string{},
+		ObjectPropertyDetected:   false,
+		ObjectPropertyDetections: []TrackedDetection{},
+		ObjectPropertyLabels:     []string{},
 	})
 	return s
 }
@@ -69,18 +75,21 @@ func (s *ObjectSensor) GetType() SensorType         { return SensorTypeObject }
 func (s *ObjectSensor) GetCategory() SensorCategory { return SensorCategorySensor }
 func (s *ObjectSensor) ToJSON() sensorJSON          { return s.toBaseJSON(s.GetType(), s.GetCategory()) }
 
+// IsDetected reports whether any object is currently detected.
 func (s *ObjectSensor) IsDetected() bool {
-	v, _ := s.GetValue(objectPropertyDetected).(bool)
+	v, _ := s.GetValue(ObjectPropertyDetected).(bool)
 	return v
 }
 
+// GetDetections returns the detected objects with labels and bounding boxes. The plugin that owns the sensor does not get the backend's updates of it.
 func (s *ObjectSensor) GetDetections() []TrackedDetection {
-	v, _ := s.GetValue(objectPropertyDetections).([]TrackedDetection)
+	v, _ := s.GetValue(ObjectPropertyDetections).([]TrackedDetection)
 	return v
 }
 
+// GetLabels returns the unique labels of the current detections (auto-derived when reporting detections).
 func (s *ObjectSensor) GetLabels() []string {
-	v, _ := s.GetValue(objectPropertyLabels).([]string)
+	v, _ := s.GetValue(ObjectPropertyLabels).([]string)
 	return v
 }
 
@@ -102,9 +111,9 @@ func (s *ObjectSensor) ReportDetections(detected bool, detections []TrackedDetec
 	list := normalizeReportedDetections(detected, detections, func(d *TrackedDetection) *Detection { return &d.Detection }, "motion", "")
 	labels := dedupLabels(list)
 	s.writeState(map[string]any{
-		objectPropertyDetected:   detected,
-		objectPropertyDetections: list,
-		objectPropertyLabels:     labels,
+		ObjectPropertyDetected:   detected,
+		ObjectPropertyDetections: list,
+		ObjectPropertyLabels:     labels,
 	})
 }
 
@@ -127,6 +136,7 @@ type ObjectDetectorSensor struct {
 	ObjectSensor
 }
 
+// NewObjectDetectorSensor creates an object detector sensor with the given name and options.
 func NewObjectDetectorSensor(name string, opts ...SensorOption) *ObjectDetectorSensor {
 	s := &ObjectDetectorSensor{ObjectSensor: *NewObjectSensor(name, opts...)}
 	s.requiresFrames = true

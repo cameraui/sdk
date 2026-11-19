@@ -92,19 +92,19 @@ export interface PrivacyZone {
  */
 export type PrivacyFallback = 'send' | 'drop';
 
-/**
- * Everything the zone editor draws, one list per purpose. Motion decides where
- * frame motion counts, object which types count where, privacy where nothing
- * is looked at, alert which types notify from where, and lines report objects
- * crossing them.
- */
+/** Everything the zone editor draws, one list per purpose. */
 export interface CameraZones {
   /** What happens to a picture the privacy zones could not be applied to. Default: send. */
   privacyFallback: PrivacyFallback;
+  /** Zones where frame motion counts. */
   motion: MotionZone[];
+  /** Zones that set which object types count where. */
   object: ObjectZone[];
+  /** Zones where nothing is looked at. */
   privacy: PrivacyZone[];
+  /** Zones that set which object types notify from where. */
   alert: AlertZone[];
+  /** Lines that report objects crossing them. */
   lines: DetectionLine[];
 }
 

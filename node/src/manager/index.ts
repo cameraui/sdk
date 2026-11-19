@@ -36,8 +36,13 @@ export interface AssistantAskRequest {
   prompt: string;
   /** Optional system instruction. */
   system?: string;
-  /** Pictures for the request, sent only when the assigned model sees pictures. */
-  images?: { data: Uint8Array; mimeType: string }[];
+  /** Pictures for the request, sent only when the answering model sees pictures. */
+  images?: {
+    /** Encoded picture. */
+    data: Uint8Array;
+    /** Media type of the picture, e.g. `image/jpeg`. */
+    mimeType: string;
+  }[];
   /** JSON schema of the expected answer; the result then carries `json`. */
   outputSchema?: Record<string, unknown>;
   /** Timeout in milliseconds, default 45 s, at most 300 s. */
@@ -50,8 +55,29 @@ export interface AssistantAskRequest {
  * Answer of {@link CoreManager.assistantAsk}: the text (and parsed JSON when a schema was given) or the reason it did not run.
  */
 export type AssistantAskResult =
-  | { ok: true; text: string; json?: unknown; usage: { promptTokens: number; completionTokens: number } }
-  | { ok: false; reason: 'not_allowed' | 'unconfigured' | 'timeout' | 'error'; message: string };
+  | {
+    /** The model answered. */
+    ok: true;
+    /** Answer text. */
+    text: string;
+    /** Parsed answer, set when `outputSchema` was given. */
+    json?: unknown;
+    /** Tokens the call consumed. */
+    usage: {
+      /** Tokens of the request. */
+      promptTokens: number;
+      /** Tokens of the answer. */
+      completionTokens: number;
+    };
+  }
+  | {
+    /** The call did not run. */
+    ok: false;
+    /** Why the call did not run. */
+    reason: 'not_allowed' | 'unconfigured' | 'timeout' | 'error';
+    /** Readable description of the failure. */
+    message: string;
+  };
 
 /**
  * Whether this plugin may use the assistant model, and what the assigned model can do.

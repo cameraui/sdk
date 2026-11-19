@@ -4,9 +4,11 @@ import type { DeviceStorage, JsonSchema } from '../storage/index.js';
 import type { LoggerService } from '../types.js';
 import type { Camera, CameraInformation, CameraInput, CameraPluginInfo, CameraUiSettings, PluginAssignments } from './config.js';
 import type { CameraDetectionSettings, CameraZones, PtzAutotrackSettings } from './detection.js';
+import type { CameraNotificationSettings } from './notification.js';
 import type { CameraRecordingSettings } from './recording.js';
 import type { CameraType, DetectionEventType } from './enums.js';
 import type { DetectionEvent } from './events.js';
+import type { CameraExportSettings } from './export.js';
 import type { CameraFrameWorkerSettings, SnapshotSettings } from './frames.js';
 import type { Fmp4Session, ProbeConfig, ProbeStream, RTSPUrlOptions, RtpSession, SnapshotUrlOptions } from './streaming.js';
 
@@ -114,6 +116,10 @@ export interface CameraDevice {
   readonly ptzAutotrack: PtzAutotrackSettings;
   /** Recording settings. */
   readonly recordingSettings: CameraRecordingSettings;
+  /** Push notification settings. */
+  readonly notificationSettings: CameraNotificationSettings;
+  /** How other apps reach the camera. */
+  readonly exportSettings: CameraExportSettings;
   /** Whether detections are snoozed (paused). */
   readonly snooze: boolean;
   /** Frame worker settings. */
@@ -141,7 +147,12 @@ export interface CameraDevice {
   /** Observable for frame worker state changes. */
   readonly onFrameWorkerConnected: Observable<boolean>;
   /** Observable for detection events. Segments ride on the 'segment-*' messages only, thumbnails on 'segment-start' and 'segment-end'. */
-  readonly onDetectionEvent: Observable<{ type: DetectionEventType; event: DetectionEvent }>;
+  readonly onDetectionEvent: Observable<{
+    /** Event lifecycle type. */
+    type: DetectionEventType;
+    /** Full event data. */
+    event: DetectionEvent;
+  }>;
   /** Logger service for this camera. */
   readonly logger: LoggerService;
 
@@ -194,7 +205,16 @@ export interface CameraDevice {
    *
    * @returns Observable emitting old and new values
    */
-  onPropertyChange<T extends keyof Camera>(property: T | T[]): Observable<{ property: T; oldData: Camera[T]; newData: Camera[T] }>;
+  onPropertyChange<T extends keyof Camera>(
+    property: T | T[],
+  ): Observable<{
+    /** Property name that changed. */
+    property: T;
+    /** Previous value. */
+    oldData: Camera[T];
+    /** New value. */
+    newData: Camera[T];
+  }>;
 
   /**
    * Register a sensor that belongs to this camera's hardware (spotlight, siren, PTZ, battery, ...).

@@ -96,10 +96,12 @@ class SirenControl(Sensor[SirenControlProperties, TStorage, SirenCapability], Ge
 
     @property
     def active(self) -> bool:
+        """Whether the siren is currently active."""
         return bool(self.props.active)
 
     @property
     def volume(self) -> int:
+        """Volume level (0-100)."""
         value = self.props.volume
         return int(value) if value is not None else 0
 

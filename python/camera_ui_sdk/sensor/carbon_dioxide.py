@@ -71,6 +71,7 @@ class CarbonDioxideInfo(Sensor[CarbonDioxideInfoProperties, TStorage, str], Gene
 
     @property
     def current(self) -> float:
+        """Current CO2 concentration in parts per million."""
         value = self.props.current
         return float(value) if value is not None else 0.0
 

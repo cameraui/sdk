@@ -4,13 +4,13 @@ import { defineSensor, SensorDomain } from './meta.js';
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/** @internal */
+/** Property names of a carbon monoxide sensor. */
 export enum CarbonMonoxideProperty {
   /** Whether carbon monoxide is detected. */
   Detected = 'detected',
 }
 
-/** @internal */
+/** Property values of a carbon monoxide sensor. */
 export interface CarbonMonoxideSensorProperties {
   [CarbonMonoxideProperty.Detected]: boolean;
 }
@@ -35,6 +35,7 @@ export class CarbonMonoxideSensor<TStorage extends object = Record<string, any>>
     this._writeState({ [CarbonMonoxideProperty.Detected]: false });
   }
 
+  /** Whether carbon monoxide is detected. */
   get detected(): boolean {
     return this.props.detected;
   }

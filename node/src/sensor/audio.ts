@@ -28,7 +28,7 @@ export type BaseAudioLabel = (typeof BASE_AUDIO_LABELS)[number];
 /** Audio label: one of the built-in labels, or any custom string emitted by an audio detector. */
 export type AudioLabel = BaseAudioLabel | (string & {});
 
-/** @internal */
+/** Property names of an audio sensor. */
 export enum AudioProperty {
   /** Whether an audio event is currently detected. */
   Detected = 'detected',
@@ -40,7 +40,7 @@ export enum AudioProperty {
   LastTriggered = 'lastTriggered',
 }
 
-/** @internal */
+/** Property values of an audio sensor. */
 export interface AudioSensorProperties {
   [AudioProperty.Detected]: boolean;
   [AudioProperty.Detections]: Detection[];
@@ -68,6 +68,7 @@ export class AudioSensor<TStorage extends object = Record<string, any>> extends 
   readonly type = SensorType.Audio;
   readonly category = SensorCategory.Sensor;
 
+  /** @internal */
   _requiresFrames = false;
 
   constructor(name = 'Audio Sensor', options?: SensorOptions) {
@@ -80,14 +81,17 @@ export class AudioSensor<TStorage extends object = Record<string, any>> extends 
     });
   }
 
+  /** Whether an audio event is currently detected. */
   get detected(): boolean {
     return this.props.detected;
   }
 
+  /** List of detected audio events (e.g. glass break, scream). The plugin that owns the sensor does not get the backend's updates of it. */
   get detections(): Detection[] {
     return this.props.detections;
   }
 
+  /** Current audio level in decibels. The plugin that owns the sensor does not get the backend's updates of it. */
   get decibels(): number {
     return this.props.decibels;
   }
@@ -186,8 +190,10 @@ export interface AudioResult {
  * each call.
  */
 export abstract class AudioDetectorSensor<TStorage extends object = Record<string, any>> extends AudioSensor<TStorage> {
+  /** @internal */
   override _requiresFrames = true;
 
+  /** Declares the expected audio input format. */
   abstract readonly modelSpec: AudioModelSpec;
 
   /** Analyze a single audio frame for events. Called by the backend at the configured cadence. */

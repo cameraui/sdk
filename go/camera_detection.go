@@ -57,17 +57,19 @@ const (
 )
 
 // CameraZones holds everything the zone editor draws, one list per purpose.
-// Motion decides where frame motion counts, Object which types count where,
-// Privacy where nothing is looked at, Alert which types notify from where,
-// and Lines reports objects crossing them.
 type CameraZones struct {
 	// PrivacyFallback decides what happens to a picture the privacy zones could not be applied to.
 	PrivacyFallback PrivacyFallback `msgpack:"privacyFallback" json:"privacyFallback"`
-	Motion          []MotionZone    `msgpack:"motion" json:"motion"`
-	Object          []ObjectZone    `msgpack:"object" json:"object"`
-	Privacy         []PrivacyZone   `msgpack:"privacy" json:"privacy"`
-	Alert           []AlertZone     `msgpack:"alert" json:"alert"`
-	Lines           []DetectionLine `msgpack:"lines" json:"lines"`
+	// Motion holds the zones where frame motion counts.
+	Motion []MotionZone `msgpack:"motion" json:"motion"`
+	// Object holds the zones that set which object types count where.
+	Object []ObjectZone `msgpack:"object" json:"object"`
+	// Privacy holds the zones where nothing is looked at.
+	Privacy []PrivacyZone `msgpack:"privacy" json:"privacy"`
+	// Alert holds the zones that set which object types notify from where.
+	Alert []AlertZone `msgpack:"alert" json:"alert"`
+	// Lines holds the lines that report objects crossing them.
+	Lines []DetectionLine `msgpack:"lines" json:"lines"`
 }
 
 // AlertZoneMatch decides when an object counts as inside an alert zone.

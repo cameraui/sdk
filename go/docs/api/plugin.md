@@ -544,7 +544,7 @@ ClipTextEmbeddingResult is the result of a CLIP text embedding request.
 	    ScoreBand []float64 `msgpack:"scoreBand" json:"scoreBand"`
 	}
 
-<a name="ColdSensor"></a>
+<a name="ColdProperty"></a>
 
 ## type DiscoveredCamera
 

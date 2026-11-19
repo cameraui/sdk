@@ -89,9 +89,19 @@ export interface SensorSemantics {
   /** State-name to wire-value mapping for multi-state sensors. */
   readonly states?: Readonly<Record<string, number>>;
   /** Property carrying brightness, plus the scale factor a consumer applies to it. */
-  readonly brightness?: { readonly property: string; readonly scale: number };
+  readonly brightness?: {
+    /** Name of the property that carries the value. */
+    readonly property: string;
+    /** Factor a consumer applies to the value. */
+    readonly scale: number;
+  };
   /** Property carrying volume, plus the scale factor a consumer applies to it. */
-  readonly volume?: { readonly property: string; readonly scale: number };
+  readonly volume?: {
+    /** Name of the property that carries the value. */
+    readonly property: string;
+    /** Factor a consumer applies to the value. */
+    readonly scale: number;
+  };
 }
 
 /**

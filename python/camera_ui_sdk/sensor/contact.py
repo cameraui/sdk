@@ -71,6 +71,7 @@ class ContactSensor(Sensor[ContactSensorProperties, TStorage, str], Generic[TSto
 
     @property
     def detected(self) -> bool:
+        """Whether the contact is open (true = open, false = closed)."""
         return bool(self.props.detected)
 
     def setDetected(self, value: bool) -> None:

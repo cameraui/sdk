@@ -44,8 +44,11 @@ Example:
 	
 
 	type DeviceStorage struct {
+	
+	    // Schemas holds the current schema definitions.
 	    Schemas []JsonSchema
-	    Values  map[string]any
+	    // Values holds the current configuration values.
+	    Values map[string]any
 	    // contains filtered or unexported fields
 	}
 
@@ -295,7 +298,7 @@ JsonSchemaType is the field type discriminating which UI control renders the val
 	    JsonSchemaTypeLink JsonSchemaType = "link"
 	)
 
-<a name="LeakSensor"></a>
+<a name="LeakProperty"></a>
 
 ## type SchemaCondition
 

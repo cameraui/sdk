@@ -11,9 +11,13 @@ const (
 	SecuritySystemStateAlarmTriggered SecuritySystemState = 4 // Alarm is triggered
 )
 
+// SecuritySystemProperty is a property name of a security system control.
+type SecuritySystemProperty = string
+
+// Property names of a security system control.
 const (
-	securitySystemPropertyCurrentState = "currentState"
-	securitySystemPropertyTargetState  = "targetState"
+	SecuritySystemPropertyCurrentState SecuritySystemProperty = "currentState" // The actual current state of the security system
+	SecuritySystemPropertyTargetState  SecuritySystemProperty = "targetState"  // The desired target state (set by user, transitions to currentState). Never `AlarmTriggered`
 )
 
 type securitySystemSetters interface {
@@ -23,11 +27,12 @@ type securitySystemSetters interface {
 // SecuritySystem is a security system arm/disarm control sensor.
 type SecuritySystem struct{ BaseSensor }
 
+// NewSecuritySystem creates a security system with the given name and options.
 func NewSecuritySystem(name string, opts ...SensorOption) *SecuritySystem {
 	s := &SecuritySystem{BaseSensor: NewBaseSensor(name, opts...)}
 	s.writeState(map[string]any{
-		securitySystemPropertyCurrentState: int(SecuritySystemStateDisarmed),
-		securitySystemPropertyTargetState:  int(SecuritySystemStateDisarmed),
+		SecuritySystemPropertyCurrentState: int(SecuritySystemStateDisarmed),
+		SecuritySystemPropertyTargetState:  int(SecuritySystemStateDisarmed),
 	})
 	return s
 }
@@ -36,15 +41,17 @@ func (s *SecuritySystem) GetType() SensorType         { return SensorTypeSecurit
 func (s *SecuritySystem) GetCategory() SensorCategory { return SensorCategoryControl }
 func (s *SecuritySystem) ToJSON() sensorJSON          { return s.toBaseJSON(s.GetType(), s.GetCategory()) }
 
+// GetCurrentState returns the actual current state of the security system.
 func (s *SecuritySystem) GetCurrentState() SecuritySystemState {
-	if v, ok := s.GetValue(securitySystemPropertyCurrentState).(int); ok {
+	if v, ok := s.GetValue(SecuritySystemPropertyCurrentState).(int); ok {
 		return SecuritySystemState(v)
 	}
 	return SecuritySystemStateDisarmed
 }
 
+// GetTargetState returns the desired target state (set by user, transitions to the current state), never SecuritySystemStateAlarmTriggered.
 func (s *SecuritySystem) GetTargetState() SecuritySystemState {
-	if v, ok := s.GetValue(securitySystemPropertyTargetState).(int); ok {
+	if v, ok := s.GetValue(SecuritySystemPropertyTargetState).(int); ok {
 		return SecuritySystemState(v)
 	}
 	return SecuritySystemStateDisarmed
@@ -59,8 +66,8 @@ func (s *SecuritySystem) GetTargetState() SecuritySystemState {
 //	alarm.SetTargetState(SecuritySystemStateAwayArm)
 func (s *SecuritySystem) SetTargetState(value SecuritySystemState) {
 	s.writeState(map[string]any{
-		securitySystemPropertyTargetState:  int(value),
-		securitySystemPropertyCurrentState: int(value),
+		SecuritySystemPropertyTargetState:  int(value),
+		SecuritySystemPropertyCurrentState: int(value),
 	})
 }
 
@@ -73,12 +80,12 @@ func (s *SecuritySystem) SetTargetState(value SecuritySystemState) {
 //
 //	alarm.SetCurrentState(SecuritySystemStateAlarmTriggered)
 func (s *SecuritySystem) SetCurrentState(value SecuritySystemState) {
-	s.writeState(map[string]any{securitySystemPropertyCurrentState: int(value)})
+	s.writeState(map[string]any{SecuritySystemPropertyCurrentState: int(value)})
 }
 
 // UpdateValue routes generic property writes to the semantic setters.
 func (s *SecuritySystem) UpdateValue(property string, value any) error {
-	if property == securitySystemPropertyTargetState {
+	if property == SecuritySystemPropertyTargetState {
 		if v, ok := toInt64(value); ok {
 			outerOr[securitySystemSetters](&s.BaseSensor, s).SetTargetState(SecuritySystemState(v))
 		}

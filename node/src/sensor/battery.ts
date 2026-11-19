@@ -12,7 +12,7 @@ export enum BatteryCapability {
   Charging = 'charging',
 }
 
-/** @internal */
+/** Property names of a battery info sensor. */
 export enum BatteryProperty {
   /** Battery level percentage (0-100). */
   Level = 'level',
@@ -34,7 +34,7 @@ export enum ChargingState {
   Full = 'FULL',
 }
 
-/** @internal */
+/** Property values of a battery info sensor. */
 export interface BatteryInfoProperties {
   [BatteryProperty.Level]: number;
   [BatteryProperty.Charging]: ChargingState;
@@ -73,14 +73,17 @@ export class BatteryInfo<TStorage extends object = Record<string, any>> extends 
     });
   }
 
+  /** Battery level percentage (0-100). */
   get level(): number {
     return this.props.level;
   }
 
+  /** Current charging state. */
   get charging(): ChargingState {
     return this.props.charging;
   }
 
+  /** Whether the battery is critically low. */
   get low(): boolean {
     return this.props.low;
   }

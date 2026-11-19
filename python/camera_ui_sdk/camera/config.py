@@ -19,6 +19,7 @@ from .enums import (
     VideoCodec,
     VideoStreamingMode,
 )
+from .export import CameraExportSettings
 from .frames import CameraFrameWorkerSettings, SnapshotSettings
 from .notification import CameraNotificationSettings
 from .recording import CameraRecordingSettings
@@ -63,10 +64,6 @@ class CameraInput(TypedDict):
     """Strip the audio track from this source (defaults to False)."""
     backchannelDisabled: NotRequired[bool]
     """Drop the talk channel of this source, so clients get no microphone (defaults to False)."""
-    onvifDisabled: NotRequired[bool]
-    """Leave this source out of the ONVIF export (defaults to False)."""
-    rtmpDisabled: NotRequired[bool]
-    """Keep this source off the RTMP server (defaults to False)."""
     timeout: NotRequired[int]
     """Seconds without media before the stream reconnects. Unset means the host default: 5 for cameras, 60 for plugin-served sources."""
     handshakeTimeout: NotRequired[int]
@@ -104,10 +101,6 @@ class CameraConfigInputSettings(TypedDict):
     """Strip the audio track from this source (defaults to False)."""
     backchannelDisabled: NotRequired[bool]
     """Drop the talk channel of this source, so clients get no microphone (defaults to False)."""
-    onvifDisabled: NotRequired[bool]
-    """Leave this source out of the ONVIF export (defaults to False)."""
-    rtmpDisabled: NotRequired[bool]
-    """Keep this source off the RTMP server (defaults to False)."""
     timeout: NotRequired[int]
     """Seconds without media before the stream reconnects. Unset means the host default: 5 for cameras, 60 for plugin-served sources."""
     handshakeTimeout: NotRequired[int]
@@ -298,6 +291,8 @@ class BaseCamera(TypedDict):
     """Recording settings."""
     notificationSettings: CameraNotificationSettings
     """Push notification settings."""
+    exportSettings: CameraExportSettings
+    """How other apps reach the camera."""
     frameWorkerSettings: CameraFrameWorkerSettings
     """Frame worker settings."""
     interfaceSettings: CameraUiSettings
@@ -320,6 +315,7 @@ CameraPublicProperties = Literal[
     "nativeId",
     "pluginInfo",
     "name",
+    "room",
     "disabled",
     "isCloud",
     "info",
@@ -331,6 +327,8 @@ CameraPublicProperties = Literal[
     "frameWorkerSettings",
     "interfaceSettings",
     "recordingSettings",
+    "notificationSettings",
+    "exportSettings",
     "plugins",
     "assignments",
     "sources",

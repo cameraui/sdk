@@ -71,6 +71,7 @@ class LeakSensor(Sensor[LeakSensorProperties, TStorage, str], Generic[TStorage])
 
     @property
     def detected(self) -> bool:
+        """Whether a leak is detected."""
         return bool(self.props.detected)
 
     def setDetected(self, value: bool) -> None:

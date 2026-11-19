@@ -205,6 +205,7 @@ export interface RtpSessionOptions {
 
   /** Stream input options. */
   input?: {
+    /** FFmpeg demuxer options for the stream input. */
     options?: Record<string, string | number | boolean | null | undefined>;
   };
 
@@ -269,8 +270,11 @@ export interface RtpSessionBackchannelOptions {
   fmtp?: string;
   /** SRTP encryption configuration. */
   srtp?: {
+    /** SRTP master key. */
     key: Buffer;
+    /** SRTP master salt. */
     salt: Buffer;
+    /** SRTP crypto suite. */
     suite?: 'AES_CM_128_HMAC_SHA1_80' | 'AES_CM_256_HMAC_SHA1_80';
   };
 }
@@ -331,6 +335,7 @@ export interface Fmp4SessionOptions {
 
   /** Stream input options. */
   input?: {
+    /** FFmpeg demuxer options for the stream input. */
     options?: Record<string, string | number | boolean | null | undefined>;
   };
 
@@ -375,7 +380,9 @@ export interface Fmp4VideoInfo {
   codec: 'h264' | 'hevc' | 'av1' | 'unknown';
   /** RFC 6381 codec string of the output, e.g. `hvc1.1.6.L120.B0`. */
   codecString: string;
+  /** Width in pixels. */
   width: number;
+  /** Height in pixels. */
   height: number;
   /** Frames per second, 0 when unknown. */
   fps: number;

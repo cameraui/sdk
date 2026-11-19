@@ -6,7 +6,7 @@ import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 import type { Detection, DetectionLabel, VideoFrameData } from './detection.js';
 import type { ObjectModelSpec } from './spec.js';
 
-/** @internal */
+/** Property names of an object detection sensor. */
 export enum ObjectProperty {
   /** Whether any object is currently detected. */
   Detected = 'detected',
@@ -26,18 +26,20 @@ export interface TrackedDetection extends Detection {
   trackAge?: number;
   /** Velocity magnitude in normalized units per second. */
   trackSpeed?: number;
-  /**
-   * Signed centroid velocity in normalized units per second. Positive x = moving right,
-   * positive y = moving down. Prefer this over deriving velocity from position deltas.
-   */
-  trackVelocity?: { x: number; y: number };
+  /** Signed centroid velocity in normalized units per second. Prefer this over deriving velocity from position deltas. */
+  trackVelocity?: {
+    /** Horizontal velocity, positive moves right. */
+    x: number;
+    /** Vertical velocity, positive moves down. */
+    y: number;
+  };
   /** True if the object was not matched in the current frame. */
   trackLost?: boolean;
   /** Epoch ms since the object has been still. Only present while it is settled. */
   stationarySince?: number;
 }
 
-/** @internal */
+/** Property values of an object detection sensor. */
 export interface ObjectSensorProperties {
   [ObjectProperty.Detected]: boolean;
   [ObjectProperty.Detections]: TrackedDetection[];
@@ -67,6 +69,7 @@ export class ObjectSensor<TStorage extends object = Record<string, any>> extends
   readonly type = SensorType.Object;
   readonly category = SensorCategory.Sensor;
 
+  /** @internal */
   _requiresFrames = false;
 
   constructor(name = 'Object Sensor', options?: SensorOptions) {
@@ -79,14 +82,17 @@ export class ObjectSensor<TStorage extends object = Record<string, any>> extends
     });
   }
 
+  /** Whether any object is currently detected. */
   get detected(): boolean {
     return this.props.detected;
   }
 
+  /** List of detected objects with labels and bounding boxes. The plugin that owns the sensor does not get the backend's updates of it. */
   get detections(): TrackedDetection[] {
     return this.props.detections;
   }
 
+  /** Unique labels of the current detections (auto-derived when reporting detections). */
   get labels(): DetectionLabel[] {
     return this.props.labels;
   }
@@ -159,11 +165,13 @@ export interface ObjectResult {
  * subclass to receive one call at a time.
  */
 export abstract class ObjectDetectorSensor<TStorage extends object = Record<string, any>> extends ObjectSensor<TStorage> {
+  /** @internal */
   override _requiresFrames = true;
 
   /** Calls per method the backend may run at once, keyed by method name. */
   _rpcConcurrency: Record<string, number> = { detectObjects: 3 };
 
+  /** Declares the expected input dimensions. */
   abstract get modelSpec(): ObjectModelSpec;
 
   /** Analyze a single video frame for objects. Called by the backend at the configured interval. */

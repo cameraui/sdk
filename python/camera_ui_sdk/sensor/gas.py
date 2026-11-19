@@ -71,6 +71,7 @@ class GasSensor(Sensor[GasSensorProperties, TStorage, str], Generic[TStorage]):
 
     @property
     def detected(self) -> bool:
+        """Whether gas is detected."""
         return bool(self.props.detected)
 
     def setDetected(self, value: bool) -> None:

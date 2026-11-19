@@ -63,14 +63,11 @@ PrivacyFallback = Literal["send", "drop"]
 
 
 class CameraZones(TypedDict):
-    """
-    Everything the zone editor draws, one list per purpose.
-    Motion decides where frame motion counts, object which types count where,
-    privacy where nothing is looked at, alert which types notify from where,
-    and lines report objects crossing them.
-    """
+    """Everything the zone editor draws, one list per purpose."""
 
     privacyFallback: PrivacyFallback
+    """What happens to a picture the privacy zones could not be applied to. Default: send."""
+
     motion: list[MotionZone]
     object: list[ObjectZone]
     privacy: list[PrivacyZone]

@@ -4,13 +4,13 @@ import { defineSensor, SensorDomain } from './meta.js';
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
-/** @internal */
+/** Property names of a leak sensor. */
 export enum LeakProperty {
   /** Whether a leak is detected. */
   Detected = 'detected',
 }
 
-/** @internal */
+/** Property values of a leak sensor. */
 export interface LeakSensorProperties {
   [LeakProperty.Detected]: boolean;
 }
@@ -35,6 +35,7 @@ export class LeakSensor<TStorage extends object = Record<string, any>> extends S
     this._writeState({ [LeakProperty.Detected]: false });
   }
 
+  /** Whether a leak is detected. */
   get detected(): boolean {
     return this.props.detected;
   }

@@ -1,9 +1,14 @@
 package sdk
 
+// MotionProperty is a property name of a motion sensor.
+type MotionProperty = string
+
+// Property names of a motion sensor.
 const (
-	motionPropertyDetected   = "detected"
-	motionPropertyDetections = "detections"
-	motionPropertyBlocked    = "blocked"
+	MotionPropertyDetected      MotionProperty = "detected"      // Whether motion is currently detected
+	MotionPropertyDetections    MotionProperty = "detections"    // List of detection results with bounding boxes. The plugin that owns the sensor does not get the backend's updates of it
+	MotionPropertyBlocked       MotionProperty = "blocked"       // When true, detection updates are suppressed (set by the backend dwell logic)
+	MotionPropertyLastTriggered MotionProperty = "lastTriggered" // Timestamp in milliseconds of the last detection trigger, set by the backend
 )
 
 // MotionResult is the return value of MotionDetector.DetectMotion.
@@ -32,12 +37,13 @@ type MotionSensor struct {
 	BaseSensor
 }
 
+// NewMotionSensor creates a motion sensor with the given name and options.
 func NewMotionSensor(name string, opts ...SensorOption) *MotionSensor {
 	s := &MotionSensor{BaseSensor: NewBaseSensor(name, opts...)}
 	s.writeState(map[string]any{
-		motionPropertyDetected:   false,
-		motionPropertyDetections: []Detection{},
-		motionPropertyBlocked:    false,
+		MotionPropertyDetected:   false,
+		MotionPropertyDetections: []Detection{},
+		MotionPropertyBlocked:    false,
 	})
 	return s
 }
@@ -46,18 +52,21 @@ func (s *MotionSensor) GetType() SensorType         { return SensorTypeMotion }
 func (s *MotionSensor) GetCategory() SensorCategory { return SensorCategorySensor }
 func (s *MotionSensor) ToJSON() sensorJSON          { return s.toBaseJSON(s.GetType(), s.GetCategory()) }
 
+// IsDetected reports whether motion is currently detected.
 func (s *MotionSensor) IsDetected() bool {
-	v, _ := s.GetValue(motionPropertyDetected).(bool)
+	v, _ := s.GetValue(MotionPropertyDetected).(bool)
 	return v
 }
 
+// IsBlocked reports whether detection updates are suppressed (set by the backend dwell logic).
 func (s *MotionSensor) IsBlocked() bool {
-	v, _ := s.GetValue(motionPropertyBlocked).(bool)
+	v, _ := s.GetValue(MotionPropertyBlocked).(bool)
 	return v
 }
 
+// GetDetections returns the detection results with bounding boxes. The plugin that owns the sensor does not get the backend's updates of it.
 func (s *MotionSensor) GetDetections() []Detection {
-	v, _ := s.GetValue(motionPropertyDetections).([]Detection)
+	v, _ := s.GetValue(MotionPropertyDetections).([]Detection)
 	return v
 }
 
@@ -82,8 +91,8 @@ func (s *MotionSensor) ReportDetections(detected bool, detections []Detection) {
 	}
 	list := normalizeReportedDetections(detected, detections, func(d *Detection) *Detection { return d }, "motion", "")
 	s.writeState(map[string]any{
-		motionPropertyDetected:   detected,
-		motionPropertyDetections: list,
+		MotionPropertyDetected:   detected,
+		MotionPropertyDetections: list,
 	})
 }
 
@@ -105,6 +114,7 @@ type MotionDetectorSensor struct {
 	MotionSensor
 }
 
+// NewMotionDetectorSensor creates a motion detector sensor with the given name and options.
 func NewMotionDetectorSensor(name string, opts ...SensorOption) *MotionDetectorSensor {
 	s := &MotionDetectorSensor{MotionSensor: *NewMotionSensor(name, opts...)}
 	s.requiresFrames = true

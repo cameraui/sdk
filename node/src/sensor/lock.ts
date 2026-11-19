@@ -14,7 +14,7 @@ export enum LockState {
   Unknown = 2,
 }
 
-/** @internal */
+/** Property names of a lock control. */
 export enum LockProperty {
   /** The actual current state of the lock. */
   CurrentState = 'currentState',
@@ -22,7 +22,7 @@ export enum LockProperty {
   TargetState = 'targetState',
 }
 
-/** @internal */
+/** Property values of a lock control. */
 export interface LockControlProperties {
   [LockProperty.CurrentState]: LockState;
   [LockProperty.TargetState]: LockState;
@@ -59,10 +59,12 @@ export class LockControl<TStorage extends object = Record<string, any>> extends 
     });
   }
 
+  /** The actual current state of the lock. */
   get currentState(): LockState {
     return this.props.currentState;
   }
 
+  /** The desired target state (set by user, transitions to currentState). */
   get targetState(): LockState {
     return this.props.targetState;
   }
