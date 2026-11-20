@@ -31,9 +31,9 @@ func TestCameraStateSubjectSwitch(t *testing.T) {
 
 	var announced atomic.Bool
 	var refreshes atomic.Int32
-	cam := Camera{}
-	cam.ID = "cam-1"
-	cam.Name = "cam-1"
+	cam := Camera{
+		ID:   "cam-1",
+		Name: "cam-1"}
 	if _, err := server.RegisterHandler("camera.cam-1.controller.rpc", map[string]any{
 		"refreshStates": func() (map[string]any, error) {
 			refreshes.Add(1)
@@ -107,9 +107,9 @@ func TestRefreshKeepsEventsThatOvertookIt(t *testing.T) {
 	server := liveClient(t, "controller")
 	client := liveClient(t, "plugin")
 
-	cam := Camera{}
-	cam.ID = "cam-2"
-	cam.Name = "cam-2"
+	cam := Camera{
+		ID:   "cam-2",
+		Name: "cam-2"}
 	renamed := cam
 	renamed.Name = "cam-2 renamed"
 	ns := getCameraNamespaces("cam-2")

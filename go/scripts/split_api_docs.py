@@ -9,7 +9,7 @@ from pathlib import Path
 BUCKETS: dict[str, str] = {
     "Plugin": "plugin",
     "BasePlugin": "plugin",
-    "NewBasePlugin": "plugin",
+    "NoCameras": "plugin",
     "PluginAPI": "plugin",
     "PluginContract": "plugin",
     "PluginInfo": "plugin",
@@ -26,6 +26,7 @@ BUCKETS: dict[str, str] = {
     "GetContractValidationErrors": "plugin",
     "ValidateContractConsistency": "plugin",
     "IsHub": "plugin",
+    "IsService": "plugin",
     "CanCreateCameras": "plugin",
     "CanProvideSensorsToAnyCameras": "plugin",
     "HasInterface": "plugin",
@@ -39,7 +40,6 @@ BUCKETS: dict[str, str] = {
     "Notification": "plugin",
     "Severity": "plugin",
     "PluginCapability": "plugin",
-    "CapabilityPublishNotifications": "plugin",
     "HasCapability": "plugin",
     "MotionDetectionInterface": "plugin",
     "MotionDetectionResponse": "plugin",
@@ -52,11 +52,14 @@ BUCKETS: dict[str, str] = {
     "AudioDetectionSettings": "plugin",
     "FaceDetectionInterface": "plugin",
     "FaceDetectionResponse": "plugin",
+    "FaceEmbeddingInterface": "plugin",
+    "FaceEmbeddingPluginResponse": "plugin",
     "LicensePlateDetectionInterface": "plugin",
     "LicensePlateDetectionResponse": "plugin",
     "ClassifierDetectionInterface": "plugin",
     "ClassifierDetectionResponse": "plugin",
     "ClipDetectionInterface": "plugin",
+    "ClipDetectionPluginResponse": "plugin",
     "ClipTextEmbeddingResult": "plugin",
     "PersonEmbeddingInterface": "plugin",
     "PersonEmbeddingPluginResponse": "plugin",
@@ -82,6 +85,17 @@ BUCKETS: dict[str, str] = {
     "AssistantToolImage": "plugin",
     "AssistantToolReference": "plugin",
     "AssistantToolResult": "plugin",
+    "AssistantModelProvider": "plugin",
+    "AssistantModelStatusReporter": "plugin",
+    "AssistantModelSpec": "plugin",
+    "AssistantModelStatus": "plugin",
+    "AssistantModelRequest": "plugin",
+    "AssistantModelContext": "plugin",
+    "AssistantModelMessage": "plugin",
+    "AssistantModelContent": "plugin",
+    "AssistantModelTool": "plugin",
+    "AssistantModelToolCall": "plugin",
+    "AssistantModelChunk": "plugin",
     "Camera": "camera",
     "BaseCamera": "camera",
     "CameraConfig": "camera",
@@ -95,18 +109,34 @@ BUCKETS: dict[str, str] = {
     "CameraType": "camera",
     "CameraPower": "camera",
     "CameraRole": "camera",
+    "CameraActivityMode": "camera",
     "CameraAspectRatio": "camera",
     "CameraDetectionSettings": "camera",
+    "FaceDetectionSettings": "camera",
+    "FaceMatchSensitivity": "camera",
+    "LicensePlateDetectionSettings": "camera",
+    "CameraZones": "camera",
+    "MotionZone": "camera",
+    "ObjectZone": "camera",
+    "AlertZone": "camera",
+    "AlertZoneMatch": "camera",
+    "PrivacyZone": "camera",
+    "PrivacyFallback": "camera",
+    "ZoneLabel": "camera",
+    "TimeWindow": "camera",
     "CameraExportSettings": "camera",
+    "CameraNotificationSettings": "camera",
+    "NotificationSpeed": "camera",
+    "CameraRecordingSettings": "camera",
+    "RecordingMode": "camera",
+    "RecordingSource": "camera",
     "CameraFrameWorkerSettings": "camera",
     "FrameWorkerDecoderHardware": "camera",
     "FrameWorkerDecoderSettings": "camera",
     "CameraUiSettings": "camera",
-    "DetectionZone": "camera",
     "DetectionLine": "camera",
     "LineDirection": "camera",
     "ZoneType": "camera",
-    "ZoneFilter": "camera",
     "Point": "camera",
     "MotionResolution": "camera",
     "PtzAutotrackSettings": "camera",
@@ -117,6 +147,7 @@ BUCKETS: dict[str, str] = {
     "TalkbackInterface": "camera",
     "StreamingRole": "camera",
     "VideoStreamingMode": "camera",
+    "PlaybackSource": "camera",
     "StreamUrls": "camera",
     "FMTPInfo": "camera",
     "AudioCodecProperties": "camera",
@@ -145,24 +176,19 @@ BUCKETS: dict[str, str] = {
     "DetectionEventData": "camera",
     "DetectionEventType": "camera",
     "DetectionEventState": "camera",
+    "DetectionPath": "camera",
     "PropertyChangeEvent": "camera",
-    "RecordingState": "camera",
-    "RecordingStatus": "camera",
-    "RecordingSegment": "camera",
-    "CallbackInvoker": "camera",
     "PTZCapability": "camera",
     "PTZDirection": "camera",
     "PTZPosition": "camera",
+    "PTZRelativeMove": "camera",
     "Sensor": "sensor",
     "BaseSensor": "sensor",
-    "NewBaseSensor": "sensor",
+    "BinarySensor": "sensor",
+    "MeasurementInfo": "sensor",
     "SensorSourceState": "sensor",
+    "SensorPropertyChange": "sensor",
     "SensorOption": "sensor",
-    "WithNativeID": "sensor",
-    "WithOrigin": "sensor",
-    "WithAddress": "sensor",
-    "WithExposed": "sensor",
-    "WithHidden": "sensor",
     "SensorType": "sensor",
     "SensorCategory": "sensor",
     "BoundingBox": "sensor",
@@ -174,65 +200,57 @@ BUCKETS: dict[str, str] = {
     "ModelSpec": "sensor",
     "ObjectModelSpec": "sensor",
     "AudioModelSpec": "sensor",
+    "AudioInputSpec": "sensor",
+    "VideoInputSpec": "sensor",
+    "LoadedModel": "sensor",
+    "ModelRuntime": "sensor",
+    "UpdateModelSpec": "sensor",
     "AudioFormat": "sensor",
     "AudioFrameData": "sensor",
     "AudioLabel": "sensor",
     "AudioResult": "sensor",
     "AudioDetector": "sensor",
     "AudioSensor": "sensor",
-    "NewAudioSensor": "sensor",
     "AudioDetectorSensor": "sensor",
-    "NewAudioDetectorSensor": "sensor",
     "MotionDetector": "sensor",
     "MotionResult": "sensor",
     "MotionSensor": "sensor",
-    "NewMotionSensor": "sensor",
     "MotionDetectorSensor": "sensor",
-    "NewMotionDetectorSensor": "sensor",
     "ObjectDetector": "sensor",
     "ObjectResult": "sensor",
     "ObjectSensor": "sensor",
-    "NewObjectSensor": "sensor",
     "ObjectDetectorSensor": "sensor",
-    "NewObjectDetectorSensor": "sensor",
     "FaceDetection": "sensor",
     "FaceResult": "sensor",
     "FaceDetector": "sensor",
     "FaceSensor": "sensor",
-    "NewFaceSensor": "sensor",
     "FaceDetectorSensor": "sensor",
-    "NewFaceDetectorSensor": "sensor",
+    "FaceEmbedder": "sensor",
+    "FaceEmbedderSensor": "sensor",
+    "FaceEmbeddingResult": "sensor",
     "LicensePlateDetection": "sensor",
     "LicensePlateResult": "sensor",
     "LicensePlateDetector": "sensor",
     "LicensePlateSensor": "sensor",
-    "NewLicensePlateSensor": "sensor",
     "LicensePlateDetectorSensor": "sensor",
-    "NewLicensePlateDetectorSensor": "sensor",
     "ClassifierDetection": "sensor",
     "ClassifierResult": "sensor",
     "ClassifierDetector": "sensor",
     "ClassifierSensor": "sensor",
-    "NewClassifierSensor": "sensor",
     "ClassifierDetectorSensor": "sensor",
-    "NewClassifierDetectorSensor": "sensor",
     "ClipEmbedding": "sensor",
     "ClipResult": "sensor",
     "ClipDetector": "sensor",
     "ClipDetectorSensor": "sensor",
-    "NewClipDetectorSensor": "sensor",
     "PersonEmbeddingResult": "sensor",
     "PersonEmbedder": "sensor",
     "PersonEmbedderSensor": "sensor",
-    "NewPersonEmbedderSensor": "sensor",
     "ObjectMask": "sensor",
     "SegmentationFrame": "sensor",
     "SegmentationResult": "sensor",
     "Segmenter": "sensor",
     "SegmenterSensor": "sensor",
-    "NewSegmenterSensor": "sensor",
     "BatteryInfo": "sensor",
-    "NewBatteryInfo": "sensor",
     "ChargingState": "sensor",
     "AudioProperty": "sensor",
     "BatteryProperty": "sensor",
@@ -266,36 +284,32 @@ BUCKETS: dict[str, str] = {
     "TemperatureProperty": "sensor",
     "VibrationProperty": "sensor",
     "ContactSensor": "sensor",
-    "NewContactSensor": "sensor",
     "DoorbellTrigger": "sensor",
-    "NewDoorbellTrigger": "sensor",
     "GarageControl": "sensor",
-    "NewGarageControl": "sensor",
     "GarageState": "sensor",
     "HumidityInfo": "sensor",
-    "NewHumidityInfo": "sensor",
     "LeakSensor": "sensor",
-    "NewLeakSensor": "sensor",
     "LightControl": "sensor",
-    "NewLightControl": "sensor",
     "LockControl": "sensor",
-    "NewLockControl": "sensor",
     "LockState": "sensor",
     "OccupancySensor": "sensor",
-    "NewOccupancySensor": "sensor",
     "PTZControl": "sensor",
-    "NewPTZControl": "sensor",
     "SecuritySystem": "sensor",
-    "NewSecuritySystem": "sensor",
     "SecuritySystemState": "sensor",
     "SirenControl": "sensor",
-    "NewSirenControl": "sensor",
     "SmokeSensor": "sensor",
-    "NewSmokeSensor": "sensor",
     "SwitchControl": "sensor",
-    "NewSwitchControl": "sensor",
     "TemperatureInfo": "sensor",
-    "NewTemperatureInfo": "sensor",
+    "CarbonDioxideInfo": "sensor",
+    "IlluminanceInfo": "sensor",
+    "CarbonMonoxideSensor": "sensor",
+    "ColdSensor": "sensor",
+    "GasSensor": "sensor",
+    "HeatSensor": "sensor",
+    "PowerSensor": "sensor",
+    "ProblemSensor": "sensor",
+    "TamperSensor": "sensor",
+    "VibrationSensor": "sensor",
     "SensorTriggerSettings": "sensor",
     "DeviceStorage": "storage",
     "JsonSchema": "storage",
@@ -307,11 +321,14 @@ BUCKETS: dict[str, str] = {
     "FormSubmitResponse": "storage",
     "ToastMessage": "storage",
     "ToastType": "storage",
-    "StorageStats": "storage",
-    "CameraStorageStats": "storage",
     "StorageController": "storage",
     "CoreManager": "manager",
     "CoreManagerEvent": "manager",
+    "AssistantAccess": "manager",
+    "AssistantAskRequest": "manager",
+    "AssistantAskImage": "manager",
+    "AssistantAskResult": "manager",
+    "AssistantAskUsage": "manager",
     "PluginCallOptions": "manager",
     "SensorHistoryEntry": "manager",
     "SensorManager": "manager",
@@ -326,24 +343,12 @@ BUCKETS: dict[str, str] = {
     "CreatePipeDownloadOptions": "manager",
     "PipeDownloadSource": "manager",
     "Observable": "observable",
-    "NewObservable": "observable",
     "Subject": "observable",
-    "NewSubject": "observable",
     "BehaviorSubject": "observable",
-    "NewBehaviorSubject": "observable",
     "ReplaySubject": "observable",
-    "NewReplaySubject": "observable",
     "Disposable": "observable",
-    "NewDisposable": "observable",
     "Subscribable": "observable",
     "FirstValueFrom": "observable",
-    "DistinctUntilChanged": "observable",
-    "DistinctUntilChangedFunc": "observable",
-    "Filter": "observable",
-    "Map": "observable",
-    "MergeMap": "observable",
-    "Pairwise": "observable",
-    "Share": "observable",
     "Logger": "types",
     "Bool": "types",
     "Int": "types",
@@ -373,7 +378,8 @@ PAGE_INTROS: dict[str, str] = {
         "Core plugin lifecycle and capability surface: the `Plugin` interface every "
         "plugin implements, the `BasePlugin` boilerplate-saver, the `PluginContract` "
         "manifest, lifecycle event names (`APIEvent*`), and every optional interface: "
-        "`DiscoveryProvider`, `NotifierInterface`, and the seven detection interfaces."
+        "`DiscoveryProvider`, `NotifierInterface`, the detection interfaces and the "
+        "assistant model provider."
     ),
     "camera": (
         "Camera entities and runtime device API: `CameraDevice` (the per-camera handle "
@@ -394,8 +400,9 @@ PAGE_INTROS: dict[str, str] = {
         "form responses."
     ),
     "manager": (
-        "System-level services injected onto `PluginAPI`: `CoreManager` for FFmpeg "
-        "path / inter-plugin RPC / cloud signing, `DeviceManager` for camera lookup "
+        "System-level services injected onto `PluginAPI`: `CoreManager` for the FFmpeg "
+        "path, instance details, inter-plugin calls and assistant requests, "
+        "`DeviceManager` for camera lookup "
         "and async discovery, `DownloadManager` for token-protected downloads, and "
         "`NotificationManager` for publishing notifications into the host."
     ),
@@ -412,14 +419,14 @@ PAGE_INTROS: dict[str, str] = {
 }
 
 
+ANCHOR_RE = re.compile(r'^<a name="[^"]+"></a>$')
+
+
 def parse_index(text: str) -> int:
-    for i, line in enumerate(text.splitlines()):
-        if (
-            line.startswith("## Constants")
-            or line.startswith("## func ")
-            or line.startswith("## type ")
-        ):
-            return i
+    lines = text.splitlines()
+    for i, line in enumerate(lines):
+        if line.startswith(("## Constants", "## func ", "## type ")):
+            return i - 1 if i > 0 and ANCHOR_RE.match(lines[i - 1]) else i
     return 0
 
 
@@ -435,7 +442,14 @@ def split_into_blocks(text: str) -> list[tuple[str, str]]:
         r"^## (Constants|Variables|func ([A-Za-z0-9_]+)|type ([A-Za-z0-9_]+))"
     )
 
+    anchor: str | None = None
+
     for line in body_lines:
+        if ANCHOR_RE.match(line):
+            if anchor is not None:
+                current_buf.append(anchor)
+            anchor = line
+            continue
         m = heading_re.match(line)
         if m:
             if current_key is not None:
@@ -447,14 +461,31 @@ def split_into_blocks(text: str) -> list[tuple[str, str]]:
                 current_key = f"func:{m.group(2)}"
             else:
                 current_key = f"type:{m.group(3)}"
-            current_buf = [line]
-        else:
-            if current_key is not None:
-                current_buf.append(line)
+            current_buf = [anchor, line] if anchor is not None else [line]
+        elif current_key is not None:
+            if anchor is not None:
+                current_buf.append(anchor)
+            current_buf.append(line)
+        anchor = None
+    if anchor is not None:
+        current_buf.append(anchor)
     if current_key is not None:
         blocks.append((current_key, "\n".join(current_buf).rstrip() + "\n"))
 
     return blocks
+
+
+def check_buckets(blocks: list[tuple[str, str]]) -> list[str]:
+    names = {key.split(":", 1)[1] for key, _ in blocks if ":" in key}
+    problems = [
+        f"no page for {name}, add it to BUCKETS or DROP"
+        for name in sorted(names - BUCKETS.keys() - DROP)
+    ]
+    problems += [
+        f"{name} is not a top-level entry of the docs, remove it"
+        for name in sorted((BUCKETS.keys() | DROP) - names)
+    ]
+    return problems
 
 
 def bucket_for(key: str) -> str | None:
@@ -477,9 +508,11 @@ def render_page(bucket: str, blocks: list[tuple[str, str]]) -> str:
         intro,
         "",
         "!!! note",
-        "    The reference below is auto-generated from Go doc comments via "
-        "[`gomarkdoc`](https://github.com/princjef/gomarkdoc). Re-run "
-        "`scripts/gen-api-docs.sh` to refresh it.",
+        (
+            "    The reference below is auto-generated from Go doc comments via "
+            "[`gomarkdoc`](https://github.com/princjef/gomarkdoc). Re-run "
+            "`scripts/gen-api-docs.sh` to refresh it."
+        ),
         "",
     ]
     for _, body in blocks:
@@ -499,6 +532,11 @@ def main() -> None:
 
     text = full_md_path.read_text(encoding="utf-8")
     blocks = split_into_blocks(text)
+
+    problems = check_buckets(blocks)
+    if problems:
+        print("\n".join(problems), file=sys.stderr)
+        sys.exit(1)
 
     by_bucket: dict[str, list[tuple[str, str]]] = {b: [] for b in PAGE_TITLES}
     for key, body in blocks:

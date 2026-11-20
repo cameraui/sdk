@@ -1,15 +1,17 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import { PROTOCOL_LEVEL } from '../plugin/contract.js';
-import { SensorType } from './base.js';
+import { SensorCategory, SensorType } from './base.js';
 import { BASE_AUDIO_LABELS } from './audio.js';
 import { OBJECT_DETECTION_LABELS } from './detection.js';
+import { SensorDomain } from './meta.js';
 import { ObjectDetectorSensor } from './object.js';
 import { SENSOR_META } from './registry.js';
 
+import type { SensorMeta, SensorPropertySpec } from './meta.js';
 import type { ObjectResult } from './object.js';
 import type { ObjectModelSpec } from './spec.js';
 
@@ -22,6 +24,16 @@ function block(source: string, pattern: RegExp): string {
 
 function values(source: string, pattern: RegExp): Set<string> {
   return new Set([...source.matchAll(pattern)].map((match) => match[1]));
+}
+
+function sources(dir: string, extension: string): string[] {
+  return readdirSync(resolve(sdkRoot, dir))
+    .filter((file) => file.endsWith(extension))
+    .map((file) => read(`${dir}/${file}`));
+}
+
+function goSensorTypes(): Map<string, string> {
+  return new Map([...read('go/sensor_base.go').matchAll(/(SensorType\w+)\s+SensorType\s*=\s*"([^"]+)"/g)].map((m) => [m[1], m[2]]));
 }
 
 describe('cross-SDK parity', () => {
@@ -128,6 +140,101 @@ describe('cross-SDK parity', () => {
     const detectionTypes = SENSOR_META.filter((meta) => meta.isDetectionType).map((meta) => meta.type as string);
 
     expect([...listed].sort()).toEqual([...detectionTypes].sort());
+  });
+
+  it('SensorPropertyType lists every property enum in node and python', () => {
+    const nodeEnums = values(sources('node/src/sensor', '.ts').join('\n'), /^export enum (\w+Property) /gm);
+    const pythonEnums = values(sources('python/camera_ui_sdk/sensor', '.py').join('\n'), /^class (\w+Property)\(StrEnum\):/gm);
+    const nodeUnion = values(block(read('node/src/sensor/base.ts'), /export type SensorPropertyType =([\s\S]*?);/), /\| (\w+)/g);
+    const pythonUnion = values(block(read('python/camera_ui_sdk/internal/sensor_rpc.py'), /SensorPropertyType: TypeAlias = \(([\s\S]*?)\n {4}\)/), /(\w+Property)\b/g);
+
+    expect([...nodeUnion].sort()).toEqual([...nodeEnums].sort());
+    expect([...pythonEnums].sort()).toEqual([...nodeEnums].sort());
+    expect([...pythonUnion].sort()).toEqual([...nodeEnums].sort());
+  });
+
+  it('binary and measurement sensors build on the same base in node, python and go', () => {
+    const sensorTypeByName = new Map<string, string>(Object.entries(SensorType));
+    const goConsts = goSensorTypes();
+    const typesOn = (files: string[], base: RegExp, type: RegExp, toValue: (name: string) => string | undefined): string[] =>
+      files
+        .filter((source) => base.test(source))
+        .map((source) => toValue(type.exec(source)?.[1] ?? '') ?? '')
+        .sort();
+
+    for (const base of ['BinarySensor', 'MeasurementInfo']) {
+      const node = typesOn(sources('node/src/sensor', '.ts'), new RegExp(`extends ${base}<`), /readonly type = SensorType\.(\w+);/, (name) => sensorTypeByName.get(name));
+      const python = typesOn(sources('python/camera_ui_sdk/sensor', '.py'), new RegExp(`\\(${base}\\[`), /return SensorType\.(\w+)\n/, (name) =>
+        sensorTypeByName.get(name),
+      );
+      const go = typesOn(sources('go', '.go'), new RegExp(`struct\\{ ${base} \\}`), /\.init(?:Binary|Measurement)\((SensorType\w+),/, (name) => goConsts.get(name));
+
+      expect(node.length).toBeGreaterThan(0);
+      expect(python).toEqual(node);
+      expect(go).toEqual(node);
+    }
+  });
+
+  it('measurement start values and ranges match the metadata in python and go', () => {
+    const measurements = (SENSOR_META as readonly SensorMeta[]).filter(
+      (meta) => meta.semantics?.domain === SensorDomain.Measurement && meta.category === SensorCategory.Info && 'current' in meta.properties,
+    );
+    const goConsts = new Map([...goSensorTypes()].map(([name, value]) => [value, name]));
+    const pythonSources = sources('python/camera_ui_sdk/sensor', '.py');
+    const goSources = sources('go', '.go');
+    const goNumber = (raw: string): number => (raw === 'math.Inf(1)' ? Infinity : raw === 'math.Inf(-1)' ? -Infinity : Number(raw));
+
+    expect(measurements.length).toBeGreaterThan(0);
+    for (const meta of measurements) {
+      const spec = meta.properties.current;
+      const expected = { initial: meta.virtual?.properties.current, min: spec.min ?? -Infinity, max: spec.max ?? Infinity };
+      const typeName = Object.entries(SensorType).find(([, value]) => value === meta.type)?.[0];
+      const python = pythonSources.find((source) => source.includes(`return SensorType.${typeName}\n`) && source.includes('(MeasurementInfo['));
+      const goRange = new RegExp(`initMeasurement\\(${goConsts.get(meta.type)}, measurementRange\\{initial: ([^,]+), min: ([^,]+), max: ([^}]+)\\}`);
+      const go = goSources.map((source) => goRange.exec(source)).find(Boolean);
+
+      expect(python, meta.type).toBeDefined();
+      expect(go, meta.type).toBeTruthy();
+      expect(
+        {
+          initial: Number(/^\s+_initial = (\S+)$/m.exec(python!)?.[1]),
+          min: Number(/^\s+_min = (\S+)$/m.exec(python!)?.[1] ?? -Infinity),
+          max: Number(/^\s+_max = (\S+)$/m.exec(python!)?.[1] ?? Infinity),
+        },
+        meta.type,
+      ).toEqual(expected);
+      expect({ initial: goNumber(go![1]), min: goNumber(go![2]), max: goNumber(go![3]) }, meta.type).toEqual(expected);
+    }
+  });
+
+  it('go coerces every sensor property the metadata declares', () => {
+    const goConsts = goSensorTypes();
+    const registry = block(read('go/sensor_coerce.go'), /var propertyTypeRegistry = map\[SensorType\]map\[string\]coerceFunc\{([\s\S]*?)\n\}/);
+    const coerced = new Map(
+      [...registry.matchAll(/\t(SensorType\w+): \{([\s\S]*?)\n\t\}/g)].map((m) => [
+        goConsts.get(m[1]),
+        new Map([...m[2].matchAll(/"(\w+)":\s+(\w+)/g)].map((p) => [p[1], p[2]])),
+      ]),
+    );
+    const accepted: Record<string, string[]> = {
+      boolean: ['coerceBool'],
+      number: ['coerceFloat64', 'coerceInt', 'coerceInt64'],
+      string: ['coerceString'],
+      object: ['coerceSlice', 'coerceStringSlice', 'coerceViaRoundTrip'],
+    };
+
+    for (const meta of SENSOR_META) {
+      const declared = Object.entries(meta.properties as Record<string, SensorPropertySpec>);
+      const go = coerced.get(meta.type) ?? new Map<string, string>();
+
+      expect([...go.keys()].sort(), meta.type).toEqual(declared.map(([property]) => property).sort());
+      for (const [property, spec] of declared) {
+        const numericEnum = Object.values(spec.values ?? {}).every((value) => typeof value === 'number');
+        const kind = spec.type === 'enum' ? (numericEnum ? 'number' : 'string') : spec.type;
+
+        expect(accepted[kind], `${meta.type}.${property}`).toContain(go.get(property));
+      }
+    }
   });
 
   it('go contract-validation sensor list covers every SensorType', () => {

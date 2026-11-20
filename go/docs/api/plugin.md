@@ -1,10 +1,11 @@
 # Plugin API
 
-Core plugin lifecycle and capability surface: the `Plugin` interface every plugin implements, the `BasePlugin` boilerplate-saver, the `PluginContract` manifest, lifecycle event names (`APIEvent*`), and every optional interface: `DiscoveryProvider`, `NotifierInterface`, and the seven detection interfaces.
+Core plugin lifecycle and capability surface: the `Plugin` interface every plugin implements, the `BasePlugin` boilerplate-saver, the `PluginContract` manifest, lifecycle event names (`APIEvent*`), and every optional interface: `DiscoveryProvider`, `NotifierInterface`, the detection interfaces and the assistant model provider.
 
 !!! note
     The reference below is auto-generated from Go doc comments via [`gomarkdoc`](https://github.com/princjef/gomarkdoc). Re-run `scripts/gen-api-docs.sh` to refresh it.
 
+<a name="CanCreateCameras"></a>
 ## func CanCreateCameras
 
 	func CanCreateCameras(c *PluginContract) bool
@@ -16,10 +17,8 @@ Example:
 	if CanCreateCameras(contract) {
 	    enableAdoption()
 	}
-	
 
 <a name="CanProvideSensorsToAnyCameras"></a>
-
 ## func CanProvideSensorsToAnyCameras
 
 	func CanProvideSensorsToAnyCameras(c *PluginContract) bool
@@ -31,10 +30,8 @@ Example:
 	if CanProvideSensorsToAnyCameras(contract) {
 	    listAllCameras()
 	}
-	
 
-<a name="FirstValueFrom"></a>
-
+<a name="GetContractValidationErrors"></a>
 ## func GetContractValidationErrors
 
 	func GetContractValidationErrors(c *PluginContract) []string
@@ -47,10 +44,8 @@ Example:
 	if len(errs) > 0 {
 	    return fmt.Errorf("invalid contract: %s", strings.Join(errs, "; "))
 	}
-	
 
 <a name="HasCapability"></a>
-
 ## func HasCapability
 
 	func HasCapability(c *PluginContract, cap PluginCapability) bool
@@ -62,10 +57,8 @@ Example:
 	if HasCapability(contract, CapabilityPublishNotifications) {
 	    allowPublish()
 	}
-	
 
 <a name="HasInterface"></a>
-
 ## func HasInterface
 
 	func HasInterface(c *PluginContract, iface PluginInterface) bool
@@ -77,10 +70,8 @@ Example:
 	if HasInterface(contract, PluginInterfaceDiscoveryProvider) {
 	    startScan()
 	}
-	
 
-<a name="Int"></a>
-
+<a name="IsHub"></a>
 ## func IsHub
 
 	func IsHub(c *PluginContract) bool
@@ -92,10 +83,21 @@ Example:
 	if IsHub(contract) {
 	    skipLocalDiscovery()
 	}
-	
 
 <a name="IsService"></a>
+## func IsService
 
+	func IsService(c *PluginContract) bool
+
+IsService reports whether the plugin only serves camera.ui itself \(role Service\), which means it never appears in a camera's plugin list.
+
+Example:
+
+	if IsService(contract) {
+	    skipCameraAssignment()
+	}
+
+<a name="Run"></a>
 ## func Run
 
 	func Run(constructor pluginConstructor)
@@ -107,10 +109,8 @@ Example:
 	func main() {
 	    sdk.Run(NewPlugin)
 	}
-	
 
-<a name="UpdateModelSpec"></a>
-
+<a name="ValidateContractConsistency"></a>
 ## func ValidateContractConsistency
 
 	func ValidateContractConsistency(c *PluginContract, pluginName string) error
@@ -122,10 +122,8 @@ Example:
 	if err := ValidateContractConsistency(contract, "my-plugin"); err != nil {
 	    return err
 	}
-	
 
 <a name="APIEvent"></a>
-
 ## type APIEvent
 
 APIEvent identifies a lifecycle event emitted on the PluginAPI eventEmitter. Plugins subscribe with api.On\(string\(APIEventX\), handler\) to react to host\-driven phase changes.
@@ -144,7 +142,6 @@ APIEvent identifies a lifecycle event emitted on the PluginAPI eventEmitter. Plu
 	)
 
 <a name="AdoptedSensor"></a>
-
 ## type AdoptedSensor
 
 AdoptedSensor is a sensor the user adopted; what the host hands a SensorDiscoveryProvider to build its runtime sensor from.
@@ -162,8 +159,7 @@ AdoptedSensor is a sensor the user adopted; what the host hands a SensorDiscover
 	    Type SensorType `msgpack:"type" json:"type"`
 	}
 
-<a name="AlertZone"></a>
-
+<a name="AssignedPlugin"></a>
 ## type AssignedPlugin
 
 AssignedPlugin is plugin assignment info \(id \+ display name\).
@@ -175,8 +171,217 @@ AssignedPlugin is plugin assignment info \(id \+ display name\).
 	    Name string `msgpack:"name" json:"name"`
 	}
 
-<a name="AssistantAccess"></a>
+<a name="AssistantModelChunk"></a>
+## type AssistantModelChunk
 
+AssistantModelChunk is a piece of the answer. Send Type "text" as it is generated, "tool\_call" once the arguments are complete, "usage" when the model reports token counts, and "done" exactly once at the end.
+
+	type AssistantModelChunk struct {
+	    // Type is "text", "tool_call", "usage" or "done".
+	    Type string `msgpack:"type" json:"type"`
+	    // Delta is the text generated since the last chunk, with Type "text".
+	    Delta string `msgpack:"delta,omitempty" json:"delta,omitempty"`
+	    // Call the model asks for, with Type "tool_call".
+	    Call *AssistantModelToolCall `msgpack:"call,omitempty" json:"call,omitempty"`
+	    // PromptTokens the request consumed, with Type "usage".
+	    PromptTokens int `msgpack:"promptTokens,omitempty" json:"promptTokens,omitempty"`
+	    // CompletionTokens the answer consumed, with Type "usage".
+	    CompletionTokens int `msgpack:"completionTokens,omitempty" json:"completionTokens,omitempty"`
+	    // Finish says why the model stopped, with Type "done": stop, tool_calls, length or error.
+	    Finish string `msgpack:"finish,omitempty" json:"finish,omitempty"`
+	    // Message says what went wrong, with Finish "error".
+	    Message string `msgpack:"message,omitempty" json:"message,omitempty"`
+	}
+
+<a name="AssistantModelContent"></a>
+## type AssistantModelContent
+
+AssistantModelContent is one part of a message: Type "text" with Text, or Type "image" with Data and MimeType. Images arrive only for a model whose spec says Vision, and only when the instance allows pictures to reach it.
+
+	type AssistantModelContent struct {
+	    // Type is "text" or "image".
+	    Type string `msgpack:"type" json:"type"`
+	    // Text of a text part.
+	    Text string `msgpack:"text,omitempty" json:"text,omitempty"`
+	    // Data is the base64-encoded image of an image part.
+	    Data string `msgpack:"data,omitempty" json:"data,omitempty"`
+	    // MimeType of Data: image/jpeg, image/png or image/webp.
+	    MimeType string `msgpack:"mimeType,omitempty" json:"mimeType,omitempty"`
+	}
+
+<a name="AssistantModelContext"></a>
+## type AssistantModelContext
+
+AssistantModelContext says who the answer is for and when to stop writing it.
+
+	type AssistantModelContext struct {
+	    // UserID of the user the answer is for. Empty for scheduled runs and plugin requests.
+	    UserID string `msgpack:"userId,omitempty" json:"userId,omitempty"`
+	    // Language is the BCP 47 tag the answer should use.
+	    Language string `msgpack:"language" json:"language"`
+	    // TimeoutMs is how long the host waits before it drops the answer.
+	    TimeoutMs int `msgpack:"timeoutMs" json:"timeoutMs"`
+	}
+
+<a name="AssistantModelMessage"></a>
+## type AssistantModelMessage
+
+AssistantModelMessage is one message of the conversation. A message with Role "tool" carries the result of the call with the matching ToolCallID.
+
+	type AssistantModelMessage struct {
+	    // Role is "user", "assistant" or "tool".
+	    Role string `msgpack:"role" json:"role"`
+	    // Content holds the text and images of the message.
+	    Content []AssistantModelContent `msgpack:"content" json:"content"`
+	    // ToolCalls the assistant asked for, on assistant messages.
+	    ToolCalls []AssistantModelToolCall `msgpack:"toolCalls,omitempty" json:"toolCalls,omitempty"`
+	    // ToolCallID names the call this message answers, on tool messages.
+	    ToolCallID string `msgpack:"toolCallId,omitempty" json:"toolCallId,omitempty"`
+	}
+
+<a name="AssistantModelProvider"></a>
+## type AssistantModelProvider
+
+AssistantModelProvider is implemented by plugins that list PluginInterfaceAssistantModels in their contract. Such a plugin is a bridge to a model the host cannot reach itself: one without an HTTP API, one behind an unusual authentication, or one that lives on the machine the plugin runs on. The plugin holds no conversation state, every request carries the whole conversation.
+
+Example:
+
+	func (p *MyPlugin) AssistantModels() []sdk.AssistantModelSpec {
+		return []sdk.AssistantModelSpec{{ID: "local", Name: "Local", ContextTokens: 8192, ToolCalling: true}}
+	}
+	
+	func (p *MyPlugin) AssistantGenerate(request sdk.AssistantModelRequest, ctx sdk.AssistantModelContext) (<-chan sdk.AssistantModelChunk, error) {
+		out := make(chan sdk.AssistantModelChunk)
+		go func() {
+			defer close(out)
+			out <- sdk.AssistantModelChunk{Type: "text", Delta: p.answer(request)}
+			out <- sdk.AssistantModelChunk{Type: "done", Finish: "stop"}
+		}()
+		return out, nil
+	}
+	
+
+	type AssistantModelProvider interface {
+	    // AssistantModels lists the models this plugin offers. Called after the
+	    // plugin is ready and whenever the settings page is opened; empty while
+	    // the plugin has no usable model.
+	    AssistantModels() []AssistantModelSpec
+	    // AssistantGenerate answers one request. The host reads chunks until the
+	    // one with Type "done", then either returns the text to the user or runs
+	    // the tool calls and asks again with their results in Messages.
+	    AssistantGenerate(request AssistantModelRequest, ctx AssistantModelContext) (<-chan AssistantModelChunk, error)
+	}
+
+<a name="AssistantModelRequest"></a>
+## type AssistantModelRequest
+
+AssistantModelRequest is one request to a plugin model: the conversation so far plus what the model may do with it.
+
+	type AssistantModelRequest struct {
+	    // ModelID from AssistantModelSpec.ID.
+	    ModelID string `msgpack:"modelId" json:"modelId"`
+	    // System holds the instructions that precede the conversation.
+	    System []string `msgpack:"system" json:"system"`
+	    // Messages of the conversation, oldest first. The host has already trimmed them to ContextTokens.
+	    Messages []AssistantModelMessage `msgpack:"messages" json:"messages"`
+	    // Tools the model may call. Empty when the run allows none.
+	    Tools []AssistantModelTool `msgpack:"tools" json:"tools"`
+	    // OutputSchema the answer has to match. Only set for models whose spec says StructuredOutput.
+	    OutputSchema map[string]any `msgpack:"outputSchema,omitempty" json:"outputSchema,omitempty"`
+	    // MaxOutputTokens bounds the answer, when the host has a bound.
+	    MaxOutputTokens int `msgpack:"maxOutputTokens,omitempty" json:"maxOutputTokens,omitempty"`
+	}
+
+<a name="AssistantModelSpec"></a>
+## type AssistantModelSpec
+
+AssistantModelSpec is one model a plugin offers to the assistant. The user picks it under Settings, Assistant like any other model; the host never sees a key or an endpoint of it.
+
+	type AssistantModelSpec struct {
+	    // ID of the model, unique within the plugin and stable across restarts: the settings store it.
+	    ID  string `msgpack:"id" json:"id"`
+	    // Name shown in the model list.
+	    Name string `msgpack:"name" json:"name"`
+	    // ContextTokens is the hard context limit of the model. The host plans prompt, tools and history with it.
+	    ContextTokens int `msgpack:"contextTokens" json:"contextTokens"`
+	    // Vision reports whether the model reads images. Without it the host sends text only.
+	    Vision bool `msgpack:"vision" json:"vision"`
+	    // ToolCalling reports whether the model calls tools. Without it the assistant answers from the conversation alone.
+	    ToolCalling bool `msgpack:"toolCalling" json:"toolCalling"`
+	    // StructuredOutput reports whether the model honors a JSON schema. Without it the host asks for free text.
+	    StructuredOutput bool `msgpack:"structuredOutput" json:"structuredOutput"`
+	    // ToolRouting asks the host to pick the tools for a question with a short call
+	    // of its own and to put only those in front of the model. For a small model
+	    // that calls the tools it sees but does not work through a catalog of fifty.
+	    ToolRouting bool `msgpack:"toolRouting,omitempty" json:"toolRouting,omitempty"`
+	    // Note is one line shown next to the model, for example where it runs or what it costs.
+	    Note string `msgpack:"note,omitempty" json:"note,omitempty"`
+	}
+
+<a name="AssistantModelStatus"></a>
+## type AssistantModelStatus
+
+AssistantModelStatus says whether the plugin can answer right now. A model that has to be downloaded or loaded first reports Ready false with a line the settings page shows, and a Progress while it knows one.
+
+	type AssistantModelStatus struct {
+	    // Ready reports whether the models of this plugin can answer right now.
+	    Ready bool `msgpack:"ready" json:"ready"`
+	    // Message is one line for the user: what the plugin is waiting for, or what it is doing.
+	    Message string `msgpack:"message,omitempty" json:"message,omitempty"`
+	    // Progress is how far the loading got, between 0 and 1.
+	    Progress float64 `msgpack:"progress,omitempty" json:"progress,omitempty"`
+	}
+
+<a name="AssistantModelStatusReporter"></a>
+## type AssistantModelStatusReporter
+
+AssistantModelStatusReporter is an optional interface a model provider implements when its models need loading before they can answer. The host asks before it offers them and while the settings page is open, so a model that is still downloading shows up as busy instead of missing.
+
+Example:
+
+	func (p *MyPlugin) AssistantModelStatus() sdk.AssistantModelStatus {
+		loaded, total := p.download()
+		if loaded < total {
+			return sdk.AssistantModelStatus{Message: "Loading the model", Progress: float64(loaded) / float64(total)}
+		}
+		return sdk.AssistantModelStatus{Ready: true}
+	}
+	
+
+	type AssistantModelStatusReporter interface {
+	    // AssistantModelStatus reports whether the models can answer right now.
+	    AssistantModelStatus() AssistantModelStatus
+	}
+
+<a name="AssistantModelTool"></a>
+## type AssistantModelTool
+
+AssistantModelTool is a tool the model may call in this request.
+
+	type AssistantModelTool struct {
+	    // Name the model uses in its call.
+	    Name string `msgpack:"name" json:"name"`
+	    // Description of what the tool does, written for the model.
+	    Description string `msgpack:"description" json:"description"`
+	    // InputSchema is the JSON Schema object of the arguments.
+	    InputSchema map[string]any `msgpack:"inputSchema" json:"inputSchema"`
+	}
+
+<a name="AssistantModelToolCall"></a>
+## type AssistantModelToolCall
+
+AssistantModelToolCall is a tool call: which tool with which arguments.
+
+	type AssistantModelToolCall struct {
+	    // ID the host uses to match the result, unique within the request.
+	    ID  string `msgpack:"id" json:"id"`
+	    // Name of the tool as declared in AssistantModelRequest.Tools.
+	    Name string `msgpack:"name" json:"name"`
+	    // Arguments as parsed JSON, matching the tool's input schema.
+	    Arguments map[string]any `msgpack:"arguments" json:"arguments"`
+	}
+
+<a name="AssistantToolContext"></a>
 ## type AssistantToolContext
 
 AssistantToolContext says who is asking and in which language. Passed to every tool call; the host has already enforced AdminOnly and Approval, the fields are information.
@@ -195,7 +400,6 @@ AssistantToolContext says who is asking and in which language. Passed to every t
 	}
 
 <a name="AssistantToolImage"></a>
-
 ## type AssistantToolImage
 
 AssistantToolImage is an image a tool returns alongside its text. Forwarded to the model only when the instance allows images to leave the machine, so the result's Content should still describe what the image shows.
@@ -210,7 +414,6 @@ AssistantToolImage is an image a tool returns alongside its text. Forwarded to t
 	}
 
 <a name="AssistantToolProperty"></a>
-
 ## type AssistantToolProperty
 
 AssistantToolProperty is the property schema of a tool input: the JSON Schema draft\-07 subset every supported model provider accepts unchanged. Fill the fields that apply to Type, the rest stay empty.
@@ -241,7 +444,6 @@ AssistantToolProperty is the property schema of a tool input: the JSON Schema dr
 	}
 
 <a name="AssistantToolProvider"></a>
-
 ## type AssistantToolProvider
 
 AssistantToolProvider is implemented by plugins that list PluginInterfaceAssistantTools in their contract. The host asks for the tool list once after the plugin is ready and dispatches calls by name.
@@ -272,7 +474,6 @@ Example:
 	}
 
 <a name="AssistantToolReference"></a>
-
 ## type AssistantToolReference
 
 AssistantToolReference is something in the app a tool result points at. The chat renders it as a button that opens the matching view: the recording player for an event, the episode player for an episode, the camera page for a camera, or a download button for a file the DownloadManager serves.
@@ -293,7 +494,6 @@ AssistantToolReference is something in the app a tool result points at. The chat
 	}
 
 <a name="AssistantToolResult"></a>
-
 ## type AssistantToolResult
 
 AssistantToolResult is the result of a tool call. Set Error for problems the model can repair by asking differently \(unknown camera, empty range\); return a Go error only for failures that should end the run.
@@ -310,7 +510,6 @@ AssistantToolResult is the result of a tool call. Set Error for problems the mod
 	}
 
 <a name="AssistantToolSchema"></a>
-
 ## type AssistantToolSchema
 
 AssistantToolSchema is the input schema of a tool: always an object schema. The model fills the properties, the host passes them to CallAssistantTool as a parsed map.
@@ -327,7 +526,6 @@ AssistantToolSchema is the input schema of a tool: always an object schema. The 
 	}
 
 <a name="AssistantToolSpec"></a>
-
 ## type AssistantToolSpec
 
 AssistantToolSpec is one tool a plugin offers to the assistant. The host prefixes Name with the plugin name, so names only have to be unique within the plugin.
@@ -366,8 +564,7 @@ Example:
 	    Lazy bool `msgpack:"lazy,omitempty" json:"lazy,omitempty"`
 	}
 
-<a name="AudioCodec"></a>
-
+<a name="AudioDetectionInterface"></a>
 ## type AudioDetectionInterface
 
 AudioDetectionInterface is implemented by plugins that perform audio event or keyword detection.
@@ -385,7 +582,6 @@ AudioDetectionInterface is implemented by plugins that perform audio event or ke
 	}
 
 <a name="AudioDetectionResponse"></a>
-
 ## type AudioDetectionResponse
 
 AudioDetectionResponse is the result of an audio detection run.
@@ -400,7 +596,6 @@ AudioDetectionResponse is the result of an audio detection run.
 	}
 
 <a name="AudioDetectionSettings"></a>
-
 ## type AudioDetectionSettings
 
 AudioDetectionSettings is the audio detection settings.
@@ -417,8 +612,7 @@ AudioDetectionSettings is the audio detection settings.
 	    Labels []AudioLabel `msgpack:"labels" json:"labels"`
 	}
 
-<a name="AudioDetector"></a>
-
+<a name="AudioMetadata"></a>
 ## type AudioMetadata
 
 AudioMetadata is audio metadata passed to audio detector test methods.
@@ -428,8 +622,7 @@ AudioMetadata is audio metadata passed to audio detector test methods.
 	    MimeType string `msgpack:"mimeType" json:"mimeType"`
 	}
 
-<a name="AudioModelSpec"></a>
-
+<a name="BasePlugin"></a>
 ## type BasePlugin
 
 BasePlugin embeds the three dependencies every plugin needs \(logger, API handle, storage\). Embed it in your plugin struct to avoid repeating that boilerplate.
@@ -465,8 +658,7 @@ Example:
 
 NewBasePlugin builds a BasePlugin value from the constructor arguments. Use it inside your pluginConstructor implementation.
 
-<a name="BaseSensor"></a>
-
+<a name="ClassifierDetectionInterface"></a>
 ## type ClassifierDetectionInterface
 
 ClassifierDetectionInterface is implemented by plugins that run a generic image classifier and emit attribute/label pairs \(e.g. weather, scene, activity\).
@@ -483,7 +675,6 @@ ClassifierDetectionInterface is implemented by plugins that run a generic image 
 	}
 
 <a name="ClassifierDetectionResponse"></a>
-
 ## type ClassifierDetectionResponse
 
 ClassifierDetectionResponse is the result of a classifier detection run.
@@ -495,8 +686,7 @@ ClassifierDetectionResponse is the result of a classifier detection run.
 	    Detections []ClassifierDetection `msgpack:"detections" json:"detections"`
 	}
 
-<a name="ClassifierDetector"></a>
-
+<a name="ClipDetectionInterface"></a>
 ## type ClipDetectionInterface
 
 ClipDetectionInterface is implemented by plugins that generate CLIP image and text embeddings used for semantic search over recorded events.
@@ -527,7 +717,23 @@ ClipDetectionInterface is implemented by plugins that generate CLIP image and te
 	}
 
 <a name="ClipDetectionPluginResponse"></a>
+## type ClipDetectionPluginResponse
 
+ClipDetectionPluginResponse is the result of a CLIP image embedding run.
+
+	type ClipDetectionPluginResponse struct {
+	    // Embeddings are the embedding vectors generated for the input.
+	    Embeddings []ClipEmbedding `msgpack:"embeddings" json:"embeddings"`
+	    // EmbeddingModel is the model that produced the embeddings; consumers
+	    // must not mix models.
+	    EmbeddingModel string `msgpack:"embeddingModel" json:"embeddingModel"`
+	    // ScoreBand is the [floor, ceiling] of raw text-image cosine scores for
+	    // this model; consumers map scores to a 0..1 relevance scale and treat a
+	    // missing band as score 0.
+	    ScoreBand []float64 `msgpack:"scoreBand" json:"scoreBand"`
+	}
+
+<a name="ClipTextEmbeddingResult"></a>
 ## type ClipTextEmbeddingResult
 
 ClipTextEmbeddingResult is the result of a CLIP text embedding request.
@@ -544,8 +750,7 @@ ClipTextEmbeddingResult is the result of a CLIP text embedding request.
 	    ScoreBand []float64 `msgpack:"scoreBand" json:"scoreBand"`
 	}
 
-<a name="ColdProperty"></a>
-
+<a name="DiscoveredCamera"></a>
 ## type DiscoveredCamera
 
 DiscoveredCamera is a camera found during discovery by a discovery provider plugin.
@@ -565,7 +770,6 @@ DiscoveredCamera is a camera found during discovery by a discovery provider plug
 	}
 
 <a name="DiscoveredSensor"></a>
-
 ## type DiscoveredSensor
 
 DiscoveredSensor is a sensor a plugin can offer for adoption \(see SensorDiscoveryProvider\).
@@ -594,7 +798,6 @@ DiscoveredSensor is a sensor a plugin can offer for adoption \(see SensorDiscove
 	}
 
 <a name="DiscoveryProvider"></a>
-
 ## type DiscoveryProvider
 
 DiscoveryProvider is implemented by plugins that can scan the network for new cameras and adopt them. Only plugins with a camera\-controlling role \(CameraController or CameraAndSensorProvider\) are queried for discovery.
@@ -614,8 +817,7 @@ DiscoveryProvider is implemented by plugins that can scan the network for new ca
 	    OnAdoptCamera(camera DiscoveredCamera, cameraSettings map[string]any) (map[string]any, error)
 	}
 
-<a name="Disposable"></a>
-
+<a name="FaceDetectionInterface"></a>
 ## type FaceDetectionInterface
 
 FaceDetectionInterface is implemented by plugins that locate faces and emit per\-face embeddings. The NVR owns matching against enrolled faces, the plugin only emits raw detections and embeddings.
@@ -634,7 +836,6 @@ FaceDetectionInterface is implemented by plugins that locate faces and emit per\
 	}
 
 <a name="FaceDetectionResponse"></a>
-
 ## type FaceDetectionResponse
 
 FaceDetectionResponse is the result of a face detection run.
@@ -647,8 +848,39 @@ FaceDetectionResponse is the result of a face detection run.
 	    Detections []FaceDetection `msgpack:"detections" json:"detections"`
 	}
 
-<a name="FaceDetectionSettings"></a>
+<a name="FaceEmbeddingInterface"></a>
+## type FaceEmbeddingInterface
 
+FaceEmbeddingInterface is implemented by plugins that turn a face crop into an embedding vector. Split from face detection so the two can run on different hosts: locating a face is cheap, embedding it is not.
+
+	type FaceEmbeddingInterface interface {
+	    // EmbedFaceImages embeds a batch of encoded images (JPEG/PNG), each
+	    // showing one face: one result per input in the same order. An empty
+	    // Embedding means the picture holds no face this model can use, nil that
+	    // the plugin could not run at all: the caller may drop such a picture, so
+	    // the two must not be mixed up. Meant for re-embedding stored pictures
+	    // after an embedding-model change. landmarks holds the points an earlier
+	    // result returned for the same picture, one entry per image, nil where
+	    // there are none: with them the face is not searched again.
+	    EmbedFaceImages(images [][]byte, config map[string]any, landmarks [][]Point) ([]*FaceEmbeddingPluginResponse, error)
+	    // FaceEmbeddingSettings returns the JSON schema for the face-embedding
+	    // settings form in the UI, or nil for no schema.
+	    FaceEmbeddingSettings() ([]JsonSchema, error)
+	}
+
+<a name="FaceEmbeddingPluginResponse"></a>
+## type FaceEmbeddingPluginResponse
+
+FaceEmbeddingPluginResponse is the result of a face embedding run on a single image.
+
+	type FaceEmbeddingPluginResponse struct {
+	    Embedding      []float64 `msgpack:"embedding" json:"embedding"`                     // Embedding vector for the face, empty when no face could be embedded
+	    EmbeddingModel string    `msgpack:"embeddingModel" json:"embeddingModel"`           // Model that produced the embedding; consumers must not mix models
+	    Landmarks      []Point   `msgpack:"landmarks,omitempty" json:"landmarks,omitempty"` // The five points the face was aligned on, in 0 - 1 of the input image: right eye, left eye, nose, right and left mouth corner
+	    Quality        float64   `msgpack:"quality,omitempty" json:"quality,omitempty"`     // How clearly the picture shows a face (0 - 1), also sent with an empty embedding when the face was too unclear; not sent when the landmarks were passed in
+	}
+
+<a name="ImageMetadata"></a>
 ## type ImageMetadata
 
 ImageMetadata is image metadata passed to detector test methods.
@@ -660,8 +892,7 @@ ImageMetadata is image metadata passed to detector test methods.
 	    Height int `msgpack:"height" json:"height"`
 	}
 
-<a name="JsonSchema"></a>
-
+<a name="LicensePlateDetectionInterface"></a>
 ## type LicensePlateDetectionInterface
 
 LicensePlateDetectionInterface is implemented by plugins that locate license plates and run OCR on them.
@@ -680,7 +911,6 @@ LicensePlateDetectionInterface is implemented by plugins that locate license pla
 	}
 
 <a name="LicensePlateDetectionResponse"></a>
-
 ## type LicensePlateDetectionResponse
 
 LicensePlateDetectionResponse is the result of a license plate detection run.
@@ -692,8 +922,7 @@ LicensePlateDetectionResponse is the result of a license plate detection run.
 	    Detections []LicensePlateDetection `msgpack:"detections" json:"detections"`
 	}
 
-<a name="LicensePlateDetectionSettings"></a>
-
+<a name="MotionDetectionInterface"></a>
 ## type MotionDetectionInterface
 
 MotionDetectionInterface is implemented by plugins that perform video\-based motion detection. The host invokes TestMotion from the UI test panel and DetectMotion from automation / benchmark pipelines.
@@ -711,7 +940,6 @@ MotionDetectionInterface is implemented by plugins that perform video\-based mot
 	}
 
 <a name="MotionDetectionResponse"></a>
-
 ## type MotionDetectionResponse
 
 MotionDetectionResponse is the result of a motion detection run.
@@ -727,7 +955,6 @@ MotionDetectionResponse is the result of a motion detection run.
 	}
 
 <a name="MotionDetectionSettings"></a>
-
 ## type MotionDetectionSettings
 
 MotionDetectionSettings is the motion detection settings.
@@ -739,8 +966,43 @@ MotionDetectionSettings is the motion detection settings.
 	    Timeout int `msgpack:"timeout" json:"timeout"`
 	}
 
-<a name="MotionDetector"></a>
+<a name="NoCameras"></a>
+## type NoCameras
 
+NoCameras implements the camera lifecycle of Plugin with no\-ops. Embed it in a plugin with role Service, which serves camera.ui itself and never touches cameras.
+
+Example:
+
+	type MyPlugin struct {
+	    sdk.NoCameras
+	    api *sdk.PluginAPI
+	}
+	
+
+	type NoCameras struct{}
+
+<a name="NoCameras.ConfigureCameras"></a>
+### func \(NoCameras\) ConfigureCameras
+
+	func (NoCameras) ConfigureCameras(cameras []*CameraDevice) error
+
+ConfigureCameras does nothing.
+
+<a name="NoCameras.OnCameraAdded"></a>
+### func \(NoCameras\) OnCameraAdded
+
+	func (NoCameras) OnCameraAdded(camera *CameraDevice) error
+
+OnCameraAdded does nothing.
+
+<a name="NoCameras.OnCameraReleased"></a>
+### func \(NoCameras\) OnCameraReleased
+
+	func (NoCameras) OnCameraReleased(cameraID string) error
+
+OnCameraReleased does nothing.
+
+<a name="Notification"></a>
 ## type Notification
 
 Notification is the payload published via api.NotificationManager.Publish or routed by the host. Plugins fill the user\-visible fields; the host stamps the message id, timestamp and source identifier on receive.
@@ -790,8 +1052,7 @@ Notification is the payload published via api.NotificationManager.Publish or rou
 	    Silent bool `msgpack:"silent,omitempty" json:"silent,omitempty"`
 	}
 
-<a name="NotificationManager"></a>
-
+<a name="NotifierDevice"></a>
 ## type NotifierDevice
 
 NotifierDevice represents a single push\-target managed by a notifier plugin \(one phone, one chat, one mailbox, ...\). Devices are owned by the plugin that registered them; the NotificationManager queries plugins for their device list rather than maintaining a shared registry.
@@ -813,7 +1074,6 @@ NotifierDevice represents a single push\-target managed by a notifier plugin \(o
 	}
 
 <a name="NotifierInterface"></a>
-
 ## type NotifierInterface
 
 NotifierInterface is implemented by plugins that deliver notifications. The NotificationManager invokes these methods over RPC. Plugins own their device storage, the manager never persists devices itself.
@@ -843,7 +1103,6 @@ NotifierInterface is implemented by plugins that deliver notifications. The Noti
 	}
 
 <a name="OAuthAuthCodeFlowCapable"></a>
-
 ## type OAuthAuthCodeFlowCapable
 
 OAuthAuthCodeFlowCapable is implemented by plugins that use the Authorization Code Flow with PKCE. The plugin builds the auth URL and keeps the PKCE verifier internal; the host opens the URL and forwards the IdP redirect's code\+state to CompleteAuthCodeFlow.
@@ -861,7 +1120,6 @@ OAuthAuthCodeFlowCapable is implemented by plugins that use the Authorization Co
 	}
 
 <a name="OAuthCapable"></a>
-
 ## type OAuthCapable
 
 OAuthCapable is the base interface every OAuth\-capable plugin implements, alongside at least one flow sub\-interface \(Device / AuthCode / ClientCredentials\). It is IdP\-agnostic: the plugin brings its own endpoint config and knows nothing about the host's internals.
@@ -879,7 +1137,6 @@ OAuthCapable is the base interface every OAuth\-capable plugin implements, along
 	}
 
 <a name="OAuthClientCredentialsCapable"></a>
-
 ## type OAuthClientCredentialsCapable
 
 OAuthClientCredentialsCapable is implemented by plugins that authenticate with a user\-supplied client\_id \+ client\_secret \(no user redirect\). The plugin validates by fetching a token immediately.
@@ -892,7 +1149,6 @@ OAuthClientCredentialsCapable is implemented by plugins that authenticate with a
 	}
 
 <a name="OAuthDeviceFlowCapable"></a>
-
 ## type OAuthDeviceFlowCapable
 
 OAuthDeviceFlowCapable is implemented by plugins whose IdP supports the RFC 8628 Device Authorization Grant. The plugin polls the IdP internally; the host only polls GetOAuthState to mirror progress.
@@ -907,7 +1163,6 @@ OAuthDeviceFlowCapable is implemented by plugins whose IdP supports the RFC 8628
 	}
 
 <a name="OAuthMetadata"></a>
-
 ## type OAuthMetadata
 
 OAuthMetadata is informational data the host renders in the connect dialog.
@@ -924,7 +1179,6 @@ OAuthMetadata is informational data the host renders in the connect dialog.
 	}
 
 <a name="OAuthProviderConfig"></a>
-
 ## type OAuthProviderConfig
 
 OAuthProviderConfig points the plugin's OAuth manager at an identity provider.
@@ -945,7 +1199,6 @@ OAuthProviderConfig points the plugin's OAuth manager at an identity provider.
 	}
 
 <a name="OAuthProviderDeclaration"></a>
-
 ## type OAuthProviderDeclaration
 
 OAuthProviderDeclaration is one provider a plugin integrates with. A single\-provider plugin declares exactly one.
@@ -967,7 +1220,6 @@ OAuthProviderDeclaration is one provider a plugin integrates with. A single\-pro
 	}
 
 <a name="OAuthState"></a>
-
 ## type OAuthState
 
 OAuthState is a snapshot of a provider connection's lifecycle. It lives in the plugin and is the source of truth for both the host UI and downstream plugin code that needs a token. The host polls it via GetOAuthState while a flow is in progress.
@@ -1003,7 +1255,6 @@ OAuthState is a snapshot of a provider connection's lifecycle. It lives in the p
 	}
 
 <a name="OAuthStatus"></a>
-
 ## type OAuthStatus
 
 OAuthStatus is the lifecycle phase of an OAuth provider connection, carried in OAuthState.Status.
@@ -1026,7 +1277,6 @@ OAuthStatus is the lifecycle phase of an OAuth provider connection, carried in O
 	)
 
 <a name="ObjectDetectionInterface"></a>
-
 ## type ObjectDetectionInterface
 
 ObjectDetectionInterface is implemented by plugins that perform object detection \(person, vehicle, animal, ...\).
@@ -1046,7 +1296,6 @@ ObjectDetectionInterface is implemented by plugins that perform object detection
 	}
 
 <a name="ObjectDetectionResponse"></a>
-
 ## type ObjectDetectionResponse
 
 ObjectDetectionResponse is the result of an object detection run.
@@ -1059,7 +1308,6 @@ ObjectDetectionResponse is the result of an object detection run.
 	}
 
 <a name="ObjectDetectionSettings"></a>
-
 ## type ObjectDetectionSettings
 
 ObjectDetectionSettings is the object detection settings.
@@ -1074,8 +1322,7 @@ ObjectDetectionSettings is the object detection settings.
 	    Timeout *int `msgpack:"timeout,omitempty" json:"timeout,omitempty"`
 	}
 
-<a name="ObjectDetector"></a>
-
+<a name="PersonEmbeddingInterface"></a>
 ## type PersonEmbeddingInterface
 
 PersonEmbeddingInterface is implemented by plugins that turn the crop of a person into a vector of their appearance. The NVR stores and searches the vectors, the plugin only emits them.
@@ -1093,7 +1340,6 @@ PersonEmbeddingInterface is implemented by plugins that turn the crop of a perso
 	}
 
 <a name="PersonEmbeddingPluginResponse"></a>
-
 ## type PersonEmbeddingPluginResponse
 
 PersonEmbeddingPluginResponse is the result of a person embedding run on a single image.
@@ -1103,8 +1349,7 @@ PersonEmbeddingPluginResponse is the result of a person embedding run on a singl
 	    EmbeddingModel string    `msgpack:"embeddingModel" json:"embeddingModel"` // Model that produced the embedding; consumers must not mix models
 	}
 
-<a name="PersonEmbeddingResult"></a>
-
+<a name="Plugin"></a>
 ## type Plugin
 
 Plugin is the lifecycle contract every camera.ui plugin must implement. The host calls these methods in a strict order: ConfigureCameras once at startup, then OnCameraAdded / OnCameraReleased as the user adds or removes cameras at runtime.
@@ -1126,7 +1371,6 @@ Plugin is the lifecycle contract every camera.ui plugin must implement. The host
 	}
 
 <a name="PluginAPI"></a>
-
 ## type PluginAPI
 
 PluginAPI is injected into the plugin at runtime and exposes the system services the plugin is allowed to talk to. It also acts as an eventEmitter for plugin lifecycle events \(see APIEvent\).
@@ -1160,7 +1404,6 @@ Example:
 	}
 
 <a name="PluginAssignments"></a>
-
 ## type PluginAssignments
 
 PluginAssignments maps sensor types to their assigned plugin\(s\) for a camera. Single\-provider sensor types use \*AssignedPlugin \(nil when unassigned\). Multi\-provider sensor types use \[\]AssignedPlugin.
@@ -1246,8 +1489,7 @@ PluginAssignments maps sensor types to their assigned plugin\(s\) for a camera. 
 	    Hub []AssignedPlugin `msgpack:"hub,omitempty" json:"hub,omitempty"`
 	}
 
-<a name="PluginCallOptions"></a>
-
+<a name="PluginCapability"></a>
 ## type PluginCapability
 
 PluginCapability is a permission a plugin requests so it can call a host\-provided system feature. Each capability gates one outgoing SDK call. Calls without the matching capability are rejected by the host.
@@ -1263,7 +1505,6 @@ PluginCapability is a permission a plugin requests so it can call a host\-provid
 	)
 
 <a name="PluginContract"></a>
-
 ## type PluginContract
 
 PluginContract is the manifest contract a plugin declares so the host knows what it does and what it needs at load time. Validated before the plugin is started.
@@ -1295,7 +1536,6 @@ PluginContract is the manifest contract a plugin declares so the host knows what
 	}
 
 <a name="PluginInfo"></a>
-
 ## type PluginInfo
 
 PluginInfo is a lightweight handle identifying an installed plugin, used in RPC payloads and managers to refer to the plugin without shipping its full state.
@@ -1313,7 +1553,6 @@ PluginInfo is a lightweight handle identifying an installed plugin, used in RPC 
 	}
 
 <a name="PluginInterface"></a>
-
 ## type PluginInterface
 
 PluginInterface is a capability flag a plugin advertises in its contract. The host uses these to decide which RPC handlers to wire up and which UI affordances to show.
@@ -1394,7 +1633,6 @@ PluginInterface is a capability flag a plugin advertises in its contract. The ho
 	)
 
 <a name="PluginRole"></a>
-
 ## type PluginRole
 
 PluginRole identifies the role a plugin plays in the system. The role decides which lifecycle hooks the host invokes and which contract validations apply.
@@ -1422,7 +1660,6 @@ PluginRole identifies the role a plugin plays in the system. The role decides wh
 	)
 
 <a name="PluginStatus"></a>
-
 ## type PluginStatus
 
 PluginStatus reports the lifecycle state of the plugin process as seen by the host.
@@ -1452,7 +1689,6 @@ PluginStatus reports the lifecycle state of the plugin process as seen by the ho
 	)
 
 <a name="PluginStorage"></a>
-
 ## type PluginStorage
 
 PluginStorage carries the storage paths the host hands to the plugin during the start handshake. Plugin code should read PluginAPI.StoragePath instead.
@@ -1464,8 +1700,7 @@ PluginStorage carries the storage paths the host hands to the plugin during the 
 	    StoragePath string `msgpack:"storagePath" json:"storagePath"`
 	}
 
-<a name="Point"></a>
-
+<a name="PythonVersion"></a>
 ## type PythonVersion
 
 PythonVersion is the Python interpreter major.minor version a Python plugin requires. The host ensures a matching interpreter exists in its venv pool before launching the plugin; Node and Go plugins ignore this field.
@@ -1485,8 +1720,7 @@ PythonVersion is the Python interpreter major.minor version a Python plugin requ
 	    PythonVersion314 PythonVersion = "3.14"
 	)
 
-<a name="RTSPAudioCodec"></a>
-
+<a name="SegmentationImage"></a>
 ## type SegmentationImage
 
 SegmentationImage is a picture to outline an object in, with the object's box.
@@ -1497,7 +1731,6 @@ SegmentationImage is a picture to outline an object in, with the object's box.
 	}
 
 <a name="SegmentationInterface"></a>
-
 ## type SegmentationInterface
 
 SegmentationInterface is implemented by plugins that outline objects: a mask that separates an object from its background. The frame\-based side is SegmenterSensor.
@@ -1513,7 +1746,6 @@ SegmentationInterface is implemented by plugins that outline objects: a mask tha
 	}
 
 <a name="SegmentationPluginResponse"></a>
-
 ## type SegmentationPluginResponse
 
 SegmentationPluginResponse is the result of a segmentation run on a single image.
@@ -1522,8 +1754,7 @@ SegmentationPluginResponse is the result of a segmentation run on a single image
 	    Mask *ObjectMask `msgpack:"mask,omitempty" json:"mask,omitempty"` // The object's outline, nil when the model found no object at the box
 	}
 
-<a name="SegmentationResult"></a>
-
+<a name="SensorDiscoveryProvider"></a>
 ## type SensorDiscoveryProvider
 
 SensorDiscoveryProvider is implemented by plugins that face an external inventory \(Home Assistant entities, vendor accessories\) the user picks from instead of the plugin importing everything. Declare PluginInterfaceSensorDiscovery in the contract.
@@ -1558,8 +1789,7 @@ Identity is the source's stable id \(DiscoveredSensor.ID\), never an address; th
 	    OnSensorUnadopted(nativeID string) error
 	}
 
-<a name="SensorHistoryEntry"></a>
-
+<a name="Severity"></a>
 ## type Severity
 
 Severity classifies how urgent a Notification is. Notifiers map this to platform\-specific delivery characteristics; the host bypasses user\-configured Quiet Hours for SeverityCritical.
@@ -1582,8 +1812,7 @@ Severity classifies how urgent a Notification is. Notifiers map this to platform
 	    SeverityCritical Severity = "critical"
 	)
 
-<a name="SirenControl"></a>
-
+<a name="StorageSchemaProvider"></a>
 ## type StorageSchemaProvider
 
 StorageSchemaProvider is an optional interface plugins can implement to register a JSON schema for their plugin\-level storage. The host renders it as a settings form in the UI.
@@ -1592,5 +1821,3 @@ StorageSchemaProvider is an optional interface plugins can implement to register
 	    // StorageSchema returns the schema for the plugin-level settings form.
 	    StorageSchema() []JsonSchema
 	}
-
-<a name="StreamDirection"></a>

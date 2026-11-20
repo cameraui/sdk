@@ -1,5 +1,5 @@
-import { Sensor, SensorType, SensorCategory } from './base.js';
-import { defineSensor, SensorDomain } from './meta.js';
+import { SensorType } from './base.js';
+import { defineMeasurement, MeasurementInfo } from './measurement.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
@@ -25,56 +25,18 @@ export interface IlluminanceInfoLike extends SensorLike {
 }
 
 /** Illuminance info sensor. Reports current light level in lux. */
-export class IlluminanceInfo<TStorage extends object = Record<string, any>> extends Sensor<IlluminanceInfoProperties, TStorage> {
+export class IlluminanceInfo<TStorage extends object = Record<string, any>> extends MeasurementInfo<IlluminanceInfoProperties, TStorage> {
   readonly type = SensorType.Illuminance;
-  readonly category = SensorCategory.Info;
 
   constructor(name = 'Illuminance', options?: SensorOptions) {
-    super(name, options);
-
-    this._writeState({ [IlluminanceProperty.Current]: 0 });
+    super(name, illuminanceMeta, options);
   }
-
-  /** Current illuminance in lux. */
-  get current(): number {
-    return this.props.current;
-  }
-
-  /**
-   * Report a new illuminance reading. Clamped to [0, 200000] lx.
-   *
-   * @param value - Illuminance reading in lux.
-   *
-   * @example
-   * ```ts
-   * illuminance.setCurrent(120);
-   * ```
-   */
-  setCurrent(value: number): void {
-    this._writeState({ [IlluminanceProperty.Current]: Math.max(0, Math.min(200000, value)) });
-  }
-
-  /** @internal */
-  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Registry metadata for {@link IlluminanceInfo}. */
-export const illuminanceMeta = defineSensor({
-  type: SensorType.Illuminance,
-  category: SensorCategory.Info,
-  assignmentKey: 'illuminance',
-  multiProvider: true,
-  isDetectionType: false,
-  properties: {
-    [IlluminanceProperty.Current]: { type: 'number', unit: 'lx', writable: true },
-  },
-  shortcutable: true,
-  virtual: { properties: { [IlluminanceProperty.Current]: 20 } },
-  semantics: {
-    domain: SensorDomain.Measurement,
-    stateProperty: IlluminanceProperty.Current,
-    commandProperty: IlluminanceProperty.Current,
-    deviceClass: 'illuminance',
-    unit: 'lx',
-  },
+export const illuminanceMeta = defineMeasurement(SensorType.Illuminance, 'illuminance', {
+  unit: 'lx',
+  deviceClass: 'illuminance',
+  initial: 0,
+  min: 0,
 });

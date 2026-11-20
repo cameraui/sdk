@@ -1,5 +1,5 @@
-import { Sensor, SensorType, SensorCategory } from './base.js';
-import { defineSensor, SensorDomain } from './meta.js';
+import { SensorType } from './base.js';
+import { BinarySensor, defineBinarySensor } from './binary.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
@@ -25,56 +25,13 @@ export interface ContactSensorLike extends SensorLike {
 }
 
 /** Contact sensor for door/window open-close state. */
-export class ContactSensor<TStorage extends object = Record<string, any>> extends Sensor<ContactSensorProperties, TStorage> {
+export class ContactSensor<TStorage extends object = Record<string, any>> extends BinarySensor<ContactSensorProperties, TStorage> {
   readonly type = SensorType.Contact;
-  readonly category = SensorCategory.Sensor;
 
   constructor(name = 'Contact Sensor', options?: SensorOptions) {
     super(name, options);
-
-    this._writeState({ [ContactProperty.Detected]: false });
   }
-
-  /** Whether the contact is open (true = open, false = closed). */
-  get detected(): boolean {
-    return this.props.detected;
-  }
-
-  /**
-   * Report contact state (true = open, false = closed).
-   *
-   * @param value - True when the contact is open, false when closed.
-   *
-   * @example
-   * ```ts
-   * contact.setDetected(true);
-   * ```
-   */
-  setDetected(value: boolean): void {
-    this._writeState({ [ContactProperty.Detected]: value });
-  }
-
-  /** @internal */
-  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Registry metadata for {@link ContactSensor}. */
-export const contactMeta = defineSensor({
-  type: SensorType.Contact,
-  category: SensorCategory.Sensor,
-  assignmentKey: 'contact',
-  multiProvider: true,
-  isDetectionType: false,
-  properties: {
-    [ContactProperty.Detected]: { type: 'boolean', writable: true },
-  },
-  shortcutable: true,
-  cascadeTrigger: { property: ContactProperty.Detected, value: true, sustained: true },
-  virtual: { properties: { [ContactProperty.Detected]: false } },
-  semantics: {
-    domain: SensorDomain.Binary,
-    stateProperty: ContactProperty.Detected,
-    commandProperty: ContactProperty.Detected,
-    deviceClass: 'opening',
-  },
-});
+export const contactMeta = defineBinarySensor(SensorType.Contact, 'contact', 'opening');

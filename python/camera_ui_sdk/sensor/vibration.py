@@ -7,7 +7,8 @@ from typing import Any, Generic, Literal, Protocol, overload, runtime_checkable
 from typing_extensions import TypedDict, TypeVar
 
 from ..observable import Observable
-from .base import Sensor, SensorCategory, SensorLike, SensorType
+from .base import SensorLike, SensorType
+from .binary import BinarySensor
 
 
 class VibrationProperty(StrEnum):
@@ -52,40 +53,19 @@ class VibrationSensorLike(SensorLike, Protocol):
     def getValue(self, property: str) -> object | None: ...
 
 
-class VibrationSensor(Sensor[VibrationSensorProperties, TStorage, str], Generic[TStorage]):
+class VibrationSensor(BinarySensor[VibrationSensorProperties, TStorage], Generic[TStorage]):
     """Vibration sensor."""
 
-    _requires_frames = False
-
-    def __init__(self, name: str = "Vibration Sensor", *, native_id: str | None = None) -> None:
-        super().__init__(name, native_id=native_id)
-        self._write_state({VibrationProperty.Detected.value: False})
+    def __init__(
+        self,
+        name: str = "Vibration Sensor",
+        *,
+        native_id: str | None = None,
+        origin: str | None = None,
+        address: str | None = None,
+    ) -> None:
+        super().__init__(name, native_id=native_id, origin=origin, address=address)
 
     @property
     def type(self) -> SensorType:
         return SensorType.Vibration
-
-    @property
-    def category(self) -> SensorCategory:
-        return SensorCategory.Sensor
-
-    @property
-    def detected(self) -> bool:
-        """Whether vibration is detected."""
-        return bool(self.props.detected)
-
-    def setDetected(self, value: bool) -> None:
-        """Report vibration detection state.
-
-        Args:
-            value: True when vibration is currently detected.
-
-        Example:
-            ```python
-            vibration.setDetected(True)
-            ```
-        """
-        self._write_state({VibrationProperty.Detected.value: value})
-
-    async def updateValue(self, property: str, value: Any) -> None:
-        """Read-only sensor: external writes are ignored."""

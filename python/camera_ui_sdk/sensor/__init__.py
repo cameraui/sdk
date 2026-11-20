@@ -31,6 +31,10 @@ from .battery import (
     BatteryPropertyChangeData,
     ChargingState,
 )
+from .binary import (
+    BinarySensor,
+    BinarySensorProperties,
+)
 from .carbon_dioxide import (
     CarbonDioxideInfo,
     CarbonDioxideInfoLike,
@@ -175,6 +179,10 @@ from .lock import (
     LockPropertyChangeData,
     LockState,
 )
+from .measurement import (
+    MeasurementInfo,
+    MeasurementInfoProperties,
+)
 from .motion import (
     MotionDetectorSensor,
     MotionProperty,
@@ -304,6 +312,8 @@ if TYPE_CHECKING:
 __all__ = [
     "Sensor",
     "SensorLike",
+    "BinarySensor",
+    "MeasurementInfo",
     "SensorType",
     "SensorCategory",
     "SensorPropertyChangeData",
@@ -432,6 +442,8 @@ __all__ = [
     "TemperatureProperty",
     "VibrationProperty",
     # Property values
+    "BinarySensorProperties",
+    "MeasurementInfoProperties",
     "AudioSensorProperties",
     "BatteryInfoProperties",
     "CarbonDioxideInfoProperties",

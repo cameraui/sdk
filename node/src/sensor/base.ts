@@ -6,12 +6,19 @@ import type { Observable } from '../observable/index.js';
 import type { DeviceStorage, JsonSchema } from '../storage/index.js';
 import type { AudioProperty } from './audio.js';
 import type { BatteryCapability, BatteryProperty } from './battery.js';
+import type { CarbonDioxideProperty } from './carbonDioxide.js';
+import type { CarbonMonoxideProperty } from './carbonMonoxide.js';
+import type { ClassifierProperty } from './classifier.js';
+import type { ColdProperty } from './cold.js';
 import type { ContactProperty } from './contact.js';
 import type { Detection } from './detection.js';
 import type { DoorbellProperty } from './doorbell.js';
 import type { FaceProperty } from './face.js';
 import type { GarageProperty } from './garage.js';
+import type { GasProperty } from './gas.js';
+import type { HeatProperty } from './heat.js';
 import type { HumidityProperty } from './humidity.js';
+import type { IlluminanceProperty } from './illuminance.js';
 import type { LeakProperty } from './leak.js';
 import type { LicensePlateProperty } from './licensePlate.js';
 import type { LightCapability, LightProperty } from './light.js';
@@ -19,22 +26,33 @@ import type { LockProperty } from './lock.js';
 import type { MotionProperty } from './motion.js';
 import type { ObjectProperty } from './object.js';
 import type { OccupancyProperty } from './occupancy.js';
+import type { PowerProperty } from './power.js';
+import type { ProblemProperty } from './problem.js';
 import type { PTZCapability, PTZProperty } from './ptz.js';
 import type { SecuritySystemProperty } from './securitySystem.js';
 import type { SirenCapability, SirenProperty } from './siren.js';
 import type { SmokeProperty } from './smoke.js';
 import type { SwitchProperty } from './switch.js';
+import type { TamperProperty } from './tamper.js';
 import type { TemperatureProperty } from './temperature.js';
+import type { VibrationProperty } from './vibration.js';
 
 /** Union of all sensor-specific property enums. */
 export type SensorPropertyType =
   | AudioProperty
   | BatteryProperty
+  | CarbonDioxideProperty
+  | CarbonMonoxideProperty
+  | ClassifierProperty
+  | ColdProperty
   | ContactProperty
   | DoorbellProperty
   | FaceProperty
   | GarageProperty
+  | GasProperty
+  | HeatProperty
   | HumidityProperty
+  | IlluminanceProperty
   | LeakProperty
   | LicensePlateProperty
   | LightProperty
@@ -43,11 +61,15 @@ export type SensorPropertyType =
   | ObjectProperty
   | OccupancyProperty
   | PTZProperty
+  | PowerProperty
+  | ProblemProperty
   | SecuritySystemProperty
   | SirenProperty
   | SmokeProperty
   | SwitchProperty
-  | TemperatureProperty;
+  | TamperProperty
+  | TemperatureProperty
+  | VibrationProperty;
 
 /** Union of all sensor-specific capability enums. */
 export type SensorCapability = PTZCapability | LightCapability | SirenCapability | BatteryCapability;

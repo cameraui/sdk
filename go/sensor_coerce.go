@@ -14,17 +14,20 @@ var propertyTypeRegistry = map[SensorType]map[string]coerceFunc{
 		"lastTriggered": coerceInt64,
 	},
 	SensorTypeObject: {
-		"detected":   coerceBool,
-		"detections": coerceSlice[TrackedDetection],
-		"labels":     coerceStringSlice,
+		"detected":         coerceBool,
+		"detections":       coerceSlice[TrackedDetection],
+		"labels":           coerceStringSlice,
+		"staticDetections": coerceSlice[TrackedDetection],
 	},
 	SensorTypeFace: {
 		"detected":   coerceBool,
 		"detections": coerceSlice[FaceDetection],
+		"identities": coerceStringSlice,
 	},
 	SensorTypeLicensePlate: {
 		"detected":   coerceBool,
 		"detections": coerceSlice[LicensePlateDetection],
+		"plates":     coerceStringSlice,
 	},
 	SensorTypeClassifier: {
 		"detected":   coerceBool,
@@ -37,8 +40,53 @@ var propertyTypeRegistry = map[SensorType]map[string]coerceFunc{
 		"decibels":      coerceFloat64,
 		"lastTriggered": coerceInt64,
 	},
+	SensorTypeCarbonMonoxide: {
+		"detected": coerceBool,
+	},
+	SensorTypeCold: {
+		"detected": coerceBool,
+	},
 	SensorTypeContact: {
 		"detected": coerceBool,
+	},
+	SensorTypeGas: {
+		"detected": coerceBool,
+	},
+	SensorTypeHeat: {
+		"detected": coerceBool,
+	},
+	SensorTypeLeak: {
+		"detected": coerceBool,
+	},
+	SensorTypeOccupancy: {
+		"detected": coerceBool,
+	},
+	SensorTypePower: {
+		"detected": coerceBool,
+	},
+	SensorTypeProblem: {
+		"detected": coerceBool,
+	},
+	SensorTypeSmoke: {
+		"detected": coerceBool,
+	},
+	SensorTypeTamper: {
+		"detected": coerceBool,
+	},
+	SensorTypeVibration: {
+		"detected": coerceBool,
+	},
+	SensorTypeCarbonDioxide: {
+		"current": coerceFloat64,
+	},
+	SensorTypeHumidity: {
+		"current": coerceFloat64,
+	},
+	SensorTypeIlluminance: {
+		"current": coerceFloat64,
+	},
+	SensorTypeTemperature: {
+		"current": coerceFloat64,
 	},
 	SensorTypeBattery: {
 		"level":    coerceInt,
@@ -62,6 +110,8 @@ var propertyTypeRegistry = map[SensorType]map[string]coerceFunc{
 		"presets":      coerceStringSlice,
 		"velocity":     coerceViaRoundTrip[PTZDirection],
 		"targetPreset": coerceString,
+		"relativeMove": coerceViaRoundTrip[PTZRelativeMove],
+		"home":         coerceBool,
 	},
 	SensorTypeSecuritySystem: {
 		"currentState": coerceInt,
@@ -69,6 +119,15 @@ var propertyTypeRegistry = map[SensorType]map[string]coerceFunc{
 	},
 	SensorTypeDoorbell: {
 		"ring": coerceBool,
+	},
+	SensorTypeLock: {
+		"currentState": coerceInt,
+		"targetState":  coerceInt,
+	},
+	SensorTypeGarage: {
+		"currentState":        coerceInt,
+		"targetState":         coerceInt,
+		"obstructionDetected": coerceBool,
 	},
 }
 

@@ -1,5 +1,5 @@
-import { Sensor, SensorType, SensorCategory } from './base.js';
-import { defineSensor, SensorDomain } from './meta.js';
+import { SensorType } from './base.js';
+import { BinarySensor, defineBinarySensor } from './binary.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
@@ -25,56 +25,13 @@ export interface GasSensorLike extends SensorLike {
 }
 
 /** Gas detector sensor. */
-export class GasSensor<TStorage extends object = Record<string, any>> extends Sensor<GasSensorProperties, TStorage> {
+export class GasSensor<TStorage extends object = Record<string, any>> extends BinarySensor<GasSensorProperties, TStorage> {
   readonly type = SensorType.Gas;
-  readonly category = SensorCategory.Sensor;
 
   constructor(name = 'Gas Sensor', options?: SensorOptions) {
     super(name, options);
-
-    this._writeState({ [GasProperty.Detected]: false });
   }
-
-  /** Whether gas is detected. */
-  get detected(): boolean {
-    return this.props.detected;
-  }
-
-  /**
-   * Report gas detection state.
-   *
-   * @param value - True when gas is currently detected.
-   *
-   * @example
-   * ```ts
-   * gas.setDetected(true);
-   * ```
-   */
-  setDetected(value: boolean): void {
-    this._writeState({ [GasProperty.Detected]: value });
-  }
-
-  /** @internal */
-  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Registry metadata for {@link GasSensor}. */
-export const gasMeta = defineSensor({
-  type: SensorType.Gas,
-  category: SensorCategory.Sensor,
-  assignmentKey: 'gas',
-  multiProvider: true,
-  isDetectionType: false,
-  properties: {
-    [GasProperty.Detected]: { type: 'boolean', writable: true },
-  },
-  shortcutable: true,
-  cascadeTrigger: { property: GasProperty.Detected, value: true, sustained: true },
-  virtual: { properties: { [GasProperty.Detected]: false } },
-  semantics: {
-    domain: SensorDomain.Binary,
-    stateProperty: GasProperty.Detected,
-    commandProperty: GasProperty.Detected,
-    deviceClass: 'gas',
-  },
-});
+export const gasMeta = defineBinarySensor(SensorType.Gas, 'gas', 'gas');

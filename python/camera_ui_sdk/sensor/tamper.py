@@ -7,7 +7,8 @@ from typing import Any, Generic, Literal, Protocol, overload, runtime_checkable
 from typing_extensions import TypedDict, TypeVar
 
 from ..observable import Observable
-from .base import Sensor, SensorCategory, SensorLike, SensorType
+from .base import SensorLike, SensorType
+from .binary import BinarySensor
 
 
 class TamperProperty(StrEnum):
@@ -52,40 +53,19 @@ class TamperSensorLike(SensorLike, Protocol):
     def getValue(self, property: str) -> object | None: ...
 
 
-class TamperSensor(Sensor[TamperSensorProperties, TStorage, str], Generic[TStorage]):
+class TamperSensor(BinarySensor[TamperSensorProperties, TStorage], Generic[TStorage]):
     """Tamper sensor."""
 
-    _requires_frames = False
-
-    def __init__(self, name: str = "Tamper Sensor", *, native_id: str | None = None) -> None:
-        super().__init__(name, native_id=native_id)
-        self._write_state({TamperProperty.Detected.value: False})
+    def __init__(
+        self,
+        name: str = "Tamper Sensor",
+        *,
+        native_id: str | None = None,
+        origin: str | None = None,
+        address: str | None = None,
+    ) -> None:
+        super().__init__(name, native_id=native_id, origin=origin, address=address)
 
     @property
     def type(self) -> SensorType:
         return SensorType.Tamper
-
-    @property
-    def category(self) -> SensorCategory:
-        return SensorCategory.Sensor
-
-    @property
-    def detected(self) -> bool:
-        """Whether tampering is detected."""
-        return bool(self.props.detected)
-
-    def setDetected(self, value: bool) -> None:
-        """Report tampering detection state.
-
-        Args:
-            value: True when tamper is currently detected.
-
-        Example:
-            ```python
-            tamper.setDetected(True)
-            ```
-        """
-        self._write_state({TamperProperty.Detected.value: value})
-
-    async def updateValue(self, property: str, value: Any) -> None:
-        """Read-only sensor: external writes are ignored."""

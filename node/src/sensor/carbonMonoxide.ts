@@ -1,5 +1,5 @@
-import { Sensor, SensorType, SensorCategory } from './base.js';
-import { defineSensor, SensorDomain } from './meta.js';
+import { SensorType } from './base.js';
+import { BinarySensor, defineBinarySensor } from './binary.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
@@ -25,56 +25,13 @@ export interface CarbonMonoxideSensorLike extends SensorLike {
 }
 
 /** Carbon monoxide detector sensor. */
-export class CarbonMonoxideSensor<TStorage extends object = Record<string, any>> extends Sensor<CarbonMonoxideSensorProperties, TStorage> {
+export class CarbonMonoxideSensor<TStorage extends object = Record<string, any>> extends BinarySensor<CarbonMonoxideSensorProperties, TStorage> {
   readonly type = SensorType.CarbonMonoxide;
-  readonly category = SensorCategory.Sensor;
 
   constructor(name = 'Carbon Monoxide Sensor', options?: SensorOptions) {
     super(name, options);
-
-    this._writeState({ [CarbonMonoxideProperty.Detected]: false });
   }
-
-  /** Whether carbon monoxide is detected. */
-  get detected(): boolean {
-    return this.props.detected;
-  }
-
-  /**
-   * Report carbon monoxide detection state.
-   *
-   * @param value - True when carbonMonoxide is currently detected.
-   *
-   * @example
-   * ```ts
-   * carbonMonoxide.setDetected(true);
-   * ```
-   */
-  setDetected(value: boolean): void {
-    this._writeState({ [CarbonMonoxideProperty.Detected]: value });
-  }
-
-  /** @internal */
-  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Registry metadata for {@link CarbonMonoxideSensor}. */
-export const carbonMonoxideMeta = defineSensor({
-  type: SensorType.CarbonMonoxide,
-  category: SensorCategory.Sensor,
-  assignmentKey: 'carbonMonoxide',
-  multiProvider: true,
-  isDetectionType: false,
-  properties: {
-    [CarbonMonoxideProperty.Detected]: { type: 'boolean', writable: true },
-  },
-  shortcutable: true,
-  cascadeTrigger: { property: CarbonMonoxideProperty.Detected, value: true, sustained: true },
-  virtual: { properties: { [CarbonMonoxideProperty.Detected]: false } },
-  semantics: {
-    domain: SensorDomain.Binary,
-    stateProperty: CarbonMonoxideProperty.Detected,
-    commandProperty: CarbonMonoxideProperty.Detected,
-    deviceClass: 'carbon_monoxide',
-  },
-});
+export const carbonMonoxideMeta = defineBinarySensor(SensorType.CarbonMonoxide, 'carbonMonoxide', 'carbon_monoxide');

@@ -38,8 +38,15 @@ class PersonEmbedderSensor(Sensor[dict[str, Any], TStorage, str], Generic[TStora
 
     _requires_frames = True
 
-    def __init__(self, name: str = "Person Embedder", *, native_id: str | None = None) -> None:
-        super().__init__(name, native_id=native_id)
+    def __init__(
+        self,
+        name: str = "Person Embedder",
+        *,
+        native_id: str | None = None,
+        origin: str | None = None,
+        address: str | None = None,
+    ) -> None:
+        super().__init__(name, native_id=native_id, origin=origin, address=address)
 
     @property
     def type(self) -> SensorType:

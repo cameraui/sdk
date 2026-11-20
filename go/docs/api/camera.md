@@ -5,6 +5,7 @@ Camera entities and runtime device API: `CameraDevice` (the per-camera handle yo
 !!! note
     The reference below is auto-generated from Go doc comments via [`gomarkdoc`](https://github.com/princjef/gomarkdoc). Re-run `scripts/gen-api-docs.sh` to refresh it.
 
+<a name="BuildSnapshotUrl"></a>
 ## func BuildSnapshotUrl
 
 	func BuildSnapshotUrl(cameraName, sourceName, snapshotUrl string, opts *SnapshotUrlOptions) (string, error)
@@ -14,10 +15,8 @@ BuildSnapshotUrl constructs a go2rtc\-compatible snapshot URL for the given came
 Example:
 
 	url, err := sdk.BuildSnapshotUrl("Front Door", "main", base, &sdk.SnapshotUrlOptions{Width: 640})
-	
 
 <a name="BuildTargetUrl"></a>
-
 ## func BuildTargetUrl
 
 	func BuildTargetUrl(rtspUrl string, opts *RTSPUrlOptions) (string, error)
@@ -27,10 +26,49 @@ BuildTargetUrl constructs a go2rtc\-compatible RTSP target URL from a base RTSP 
 Example:
 
 	url, err := sdk.BuildTargetUrl(base, &sdk.RTSPUrlOptions{Video: true, GOP: true, Timeout: 15})
-	
 
-<a name="CanCreateCameras"></a>
+<a name="AlertZone"></a>
+## type AlertZone
 
+AlertZone is a polygon zone that never filters detections: a label selected here only sends push notifications while an object of that label is inside the zone.
+
+	type AlertZone struct {
+	    // Name is the zone display name.
+	    Name string `msgpack:"name" json:"name"`
+	    // Points are the polygon points (0-100 percentage coordinates).
+	    Points []Point `msgpack:"points" json:"points"`
+	    // Labels are the labels that alert from inside this zone (empty = every label alerts here).
+	    Labels []DetectionLabel `msgpack:"labels" json:"labels"`
+	    // Faces are the faces that may push from inside this zone. Nil leaves faces out
+	    // of the decision, an empty list lets every recognized face push, otherwise only
+	    // the listed identities do. "unknown" covers everyone the recognition could not
+	    // name, including people whose face was never captured.
+	    Faces *[]string `msgpack:"faces,omitempty" json:"faces,omitempty"`
+	    // Plates are the plates that may push from inside this zone, same rules as Faces.
+	    // Plates are OCR text, so the list is free-form rather than picked from a roster.
+	    Plates *[]string `msgpack:"plates,omitempty" json:"plates,omitempty"`
+	    // Match decides when an object counts as inside. Default: contain.
+	    Match AlertZoneMatch `msgpack:"match" json:"match"`
+	    // Color is the zone display color (hex).
+	    Color string `msgpack:"color" json:"color"`
+	}
+
+<a name="AlertZoneMatch"></a>
+## type AlertZoneMatch
+
+AlertZoneMatch decides when an object counts as inside an alert zone.
+
+	type AlertZoneMatch = string
+
+<a name="AlertZoneMatchAnchor"></a>Supported alert zone match modes.
+
+	const (
+	    AlertZoneMatchAnchor    AlertZoneMatch = "anchor"    // where the object stands (bottom center of its box)
+	    AlertZoneMatchIntersect AlertZoneMatch = "intersect" // its box touches the zone
+	    AlertZoneMatchContain   AlertZoneMatch = "contain"   // its box lies fully inside the zone
+	)
+
+<a name="AudioCodec"></a>
 ## type AudioCodec
 
 AudioCodec is a supported audio codec \(RTP/SDP format name\).
@@ -55,7 +93,6 @@ AudioCodec is a supported audio codec \(RTP/SDP format name\).
 	)
 
 <a name="AudioCodecProperties"></a>
-
 ## type AudioCodecProperties
 
 AudioCodecProperties holds audio codec properties from a stream probe.
@@ -71,8 +108,7 @@ AudioCodecProperties holds audio codec properties from a stream probe.
 	    FmtpInfo *FMTPInfo `msgpack:"fmtpInfo,omitempty" json:"fmtpInfo,omitempty"`
 	}
 
-<a name="AudioDetectionInterface"></a>
-
+<a name="AudioFFmpegCodec"></a>
 ## type AudioFFmpegCodec
 
 AudioFFmpegCodec is an FFmpeg audio codec name used for transcoding.
@@ -94,8 +130,7 @@ AudioFFmpegCodec is an FFmpeg audio codec name used for transcoding.
 	    AudioFFmpegCodecFLAC     AudioFFmpegCodec = "flac"
 	)
 
-<a name="AudioFormat"></a>
-
+<a name="AudioStreamInfo"></a>
 ## type AudioStreamInfo
 
 AudioStreamInfo is audio stream information from a probe.
@@ -112,7 +147,6 @@ AudioStreamInfo is audio stream information from a probe.
 	}
 
 <a name="BaseCamera"></a>
-
 ## type BaseCamera
 
 BaseCamera is the stored camera data structure \(database row\) without resolved video sources. See Camera for the resolved form.
@@ -161,7 +195,6 @@ BaseCamera is the stored camera data structure \(database row\) without resolved
 	}
 
 <a name="BaseCameraConfig"></a>
-
 ## type BaseCameraConfig
 
 BaseCameraConfig holds the camera configuration fields shared between creation and update operations.
@@ -181,8 +214,7 @@ BaseCameraConfig holds the camera configuration fields shared between creation a
 	    Type CameraType `msgpack:"type,omitempty" json:"type,omitempty"`
 	}
 
-<a name="BasePlugin"></a>
-
+<a name="Camera"></a>
 ## type Camera
 
 Camera is BaseCamera with its video sources resolved into streaming URLs.
@@ -194,7 +226,21 @@ Camera is BaseCamera with its video sources resolved into streaming URLs.
 	}
 
 <a name="CameraActivityMode"></a>
+## type CameraActivityMode
 
+CameraActivityMode is when the live stream runs: continuously, only during activity, or on demand.
+
+	type CameraActivityMode string
+
+<a name="CameraActivityModeAlwaysOn"></a>
+
+	const (
+	    CameraActivityModeAlwaysOn CameraActivityMode = "always-on"
+	    CameraActivityModeActivity CameraActivityMode = "activity"
+	    CameraActivityModeStandby  CameraActivityMode = "standby"
+	)
+
+<a name="CameraAspectRatio"></a>
 ## type CameraAspectRatio
 
 CameraAspectRatio is the camera aspect ratio for UI display. The constants are the built\-in presets; any custom "width:height" ratio is also valid.
@@ -212,7 +258,6 @@ CameraAspectRatio is the camera aspect ratio for UI display. The constants are t
 	)
 
 <a name="CameraConfig"></a>
-
 ## type CameraConfig
 
 CameraConfig is the full camera configuration with sources, supplied when creating or adopting a camera.
@@ -224,7 +269,6 @@ CameraConfig is the full camera configuration with sources, supplied when creati
 	}
 
 <a name="CameraConfigInputSettings"></a>
-
 ## type CameraConfigInputSettings
 
 CameraConfigInputSettings is a camera input/source definition supplied when creating or adopting a camera \(e.g. from DiscoveryProvider.OnAdoptCamera\). Unlike CameraInput, the URLs are raw source URLs the host resolves into streaming URLs.
@@ -263,7 +307,6 @@ CameraConfigInputSettings is a camera input/source definition supplied when crea
 	}
 
 <a name="CameraDetectionSettings"></a>
-
 ## type CameraDetectionSettings
 
 CameraDetectionSettings is the combined detection settings for a camera.
@@ -290,7 +333,6 @@ CameraDetectionSettings is the combined detection settings for a camera.
 	}
 
 <a name="CameraDevice"></a>
-
 ## type CameraDevice
 
 CameraDevice represents a camera assigned to this plugin. Plugins receive CameraDevice instances in ConfigureCameras and OnCameraAdded.
@@ -594,7 +636,6 @@ Type returns the camera type \(camera/doorbell\).
 Zones returns the camera's zone configurations, one list per purpose.
 
 <a name="CameraDeviceSource"></a>
-
 ## type CameraDeviceSource
 
 CameraDeviceSource is a camera source \(one of the camera's video inputs\) with snapshot, probe and URL\-generation capabilities.
@@ -697,7 +738,6 @@ Urls returns the generated stream URLs for this source.
 UseForSnapshot returns whether this source is used for snapshots.
 
 <a name="CameraExportSettings"></a>
-
 ## type CameraExportSettings
 
 CameraExportSettings decide how other apps reach a camera.
@@ -712,7 +752,6 @@ CameraExportSettings decide how other apps reach a camera.
 	}
 
 <a name="CameraFrameWorkerSettings"></a>
-
 ## type CameraFrameWorkerSettings
 
 CameraFrameWorkerSettings is frame worker \(decoder\) settings.
@@ -732,7 +771,6 @@ CameraFrameWorkerSettings is frame worker \(decoder\) settings.
 	}
 
 <a name="CameraInformation"></a>
-
 ## type CameraInformation
 
 CameraInformation is camera hardware/firmware information.
@@ -757,7 +795,6 @@ CameraInformation is camera hardware/firmware information.
 	}
 
 <a name="CameraInput"></a>
-
 ## type CameraInput
 
 CameraInput is a camera video input/source with resolved URLs.
@@ -808,7 +845,27 @@ CameraInput is a camera video input/source with resolved URLs.
 	}
 
 <a name="CameraNotificationSettings"></a>
+## type CameraNotificationSettings
 
+CameraNotificationSettings is the push notification configuration of a camera.
+
+	type CameraNotificationSettings struct {
+	    // Enabled reports whether detections on this camera send a push at all.
+	    Enabled bool `msgpack:"enabled" json:"enabled"`
+	    // Video attaches a short clip of the moment. Needs recording, uses the lowest recorded quality.
+	    Video bool `msgpack:"video" json:"video"`
+	    // Audio are the audio events that send a push. "other" covers custom audio labels.
+	    Audio []string `msgpack:"audio,omitempty" json:"audio,omitempty"`
+	    // Sensors are the sensor triggers that send a push, by sensor type.
+	    Sensors []string `msgpack:"sensors,omitempty" json:"sensors,omitempty"`
+	    // Cooldown is the minimum seconds between pushes. Critical alerts bypass it
+	    // and do not count toward it.
+	    Cooldown float64 `msgpack:"cooldown,omitempty" json:"cooldown"`
+	    // Speed decides how long a push waits for a good picture.
+	    Speed NotificationSpeed `msgpack:"speed,omitempty" json:"speed"`
+	}
+
+<a name="CameraPluginInfo"></a>
 ## type CameraPluginInfo
 
 CameraPluginInfo identifies the plugin that provides a camera \(id \+ display name\).
@@ -821,7 +878,6 @@ CameraPluginInfo identifies the plugin that provides a camera \(id \+ display na
 	}
 
 <a name="CameraPower"></a>
-
 ## type CameraPower
 
 CameraPower is the camera power source.
@@ -839,7 +895,22 @@ CameraPower is the camera power source.
 	)
 
 <a name="CameraRecordingSettings"></a>
+## type CameraRecordingSettings
 
+CameraRecordingSettings is the recording settings for a camera.
+
+	type CameraRecordingSettings struct {
+	    // Enabled reports whether recording is enabled.
+	    Enabled bool `msgpack:"enabled" json:"enabled"`
+	    // Mode is the recording mode.
+	    Mode RecordingMode `msgpack:"mode,omitempty" json:"mode"`
+	    // PreBuffer is the seconds of video kept before an event (event mode, 0 - 60).
+	    PreBuffer float64 `msgpack:"preBuffer,omitempty" json:"preBuffer"`
+	    // Sources are the stream tiers to record.
+	    Sources []RecordingSource `msgpack:"sources,omitempty" json:"sources,omitempty"`
+	}
+
+<a name="CameraRole"></a>
 ## type CameraRole
 
 CameraRole identifies the resolution tier of a camera source. Used to identify different quality streams from the same camera.
@@ -856,7 +927,6 @@ CameraRole identifies the resolution tier of a camera source. Used to identify d
 	)
 
 <a name="CameraType"></a>
-
 ## type CameraType
 
 CameraType is the camera device type.
@@ -874,7 +944,6 @@ CameraType is the camera device type.
 	)
 
 <a name="CameraUiSettings"></a>
-
 ## type CameraUiSettings
 
 CameraUiSettings is UI display settings for a camera.
@@ -895,7 +964,26 @@ CameraUiSettings is UI display settings for a camera.
 	}
 
 <a name="CameraZones"></a>
+## type CameraZones
 
+CameraZones holds everything the zone editor draws, one list per purpose.
+
+	type CameraZones struct {
+	    // PrivacyFallback decides what happens to a picture the privacy zones could not be applied to.
+	    PrivacyFallback PrivacyFallback `msgpack:"privacyFallback" json:"privacyFallback"`
+	    // Motion holds the zones where frame motion counts.
+	    Motion []MotionZone `msgpack:"motion" json:"motion"`
+	    // Object holds the zones that set which object types count where.
+	    Object []ObjectZone `msgpack:"object" json:"object"`
+	    // Privacy holds the zones where nothing is looked at.
+	    Privacy []PrivacyZone `msgpack:"privacy" json:"privacy"`
+	    // Alert holds the zones that set which object types notify from where.
+	    Alert []AlertZone `msgpack:"alert" json:"alert"`
+	    // Lines holds the lines that report objects crossing them.
+	    Lines []DetectionLine `msgpack:"lines" json:"lines"`
+	}
+
+<a name="DetectionEvent"></a>
 ## type DetectionEvent
 
 DetectionEvent is an aggregated detection event with lifecycle \(start \-\> update \-\> end\). Groups individual sensor detections into structured events.
@@ -930,7 +1018,6 @@ DetectionEvent is an aggregated detection event with lifecycle \(start \-\> upda
 	}
 
 <a name="DetectionEventData"></a>
-
 ## type DetectionEventData
 
 DetectionEventData wraps a detection event with its lifecycle type.
@@ -943,7 +1030,6 @@ DetectionEventData wraps a detection event with its lifecycle type.
 	}
 
 <a name="DetectionEventState"></a>
-
 ## type DetectionEventState
 
 DetectionEventState is the lifecycle state of a detection event.
@@ -958,7 +1044,6 @@ DetectionEventState is the lifecycle state of a detection event.
 	)
 
 <a name="DetectionEventType"></a>
-
 ## type DetectionEventType
 
 DetectionEventType is the lifecycle phase of a detection event message.
@@ -976,8 +1061,7 @@ DetectionEventType is the lifecycle phase of a detection event message.
 	    DetectionEventSegmentEnd    DetectionEventType = "segment-end"
 	)
 
-<a name="DetectionLabel"></a>
-
+<a name="DetectionLine"></a>
 ## type DetectionLine
 
 DetectionLine is a virtual tripwire for line crossing detection. The two points define grab\-handle positions; the actual crossing line is perpendicular through their midpoint.
@@ -996,7 +1080,22 @@ DetectionLine is a virtual tripwire for line crossing detection. The two points 
 	}
 
 <a name="DetectionPath"></a>
+## type DetectionPath
 
+DetectionPath holds the normalized box centers \(0\-1\) of a tracked object's first and last sighting in a segment.
+
+	type DetectionPath struct {
+	    // EnterX is the horizontal box center at the first sighting.
+	    EnterX float64 `msgpack:"enterX" json:"enterX"`
+	    // EnterY is the vertical box center at the first sighting.
+	    EnterY float64 `msgpack:"enterY" json:"enterY"`
+	    // ExitX is the horizontal box center at the last sighting.
+	    ExitX float64 `msgpack:"exitX" json:"exitX"`
+	    // ExitY is the vertical box center at the last sighting.
+	    ExitY float64 `msgpack:"exitY" json:"exitY"`
+	}
+
+<a name="FMTPInfo"></a>
 ## type FMTPInfo
 
 FMTPInfo holds format parameters \(fmtp\) from SDP.
@@ -1008,8 +1107,36 @@ FMTPInfo holds format parameters \(fmtp\) from SDP.
 	    Config string `msgpack:"config" json:"config"`
 	}
 
-<a name="FaceDetection"></a>
+<a name="FaceDetectionSettings"></a>
+## type FaceDetectionSettings
 
+FaceDetectionSettings is the face detection settings.
+
+	type FaceDetectionSettings struct {
+	    // Confidence is the minimum confidence threshold (0 - 1) for a face to count.
+	    Confidence *float64 `msgpack:"confidence,omitempty" json:"confidence,omitempty"`
+	    // MatchSensitivity is how readily a face is recognized as an enrolled
+	    // person. Named rather than numeric because the similarity a model calls a
+	    // match differs per model.
+	    MatchSensitivity *FaceMatchSensitivity `msgpack:"matchSensitivity,omitempty" json:"matchSensitivity,omitempty"`
+	}
+
+<a name="FaceMatchSensitivity"></a>
+## type FaceMatchSensitivity
+
+FaceMatchSensitivity is how readily a face counts as a known person.
+
+	type FaceMatchSensitivity string
+
+<a name="FaceMatchStrict"></a>
+
+	const (
+	    FaceMatchStrict   FaceMatchSensitivity = "strict"
+	    FaceMatchBalanced FaceMatchSensitivity = "balanced"
+	    FaceMatchRelaxed  FaceMatchSensitivity = "relaxed"
+	)
+
+<a name="FrameFormat"></a>
 ## type FrameFormat
 
 FrameFormat identifies the pixel layout of a video frame.
@@ -1026,7 +1153,6 @@ FrameFormat identifies the pixel layout of a video frame.
 	)
 
 <a name="FrameWorkerDecoderHardware"></a>
-
 ## type FrameWorkerDecoderHardware
 
 FrameWorkerDecoderHardware is the hardware backend for the detection decoder. "auto" probes the platform order, "cpu" forces software decoding.
@@ -1052,7 +1178,6 @@ FrameWorkerDecoderHardware is the hardware backend for the detection decoder. "a
 	)
 
 <a name="FrameWorkerDecoderSettings"></a>
-
 ## type FrameWorkerDecoderSettings
 
 FrameWorkerDecoderSettings is the decoder hardware selection for the frame worker.
@@ -1065,8 +1190,7 @@ FrameWorkerDecoderSettings is the decoder hardware selection for the frame worke
 	    Device string `msgpack:"device,omitempty" json:"device,omitempty"`
 	}
 
-<a name="GarageControl"></a>
-
+<a name="Go2RtcRTSPSource"></a>
 ## type Go2RtcRTSPSource
 
 Go2RtcRTSPSource contains RTSP streaming URLs from go2rtc.
@@ -1093,7 +1217,6 @@ Go2RtcRTSPSource contains RTSP streaming URLs from go2rtc.
 	}
 
 <a name="Go2RtcSnapshotSource"></a>
-
 ## type Go2RtcSnapshotSource
 
 Go2RtcSnapshotSource contains snapshot/image URLs from go2rtc.
@@ -1108,7 +1231,6 @@ Go2RtcSnapshotSource contains snapshot/image URLs from go2rtc.
 	}
 
 <a name="Go2RtcWSSource"></a>
-
 ## type Go2RtcWSSource
 
 Go2RtcWSSource contains WebSocket streaming URLs from go2rtc.
@@ -1120,8 +1242,21 @@ Go2RtcWSSource contains WebSocket streaming URLs from go2rtc.
 	    MSE string `msgpack:"mse,omitempty" json:"mse,omitempty"`
 	}
 
-<a name="HeatProperty"></a>
+<a name="LicensePlateDetectionSettings"></a>
+## type LicensePlateDetectionSettings
 
+LicensePlateDetectionSettings is the license plate detection settings.
+
+	type LicensePlateDetectionSettings struct {
+	    // Confidence is the minimum confidence threshold (0 - 1) for a plate to be found in the picture.
+	    Confidence *float64 `msgpack:"confidence,omitempty" json:"confidence,omitempty"`
+	    // OcrConfidence is the minimum text recognition confidence (0 - 1) for a plate read to count.
+	    OcrConfidence *float64 `msgpack:"ocrConfidence,omitempty" json:"ocrConfidence,omitempty"`
+	    // MinLength is the minimum plate text length, shorter reads are dropped as fragments.
+	    MinLength *int `msgpack:"minLength,omitempty" json:"minLength,omitempty"`
+	}
+
+<a name="LineDirection"></a>
 ## type LineDirection
 
 LineDirection is the line crossing direction filter.
@@ -1140,8 +1275,7 @@ LineDirection is the line crossing direction filter.
 	    LineDirectionBToA LineDirection = "b-to-a"
 	)
 
-<a name="LoadedModel"></a>
-
+<a name="MotionResolution"></a>
 ## type MotionResolution
 
 MotionResolution is the motion detection resolution setting. Higher resolution = more accurate but slower.
@@ -1156,8 +1290,56 @@ MotionResolution is the motion detection resolution setting. Higher resolution =
 	    MotionResolutionHigh   MotionResolution = "high"
 	)
 
-<a name="MotionResult"></a>
+<a name="MotionZone"></a>
+## type MotionZone
 
+MotionZone is a polygon zone that says where frame motion counts. Motion carries no labels, so a motion zone has none. No motion zone at all means motion counts everywhere.
+
+	type MotionZone struct {
+	    // Name is the zone display name.
+	    Name string `msgpack:"name" json:"name"`
+	    // Points are the polygon points (0-100 percentage coordinates).
+	    Points []Point `msgpack:"points" json:"points"`
+	    // Color is the zone display color (hex).
+	    Color string `msgpack:"color" json:"color"`
+	}
+
+<a name="NotificationSpeed"></a>
+## type NotificationSpeed
+
+NotificationSpeed decides how long a push waits for a good picture.
+
+	type NotificationSpeed = string
+
+<a name="NotificationSpeedImmediate"></a>
+
+	const (
+	    NotificationSpeedImmediate NotificationSpeed = "immediate" // send right away, with a picture only if one is ready
+	    NotificationSpeedBalanced  NotificationSpeed = "balanced"  // wait up to 2 seconds for the best picture
+	    NotificationSpeedBest      NotificationSpeed = "best"      // wait up to 4 seconds for the best picture
+	)
+
+<a name="ObjectZone"></a>
+## type ObjectZone
+
+ObjectZone is a polygon zone that says which object types count where. With at least one include object zone, an object counts only inside such a zone and only when its label is listed there.
+
+	type ObjectZone struct {
+	    // Name is the zone display name.
+	    Name string `msgpack:"name" json:"name"`
+	    // Points are the polygon points (0-100 percentage coordinates).
+	    Points []Point `msgpack:"points" json:"points"`
+	    // Type is the intersection detection type.
+	    Type ZoneType `msgpack:"type" json:"type"`
+	    // Labels are the labels that count in this zone. Besides the detection labels,
+	    // "face" and "license_plate" decide whether an object here is identified at
+	    // all, so a zone can watch a street without recognizing anyone on it.
+	    Labels []ZoneLabel `msgpack:"labels" json:"labels"`
+	    // Color is the zone display color (hex).
+	    Color string `msgpack:"color" json:"color"`
+	}
+
+<a name="PTZCapability"></a>
 ## type PTZCapability
 
 PTZCapability is an optional capability of a PTZ control.
@@ -1177,8 +1359,7 @@ PTZCapability is an optional capability of a PTZ control.
 	    PTZCapabilityVelocityControl  PTZCapability = "velocityControl"  // Camera accepts continuous-move commands via `setVelocity()`
 	)
 
-<a name="PTZControl"></a>
-
+<a name="PTZDirection"></a>
 ## type PTZDirection
 
 PTZDirection represents PTZ movement speed for continuous move commands.
@@ -1195,7 +1376,6 @@ Speeds are in normalized range \[\-1, 1\] where \-1 is maximum speed in the nega
 	}
 
 <a name="PTZPosition"></a>
-
 ## type PTZPosition
 
 PTZPosition represents an absolute PTZ position.
@@ -1209,16 +1389,74 @@ PTZPosition represents an absolute PTZ position.
 	    Zoom float64 `msgpack:"zoom" json:"zoom"`
 	}
 
-<a name="PTZProperty"></a>
+<a name="PTZRelativeMove"></a>
+## type PTZRelativeMove
 
+PTZRelativeMove represents a relative displacement for a single PTZ move.
+
+Deltas are normalized to the camera's field of view: PanDelta 1 moves the view by one full frame width, TiltDelta 1 by one full frame height. Plugins map the deltas to hardware\-specific translation spaces \(e.g. ONVIF RelativeMove\).
+
+	type PTZRelativeMove struct {
+	    // PanDelta is the horizontal move, positive moves right.
+	    PanDelta float64 `msgpack:"panDelta" json:"panDelta"`
+	    // TiltDelta is the vertical move, positive moves up.
+	    TiltDelta float64 `msgpack:"tiltDelta" json:"tiltDelta"`
+	    // ZoomDelta is the zoom change, positive zooms in.
+	    ZoomDelta float64 `msgpack:"zoomDelta" json:"zoomDelta"`
+	}
+
+<a name="PlaybackSource"></a>
+## type PlaybackSource
+
+PlaybackSource is the recorded playback quality selection: a fixed tier, or automatic tier choice from the recorded coverage.
+
+	type PlaybackSource string
+
+<a name="PlaybackSourceAuto"></a>
+
+	const (
+	    PlaybackSourceAuto PlaybackSource = "auto"
+	    PlaybackSourceHigh PlaybackSource = "high"
+	    PlaybackSourceMid  PlaybackSource = "mid"
+	    PlaybackSourceLow  PlaybackSource = "low"
+	)
+
+<a name="Point"></a>
 ## type Point
 
 Point is a zone polygon coordinate as \[x, y\] \(0\-100 percentage\).
 
 	type Point [2]float64
 
-<a name="PowerProperty"></a>
+<a name="PrivacyFallback"></a>
+## type PrivacyFallback
 
+PrivacyFallback decides what happens to a picture whose privacy zones could not be applied, for example on a pixel format we cannot write.
+
+	type PrivacyFallback = string
+
+<a name="PrivacyFallbackSend"></a>Supported privacy fallbacks.
+
+	const (
+	    PrivacyFallbackSend PrivacyFallback = "send" // ship it unmasked, the user can delete it
+	    PrivacyFallbackDrop PrivacyFallback = "drop" // no picture at all rather than an unmasked one
+	)
+
+<a name="PrivacyZone"></a>
+## type PrivacyZone
+
+PrivacyZone is a polygon zone camera.ui covers in live view, playback and its pictures. DropDetections decides whether detections inside are dropped too or whether the camera keeps watching an area it does not show.
+
+	type PrivacyZone struct {
+	    // Name is the zone display name.
+	    Name string `msgpack:"name" json:"name"`
+	    // Points are the polygon points (0-100 percentage coordinates).
+	    Points []Point `msgpack:"points" json:"points"`
+	    // DropDetections drops detections inside the zone. Default: true.
+	    DropDetections bool `msgpack:"dropDetections" json:"dropDetections"`
+	}
+
+<a name="ProbeAudioCodec"></a>
 ## type ProbeAudioCodec
 
 ProbeAudioCodec is an audio codec supported for stream probing.
@@ -1234,7 +1472,6 @@ ProbeAudioCodec is an audio codec supported for stream probing.
 	)
 
 <a name="ProbeConfig"></a>
-
 ## type ProbeConfig
 
 ProbeConfig is the configuration for stream probing.
@@ -1250,7 +1487,6 @@ ProbeConfig is the configuration for stream probing.
 	}
 
 <a name="ProbeStream"></a>
-
 ## type ProbeStream
 
 ProbeStream is the stream probe result containing SDP and track information.
@@ -1264,8 +1500,7 @@ ProbeStream is the stream probe result containing SDP and track information.
 	    Video []VideoStreamInfo `msgpack:"video,omitempty" json:"video,omitempty"`
 	}
 
-<a name="ProblemProperty"></a>
-
+<a name="PropertyChangeEvent"></a>
 ## type PropertyChangeEvent
 
 PropertyChangeEvent is emitted when a camera property changes.
@@ -1280,7 +1515,6 @@ PropertyChangeEvent is emitted when a camera property changes.
 	}
 
 <a name="PtzAutotrackSettings"></a>
-
 ## type PtzAutotrackSettings
 
 PtzAutotrackSettings is the PTZ autotracking settings: the camera follows detected objects automatically.
@@ -1321,8 +1555,7 @@ PtzAutotrackSettings is the PTZ autotracking settings: the camera follows detect
 	    ActiveHours *TimeWindow `msgpack:"activeHours,omitempty" json:"activeHours,omitempty"`
 	}
 
-<a name="PythonVersion"></a>
-
+<a name="RTSPAudioCodec"></a>
 ## type RTSPAudioCodec
 
 RTSPAudioCodec is an audio codec supported for RTSP streaming.
@@ -1338,7 +1571,6 @@ RTSPAudioCodec is an audio codec supported for RTSP streaming.
 	)
 
 <a name="RTSPUrlOptions"></a>
-
 ## type RTSPUrlOptions
 
 RTSPUrlOptions is options for generating RTSP URLs.
@@ -1359,7 +1591,42 @@ RTSPUrlOptions is options for generating RTSP URLs.
 	}
 
 <a name="RecordingMode"></a>
+## type RecordingMode
 
+RecordingMode selects how recordings are captured.
+
+	type RecordingMode string
+
+<a name="RecordingModeContinuous"></a>
+
+	const (
+	    // RecordingModeContinuous records around the clock.
+	    RecordingModeContinuous RecordingMode = "continuous"
+	    // RecordingModeEvent records only around detections, padded by the pre-buffer.
+	    RecordingModeEvent RecordingMode = "event"
+	    // RecordingModeAdhoc connects and records only while a detection event runs.
+	    RecordingModeAdhoc RecordingMode = "adhoc"
+	)
+
+<a name="RecordingSource"></a>
+## type RecordingSource
+
+RecordingSource is a stream tier to record.
+
+	type RecordingSource string
+
+<a name="RecordingSourceHigh"></a>
+
+	const (
+	    // RecordingSourceHigh is the high resolution stream.
+	    RecordingSourceHigh RecordingSource = "high"
+	    // RecordingSourceMid is the mid resolution stream.
+	    RecordingSourceMid RecordingSource = "mid"
+	    // RecordingSourceLow is the low resolution stream.
+	    RecordingSourceLow RecordingSource = "low"
+	)
+
+<a name="SnapshotInterface"></a>
 ## type SnapshotInterface
 
 SnapshotInterface is optionally implemented to provide snapshots.
@@ -1370,7 +1637,6 @@ SnapshotInterface is optionally implemented to provide snapshots.
 	}
 
 <a name="SnapshotRefreshMode"></a>
-
 ## type SnapshotRefreshMode
 
 SnapshotRefreshMode is when a camera takes a new snapshot. "interval" runs a timer, "onView" fetches for a viewer once the stored picture is older than MaxAge, "onDemand" only on an explicit request \(automations, the refresh button, the API\).
@@ -1386,7 +1652,6 @@ SnapshotRefreshMode is when a camera takes a new snapshot. "interval" runs a tim
 	)
 
 <a name="SnapshotSettings"></a>
-
 ## type SnapshotSettings
 
 SnapshotSettings is the snapshot settings for a camera.
@@ -1402,7 +1667,6 @@ SnapshotSettings is the snapshot settings for a camera.
 	}
 
 <a name="SnapshotUrlOptions"></a>
-
 ## type SnapshotUrlOptions
 
 SnapshotUrlOptions is options for generating snapshot URLs.
@@ -1422,8 +1686,7 @@ SnapshotUrlOptions is options for generating snapshot URLs.
 	    GOP bool `msgpack:"gop,omitempty" json:"gop"`
 	}
 
-<a name="StorageController"></a>
-
+<a name="StreamDirection"></a>
 ## type StreamDirection
 
 StreamDirection is the direction of a media stream \(from SDP\).
@@ -1440,7 +1703,6 @@ StreamDirection is the direction of a media stream \(from SDP\).
 	)
 
 <a name="StreamUrls"></a>
-
 ## type StreamUrls
 
 StreamUrls is the collection of all streaming URLs for a camera source.
@@ -1455,7 +1717,6 @@ StreamUrls is the collection of all streaming URLs for a camera source.
 	}
 
 <a name="StreamingInterface"></a>
-
 ## type StreamingInterface
 
 StreamingInterface is optionally implemented to provide stream URLs.
@@ -1466,7 +1727,6 @@ StreamingInterface is optionally implemented to provide stream URLs.
 	}
 
 <a name="StreamingRole"></a>
-
 ## type StreamingRole
 
 StreamingRole is the resolution role for live streaming \(excludes snapshot\).
@@ -1481,8 +1741,7 @@ StreamingRole is the resolution role for live streaming \(excludes snapshot\).
 	    StreamingRoleLowRes  StreamingRole = "low-resolution"
 	)
 
-<a name="StringFormat"></a>
-
+<a name="TalkbackInterface"></a>
 ## type TalkbackInterface
 
 TalkbackInterface is optionally implemented to serve two\-way audio apart from the video. A source that lists cui://talk next to cui:// in its Urls dials this endpoint only to talk, so the video can come straight from the camera.
@@ -1492,8 +1751,21 @@ TalkbackInterface is optionally implemented to serve two\-way audio apart from t
 	    TalkUrl(sourceID string) (string, error)
 	}
 
-<a name="TamperProperty"></a>
+<a name="TimeWindow"></a>
+## type TimeWindow
 
+TimeWindow is a daily time window, given in the timezone it was configured in.
+
+	type TimeWindow struct {
+	    // From is the start time as "HH:mm".
+	    From string `msgpack:"from" json:"from"`
+	    // To is the end time as "HH:mm". A time before From wraps around midnight.
+	    To  string `msgpack:"to" json:"to"`
+	    // Timezone is the IANA timezone the times are read in, e.g. "Europe/Berlin".
+	    Timezone string `msgpack:"timezone" json:"timezone"`
+	}
+
+<a name="VideoCodec"></a>
 ## type VideoCodec
 
 VideoCodec is a supported video codec \(RTP/SDP format name\).
@@ -1513,7 +1785,6 @@ VideoCodec is a supported video codec \(RTP/SDP format name\).
 	)
 
 <a name="VideoCodecProperties"></a>
-
 ## type VideoCodecProperties
 
 VideoCodecProperties holds video codec properties from a stream probe.
@@ -1532,7 +1803,6 @@ VideoCodecProperties holds video codec properties from a stream probe.
 	}
 
 <a name="VideoFFmpegCodec"></a>
-
 ## type VideoFFmpegCodec
 
 VideoFFmpegCodec is an FFmpeg video codec name used for transcoding.
@@ -1552,7 +1822,6 @@ VideoFFmpegCodec is an FFmpeg video codec name used for transcoding.
 	)
 
 <a name="VideoFrameData"></a>
-
 ## type VideoFrameData
 
 VideoFrameData is the video frame payload delivered to detector sensors by the backend pipeline. The backend handles capture, decoding and scaling. Detectors only process the pixel buffer.
@@ -1568,8 +1837,7 @@ VideoFrameData is the video frame payload delivered to detector sensors by the b
 	    Label     string      `msgpack:"label,omitempty" json:"label,omitempty"` // Trigger label propagated by the coordinator for secondary detectors
 	}
 
-<a name="VideoInputSpec"></a>
-
+<a name="VideoStreamInfo"></a>
 ## type VideoStreamInfo
 
 VideoStreamInfo is video stream information from a probe.
@@ -1586,7 +1854,6 @@ VideoStreamInfo is video stream information from a probe.
 	}
 
 <a name="VideoStreamingMode"></a>
-
 ## type VideoStreamingMode
 
 VideoStreamingMode is the video streaming mode for UI playback.
@@ -1608,7 +1875,13 @@ VideoStreamingMode is the video streaming mode for UI playback.
 	)
 
 <a name="ZoneLabel"></a>
+## type ZoneLabel
 
+ZoneLabel is what an object zone can list: a detection label, or an attribute that gates identification.
+
+	type ZoneLabel = string
+
+<a name="ZoneType"></a>
 ## type ZoneType
 
 ZoneType is the detection zone intersection type.

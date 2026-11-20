@@ -22,7 +22,7 @@
     "docs:preview": "npm run predocs && vitepress preview docs --port 5274",
     "format": "prettier --write 'src/' --ignore-unknown --no-error-on-unmatched-pattern",
     "install-updates": "npm i --save",
-    "lint": "eslint .",
+    "lint": "eslint --fix .",
     "lint:fix": "eslint --fix .",
     "predocs": "typedoc && node scripts/build-example-docs.mjs",
     "prepublishOnly": "npm i --package-lock-only && npm run lint:fix && npm run format && npm run build",

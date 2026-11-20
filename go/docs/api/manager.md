@@ -1,10 +1,91 @@
 # Manager
 
-System-level services injected onto `PluginAPI`: `CoreManager` for FFmpeg path / inter-plugin RPC / cloud signing, `DeviceManager` for camera lookup and async discovery, `DownloadManager` for token-protected downloads, and `NotificationManager` for publishing notifications into the host.
+System-level services injected onto `PluginAPI`: `CoreManager` for the FFmpeg path, instance details, inter-plugin calls and assistant requests, `DeviceManager` for camera lookup and async discovery, `DownloadManager` for token-protected downloads, and `NotificationManager` for publishing notifications into the host.
 
 !!! note
     The reference below is auto-generated from Go doc comments via [`gomarkdoc`](https://github.com/princjef/gomarkdoc). Re-run `scripts/gen-api-docs.sh` to refresh it.
 
+<a name="AssistantAccess"></a>
+## type AssistantAccess
+
+AssistantAccess says whether this plugin may use the assistant model and what the assigned entry can do.
+
+	type AssistantAccess struct {
+	    // Allowed is true when the admin allowed this plugin under Settings, Assistant.
+	    Allowed bool `msgpack:"allowed" json:"allowed"`
+	    // Model is the model id of the assigned entry, empty when not allowed.
+	    Model string `msgpack:"model,omitempty" json:"model,omitempty"`
+	    // Vision is the result of the picture probe for the assigned entry, nil when unknown.
+	    Vision *bool `msgpack:"vision" json:"vision"`
+	    // Language is the language the assistant answers in ("de"), the instance language unless the assistant settings pick another one. Can be empty on servers before 2.5.0.
+	    Language string `msgpack:"language,omitempty" json:"language,omitempty"`
+	}
+
+<a name="AssistantAskImage"></a>
+## type AssistantAskImage
+
+AssistantAskImage is one picture of an AssistantAskRequest.
+
+	type AssistantAskImage struct {
+	    // Data is the encoded picture.
+	    Data []byte `msgpack:"data" json:"data"`
+	    // MimeType is the media type of the picture, e.g. "image/jpeg".
+	    MimeType string `msgpack:"mimeType" json:"mimeType"`
+	}
+
+<a name="AssistantAskRequest"></a>
+## type AssistantAskRequest
+
+AssistantAskRequest is one completion request to the assistant model the admin assigned to this plugin.
+
+	type AssistantAskRequest struct {
+	    // Prompt is the user message.
+	    Prompt string `msgpack:"prompt" json:"prompt"`
+	    // System is an optional system instruction.
+	    System string `msgpack:"system,omitempty" json:"system,omitempty"`
+	    // Images are the pictures for the request, sent only when the answering model sees pictures.
+	    Images []AssistantAskImage `msgpack:"images,omitempty" json:"images,omitempty"`
+	    // OutputSchema is the JSON schema of the expected answer; the result then carries JSON.
+	    OutputSchema map[string]any `msgpack:"outputSchema,omitempty" json:"outputSchema,omitempty"`
+	    // TimeoutMs is the timeout in milliseconds, default 45 s, at most 300 s.
+	    TimeoutMs int `msgpack:"timeoutMs,omitempty" json:"timeoutMs,omitempty"`
+	    // ModelID is the id of a configured model to answer with instead of the assigned one. The plugin still needs access, an unknown id falls back to the assigned model.
+	    ModelID string `msgpack:"modelId,omitempty" json:"modelId,omitempty"`
+	}
+
+<a name="AssistantAskResult"></a>
+## type AssistantAskResult
+
+AssistantAskResult is the answer of CoreManager.AssistantAsk.
+
+	type AssistantAskResult struct {
+	    // OK reports whether the model answered, otherwise Reason and Message say why the call did not run.
+	    OK  bool `msgpack:"ok" json:"ok"`
+	    // Text is the answer text.
+	    Text string `msgpack:"text,omitempty" json:"text,omitempty"`
+	    // JSON is the parsed answer, set when OutputSchema was given.
+	    JSON any `msgpack:"json,omitempty" json:"json,omitempty"`
+	    // Usage counts the tokens the call consumed.
+	    Usage AssistantAskUsage `msgpack:"usage,omitempty" json:"usage"`
+	    // Reason says why the call did not run: not_allowed, unconfigured, timeout or error.
+	    Reason string `msgpack:"reason,omitempty" json:"reason,omitempty"`
+	    // Message describes the failure.
+	    Message string `msgpack:"message,omitempty" json:"message,omitempty"`
+	}
+
+<a name="AssistantAskUsage"></a>
+## type AssistantAskUsage
+
+AssistantAskUsage counts the tokens one ask consumed.
+
+	type AssistantAskUsage struct {
+	    // PromptTokens is the number of tokens of the request.
+	    PromptTokens int `msgpack:"promptTokens" json:"promptTokens"`
+	    // CompletionTokens is the number of tokens of the answer.
+	    CompletionTokens int `msgpack:"completionTokens" json:"completionTokens"`
+	}
+
+<a name="CoreManager"></a>
 ## type CoreManager
 
 CoreManager provides system\-level operations.
@@ -132,7 +213,6 @@ It is the escape hatch for host methods that have no typed wrapper here, which a
 OnEvent returns an Observable for core manager events \(e.g. cloud account changes, "assistantModelChanged" with pluginId and configured, "languageChanged" with language\).
 
 <a name="CoreManagerEvent"></a>
-
 ## type CoreManagerEvent
 
 CoreManagerEvent is the payload emitted by CoreManager.OnEvent. The event types are listed there.
@@ -145,7 +225,6 @@ CoreManagerEvent is the payload emitted by CoreManager.OnEvent. The event types 
 	}
 
 <a name="CreateDownloadOptions"></a>
-
 ## type CreateDownloadOptions
 
 CreateDownloadOptions specifies how to register an existing file as a downloadable artifact.
@@ -167,7 +246,6 @@ CreateDownloadOptions specifies how to register an existing file as a downloadab
 	}
 
 <a name="CreatePipeDownloadOptions"></a>
-
 ## type CreatePipeDownloadOptions
 
 CreatePipeDownloadOptions specifies a download whose bytes the plugin writes while the client receives them.
@@ -184,7 +262,6 @@ CreatePipeDownloadOptions specifies a download whose bytes the plugin writes whi
 	}
 
 <a name="CreateStreamDownloadOptions"></a>
-
 ## type CreateStreamDownloadOptions
 
 CreateStreamDownloadOptions specifies how to register a file that is still being written and served progressively.
@@ -209,8 +286,7 @@ CreateStreamDownloadOptions specifies how to register a file that is still being
 	    MarkerPath string `msgpack:"markerPath" json:"markerPath"`
 	}
 
-<a name="Detection"></a>
-
+<a name="DeviceManager"></a>
 ## type DeviceManager
 
 DeviceManager provides camera operations: push discovered cameras and get camera devices.
@@ -237,8 +313,7 @@ GetCamera retrieves a camera by ID or name. Returns nil if no matching camera ex
 
 PushDiscoveredCameras pushes discovered cameras to the backend so the user can pick them in the UI without waiting for the next discovery poll. Use it when cameras are discovered asynchronously \(e.g. after a cloud login or mDNS event\). Only available for CameraController and CameraAndSensorProvider plugins.
 
-<a name="DeviceStorage"></a>
-
+<a name="DownloadCleanup"></a>
 ## type DownloadCleanup
 
 DownloadCleanup controls when the file on disk is deleted. The registry entry always expires at TTL; this only controls the file itself.
@@ -260,7 +335,6 @@ DownloadCleanup controls when the file on disk is deleted. The registry entry al
 	)
 
 <a name="DownloadManager"></a>
-
 ## type DownloadManager
 
 DownloadManager provides token\-based file downloads.
@@ -323,7 +397,6 @@ CreateStreamDownload registers a streaming file for progressive HTTP download. T
 DeleteDownload removes a download token and optionally deletes the underlying file.
 
 <a name="DownloadToken"></a>
-
 ## type DownloadToken
 
 DownloadToken is returned after registering a download.
@@ -346,8 +419,7 @@ DownloadToken is returned after registering a download.
 	    ExpiresAt int64 `msgpack:"expiresAt" json:"expiresAt"`
 	}
 
-<a name="EventAttribute"></a>
-
+<a name="NotificationManager"></a>
 ## type NotificationManager
 
 NotificationManager publishes notifications into the host.
@@ -378,18 +450,15 @@ Example:
 	    DeepLink: "/cameras/front-door",
 	    Data:     map[string]string{"cameraId": "front-door"},
 	})
-	
 
-<a name="NotificationSpeed"></a>
-
+<a name="PipeDownloadSource"></a>
 ## type PipeDownloadSource
 
 PipeDownloadSource writes the bytes of a pipe download to w, as fast as the client reads them. ctx ends when the client is gone, a returned error fails the download.
 
 	type PipeDownloadSource func(ctx context.Context, w io.Writer) error
 
-<a name="PlaybackSource"></a>
-
+<a name="PluginCallOptions"></a>
 ## type PluginCallOptions
 
 PluginCallOptions changes how calls through a proxy from ConnectToPlugin wait for an answer.
@@ -401,8 +470,7 @@ PluginCallOptions changes how calls through a proxy from ConnectToPlugin wait fo
 	    NoRetry bool
 	}
 
-<a name="PluginCapability"></a>
-
+<a name="SensorConsumer"></a>
 ## type SensorConsumer
 
 SensorConsumer is an OPTIONAL interface plugins implement to consume other plugins' sensors. The host builds the consumable view from the plugin contract: sensors whose type is listed in \`consumes\` and that the user exposed. Only bridge plugins implement this.
@@ -422,8 +490,7 @@ SensorConsumer is an OPTIONAL interface plugins implement to consume other plugi
 	    OnSensorReleased(sensorID string) error
 	}
 
-<a name="SensorDiscoveryProvider"></a>
-
+<a name="SensorHistoryEntry"></a>
 ## type SensorHistoryEntry
 
 SensorHistoryEntry is one recorded change of one sensor property.
@@ -440,7 +507,6 @@ SensorHistoryEntry is one recorded change of one sensor property.
 	}
 
 <a name="SensorManager"></a>
-
 ## type SensorManager
 
 SensorManager is the host's view of the sensor registry. Standalone sensors are not registered here: a camera's own sensors go through CameraDevice.AddSensor, and sensors the user picks from an external inventory come in through SensorDiscoveryProvider, bound by the host.
@@ -461,5 +527,3 @@ GetSensorHistory returns what a set of sensors did during a window of time.
 It returns every recorded change between from and to, and for each property also the value it already had when the window opened, because a door that was open the whole time says as much as one that opened halfway through. Entries come back oldest first.
 
 The history is a short tail, not an archive: it is coalesced to one entry per second and capped per sensor, so a window far in the past may be gone.
-
-<a name="SensorOption"></a>

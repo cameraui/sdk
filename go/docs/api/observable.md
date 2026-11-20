@@ -5,6 +5,7 @@ Lightweight reactive primitives: `Observable`, `Subject`, `BehaviorSubject`, `Re
 !!! note
     The reference below is auto-generated from Go doc comments via [`gomarkdoc`](https://github.com/princjef/gomarkdoc). Re-run `scripts/gen-api-docs.sh` to refresh it.
 
+<a name="FirstValueFrom"></a>
 ## func FirstValueFrom
 
 	func FirstValueFrom[T any](source Subscribable[T]) (T, error)
@@ -14,10 +15,8 @@ FirstValueFrom subscribes to source and blocks until it emits, returning the fir
 Example:
 
 	event, err := sdk.FirstValueFrom(api.CoreManager.OnEvent())
-	
 
-<a name="Float64"></a>
-
+<a name="BehaviorSubject"></a>
 ## type BehaviorSubject
 
 BehaviorSubject is a Subject that remembers the latest value. New subscribers receive the current value immediately, then every following one.
@@ -61,8 +60,7 @@ Subscribe registers callback and invokes it once with the current value before a
 
 Value returns the latest emitted value without subscribing.
 
-<a name="BoundingBox"></a>
-
+<a name="Disposable"></a>
 ## type Disposable
 
 Disposable is the subscription handle returned by Subscribe. Dispose detaches the listener and runs the teardown the producer registered.
@@ -92,8 +90,7 @@ Dispose detaches the subscription and runs the teardown. Safe from any goroutine
 
 IsClosed reports whether Dispose has already run.
 
-<a name="DoorbellProperty"></a>
-
+<a name="Observable"></a>
 ## type Observable
 
 Observable is a cold producer of a push\-based value stream. The producer runs once per Subscribe call, so every subscriber gets its own independent run.
@@ -192,10 +189,8 @@ Example:
 	    log.Println(e.Type, e.Data)
 	})
 	defer sub.Dispose()
-	
 
-<a name="OccupancyProperty"></a>
-
+<a name="ReplaySubject"></a>
 ## type ReplaySubject
 
 ReplaySubject is a Subject that buffers the last bufferSize values and replays them to every new subscriber before live emissions.
@@ -225,8 +220,7 @@ Next appends value to the buffer, dropping the oldest entry once bufferSize is e
 
 Subscribe replays the buffered values in order, then registers callback for live emissions.
 
-<a name="SchemaCondition"></a>
-
+<a name="Subject"></a>
 ## type Subject
 
 Subject is a multicast value source. Next dispatches to every active subscriber synchronously, Complete releases them all and turns further Next calls into no\-ops.
@@ -278,7 +272,6 @@ Next dispatches value to every current subscriber. Subscriber callbacks run outs
 Subscribe registers callback for every following value. Dispose the returned handle to unregister.
 
 <a name="Subscribable"></a>
-
 ## type Subscribable
 
 Subscribable is any source that pushes values into a callback and returns a Disposable to stop the delivery.
@@ -286,5 +279,3 @@ Subscribable is any source that pushes values into a callback and returns a Disp
 	type Subscribable[T any] interface {
 	    Subscribe(func(T)) *Disposable
 	}
-
-<a name="SwitchControl"></a>

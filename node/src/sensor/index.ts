@@ -1,6 +1,7 @@
 export * from './audio.js';
 export * from './base.js';
 export * from './battery.js';
+export * from './binary.js';
 export * from './carbonDioxide.js';
 export * from './carbonMonoxide.js';
 export * from './classifier.js';
@@ -20,6 +21,7 @@ export * from './leak.js';
 export * from './licensePlate.js';
 export * from './light.js';
 export * from './lock.js';
+export * from './measurement.js';
 export * from './meta.js';
 export * from './motion.js';
 export * from './object.js';

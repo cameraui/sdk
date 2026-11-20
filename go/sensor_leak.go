@@ -9,38 +9,11 @@ const (
 )
 
 // LeakSensor reports water leak detection state.
-type LeakSensor struct{ BaseSensor }
+type LeakSensor struct{ BinarySensor }
 
 // NewLeakSensor creates a leak sensor with the given name and options.
 func NewLeakSensor(name string, opts ...SensorOption) *LeakSensor {
-	s := &LeakSensor{BaseSensor: NewBaseSensor(name, opts...)}
-	s.writeState(map[string]any{
-		LeakPropertyDetected: false,
-	})
+	s := &LeakSensor{}
+	s.initBinary(SensorTypeLeak, name, opts)
 	return s
-}
-
-func (s *LeakSensor) GetType() SensorType         { return SensorTypeLeak }
-func (s *LeakSensor) GetCategory() SensorCategory { return SensorCategorySensor }
-func (s *LeakSensor) ToJSON() sensorJSON          { return s.toBaseJSON(s.GetType(), s.GetCategory()) }
-
-// IsDetected reports whether a leak is detected.
-func (s *LeakSensor) IsDetected() bool {
-	v, _ := s.GetValue(LeakPropertyDetected).(bool)
-	return v
-}
-
-// SetDetected reports leak detection state (true when a water leak is
-// currently detected).
-//
-// Example:
-//
-//	leak.SetDetected(true)
-func (s *LeakSensor) SetDetected(detected bool) {
-	s.writeState(map[string]any{LeakPropertyDetected: detected})
-}
-
-// UpdateValue on a read-only sensor: external writes are ignored.
-func (s *LeakSensor) UpdateValue(property string, value any) error {
-	return nil
 }

@@ -5,6 +5,7 @@ Schema-driven configuration store rendered as UI forms by the host. `DeviceStora
 !!! note
     The reference below is auto-generated from Go doc comments via [`gomarkdoc`](https://github.com/princjef/gomarkdoc). Re-run `scripts/gen-api-docs.sh` to refresh it.
 
+<a name="ButtonColor"></a>
 ## type ButtonColor
 
 ButtonColor controls the color variant of a button\-type schema.
@@ -24,8 +25,7 @@ ButtonColor controls the color variant of a button\-type schema.
 	    ButtonColorDanger ButtonColor = "danger"
 	)
 
-<a name="Camera"></a>
-
+<a name="DeviceStorage"></a>
 ## type DeviceStorage
 
 DeviceStorage is the schema\-driven configuration store for a plugin, camera, or sensor. Define the fields the UI renders via DefineSchemas, then read/write values via GetValue / SetValue. Each plugin and camera can have its own storage instance.
@@ -164,8 +164,7 @@ SetValue sets a configuration value. A nil value resets the key to its schema de
 
 SubmitValue handles a submit\-type field click, invoking OnClick and returning its optional toast/schema response.
 
-<a name="DiscoveredCamera"></a>
-
+<a name="FormSubmitResponse"></a>
 ## type FormSubmitResponse
 
 FormSubmitResponse is returned by JsonSchema.OnClick \(Type=submit\).
@@ -181,8 +180,7 @@ Used to react to a user\-triggered submit \(e.g. "Test connection", "Pair device
 	    Open string `json:"open,omitempty" msgpack:"open,omitempty"`
 	}
 
-<a name="FrameFormat"></a>
-
+<a name="JsonSchema"></a>
 ## type JsonSchema
 
 JsonSchema represents a single configuration field rendered in the UI.
@@ -270,7 +268,6 @@ One struct covers every schema variant, with Type as the discriminator. Only the
 ToMap converts a JsonSchema to a map for RPC serialization.
 
 <a name="JsonSchemaType"></a>
-
 ## type JsonSchemaType
 
 JsonSchemaType is the field type discriminating which UI control renders the value.
@@ -298,8 +295,7 @@ JsonSchemaType is the field type discriminating which UI control renders the val
 	    JsonSchemaTypeLink JsonSchemaType = "link"
 	)
 
-<a name="LeakProperty"></a>
-
+<a name="SchemaCondition"></a>
 ## type SchemaCondition
 
 SchemaCondition controls conditional field visibility. The field is shown only when the condition evaluates to true against the current form values.
@@ -326,7 +322,6 @@ Example, show "apiKey" only when "authMode" equals "token":
 	}
 
 <a name="SchemaConditionOperator"></a>
-
 ## type SchemaConditionOperator
 
 SchemaConditionOperator defines comparison operators for SchemaCondition.
@@ -350,8 +345,7 @@ SchemaConditionOperator defines comparison operators for SchemaCondition.
 	    SchemaConditionNin SchemaConditionOperator = "nin"
 	)
 
-<a name="SecuritySystem"></a>
-
+<a name="StorageController"></a>
 ## type StorageController
 
 StorageController owns every DeviceStorage a plugin uses: the plugin\-scoped one plus a storage per adopted camera and per registered sensor. Instances are cached by scope, so repeated lookups return the same storage.
@@ -360,8 +354,7 @@ StorageController owns every DeviceStorage a plugin uses: the plugin\-scoped one
 	    // contains filtered or unexported fields
 	}
 
-<a name="StorageSchemaProvider"></a>
-
+<a name="StringFormat"></a>
 ## type StringFormat
 
 StringFormat selects a specialized UI control for a string field.
@@ -395,8 +388,7 @@ StringFormat selects a specialized UI control for a string field.
 	    StringFormatImage StringFormat = "image"
 	)
 
-<a name="Subject"></a>
-
+<a name="ToastMessage"></a>
 ## type ToastMessage
 
 ToastMessage represents a transient banner to show in the UI.
@@ -411,7 +403,6 @@ Returned from a submit handler \(JsonSchema.OnClick\) inside a FormSubmitRespons
 	}
 
 <a name="ToastType"></a>
-
 ## type ToastType
 
 ToastType is the severity of a toast notification.
@@ -430,5 +421,3 @@ ToastType is the severity of a toast notification.
 	    // ToastError shows a banner for a failed action.
 	    ToastError ToastType = "error"
 	)
-
-<a name="TrackVelocity"></a>

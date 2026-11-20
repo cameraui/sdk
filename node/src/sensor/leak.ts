@@ -1,5 +1,5 @@
-import { Sensor, SensorType, SensorCategory } from './base.js';
-import { defineSensor, SensorDomain } from './meta.js';
+import { SensorType } from './base.js';
+import { BinarySensor, defineBinarySensor } from './binary.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
@@ -25,56 +25,13 @@ export interface LeakSensorLike extends SensorLike {
 }
 
 /** Water leak detector sensor. */
-export class LeakSensor<TStorage extends object = Record<string, any>> extends Sensor<LeakSensorProperties, TStorage> {
+export class LeakSensor<TStorage extends object = Record<string, any>> extends BinarySensor<LeakSensorProperties, TStorage> {
   readonly type = SensorType.Leak;
-  readonly category = SensorCategory.Sensor;
 
   constructor(name = 'Leak Sensor', options?: SensorOptions) {
     super(name, options);
-
-    this._writeState({ [LeakProperty.Detected]: false });
   }
-
-  /** Whether a leak is detected. */
-  get detected(): boolean {
-    return this.props.detected;
-  }
-
-  /**
-   * Report leak detection state.
-   *
-   * @param value - True when a leak is currently detected.
-   *
-   * @example
-   * ```ts
-   * leak.setDetected(true);
-   * ```
-   */
-  setDetected(value: boolean): void {
-    this._writeState({ [LeakProperty.Detected]: value });
-  }
-
-  /** @internal */
-  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Registry metadata for {@link LeakSensor}. */
-export const leakMeta = defineSensor({
-  type: SensorType.Leak,
-  category: SensorCategory.Sensor,
-  assignmentKey: 'leak',
-  multiProvider: true,
-  isDetectionType: false,
-  properties: {
-    [LeakProperty.Detected]: { type: 'boolean', writable: true },
-  },
-  shortcutable: true,
-  cascadeTrigger: { property: LeakProperty.Detected, value: true, sustained: true },
-  virtual: { properties: { [LeakProperty.Detected]: false } },
-  semantics: {
-    domain: SensorDomain.Binary,
-    stateProperty: LeakProperty.Detected,
-    commandProperty: LeakProperty.Detected,
-    deviceClass: 'moisture',
-  },
-});
+export const leakMeta = defineBinarySensor(SensorType.Leak, 'leak', 'moisture');

@@ -1,5 +1,5 @@
-import { Sensor, SensorType, SensorCategory } from './base.js';
-import { defineSensor, SensorDomain } from './meta.js';
+import { SensorType } from './base.js';
+import { BinarySensor, defineBinarySensor } from './binary.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
@@ -25,56 +25,13 @@ export interface HeatSensorLike extends SensorLike {
 }
 
 /** Heat alarm sensor. */
-export class HeatSensor<TStorage extends object = Record<string, any>> extends Sensor<HeatSensorProperties, TStorage> {
+export class HeatSensor<TStorage extends object = Record<string, any>> extends BinarySensor<HeatSensorProperties, TStorage> {
   readonly type = SensorType.Heat;
-  readonly category = SensorCategory.Sensor;
 
   constructor(name = 'Heat Sensor', options?: SensorOptions) {
     super(name, options);
-
-    this._writeState({ [HeatProperty.Detected]: false });
   }
-
-  /** Whether abnormal heat is detected. */
-  get detected(): boolean {
-    return this.props.detected;
-  }
-
-  /**
-   * Report abnormal heat detection state.
-   *
-   * @param value - True when heat is currently detected.
-   *
-   * @example
-   * ```ts
-   * heat.setDetected(true);
-   * ```
-   */
-  setDetected(value: boolean): void {
-    this._writeState({ [HeatProperty.Detected]: value });
-  }
-
-  /** @internal */
-  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Registry metadata for {@link HeatSensor}. */
-export const heatMeta = defineSensor({
-  type: SensorType.Heat,
-  category: SensorCategory.Sensor,
-  assignmentKey: 'heat',
-  multiProvider: true,
-  isDetectionType: false,
-  properties: {
-    [HeatProperty.Detected]: { type: 'boolean', writable: true },
-  },
-  shortcutable: true,
-  cascadeTrigger: { property: HeatProperty.Detected, value: true, sustained: true },
-  virtual: { properties: { [HeatProperty.Detected]: false } },
-  semantics: {
-    domain: SensorDomain.Binary,
-    stateProperty: HeatProperty.Detected,
-    commandProperty: HeatProperty.Detected,
-    deviceClass: 'heat',
-  },
-});
+export const heatMeta = defineBinarySensor(SensorType.Heat, 'heat', 'heat');

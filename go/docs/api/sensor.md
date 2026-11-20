@@ -5,6 +5,14 @@ Detection sensors (motion, object, face, license-plate, audio, classifier, clip)
 !!! note
     The reference below is auto-generated from Go doc comments via [`gomarkdoc`](https://github.com/princjef/gomarkdoc). Re-run `scripts/gen-api-docs.sh` to refresh it.
 
+<a name="UpdateModelSpec"></a>
+## func UpdateModelSpec
+
+	func UpdateModelSpec(sensor Sensor)
+
+UpdateModelSpec re\-announces a detector's model spec, e.g. once its models finished loading: what a detector reports at registration is only what it knew then, models loading in the background are missing from it. sensor must be the concrete sensor value.
+
+<a name="AudioDetector"></a>
 ## type AudioDetector
 
 AudioDetector is implemented by plugins that classify audio events. The runtime resamples and buffers audio to match ModelSpec before each call.
@@ -17,7 +25,6 @@ AudioDetector is implemented by plugins that classify audio events. The runtime 
 	}
 
 <a name="AudioDetectorSensor"></a>
-
 ## type AudioDetectorSensor
 
 AudioDetectorSensor is an audio sensor that consumes audio frames from the backend pipeline. Pair with an AudioDetector implementation.
@@ -33,8 +40,7 @@ AudioDetectorSensor is an audio sensor that consumes audio frames from the backe
 
 NewAudioDetectorSensor creates an audio detector sensor with the given name and options.
 
-<a name="AudioFFmpegCodec"></a>
-
+<a name="AudioFormat"></a>
 ## type AudioFormat
 
 AudioFormat identifies the sample format of an audio buffer.
@@ -49,7 +55,6 @@ AudioFormat identifies the sample format of an audio buffer.
 	)
 
 <a name="AudioFrameData"></a>
-
 ## type AudioFrameData
 
 AudioFrameData is audio frame data delivered to audio detector sensors by the backend pipeline.
@@ -65,15 +70,25 @@ AudioFrameData is audio frame data delivered to audio detector sensors by the ba
 	}
 
 <a name="AudioInputSpec"></a>
+## type AudioInputSpec
 
+AudioInputSpec describes the expected audio input format for an audio detector model.
+
+	type AudioInputSpec struct {
+	    SampleRate      int         `msgpack:"sampleRate" json:"sampleRate"`                               // Sample rate in Hz the model expects
+	    Channels        int         `msgpack:"channels" json:"channels"`                                   // Channel count the model expects (typically 1 = mono)
+	    Format          AudioFormat `msgpack:"format" json:"format"`                                       // Sample format (pcm16 = 16-bit signed PCM, float32 = 32-bit float)
+	    SamplesPerFrame int         `msgpack:"samplesPerFrame,omitempty" json:"samplesPerFrame,omitempty"` // Number of samples per audio frame; the backend buffers audio to deliver exactly this many samples per call
+	}
+
+<a name="AudioLabel"></a>
 ## type AudioLabel
 
 AudioLabel is one of the built\-in audio labels, or any custom string emitted by an audio detector.
 
 	type AudioLabel = string
 
-<a name="AudioMetadata"></a>
-
+<a name="AudioModelSpec"></a>
 ## type AudioModelSpec
 
 AudioModelSpec describes an audio detection model.
@@ -84,7 +99,6 @@ AudioModelSpec describes an audio detection model.
 	}
 
 <a name="AudioProperty"></a>
-
 ## type AudioProperty
 
 AudioProperty is a property name of an audio sensor.
@@ -101,7 +115,6 @@ AudioProperty is a property name of an audio sensor.
 	)
 
 <a name="AudioResult"></a>
-
 ## type AudioResult
 
 AudioResult is the return value of AudioDetector.DetectAudio.
@@ -113,7 +126,6 @@ AudioResult is the return value of AudioDetector.DetectAudio.
 	}
 
 <a name="AudioSensor"></a>
-
 ## type AudioSensor
 
 AudioSensor reports audio events and decibel levels.
@@ -218,8 +230,7 @@ Example:
 
 UpdateValue on a read\-only sensor: external writes are ignored.
 
-<a name="AudioStreamInfo"></a>
-
+<a name="BaseSensor"></a>
 ## type BaseSensor
 
 BaseSensor is the base struct for all sensors. Embed this in concrete sensor types.
@@ -445,7 +456,6 @@ Example:
 Storage returns the per\-sensor storage, nil before registration.
 
 <a name="BatteryInfo"></a>
-
 ## type BatteryInfo
 
 BatteryInfo reports battery level, charging state, and low\-battery alerts.
@@ -547,7 +557,6 @@ Example:
 UpdateValue on a read\-only sensor: external writes are ignored.
 
 <a name="BatteryProperty"></a>
-
 ## type BatteryProperty
 
 BatteryProperty is a property name of a battery info sensor.
@@ -562,8 +571,64 @@ BatteryProperty is a property name of a battery info sensor.
 	    BatteryPropertyLow      BatteryProperty = "low"      // Whether the battery is critically low
 	)
 
-<a name="BehaviorSubject"></a>
+<a name="BinarySensor"></a>
+## type BinarySensor
 
+BinarySensor is the base of the sensors that report one condition as on or off, such as smoke, a leak or an open contact. The concrete sensor types embed it.
+
+	type BinarySensor struct {
+	    BaseSensor
+	    // contains filtered or unexported fields
+	}
+
+<a name="BinarySensor.GetCategory"></a>
+### func \(\*BinarySensor\) GetCategory
+
+	func (s *BinarySensor) GetCategory() SensorCategory
+
+
+
+<a name="BinarySensor.GetType"></a>
+### func \(\*BinarySensor\) GetType
+
+	func (s *BinarySensor) GetType() SensorType
+
+
+
+<a name="BinarySensor.IsDetected"></a>
+### func \(\*BinarySensor\) IsDetected
+
+	func (s *BinarySensor) IsDetected() bool
+
+IsDetected reports whether the sensor currently detects its condition.
+
+<a name="BinarySensor.SetDetected"></a>
+### func \(\*BinarySensor\) SetDetected
+
+	func (s *BinarySensor) SetDetected(detected bool)
+
+SetDetected reports whether the condition is currently detected.
+
+Example:
+
+	sensor.SetDetected(true)
+	
+
+<a name="BinarySensor.ToJSON"></a>
+### func \(\*BinarySensor\) ToJSON
+
+	func (s *BinarySensor) ToJSON() sensorJSON
+
+
+
+<a name="BinarySensor.UpdateValue"></a>
+### func \(\*BinarySensor\) UpdateValue
+
+	func (s *BinarySensor) UpdateValue(property string, value any) error
+
+UpdateValue on a read\-only sensor: external writes are ignored.
+
+<a name="BoundingBox"></a>
 ## type BoundingBox
 
 BoundingBox is the bounding box of a detection. All coordinates are normalized to 0\-1 \(fraction of frame dimensions\), so they are independent of resolution.
@@ -575,8 +640,21 @@ BoundingBox is the bounding box of a detection. All coordinates are normalized t
 	    Height float64 `msgpack:"height" json:"height"` // Height as a fraction of frame height (0-1)
 	}
 
-<a name="ButtonColor"></a>
+<a name="CarbonDioxideInfo"></a>
+## type CarbonDioxideInfo
 
+CarbonDioxideInfo reports the current CO2 concentration in ppm.
+
+	type CarbonDioxideInfo struct{ MeasurementInfo }
+
+<a name="NewCarbonDioxideInfo"></a>
+### func NewCarbonDioxideInfo
+
+	func NewCarbonDioxideInfo(name string, opts ...SensorOption) *CarbonDioxideInfo
+
+NewCarbonDioxideInfo creates a carbon dioxide info sensor with the given name and options.
+
+<a name="CarbonDioxideProperty"></a>
 ## type CarbonDioxideProperty
 
 CarbonDioxideProperty is a property name of a carbon dioxide sensor.
@@ -590,7 +668,6 @@ CarbonDioxideProperty is a property name of a carbon dioxide sensor.
 	)
 
 <a name="CarbonMonoxideProperty"></a>
-
 ## type CarbonMonoxideProperty
 
 CarbonMonoxideProperty is a property name of a carbon monoxide sensor.
@@ -604,7 +681,20 @@ CarbonMonoxideProperty is a property name of a carbon monoxide sensor.
 	)
 
 <a name="CarbonMonoxideSensor"></a>
+## type CarbonMonoxideSensor
 
+CarbonMonoxideSensor reports carbon monoxide detection state.
+
+	type CarbonMonoxideSensor struct{ BinarySensor }
+
+<a name="NewCarbonMonoxideSensor"></a>
+### func NewCarbonMonoxideSensor
+
+	func NewCarbonMonoxideSensor(name string, opts ...SensorOption) *CarbonMonoxideSensor
+
+NewCarbonMonoxideSensor creates a carbon monoxide sensor with the given name and options.
+
+<a name="ChargingState"></a>
 ## type ChargingState
 
 ChargingState defines battery charging states.
@@ -621,7 +711,6 @@ ChargingState defines battery charging states.
 	)
 
 <a name="ClassifierDetection"></a>
-
 ## type ClassifierDetection
 
 ClassifierDetection is a classifier detection result with an open attribute for classifier categories. The Attribute field of the embedded Detection holds the classifier category \(e.g. "bird", "delivery"\).
@@ -631,8 +720,7 @@ ClassifierDetection is a classifier detection result with an open attribute for 
 	    SubAttribute string `msgpack:"subAttribute" json:"subAttribute"` // Classifier sub-category (e.g. "woodpecker", "amazon")
 	}
 
-<a name="ClassifierDetectionInterface"></a>
-
+<a name="ClassifierDetector"></a>
 ## type ClassifierDetector
 
 ClassifierDetector is implemented by plugins that run image classification models against pre\-cropped trigger regions.
@@ -650,7 +738,6 @@ ClassifierDetector is implemented by plugins that run image classification model
 	}
 
 <a name="ClassifierDetectorSensor"></a>
-
 ## type ClassifierDetectorSensor
 
 ClassifierDetectorSensor is a classifier sensor that consumes video frames from the backend pipeline. Pair with a ClassifierDetector implementation.
@@ -667,7 +754,6 @@ ClassifierDetectorSensor is a classifier sensor that consumes video frames from 
 NewClassifierDetectorSensor creates a classifier detector sensor with the given name and options.
 
 <a name="ClassifierProperty"></a>
-
 ## type ClassifierProperty
 
 ClassifierProperty is a property name of a classifier sensor.
@@ -683,7 +769,6 @@ ClassifierProperty is a property name of a classifier sensor.
 	)
 
 <a name="ClassifierResult"></a>
-
 ## type ClassifierResult
 
 ClassifierResult is the return value of ClassifierDetector.DetectClassifications.
@@ -694,7 +779,6 @@ ClassifierResult is the return value of ClassifierDetector.DetectClassifications
 	}
 
 <a name="ClassifierSensor"></a>
-
 ## type ClassifierSensor
 
 ClassifierSensor reports classification results from image analysis.
@@ -785,8 +869,7 @@ Example:
 
 UpdateValue on a read\-only sensor: external writes are ignored.
 
-<a name="ClipDetectionInterface"></a>
-
+<a name="ClipDetector"></a>
 ## type ClipDetector
 
 ClipDetector is implemented by plugins that generate CLIP embeddings for downstream semantic search.
@@ -803,7 +886,6 @@ ClipDetector is implemented by plugins that generate CLIP embeddings for downstr
 	}
 
 <a name="ClipDetectorSensor"></a>
-
 ## type ClipDetectorSensor
 
 ClipDetectorSensor is a frame\-only sensor that generates CLIP embeddings from video frames. Pair with a ClipDetector implementation.
@@ -846,7 +928,6 @@ NewClipDetectorSensor creates a CLIP detector sensor with the given name and opt
 UpdateValue on a read\-only sensor: external writes are ignored.
 
 <a name="ClipEmbedding"></a>
-
 ## type ClipEmbedding
 
 ClipEmbedding is a CLIP embedding result for a detected region.
@@ -858,7 +939,6 @@ ClipEmbedding is a CLIP embedding result for a detected region.
 	}
 
 <a name="ClipResult"></a>
-
 ## type ClipResult
 
 ClipResult is the return value of ClipDetector.DetectEmbeddings.
@@ -868,8 +948,7 @@ ClipResult is the return value of ClipDetector.DetectEmbeddings.
 	    EmbeddingModel string          `msgpack:"embeddingModel" json:"embeddingModel"` // Identifier of the embedding model used to produce the vectors
 	}
 
-<a name="ClipTextEmbeddingResult"></a>
-
+<a name="ColdProperty"></a>
 ## type ColdProperty
 
 ColdProperty is a property name of a cold sensor.
@@ -883,7 +962,20 @@ ColdProperty is a property name of a cold sensor.
 	)
 
 <a name="ColdSensor"></a>
+## type ColdSensor
 
+ColdSensor reports abnormal cold detection state.
+
+	type ColdSensor struct{ BinarySensor }
+
+<a name="NewColdSensor"></a>
+### func NewColdSensor
+
+	func NewColdSensor(name string, opts ...SensorOption) *ColdSensor
+
+NewColdSensor creates a cold sensor with the given name and options.
+
+<a name="ContactProperty"></a>
 ## type ContactProperty
 
 ContactProperty is a property name of a contact sensor.
@@ -897,12 +989,11 @@ ContactProperty is a property name of a contact sensor.
 	)
 
 <a name="ContactSensor"></a>
-
 ## type ContactSensor
 
 ContactSensor reports door/window open\-close state.
 
-	type ContactSensor struct{ BaseSensor }
+	type ContactSensor struct{ BinarySensor }
 
 <a name="NewContactSensor"></a>
 ### func NewContactSensor
@@ -911,55 +1002,7 @@ ContactSensor reports door/window open\-close state.
 
 NewContactSensor creates a contact sensor with the given name and options.
 
-<a name="ContactSensor.GetCategory"></a>
-### func \(\*ContactSensor\) GetCategory
-
-	func (s *ContactSensor) GetCategory() SensorCategory
-
-
-
-<a name="ContactSensor.GetType"></a>
-### func \(\*ContactSensor\) GetType
-
-	func (s *ContactSensor) GetType() SensorType
-
-
-
-<a name="ContactSensor.IsDetected"></a>
-### func \(\*ContactSensor\) IsDetected
-
-	func (s *ContactSensor) IsDetected() bool
-
-IsDetected reports whether the contact is open \(true = open, false = closed\).
-
-<a name="ContactSensor.SetDetected"></a>
-### func \(\*ContactSensor\) SetDetected
-
-	func (s *ContactSensor) SetDetected(detected bool)
-
-SetDetected reports contact state \(true = open, false = closed\).
-
-Example:
-
-	contact.SetDetected(true)
-	
-
-<a name="ContactSensor.ToJSON"></a>
-### func \(\*ContactSensor\) ToJSON
-
-	func (s *ContactSensor) ToJSON() sensorJSON
-
-
-
-<a name="ContactSensor.UpdateValue"></a>
-### func \(\*ContactSensor\) UpdateValue
-
-	func (s *ContactSensor) UpdateValue(property string, value any) error
-
-UpdateValue on a read\-only sensor: external writes are ignored.
-
-<a name="CoreManager"></a>
-
+<a name="Detection"></a>
 ## type Detection
 
 Detection is a single detection result emitted by any detection sensor.
@@ -972,23 +1015,20 @@ Detection is a single detection result emitted by any detection sensor.
 	}
 
 <a name="DetectionAttribute"></a>
-
 ## type DetectionAttribute
 
 DetectionAttribute identifies the kind of a sub\-detection \(face, license plate, ...\).
 
 	type DetectionAttribute = string
 
-<a name="DetectionEvent"></a>
-
+<a name="DetectionLabel"></a>
 ## type DetectionLabel
 
 DetectionLabel is a label identifying a type of detection.
 
 	type DetectionLabel = string
 
-<a name="DetectionLine"></a>
-
+<a name="DoorbellProperty"></a>
 ## type DoorbellProperty
 
 DoorbellProperty is a property name of a doorbell trigger.
@@ -1002,7 +1042,6 @@ DoorbellProperty is a property name of a doorbell trigger.
 	)
 
 <a name="DoorbellTrigger"></a>
-
 ## type DoorbellTrigger
 
 DoorbellTrigger fires doorbell ring events.
@@ -1068,8 +1107,7 @@ Example:
 
 UpdateValue routes generic property writes to the semantic setters. Writing ring=false is ignored, the auto\-reset timer owns the off transition.
 
-<a name="DownloadCleanup"></a>
-
+<a name="FaceDetection"></a>
 ## type FaceDetection
 
 FaceDetection is a face detection result, extending Detection with face\-specific fields. The Attribute field of the embedded Detection is fixed to "face".
@@ -1079,8 +1117,7 @@ FaceDetection is a face detection result, extending Detection with face\-specifi
 	    Identity string `msgpack:"identity,omitempty" json:"identity,omitempty"` // Recognized identity name, if matched against known faces
 	}
 
-<a name="FaceDetectionInterface"></a>
-
+<a name="FaceDetector"></a>
 ## type FaceDetector
 
 FaceDetector is implemented by plugins that perform face detection and recognition.
@@ -1097,7 +1134,6 @@ FaceDetector is implemented by plugins that perform face detection and recogniti
 	}
 
 <a name="FaceDetectorSensor"></a>
-
 ## type FaceDetectorSensor
 
 FaceDetectorSensor is a face sensor that consumes video frames from the backend pipeline. Pair with a FaceDetector implementation.
@@ -1114,7 +1150,77 @@ FaceDetectorSensor is a face sensor that consumes video frames from the backend 
 NewFaceDetectorSensor creates a face detector sensor with the given name and options.
 
 <a name="FaceEmbedder"></a>
+## type FaceEmbedder
 
+FaceEmbedder is implemented by plugins that turn a face crop into a vector for recognition against enrolled faces.
+
+	type FaceEmbedder interface {
+	    // ModelSpec declares the expected input dimensions and trigger labels.
+	    ModelSpec() ModelSpec
+	    // EmbedFaces embeds a batch of face crops, each padded around the
+	    // detected box and scaled to ModelSpec().Input. Must return exactly one
+	    // FaceEmbeddingResult per input frame, in the same order; return an empty
+	    // Embedding for a crop the model could not use.
+	    EmbedFaces(frames []VideoFrameData) ([]FaceEmbeddingResult, error)
+	}
+
+<a name="FaceEmbedderSensor"></a>
+## type FaceEmbedderSensor
+
+FaceEmbedderSensor is a frame\-only sensor that turns face crops into vectors. Pair with a FaceEmbedder implementation.
+
+The crop comes from the face detector's box, cut from the source frame, so the sensor runs after face detection rather than on the raw scene. Vectors from different models are not comparable, which is why every result carries its embedding model.
+
+	type FaceEmbedderSensor struct{ BaseSensor }
+
+<a name="NewFaceEmbedderSensor"></a>
+### func NewFaceEmbedderSensor
+
+	func NewFaceEmbedderSensor(name string, opts ...SensorOption) *FaceEmbedderSensor
+
+NewFaceEmbedderSensor creates a face embedder sensor with the given name and options.
+
+<a name="FaceEmbedderSensor.GetCategory"></a>
+### func \(\*FaceEmbedderSensor\) GetCategory
+
+	func (s *FaceEmbedderSensor) GetCategory() SensorCategory
+
+
+
+<a name="FaceEmbedderSensor.GetType"></a>
+### func \(\*FaceEmbedderSensor\) GetType
+
+	func (s *FaceEmbedderSensor) GetType() SensorType
+
+
+
+<a name="FaceEmbedderSensor.ToJSON"></a>
+### func \(\*FaceEmbedderSensor\) ToJSON
+
+	func (s *FaceEmbedderSensor) ToJSON() sensorJSON
+
+
+
+<a name="FaceEmbedderSensor.UpdateValue"></a>
+### func \(\*FaceEmbedderSensor\) UpdateValue
+
+	func (s *FaceEmbedderSensor) UpdateValue(property string, value any) error
+
+UpdateValue on a read\-only sensor: external writes are ignored.
+
+<a name="FaceEmbeddingResult"></a>
+## type FaceEmbeddingResult
+
+FaceEmbeddingResult is the return value of FaceEmbedder.EmbedFaces.
+
+	type FaceEmbeddingResult struct {
+	    Embedding      []float64 `msgpack:"embedding" json:"embedding"`                     // Embedding vector for the face in this crop, empty when no face could be embedded
+	    EmbeddingModel string    `msgpack:"embeddingModel" json:"embeddingModel"`           // Identifier of the embedding model that produced the vector
+	    Landmarks      []Point   `msgpack:"landmarks,omitempty" json:"landmarks,omitempty"` // The five points the face was aligned on, in 0 - 1 of the input image: right eye, left eye, nose, right and left mouth corner
+	    Quality        float64   `msgpack:"quality,omitempty" json:"quality,omitempty"`     // How clearly the picture shows a face (0 - 1), also sent with an empty embedding when the face was too unclear; not sent when the landmarks were passed in
+	}
+
+<a name="FaceProperty"></a>
 ## type FaceProperty
 
 FaceProperty is a property name of a face sensor.
@@ -1130,7 +1236,6 @@ FaceProperty is a property name of a face sensor.
 	)
 
 <a name="FaceResult"></a>
-
 ## type FaceResult
 
 FaceResult is the return value of FaceDetector.DetectFaces.
@@ -1141,7 +1246,6 @@ FaceResult is the return value of FaceDetector.DetectFaces.
 	}
 
 <a name="FaceSensor"></a>
-
 ## type FaceSensor
 
 FaceSensor reports detected faces and optional identity matches.
@@ -1232,8 +1336,7 @@ Example:
 
 UpdateValue on a read\-only sensor: external writes are ignored.
 
-<a name="FormSubmitResponse"></a>
-
+<a name="GarageControl"></a>
 ## type GarageControl
 
 GarageControl is a garage door control sensor. Override SetTargetState \(by embedding GarageControl in your own type and shadowing the method\) to drive hardware and call the embedded GarageControl's SetTargetState once the hardware confirms: the base implementation updates both targetState and currentState.
@@ -1335,7 +1438,6 @@ Example:
 UpdateValue routes generic property writes to the semantic setters. Only targetState is externally writable.
 
 <a name="GarageProperty"></a>
-
 ## type GarageProperty
 
 GarageProperty is a property name of a garage control.
@@ -1351,7 +1453,6 @@ GarageProperty is a property name of a garage control.
 	)
 
 <a name="GarageState"></a>
-
 ## type GarageState
 
 GarageState defines garage door states.
@@ -1369,7 +1470,6 @@ GarageState defines garage door states.
 	)
 
 <a name="GasProperty"></a>
-
 ## type GasProperty
 
 GasProperty is a property name of a gas sensor.
@@ -1383,7 +1483,20 @@ GasProperty is a property name of a gas sensor.
 	)
 
 <a name="GasSensor"></a>
+## type GasSensor
 
+GasSensor reports gas detection state.
+
+	type GasSensor struct{ BinarySensor }
+
+<a name="NewGasSensor"></a>
+### func NewGasSensor
+
+	func NewGasSensor(name string, opts ...SensorOption) *GasSensor
+
+NewGasSensor creates a gas sensor with the given name and options.
+
+<a name="HeatProperty"></a>
 ## type HeatProperty
 
 HeatProperty is a property name of a heat sensor.
@@ -1397,12 +1510,25 @@ HeatProperty is a property name of a heat sensor.
 	)
 
 <a name="HeatSensor"></a>
+## type HeatSensor
 
+HeatSensor reports abnormal heat detection state.
+
+	type HeatSensor struct{ BinarySensor }
+
+<a name="NewHeatSensor"></a>
+### func NewHeatSensor
+
+	func NewHeatSensor(name string, opts ...SensorOption) *HeatSensor
+
+NewHeatSensor creates a heat sensor with the given name and options.
+
+<a name="HumidityInfo"></a>
 ## type HumidityInfo
 
 HumidityInfo reports current relative humidity \(0\-100%\).
 
-	type HumidityInfo struct{ BaseSensor }
+	type HumidityInfo struct{ MeasurementInfo }
 
 <a name="NewHumidityInfo"></a>
 ### func NewHumidityInfo
@@ -1411,55 +1537,7 @@ HumidityInfo reports current relative humidity \(0\-100%\).
 
 NewHumidityInfo creates a humidity info sensor with the given name and options.
 
-<a name="HumidityInfo.GetCategory"></a>
-### func \(\*HumidityInfo\) GetCategory
-
-	func (s *HumidityInfo) GetCategory() SensorCategory
-
-
-
-<a name="HumidityInfo.GetCurrent"></a>
-### func \(\*HumidityInfo\) GetCurrent
-
-	func (s *HumidityInfo) GetCurrent() float64
-
-GetCurrent returns the current relative humidity \(0\-100%\).
-
-<a name="HumidityInfo.GetType"></a>
-### func \(\*HumidityInfo\) GetType
-
-	func (s *HumidityInfo) GetType() SensorType
-
-
-
-<a name="HumidityInfo.SetCurrent"></a>
-### func \(\*HumidityInfo\) SetCurrent
-
-	func (s *HumidityInfo) SetCurrent(value float64)
-
-SetCurrent sets the current relative humidity \(clamped to \[0,100\]\).
-
-Example:
-
-	humidity.SetCurrent(63)
-	
-
-<a name="HumidityInfo.ToJSON"></a>
-### func \(\*HumidityInfo\) ToJSON
-
-	func (s *HumidityInfo) ToJSON() sensorJSON
-
-
-
-<a name="HumidityInfo.UpdateValue"></a>
-### func \(\*HumidityInfo\) UpdateValue
-
-	func (s *HumidityInfo) UpdateValue(property string, value any) error
-
-UpdateValue on a read\-only sensor: external writes are ignored.
-
 <a name="HumidityProperty"></a>
-
 ## type HumidityProperty
 
 HumidityProperty is a property name of a humidity sensor.
@@ -1473,7 +1551,20 @@ HumidityProperty is a property name of a humidity sensor.
 	)
 
 <a name="IlluminanceInfo"></a>
+## type IlluminanceInfo
 
+IlluminanceInfo reports the current light level in lux.
+
+	type IlluminanceInfo struct{ MeasurementInfo }
+
+<a name="NewIlluminanceInfo"></a>
+### func NewIlluminanceInfo
+
+	func NewIlluminanceInfo(name string, opts ...SensorOption) *IlluminanceInfo
+
+NewIlluminanceInfo creates an illuminance info sensor with the given name and options.
+
+<a name="IlluminanceProperty"></a>
 ## type IlluminanceProperty
 
 IlluminanceProperty is a property name of an illuminance sensor.
@@ -1486,8 +1577,7 @@ IlluminanceProperty is a property name of an illuminance sensor.
 	    IlluminancePropertyCurrent IlluminanceProperty = "current" // Current illuminance in lux
 	)
 
-<a name="ImageMetadata"></a>
-
+<a name="LeakProperty"></a>
 ## type LeakProperty
 
 LeakProperty is a property name of a leak sensor.
@@ -1501,12 +1591,11 @@ LeakProperty is a property name of a leak sensor.
 	)
 
 <a name="LeakSensor"></a>
-
 ## type LeakSensor
 
 LeakSensor reports water leak detection state.
 
-	type LeakSensor struct{ BaseSensor }
+	type LeakSensor struct{ BinarySensor }
 
 <a name="NewLeakSensor"></a>
 ### func NewLeakSensor
@@ -1515,55 +1604,7 @@ LeakSensor reports water leak detection state.
 
 NewLeakSensor creates a leak sensor with the given name and options.
 
-<a name="LeakSensor.GetCategory"></a>
-### func \(\*LeakSensor\) GetCategory
-
-	func (s *LeakSensor) GetCategory() SensorCategory
-
-
-
-<a name="LeakSensor.GetType"></a>
-### func \(\*LeakSensor\) GetType
-
-	func (s *LeakSensor) GetType() SensorType
-
-
-
-<a name="LeakSensor.IsDetected"></a>
-### func \(\*LeakSensor\) IsDetected
-
-	func (s *LeakSensor) IsDetected() bool
-
-IsDetected reports whether a leak is detected.
-
-<a name="LeakSensor.SetDetected"></a>
-### func \(\*LeakSensor\) SetDetected
-
-	func (s *LeakSensor) SetDetected(detected bool)
-
-SetDetected reports leak detection state \(true when a water leak is currently detected\).
-
-Example:
-
-	leak.SetDetected(true)
-	
-
-<a name="LeakSensor.ToJSON"></a>
-### func \(\*LeakSensor\) ToJSON
-
-	func (s *LeakSensor) ToJSON() sensorJSON
-
-
-
-<a name="LeakSensor.UpdateValue"></a>
-### func \(\*LeakSensor\) UpdateValue
-
-	func (s *LeakSensor) UpdateValue(property string, value any) error
-
-UpdateValue on a read\-only sensor: external writes are ignored.
-
 <a name="LicensePlateDetection"></a>
-
 ## type LicensePlateDetection
 
 LicensePlateDetection is a license plate detection result, extending Detection with OCR fields. The Attribute field of the embedded Detection is fixed to "license\_plate".
@@ -1574,8 +1615,7 @@ LicensePlateDetection is a license plate detection result, extending Detection w
 	    OcrConfidence float64 `msgpack:"ocrConfidence,omitempty" json:"ocrConfidence,omitempty"` // Average text recognition confidence (0-1), separate from the box confidence
 	}
 
-<a name="LicensePlateDetectionInterface"></a>
-
+<a name="LicensePlateDetector"></a>
 ## type LicensePlateDetector
 
 LicensePlateDetector is implemented by plugins that perform license plate detection and OCR.
@@ -1592,7 +1632,6 @@ LicensePlateDetector is implemented by plugins that perform license plate detect
 	}
 
 <a name="LicensePlateDetectorSensor"></a>
-
 ## type LicensePlateDetectorSensor
 
 LicensePlateDetectorSensor is a license plate sensor that consumes video frames from the backend pipeline. Pair with a LicensePlateDetector implementation.
@@ -1609,7 +1648,6 @@ LicensePlateDetectorSensor is a license plate sensor that consumes video frames 
 NewLicensePlateDetectorSensor creates a license plate detector sensor with the given name and options.
 
 <a name="LicensePlateProperty"></a>
-
 ## type LicensePlateProperty
 
 LicensePlateProperty is a property name of a license plate sensor.
@@ -1625,7 +1663,6 @@ LicensePlateProperty is a property name of a license plate sensor.
 	)
 
 <a name="LicensePlateResult"></a>
-
 ## type LicensePlateResult
 
 LicensePlateResult is the return value of LicensePlateDetector.DetectLicensePlates.
@@ -1636,7 +1673,6 @@ LicensePlateResult is the return value of LicensePlateDetector.DetectLicensePlat
 	}
 
 <a name="LicensePlateSensor"></a>
-
 ## type LicensePlateSensor
 
 LicensePlateSensor reports detected license plates and OCR results.
@@ -1728,7 +1764,6 @@ Example:
 UpdateValue on a read\-only sensor: external writes are ignored.
 
 <a name="LightControl"></a>
-
 ## type LightControl
 
 LightControl is a light on/off and brightness control sensor. Override SetOn / SetOff \(by embedding LightControl in your own type and shadowing the methods\) to drive your hardware, then call the embedded LightControl's methods to sync the SDK state.
@@ -1825,7 +1860,6 @@ Example:
 UpdateValue routes generic property writes to the semantic setters. Only on and brightness are externally writable.
 
 <a name="LightProperty"></a>
-
 ## type LightProperty
 
 LightProperty is a property name of a light control.
@@ -1839,8 +1873,20 @@ LightProperty is a property name of a light control.
 	    LightPropertyBrightness LightProperty = "brightness" // Brightness level (0-100)
 	)
 
-<a name="LineDirection"></a>
+<a name="LoadedModel"></a>
+## type LoadedModel
 
+LoadedModel is one model a sensor has loaded, reported for the metrics view and for debugging.
+
+	type LoadedModel struct {
+	    Name      string `msgpack:"name" json:"name"`                               // Resolved model name, after any "default" placeholder
+	    Role      string `msgpack:"role,omitempty" json:"role,omitempty"`           // What it does in a sensor that loads several: detect, embed, ocr, text
+	    Device    string `msgpack:"device,omitempty" json:"device,omitempty"`       // Where inference runs, resolved to the real device
+	    Precision string `msgpack:"precision,omitempty" json:"precision,omitempty"` // Weight precision: fp32, fp16, int8
+	    LoadMs    int    `msgpack:"loadMs,omitempty" json:"loadMs,omitempty"`       // How long loading took, in milliseconds
+	}
+
+<a name="LockControl"></a>
 ## type LockControl
 
 LockControl is a lock/unlock control sensor. Override SetTargetState \(by embedding LockControl in your own type and shadowing the method\) to drive hardware and call the embedded LockControl's SetTargetState once the hardware confirms. The base implementation updates both targetState and currentState to the new value.
@@ -1923,7 +1969,6 @@ Example:
 UpdateValue routes generic property writes to the semantic setters. Only targetState is externally writable, currentState is observed\-only.
 
 <a name="LockProperty"></a>
-
 ## type LockProperty
 
 LockProperty is a property name of a lock control.
@@ -1938,7 +1983,6 @@ LockProperty is a property name of a lock control.
 	)
 
 <a name="LockState"></a>
-
 ## type LockState
 
 LockState defines lock states.
@@ -1953,8 +1997,74 @@ LockState defines lock states.
 	    LockStateUnknown   LockState = 2 // State cannot be determined, e.g. while a motorized lock is moving
 	)
 
-<a name="Logger"></a>
+<a name="MeasurementInfo"></a>
+## type MeasurementInfo
 
+MeasurementInfo is the base of the sensors that report one reading, such as a temperature or a CO2 level. The concrete sensor types embed it and set the reading they start with and the range the quantity can have.
+
+	type MeasurementInfo struct {
+	    BaseSensor
+	    // contains filtered or unexported fields
+	}
+
+<a name="MeasurementInfo.GetCategory"></a>
+### func \(\*MeasurementInfo\) GetCategory
+
+	func (s *MeasurementInfo) GetCategory() SensorCategory
+
+
+
+<a name="MeasurementInfo.GetCurrent"></a>
+### func \(\*MeasurementInfo\) GetCurrent
+
+	func (s *MeasurementInfo) GetCurrent() float64
+
+GetCurrent returns the current reading, in the unit of the sensor type.
+
+<a name="MeasurementInfo.GetType"></a>
+### func \(\*MeasurementInfo\) GetType
+
+	func (s *MeasurementInfo) GetType() SensorType
+
+
+
+<a name="MeasurementInfo.SetCurrent"></a>
+### func \(\*MeasurementInfo\) SetCurrent
+
+	func (s *MeasurementInfo) SetCurrent(value float64)
+
+SetCurrent reports a new reading. A value outside the range of the quantity is clamped to it, NaN and infinite values are ignored.
+
+Example:
+
+	temperature.SetCurrent(21.5)
+	
+
+<a name="MeasurementInfo.ToJSON"></a>
+### func \(\*MeasurementInfo\) ToJSON
+
+	func (s *MeasurementInfo) ToJSON() sensorJSON
+
+
+
+<a name="MeasurementInfo.UpdateValue"></a>
+### func \(\*MeasurementInfo\) UpdateValue
+
+	func (s *MeasurementInfo) UpdateValue(property string, value any) error
+
+UpdateValue on a read\-only sensor: external writes are ignored.
+
+<a name="ModelRuntime"></a>
+## type ModelRuntime
+
+ModelRuntime is what a sensor runs on. Every field is optional: a plugin that reports nothing simply shows nothing.
+
+	type ModelRuntime struct {
+	    Runtime string        `msgpack:"runtime,omitempty" json:"runtime,omitempty"` // Inference framework and version
+	    Models  []LoadedModel `msgpack:"models,omitempty" json:"models,omitempty"`   // Loaded models, primary one first
+	}
+
+<a name="ModelSpec"></a>
 ## type ModelSpec
 
 ModelSpec describes a detection model with fixed output labels \(face, classifier, license plate\). It declares the input shape the backend should produce and the trigger labels that should activate this detector.
@@ -1966,8 +2076,7 @@ ModelSpec describes a detection model with fixed output labels \(face, classifie
 	    EmbeddingModel string         `msgpack:"embeddingModel,omitempty" json:"embeddingModel,omitempty"` // Embedding model identifier, required for face recognition and CLIP: embeddings are stored and matched under this id
 	}
 
-<a name="MotionDetectionInterface"></a>
-
+<a name="MotionDetector"></a>
 ## type MotionDetector
 
 MotionDetector is implemented by plugins that analyze video frames for motion. The runtime calls DetectMotion at the configured frame interval, zone\-filters the returned detections and applies them to the associated MotionSensor. Detected is re\-derived from the surviving detections, so a result with no detections reports no motion.
@@ -1978,7 +2087,6 @@ MotionDetector is implemented by plugins that analyze video frames for motion. T
 	}
 
 <a name="MotionDetectorSensor"></a>
-
 ## type MotionDetectorSensor
 
 MotionDetectorSensor is a motion sensor that consumes video frames from the backend pipeline. Pair with a MotionDetector implementation; the backend invokes the detector at the configured frame interval and forwards results to this sensor.
@@ -1995,7 +2103,6 @@ MotionDetectorSensor is a motion sensor that consumes video frames from the back
 NewMotionDetectorSensor creates a motion detector sensor with the given name and options.
 
 <a name="MotionProperty"></a>
-
 ## type MotionProperty
 
 MotionProperty is a property name of a motion sensor.
@@ -2011,8 +2118,7 @@ MotionProperty is a property name of a motion sensor.
 	    MotionPropertyLastTriggered MotionProperty = "lastTriggered" // Timestamp in milliseconds of the last detection trigger, set by the backend
 	)
 
-<a name="MotionResolution"></a>
-
+<a name="MotionResult"></a>
 ## type MotionResult
 
 MotionResult is the return value of MotionDetector.DetectMotion.
@@ -2023,7 +2129,6 @@ MotionResult is the return value of MotionDetector.DetectMotion.
 	}
 
 <a name="MotionSensor"></a>
-
 ## type MotionSensor
 
 MotionSensor reports motion state and detection results.
@@ -2118,8 +2223,7 @@ Example:
 
 UpdateValue on a read\-only sensor: external writes are ignored.
 
-<a name="MotionZone"></a>
-
+<a name="ObjectDetector"></a>
 ## type ObjectDetector
 
 ObjectDetector is implemented by plugins that detect objects in video frames. The runtime scales frames to match ModelSpec before each call.
@@ -2132,7 +2236,6 @@ ObjectDetector is implemented by plugins that detect objects in video frames. Th
 	}
 
 <a name="ObjectDetectorSensor"></a>
-
 ## type ObjectDetectorSensor
 
 ObjectDetectorSensor is an object sensor that consumes video frames from the backend pipeline. Pair with an ObjectDetector implementation. Up to three DetectObjects calls can run at once on separate goroutines, so DetectObjects must be safe for concurrent use, or the embedding type declares its own RPCConcurrency returning nil to get one call at a time.
@@ -2158,10 +2261,8 @@ RPCConcurrency returns how many calls per method the backend may run at once, ke
 Example:
 
 	func (d *MyDetector) RPCConcurrency() map[string]int { return nil }
-	
 
 <a name="ObjectMask"></a>
-
 ## type ObjectMask
 
 ObjectMask is the outline of one object: a mask laid over its box.
@@ -2174,7 +2275,6 @@ ObjectMask is the outline of one object: a mask laid over its box.
 	}
 
 <a name="ObjectModelSpec"></a>
-
 ## type ObjectModelSpec
 
 ObjectModelSpec describes an object detection model. Only declares input dimensions, the output label set is dynamic and comes from the model itself.
@@ -2185,7 +2285,6 @@ ObjectModelSpec describes an object detection model. Only declares input dimensi
 	}
 
 <a name="ObjectProperty"></a>
-
 ## type ObjectProperty
 
 ObjectProperty is a property name of an object detection sensor.
@@ -2202,7 +2301,6 @@ ObjectProperty is a property name of an object detection sensor.
 	)
 
 <a name="ObjectResult"></a>
-
 ## type ObjectResult
 
 ObjectResult is the return value of ObjectDetector.DetectObjects.
@@ -2213,7 +2311,6 @@ ObjectResult is the return value of ObjectDetector.DetectObjects.
 	}
 
 <a name="ObjectSensor"></a>
-
 ## type ObjectSensor
 
 ObjectSensor reports detected objects \(person, vehicle, animal, etc.\).
@@ -2306,8 +2403,7 @@ Example:
 
 UpdateValue on a read\-only sensor: external writes are ignored.
 
-<a name="ObjectZone"></a>
-
+<a name="OccupancyProperty"></a>
 ## type OccupancyProperty
 
 OccupancyProperty is a property name of an occupancy sensor.
@@ -2321,12 +2417,11 @@ OccupancyProperty is a property name of an occupancy sensor.
 	)
 
 <a name="OccupancySensor"></a>
-
 ## type OccupancySensor
 
 OccupancySensor reports occupancy/presence state.
 
-	type OccupancySensor struct{ BaseSensor }
+	type OccupancySensor struct{ BinarySensor }
 
 <a name="NewOccupancySensor"></a>
 ### func NewOccupancySensor
@@ -2335,55 +2430,7 @@ OccupancySensor reports occupancy/presence state.
 
 NewOccupancySensor creates an occupancy sensor with the given name and options.
 
-<a name="OccupancySensor.GetCategory"></a>
-### func \(\*OccupancySensor\) GetCategory
-
-	func (s *OccupancySensor) GetCategory() SensorCategory
-
-
-
-<a name="OccupancySensor.GetType"></a>
-### func \(\*OccupancySensor\) GetType
-
-	func (s *OccupancySensor) GetType() SensorType
-
-
-
-<a name="OccupancySensor.IsDetected"></a>
-### func \(\*OccupancySensor\) IsDetected
-
-	func (s *OccupancySensor) IsDetected() bool
-
-IsDetected reports whether occupancy is detected \(true = occupied\).
-
-<a name="OccupancySensor.SetDetected"></a>
-### func \(\*OccupancySensor\) SetDetected
-
-	func (s *OccupancySensor) SetDetected(detected bool)
-
-SetDetected reports occupancy state \(true when the area is currently occupied\).
-
-Example:
-
-	occupancy.SetDetected(true)
-	
-
-<a name="OccupancySensor.ToJSON"></a>
-### func \(\*OccupancySensor\) ToJSON
-
-	func (s *OccupancySensor) ToJSON() sensorJSON
-
-
-
-<a name="OccupancySensor.UpdateValue"></a>
-### func \(\*OccupancySensor\) UpdateValue
-
-	func (s *OccupancySensor) UpdateValue(property string, value any) error
-
-UpdateValue on a read\-only sensor: external writes are ignored.
-
-<a name="PTZCapability"></a>
-
+<a name="PTZControl"></a>
 ## type PTZControl
 
 PTZControl is a pan\-tilt\-zoom camera control sensor. Override SetPosition / SetVelocity / SetTargetPreset \(by embedding PTZControl in your own type and shadowing the methods\) to drive hardware, then call the corresponding embedded method after success to sync the SDK state. For hardware\-pushed state updates \(e.g. PTZ position change events\), call the embedded methods directly from your event handler. That bypasses any plugin override and only syncs state.
@@ -2548,8 +2595,7 @@ Example:
 
 UpdateValue routes generic property writes to the semantic setters.
 
-<a name="PTZDirection"></a>
-
+<a name="PTZProperty"></a>
 ## type PTZProperty
 
 PTZProperty is a property name of a PTZ control.
@@ -2568,8 +2614,7 @@ PTZProperty is a property name of a PTZ control.
 	    PTZPropertyHome         PTZProperty = "home"         // Move to the home position (write-only command, carries no state)
 	)
 
-<a name="PTZRelativeMove"></a>
-
+<a name="PersonEmbedder"></a>
 ## type PersonEmbedder
 
 PersonEmbedder is implemented by plugins that turn the crop of a person into a vector of their appearance.
@@ -2585,7 +2630,6 @@ PersonEmbedder is implemented by plugins that turn the crop of a person into a v
 	}
 
 <a name="PersonEmbedderSensor"></a>
-
 ## type PersonEmbedderSensor
 
 PersonEmbedderSensor is a frame\-only sensor that turns person crops into vectors of their appearance, to find the same person again when no face is visible. Pair with a PersonEmbedder implementation.
@@ -2629,8 +2673,7 @@ NewPersonEmbedderSensor creates a person embedder sensor with the given name and
 
 UpdateValue on a read\-only sensor: external writes are ignored.
 
-<a name="PersonEmbeddingInterface"></a>
-
+<a name="PersonEmbeddingResult"></a>
 ## type PersonEmbeddingResult
 
 PersonEmbeddingResult is the return value of PersonEmbedder.EmbedPersons.
@@ -2640,8 +2683,7 @@ PersonEmbeddingResult is the return value of PersonEmbedder.EmbedPersons.
 	    EmbeddingModel string    `msgpack:"embeddingModel" json:"embeddingModel"` // Identifier of the embedding model that produced the vector
 	}
 
-<a name="PipeDownloadSource"></a>
-
+<a name="PowerProperty"></a>
 ## type PowerProperty
 
 PowerProperty is a property name of a power sensor.
@@ -2655,7 +2697,20 @@ PowerProperty is a property name of a power sensor.
 	)
 
 <a name="PowerSensor"></a>
+## type PowerSensor
 
+PowerSensor reports power detection state.
+
+	type PowerSensor struct{ BinarySensor }
+
+<a name="NewPowerSensor"></a>
+### func NewPowerSensor
+
+	func NewPowerSensor(name string, opts ...SensorOption) *PowerSensor
+
+NewPowerSensor creates a power sensor with the given name and options.
+
+<a name="ProblemProperty"></a>
 ## type ProblemProperty
 
 ProblemProperty is a property name of a problem sensor.
@@ -2669,7 +2724,20 @@ ProblemProperty is a property name of a problem sensor.
 	)
 
 <a name="ProblemSensor"></a>
+## type ProblemSensor
 
+ProblemSensor reports the problem state.
+
+	type ProblemSensor struct{ BinarySensor }
+
+<a name="NewProblemSensor"></a>
+### func NewProblemSensor
+
+	func NewProblemSensor(name string, opts ...SensorOption) *ProblemSensor
+
+NewProblemSensor creates a problem sensor with the given name and options.
+
+<a name="SecuritySystem"></a>
 ## type SecuritySystem
 
 SecuritySystem is a security system arm/disarm control sensor.
@@ -2750,7 +2818,6 @@ Example:
 UpdateValue routes generic property writes to the semantic setters.
 
 <a name="SecuritySystemProperty"></a>
-
 ## type SecuritySystemProperty
 
 SecuritySystemProperty is a property name of a security system control.
@@ -2765,7 +2832,6 @@ SecuritySystemProperty is a property name of a security system control.
 	)
 
 <a name="SecuritySystemState"></a>
-
 ## type SecuritySystemState
 
 SecuritySystemState defines security system states.
@@ -2783,7 +2849,6 @@ SecuritySystemState defines security system states.
 	)
 
 <a name="SegmentationFrame"></a>
-
 ## type SegmentationFrame
 
 SegmentationFrame is a crop handed to Segmenter.SegmentObjects, with the object it was cut for.
@@ -2793,8 +2858,7 @@ SegmentationFrame is a crop handed to Segmenter.SegmentObjects, with the object 
 	    Box            BoundingBox `msgpack:"box" json:"box"` // Box of the object to outline, normalized to this crop
 	}
 
-<a name="SegmentationImage"></a>
-
+<a name="SegmentationResult"></a>
 ## type SegmentationResult
 
 SegmentationResult is the return value of Segmenter.SegmentObjects.
@@ -2804,7 +2868,6 @@ SegmentationResult is the return value of Segmenter.SegmentObjects.
 	}
 
 <a name="Segmenter"></a>
-
 ## type Segmenter
 
 Segmenter is implemented by plugins that outline an object inside a crop.
@@ -2820,7 +2883,6 @@ Segmenter is implemented by plugins that outline an object inside a crop.
 	}
 
 <a name="SegmenterSensor"></a>
-
 ## type SegmenterSensor
 
 SegmenterSensor is a frame\-only sensor that outlines an object inside a crop. Pair with a Segmenter implementation.
@@ -2865,7 +2927,6 @@ NewSegmenterSensor creates a segmenter sensor with the given name and options.
 UpdateValue on a read\-only sensor: external writes are ignored.
 
 <a name="Sensor"></a>
-
 ## type Sensor
 
 Sensor is the interface all sensors must implement.
@@ -2916,7 +2977,6 @@ State\-modifying methods \(SetOn, ReportDetections, etc.\) live on the concrete 
 	}
 
 <a name="SensorCategory"></a>
-
 ## type SensorCategory
 
 SensorCategory categorizes a sensor's role in the system. It determines how the backend treats the sensor, read\-only or controllable.
@@ -2932,8 +2992,7 @@ SensorCategory categorizes a sensor's role in the system. It determines how the 
 	    SensorCategoryInfo    SensorCategory = "info"    // Informational read-only state (battery level)
 	)
 
-<a name="SensorConsumer"></a>
-
+<a name="SensorOption"></a>
 ## type SensorOption
 
 SensorOption configures a sensor at construction time.
@@ -2962,7 +3021,20 @@ WithNativeID sets the plugin\-supplied durable identity \(e.g. an upstream devic
 WithOrigin marks the source system the sensor was imported from \(e.g. "homeassistant"\). Export bridges targeting that system skip the sensor.
 
 <a name="SensorPropertyChange"></a>
+## type SensorPropertyChange
 
+SensorPropertyChange is emitted when a sensor property value changes.
+
+	type SensorPropertyChange struct {
+	    // Property is the property name.
+	    Property string
+	    // Value is the new property value.
+	    Value any
+	    // Timestamp is when the value was set (Unix ms).
+	    Timestamp int64
+	}
+
+<a name="SensorSourceState"></a>
 ## type SensorSourceState
 
 SensorSourceState is the plugin's view of the source behind an adopted sensor. Unavailable means wait \(source unreachable, entity temporarily unavailable\), Removed means the source reported the entity gone while it was reachable. Neither deletes the sensor: an adopted sensor is deleted by the user only.
@@ -2978,7 +3050,6 @@ SensorSourceState is the plugin's view of the source behind an adopted sensor. U
 	)
 
 <a name="SensorTriggerSettings"></a>
-
 ## type SensorTriggerSettings
 
 SensorTriggerSettings is the sensor trigger settings \(contact, doorbell, switch, light, etc.\).
@@ -2991,7 +3062,6 @@ SensorTriggerSettings is the sensor trigger settings \(contact, doorbell, switch
 	}
 
 <a name="SensorType"></a>
-
 ## type SensorType
 
 SensorType identifies the kind of sensor. "Sensor" is camera.ui's umbrella term for the smallest smart\-home unit. It covers measuring devices and controllable ones alike.
@@ -3039,8 +3109,7 @@ SensorType identifies the kind of sensor. "Sensor" is camera.ui's umbrella term 
 	    SensorTypeBattery        SensorType = "battery"        // Battery level and charging state
 	)
 
-<a name="Severity"></a>
-
+<a name="SirenControl"></a>
 ## type SirenControl
 
 SirenControl is a siren on/off and volume control sensor. Override SetActive / SetInactive \(by embedding SirenControl in your own type and shadowing the methods\) to drive your hardware, then call the embedded SirenControl's methods to sync the SDK state. For hardware\-pushed updates, call the embedded methods directly from your event handler. That bypasses any plugin override and only syncs state.
@@ -3133,7 +3202,6 @@ Example:
 UpdateValue routes generic property writes to the semantic setters.
 
 <a name="SirenProperty"></a>
-
 ## type SirenProperty
 
 SirenProperty is a property name of a siren control.
@@ -3148,7 +3216,6 @@ SirenProperty is a property name of a siren control.
 	)
 
 <a name="SmokeProperty"></a>
-
 ## type SmokeProperty
 
 SmokeProperty is a property name of a smoke sensor.
@@ -3162,12 +3229,11 @@ SmokeProperty is a property name of a smoke sensor.
 	)
 
 <a name="SmokeSensor"></a>
-
 ## type SmokeSensor
 
 SmokeSensor reports smoke detection state.
 
-	type SmokeSensor struct{ BaseSensor }
+	type SmokeSensor struct{ BinarySensor }
 
 <a name="NewSmokeSensor"></a>
 ### func NewSmokeSensor
@@ -3176,55 +3242,7 @@ SmokeSensor reports smoke detection state.
 
 NewSmokeSensor creates a smoke sensor with the given name and options.
 
-<a name="SmokeSensor.GetCategory"></a>
-### func \(\*SmokeSensor\) GetCategory
-
-	func (s *SmokeSensor) GetCategory() SensorCategory
-
-
-
-<a name="SmokeSensor.GetType"></a>
-### func \(\*SmokeSensor\) GetType
-
-	func (s *SmokeSensor) GetType() SensorType
-
-
-
-<a name="SmokeSensor.IsDetected"></a>
-### func \(\*SmokeSensor\) IsDetected
-
-	func (s *SmokeSensor) IsDetected() bool
-
-IsDetected reports whether smoke is detected.
-
-<a name="SmokeSensor.SetDetected"></a>
-### func \(\*SmokeSensor\) SetDetected
-
-	func (s *SmokeSensor) SetDetected(detected bool)
-
-SetDetected reports the smoke detection state.
-
-Example:
-
-	smoke.SetDetected(true)
-	
-
-<a name="SmokeSensor.ToJSON"></a>
-### func \(\*SmokeSensor\) ToJSON
-
-	func (s *SmokeSensor) ToJSON() sensorJSON
-
-
-
-<a name="SmokeSensor.UpdateValue"></a>
-### func \(\*SmokeSensor\) UpdateValue
-
-	func (s *SmokeSensor) UpdateValue(property string, value any) error
-
-UpdateValue on a read\-only sensor: external writes are ignored.
-
-<a name="SnapshotInterface"></a>
-
+<a name="SwitchControl"></a>
 ## type SwitchControl
 
 SwitchControl is a generic on/off switch control sensor. Override SetOn / SetOff \(by embedding SwitchControl in your own type and shadowing the methods\) to drive hardware, then call the embedded SwitchControl's methods to sync the SDK state. For hardware\-pushed updates, call the embedded methods directly from your event handler. That bypasses any plugin override and only syncs state.
@@ -3298,7 +3316,6 @@ Example:
 UpdateValue routes generic property writes to the semantic setters.
 
 <a name="SwitchProperty"></a>
-
 ## type SwitchProperty
 
 SwitchProperty is a property name of a switch control.
@@ -3311,8 +3328,7 @@ SwitchProperty is a property name of a switch control.
 	    SwitchPropertyOn SwitchProperty = "on" // Whether the switch is on
 	)
 
-<a name="TalkbackInterface"></a>
-
+<a name="TamperProperty"></a>
 ## type TamperProperty
 
 TamperProperty is a property name of a tamper sensor.
@@ -3326,12 +3342,25 @@ TamperProperty is a property name of a tamper sensor.
 	)
 
 <a name="TamperSensor"></a>
+## type TamperSensor
 
+TamperSensor reports tampering detection state.
+
+	type TamperSensor struct{ BinarySensor }
+
+<a name="NewTamperSensor"></a>
+### func NewTamperSensor
+
+	func NewTamperSensor(name string, opts ...SensorOption) *TamperSensor
+
+NewTamperSensor creates a tamper sensor with the given name and options.
+
+<a name="TemperatureInfo"></a>
 ## type TemperatureInfo
 
 TemperatureInfo reports the current temperature in degrees Celsius.
 
-	type TemperatureInfo struct{ BaseSensor }
+	type TemperatureInfo struct{ MeasurementInfo }
 
 <a name="NewTemperatureInfo"></a>
 ### func NewTemperatureInfo
@@ -3340,55 +3369,7 @@ TemperatureInfo reports the current temperature in degrees Celsius.
 
 NewTemperatureInfo creates a temperature info sensor with the given name and options.
 
-<a name="TemperatureInfo.GetCategory"></a>
-### func \(\*TemperatureInfo\) GetCategory
-
-	func (s *TemperatureInfo) GetCategory() SensorCategory
-
-
-
-<a name="TemperatureInfo.GetCurrent"></a>
-### func \(\*TemperatureInfo\) GetCurrent
-
-	func (s *TemperatureInfo) GetCurrent() float64
-
-GetCurrent returns the current temperature in degrees Celsius.
-
-<a name="TemperatureInfo.GetType"></a>
-### func \(\*TemperatureInfo\) GetType
-
-	func (s *TemperatureInfo) GetType() SensorType
-
-
-
-<a name="TemperatureInfo.SetCurrent"></a>
-### func \(\*TemperatureInfo\) SetCurrent
-
-	func (s *TemperatureInfo) SetCurrent(value float64)
-
-SetCurrent reports a new temperature reading \(clamped to \[\-270,100\]\).
-
-Example:
-
-	temperature.SetCurrent(21.5)
-	
-
-<a name="TemperatureInfo.ToJSON"></a>
-### func \(\*TemperatureInfo\) ToJSON
-
-	func (s *TemperatureInfo) ToJSON() sensorJSON
-
-
-
-<a name="TemperatureInfo.UpdateValue"></a>
-### func \(\*TemperatureInfo\) UpdateValue
-
-	func (s *TemperatureInfo) UpdateValue(property string, value any) error
-
-UpdateValue on a read\-only sensor: external writes are ignored.
-
 <a name="TemperatureProperty"></a>
-
 ## type TemperatureProperty
 
 TemperatureProperty is a property name of a temperature sensor.
@@ -3401,8 +3382,7 @@ TemperatureProperty is a property name of a temperature sensor.
 	    TemperaturePropertyCurrent TemperatureProperty = "current" // Current temperature in degrees Celsius
 	)
 
-<a name="TimeWindow"></a>
-
+<a name="TrackVelocity"></a>
 ## type TrackVelocity
 
 TrackVelocity is the signed centroid velocity in normalized units per second. Prefer it over deriving velocity from frame\-to\-frame position deltas.
@@ -3415,7 +3395,6 @@ TrackVelocity is the signed centroid velocity in normalized units per second. Pr
 	}
 
 <a name="TrackedDetection"></a>
-
 ## type TrackedDetection
 
 TrackedDetection extends Detection with tracking metadata \(stable IDs, velocity\). Tracking fields are omitempty: plugins return plain Detection and the server\-side tracker fills these in.
@@ -3431,7 +3410,6 @@ TrackedDetection extends Detection with tracking metadata \(stable IDs, velocity
 	}
 
 <a name="VibrationProperty"></a>
-
 ## type VibrationProperty
 
 VibrationProperty is a property name of a vibration sensor.
@@ -3445,3 +3423,26 @@ VibrationProperty is a property name of a vibration sensor.
 	)
 
 <a name="VibrationSensor"></a>
+## type VibrationSensor
+
+VibrationSensor reports vibration detection state.
+
+	type VibrationSensor struct{ BinarySensor }
+
+<a name="NewVibrationSensor"></a>
+### func NewVibrationSensor
+
+	func NewVibrationSensor(name string, opts ...SensorOption) *VibrationSensor
+
+NewVibrationSensor creates a vibration sensor with the given name and options.
+
+<a name="VideoInputSpec"></a>
+## type VideoInputSpec
+
+VideoInputSpec describes the expected video input dimensions and pixel format for a detector model.
+
+	type VideoInputSpec struct {
+	    Width  int         `msgpack:"width" json:"width"`   // Expected frame width in pixels
+	    Height int         `msgpack:"height" json:"height"` // Expected frame height in pixels
+	    Format FrameFormat `msgpack:"format" json:"format"` // Pixel format: rgb = 3 bytes/pixel, gray = 1 byte/pixel, nv12 = YUV semi-planar
+	}

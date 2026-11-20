@@ -82,8 +82,15 @@ class LightControl(Sensor[LightControlProperties, TStorage, LightCapability], Ge
 
     _requires_frames = False
 
-    def __init__(self, name: str = "Light", *, native_id: str | None = None) -> None:
-        super().__init__(name, native_id=native_id)
+    def __init__(
+        self,
+        name: str = "Light",
+        *,
+        native_id: str | None = None,
+        origin: str | None = None,
+        address: str | None = None,
+    ) -> None:
+        super().__init__(name, native_id=native_id, origin=origin, address=address)
         self._write_state(
             {
                 LightProperty.On.value: False,

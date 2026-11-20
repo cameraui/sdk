@@ -77,31 +77,27 @@ Shared utility types: the `Logger` interface every plugin and camera exposes, an
 	var ObjectDetectionLabels = []string{"person", "vehicle", "animal"}
 
 <a name="Bool"></a>
-
 ## func Bool
 
 	func Bool(v bool) *bool
 
 Bool returns a pointer to v, for the optional pointer fields of JsonSchema \(e.g. Store: sdk.Bool\(true\)\).
 
-<a name="BuildSnapshotUrl"></a>
-
+<a name="Float64"></a>
 ## func Float64
 
 	func Float64(v float64) *float64
 
 Float64 returns a pointer to v, for the optional pointer fields of JsonSchema \(e.g. Minimum: sdk.Float64\(0.5\)\).
 
-<a name="GetContractValidationErrors"></a>
-
+<a name="Int"></a>
 ## func Int
 
 	func Int(v int) *int
 
 Int returns a pointer to v, for the optional pointer fields of JsonSchema \(e.g. MinLength: sdk.Int\(5\)\).
 
-<a name="IsHub"></a>
-
+<a name="Logger"></a>
 ## type Logger
 
 Logger writes structured log entries to stdout, where the host picks them up and routes them to its own sinks. Debug and Trace are dropped unless the matching level is enabled for the plugin.
@@ -172,5 +168,3 @@ Trace writes a fine\-grained diagnostic entry, dropped unless trace logging is e
 	func (l *Logger) Warn(args ...any)
 
 Warn writes an entry for a problem that does not stop execution.
-
-<a name="ModelRuntime"></a>

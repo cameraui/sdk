@@ -7,7 +7,8 @@ from typing import Any, Generic, Literal, Protocol, overload, runtime_checkable
 from typing_extensions import TypedDict, TypeVar
 
 from ..observable import Observable
-from .base import Sensor, SensorCategory, SensorLike, SensorType
+from .base import SensorLike, SensorType
+from .measurement import MeasurementInfo
 
 
 class HumidityProperty(StrEnum):
@@ -52,40 +53,23 @@ class HumidityInfoLike(SensorLike, Protocol):
     def getValue(self, property: str) -> object | None: ...
 
 
-class HumidityInfo(Sensor[HumidityInfoProperties, TStorage, str], Generic[TStorage]):
+class HumidityInfo(MeasurementInfo[HumidityInfoProperties, TStorage], Generic[TStorage]):
     """Humidity info sensor. Reports current relative humidity in %."""
 
-    _requires_frames = False
+    _initial = 50.0
+    _min = 0.0
+    _max = 100.0
 
-    def __init__(self, name: str = "Humidity", *, native_id: str | None = None) -> None:
-        super().__init__(name, native_id=native_id)
-        self._write_state({HumidityProperty.Current.value: 50.0})
+    def __init__(
+        self,
+        name: str = "Humidity",
+        *,
+        native_id: str | None = None,
+        origin: str | None = None,
+        address: str | None = None,
+    ) -> None:
+        super().__init__(name, native_id=native_id, origin=origin, address=address)
 
     @property
     def type(self) -> SensorType:
         return SensorType.Humidity
-
-    @property
-    def category(self) -> SensorCategory:
-        return SensorCategory.Info
-
-    @property
-    def current(self) -> float:
-        """Current relative humidity (0-100%)."""
-        return float(self.props.current or 0.0)
-
-    def setCurrent(self, value: float) -> None:
-        """Report a new humidity reading. Clamped to [0, 100] %.
-
-        Args:
-            value: Relative humidity percentage in the range 0-100.
-
-        Example:
-            ```python
-            humidity.setCurrent(63)
-            ```
-        """
-        self._write_state({HumidityProperty.Current.value: max(0.0, min(100.0, value))})
-
-    async def updateValue(self, property: str, value: Any) -> None:
-        """Read-only sensor: external writes are ignored."""

@@ -7,7 +7,8 @@ from typing import Any, Generic, Literal, Protocol, overload, runtime_checkable
 from typing_extensions import TypedDict, TypeVar
 
 from ..observable import Observable
-from .base import Sensor, SensorCategory, SensorLike, SensorType
+from .base import SensorLike, SensorType
+from .binary import BinarySensor
 
 
 class OccupancyProperty(StrEnum):
@@ -52,40 +53,19 @@ class OccupancySensorLike(SensorLike, Protocol):
     def getValue(self, property: str) -> object | None: ...
 
 
-class OccupancySensor(Sensor[OccupancySensorProperties, TStorage, str], Generic[TStorage]):
+class OccupancySensor(BinarySensor[OccupancySensorProperties, TStorage], Generic[TStorage]):
     """Occupancy sensor for detecting presence in a room or area."""
 
-    _requires_frames = False
-
-    def __init__(self, name: str = "Occupancy Sensor", *, native_id: str | None = None) -> None:
-        super().__init__(name, native_id=native_id)
-        self._write_state({OccupancyProperty.Detected.value: False})
+    def __init__(
+        self,
+        name: str = "Occupancy Sensor",
+        *,
+        native_id: str | None = None,
+        origin: str | None = None,
+        address: str | None = None,
+    ) -> None:
+        super().__init__(name, native_id=native_id, origin=origin, address=address)
 
     @property
     def type(self) -> SensorType:
         return SensorType.Occupancy
-
-    @property
-    def category(self) -> SensorCategory:
-        return SensorCategory.Sensor
-
-    @property
-    def detected(self) -> bool:
-        """Whether occupancy is detected (true = occupied)."""
-        return bool(self.props.detected)
-
-    def setDetected(self, value: bool) -> None:
-        """Report occupancy state.
-
-        Args:
-            value: True when the area is currently occupied.
-
-        Example:
-            ```python
-            occupancy.setDetected(True)
-            ```
-        """
-        self._write_state({OccupancyProperty.Detected.value: value})
-
-    async def updateValue(self, property: str, value: Any) -> None:
-        """Read-only sensor: external writes are ignored."""

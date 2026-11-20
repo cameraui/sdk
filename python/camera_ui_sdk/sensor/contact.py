@@ -7,7 +7,8 @@ from typing import Any, Generic, Literal, Protocol, overload, runtime_checkable
 from typing_extensions import TypedDict, TypeVar
 
 from ..observable import Observable
-from .base import Sensor, SensorCategory, SensorLike, SensorType
+from .base import SensorLike, SensorType
+from .binary import BinarySensor
 
 
 class ContactProperty(StrEnum):
@@ -52,40 +53,19 @@ class ContactSensorLike(SensorLike, Protocol):
     def getValue(self, property: str) -> object | None: ...
 
 
-class ContactSensor(Sensor[ContactSensorProperties, TStorage, str], Generic[TStorage]):
+class ContactSensor(BinarySensor[ContactSensorProperties, TStorage], Generic[TStorage]):
     """Contact sensor for door/window open-close state."""
 
-    _requires_frames = False
-
-    def __init__(self, name: str = "Contact Sensor", *, native_id: str | None = None) -> None:
-        super().__init__(name, native_id=native_id)
-        self._write_state({ContactProperty.Detected.value: False})
+    def __init__(
+        self,
+        name: str = "Contact Sensor",
+        *,
+        native_id: str | None = None,
+        origin: str | None = None,
+        address: str | None = None,
+    ) -> None:
+        super().__init__(name, native_id=native_id, origin=origin, address=address)
 
     @property
     def type(self) -> SensorType:
         return SensorType.Contact
-
-    @property
-    def category(self) -> SensorCategory:
-        return SensorCategory.Sensor
-
-    @property
-    def detected(self) -> bool:
-        """Whether the contact is open (true = open, false = closed)."""
-        return bool(self.props.detected)
-
-    def setDetected(self, value: bool) -> None:
-        """Report contact state (True = open, False = closed).
-
-        Args:
-            value: True when the contact is open, False when closed.
-
-        Example:
-            ```python
-            contact.setDetected(True)
-            ```
-        """
-        self._write_state({ContactProperty.Detected.value: value})
-
-    async def updateValue(self, property: str, value: Any) -> None:
-        """Read-only sensor: external writes are ignored."""

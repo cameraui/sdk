@@ -1,5 +1,5 @@
-import { Sensor, SensorType, SensorCategory } from './base.js';
-import { defineSensor, SensorDomain } from './meta.js';
+import { SensorType } from './base.js';
+import { defineMeasurement, MeasurementInfo } from './measurement.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
@@ -25,56 +25,19 @@ export interface HumidityInfoLike extends SensorLike {
 }
 
 /** Humidity info sensor. Reports current relative humidity in %. */
-export class HumidityInfo<TStorage extends object = Record<string, any>> extends Sensor<HumidityInfoProperties, TStorage> {
+export class HumidityInfo<TStorage extends object = Record<string, any>> extends MeasurementInfo<HumidityInfoProperties, TStorage> {
   readonly type = SensorType.Humidity;
-  readonly category = SensorCategory.Info;
 
   constructor(name = 'Humidity', options?: SensorOptions) {
-    super(name, options);
-
-    this._writeState({ [HumidityProperty.Current]: 50 });
+    super(name, humidityMeta, options);
   }
-
-  /** Current relative humidity (0-100%). */
-  get current(): number {
-    return this.props.current;
-  }
-
-  /**
-   * Report a new humidity reading. Clamped to [0, 100] %.
-   *
-   * @param value - Relative humidity percentage in the range 0-100.
-   *
-   * @example
-   * ```ts
-   * humidity.setCurrent(63);
-   * ```
-   */
-  setCurrent(value: number): void {
-    this._writeState({ [HumidityProperty.Current]: Math.max(0, Math.min(100, value)) });
-  }
-
-  /** @internal */
-  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Registry metadata for {@link HumidityInfo}. */
-export const humidityMeta = defineSensor({
-  type: SensorType.Humidity,
-  category: SensorCategory.Info,
-  assignmentKey: 'humidity',
-  multiProvider: true,
-  isDetectionType: false,
-  properties: {
-    [HumidityProperty.Current]: { type: 'number', min: 0, max: 100, unit: '%', writable: true },
-  },
-  shortcutable: true,
-  virtual: { properties: { [HumidityProperty.Current]: 50 } },
-  semantics: {
-    domain: SensorDomain.Measurement,
-    stateProperty: HumidityProperty.Current,
-    commandProperty: HumidityProperty.Current,
-    deviceClass: 'humidity',
-    unit: '%',
-  },
+export const humidityMeta = defineMeasurement(SensorType.Humidity, 'humidity', {
+  unit: '%',
+  deviceClass: 'humidity',
+  initial: 50,
+  min: 0,
+  max: 100,
 });

@@ -1,5 +1,5 @@
-import { Sensor, SensorType, SensorCategory } from './base.js';
-import { defineSensor, SensorDomain } from './meta.js';
+import { SensorType } from './base.js';
+import { BinarySensor, defineBinarySensor } from './binary.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
@@ -25,56 +25,13 @@ export interface SmokeSensorLike extends SensorLike {
 }
 
 /** Smoke detector sensor. */
-export class SmokeSensor<TStorage extends object = Record<string, any>> extends Sensor<SmokeSensorProperties, TStorage> {
+export class SmokeSensor<TStorage extends object = Record<string, any>> extends BinarySensor<SmokeSensorProperties, TStorage> {
   readonly type = SensorType.Smoke;
-  readonly category = SensorCategory.Sensor;
 
   constructor(name = 'Smoke Sensor', options?: SensorOptions) {
     super(name, options);
-
-    this._writeState({ [SmokeProperty.Detected]: false });
   }
-
-  /** Whether smoke is detected. */
-  get detected(): boolean {
-    return this.props.detected;
-  }
-
-  /**
-   * Report smoke detection state.
-   *
-   * @param value - True when smoke is currently detected.
-   *
-   * @example
-   * ```ts
-   * smoke.setDetected(true);
-   * ```
-   */
-  setDetected(value: boolean): void {
-    this._writeState({ [SmokeProperty.Detected]: value });
-  }
-
-  /** @internal */
-  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Registry metadata for {@link SmokeSensor}. */
-export const smokeMeta = defineSensor({
-  type: SensorType.Smoke,
-  category: SensorCategory.Sensor,
-  assignmentKey: 'smoke',
-  multiProvider: true,
-  isDetectionType: false,
-  properties: {
-    [SmokeProperty.Detected]: { type: 'boolean', writable: true },
-  },
-  shortcutable: true,
-  cascadeTrigger: { property: SmokeProperty.Detected, value: true, sustained: true },
-  virtual: { properties: { [SmokeProperty.Detected]: false } },
-  semantics: {
-    domain: SensorDomain.Binary,
-    stateProperty: SmokeProperty.Detected,
-    commandProperty: SmokeProperty.Detected,
-    deviceClass: 'smoke',
-  },
-});
+export const smokeMeta = defineBinarySensor(SensorType.Smoke, 'smoke', 'smoke');
