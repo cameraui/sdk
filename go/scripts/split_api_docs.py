@@ -114,6 +114,7 @@ BUCKETS: dict[str, str] = {
     "SnapshotSettings": "camera",
     "SnapshotInterface": "camera",
     "StreamingInterface": "camera",
+    "TalkbackInterface": "camera",
     "StreamingRole": "camera",
     "VideoStreamingMode": "camera",
     "StreamUrls": "camera",

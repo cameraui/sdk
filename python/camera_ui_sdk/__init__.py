@@ -74,6 +74,7 @@ from .camera import (
     StreamingInterface,
     StreamingRole,
     StreamUrls,
+    TalkbackInterface,
     VideoCodec,
     VideoCodecProperties,
     VideoFFmpegCodec,
@@ -784,6 +785,7 @@ __all__ = [
     # Camera Interfaces
     "StreamingInterface",
     "SnapshotInterface",
+    "TalkbackInterface",
     "CameraImplementation",
     # Storage
     "PluginConfig",

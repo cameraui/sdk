@@ -446,5 +446,27 @@ class SnapshotInterface(Protocol):
         ...
 
 
-CameraImplementation: TypeAlias = StreamingInterface | SnapshotInterface
-"""Value accepted by CameraDevice.implement: streaming, snapshot, or both."""
+@runtime_checkable
+class TalkbackInterface(Protocol):
+    """
+    Optional implementation that serves two-way audio apart from the video.
+
+    A source that lists ``cui://talk`` next to ``cui://`` in its ``urls`` dials this endpoint only to talk,
+    so the video can come straight from the camera.
+    """
+
+    async def talkUrl(self, source_id: str) -> str:
+        """
+        Get the URL of an RTSP endpoint that offers only the talkback audio of a source.
+
+        Args:
+            source_id: The ID of the source.
+
+        Returns:
+            The talkback URL (rtsp://).
+        """
+        ...
+
+
+CameraImplementation: TypeAlias = StreamingInterface | SnapshotInterface | TalkbackInterface
+"""Value accepted by CameraDevice.implement: streaming, snapshot, or both, each optionally with talkback."""

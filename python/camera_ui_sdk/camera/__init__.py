@@ -40,6 +40,7 @@ from .device import (
     CameraSource,
     SnapshotInterface,
     StreamingInterface,
+    TalkbackInterface,
 )
 from .enums import (
     EVENT_TRIGGER_TYPES,
@@ -207,5 +208,6 @@ __all__ = [
     # Camera Interfaces
     "StreamingInterface",
     "SnapshotInterface",
+    "TalkbackInterface",
     "CameraImplementation",
 ]

@@ -272,5 +272,21 @@ export interface SnapshotInterface {
   snapshot(sourceId: string, forceNew?: boolean): Promise<ArrayBuffer | undefined>;
 }
 
-/** Value accepted by CameraDevice.implement: streaming, snapshot, or both. */
-export type CameraImplementation = StreamingInterface | SnapshotInterface | (StreamingInterface & SnapshotInterface);
+/**
+ * Optional implementation that serves two-way audio apart from the video.
+ * A source that lists `cui://talk` next to `cui://` in its `urls` dials this endpoint only to talk,
+ * so the video can come straight from the camera.
+ */
+export interface TalkbackInterface {
+  /**
+   * Get the URL of an RTSP endpoint that offers only the talkback audio of a source.
+   *
+   * @param sourceId - The ID of the source
+   *
+   * @returns The talkback URL (rtsp://)
+   */
+  talkUrl(sourceId: string): Promise<string>;
+}
+
+/** Value accepted by CameraDevice.implement: streaming, snapshot, or both, each optionally with talkback. */
+export type CameraImplementation = (StreamingInterface | SnapshotInterface | (StreamingInterface & SnapshotInterface)) & Partial<TalkbackInterface>;

@@ -1483,6 +1483,17 @@ StreamingRole is the resolution role for live streaming \(excludes snapshot\).
 
 <a name="StringFormat"></a>
 
+## type TalkbackInterface
+
+TalkbackInterface is optionally implemented to serve two\-way audio apart from the video. A source that lists cui://talk next to cui:// in its Urls dials this endpoint only to talk, so the video can come straight from the camera.
+
+	type TalkbackInterface interface {
+	    // TalkUrl returns the URL of an RTSP endpoint that offers only the talkback audio of a source.
+	    TalkUrl(sourceID string) (string, error)
+	}
+
+<a name="TamperProperty"></a>
+
 ## type VideoCodec
 
 VideoCodec is a supported video codec \(RTP/SDP format name\).

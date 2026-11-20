@@ -3311,7 +3311,7 @@ SwitchProperty is a property name of a switch control.
 	    SwitchPropertyOn SwitchProperty = "on" // Whether the switch is on
 	)
 
-<a name="TamperProperty"></a>
+<a name="TalkbackInterface"></a>
 
 ## type TamperProperty
 

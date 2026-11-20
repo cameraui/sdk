@@ -24,6 +24,14 @@ type SnapshotInterface interface {
 	Snapshot(sourceID string, forceNew bool) ([]byte, error)
 }
 
+// TalkbackInterface is optionally implemented to serve two-way audio apart from the video.
+// A source that lists cui://talk next to cui:// in its Urls dials this endpoint only to talk,
+// so the video can come straight from the camera.
+type TalkbackInterface interface {
+	// TalkUrl returns the URL of an RTSP endpoint that offers only the talkback audio of a source.
+	TalkUrl(sourceID string) (string, error)
+}
+
 type sensorInternalInit interface {
 	setID(id string)
 	setPluginID(id string)
@@ -697,6 +705,9 @@ func (d *CameraDevice) init() error {
 		"snapshot": func(sourceID string, forceNew bool) ([]byte, error) {
 			return d.implSnapshot(sourceID, forceNew)
 		},
+		"talkUrl": func(sourceID string) (string, error) {
+			return d.implTalkURL(sourceID)
+		},
 	})
 	if err != nil {
 		return fmt.Errorf("register camera interfaces RPC: %w", err)
@@ -953,6 +964,18 @@ func (d *CameraDevice) implSnapshot(sourceID string, forceNew bool) ([]byte, err
 	}
 
 	return nil, fmt.Errorf("snapshot not implemented")
+}
+
+func (d *CameraDevice) implTalkURL(sourceID string) (string, error) {
+	d.mu.RLock()
+	impl := d.impl
+	d.mu.RUnlock()
+
+	if t, ok := impl.(TalkbackInterface); ok {
+		return t.TalkUrl(sourceID)
+	}
+
+	return "", fmt.Errorf("talkback not implemented")
 }
 
 func (d *CameraDevice) handleCameraEvent(msg cameraEventMessage) {

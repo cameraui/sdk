@@ -112,7 +112,7 @@ class CameraConfigInputSettings(TypedDict):
     childCameraRole: NotRequired[StreamingRole]
     """Role of the ``childCameraId`` stream shown in the overlay."""
     urls: NotRequired[list[str]]
-    """Raw source URLs, the server resolves them into streaming URLs."""
+    """Raw source URLs, the server resolves them into streaming URLs. ``cui://talk`` adds the talkback endpoint of ``TalkbackInterface``."""
 
 
 class BaseCameraConfig(TypedDict):

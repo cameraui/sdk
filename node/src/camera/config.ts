@@ -1,9 +1,6 @@
 import type { CameraInputSettings } from '../internal/camera-config-internal.js';
 import type { SENSOR_META } from '../sensor/registry.js';
 import type { CameraDetectionSettings, CameraZones, PtzAutotrackSettings } from './detection.js';
-import type { CameraExportSettings } from './export.js';
-import type { CameraNotificationSettings } from './notification.js';
-import type { CameraRecordingSettings } from './recording.js';
 import type {
   AudioCodec,
   CameraActivityMode,
@@ -16,7 +13,10 @@ import type {
   VideoCodec,
   VideoStreamingMode,
 } from './enums.js';
+import type { CameraExportSettings } from './export.js';
 import type { CameraFrameWorkerSettings, SnapshotSettings } from './frames.js';
+import type { CameraNotificationSettings } from './notification.js';
+import type { CameraRecordingSettings } from './recording.js';
 import type { StreamUrls } from './streaming.js';
 
 /** Camera video input/source with resolved URLs. */
