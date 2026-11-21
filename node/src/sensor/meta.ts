@@ -101,6 +101,20 @@ export enum SensorDomain {
   Cover = 'cover',
   /** Armable alarm with several arm modes. */
   Alarm = 'alarm',
+  /** Momentary happening of a kind, such as a button press, empty between happenings. */
+  Event = 'event',
+  /** Writable text, such as the message on a display. */
+  Text = 'text',
+}
+
+/** A reading a sensor carries next to its state, exported as a measurement of its own. */
+export interface SensorReading {
+  /** Name of the property that carries the reading. */
+  readonly property: string;
+  /** Device class, where one applies. */
+  readonly deviceClass?: string;
+  /** Unit of the reading. */
+  readonly unit?: string;
 }
 
 /**
@@ -123,8 +137,12 @@ export interface SensorSemantics {
   readonly icon?: string;
   /** Whether consumers should file it under diagnostics instead of controls. */
   readonly diagnostic?: boolean;
-  /** State-name to wire-value mapping for multi-state sensors. */
-  readonly states?: Readonly<Record<string, number>>;
+  /**
+   * State-name to wire-value mapping for multi-state sensors. The host fills it
+   * from the enum values of the state property when the type sets none, limited
+   * to the values the sensor offers.
+   */
+  readonly states?: Readonly<Record<string, string | number>>;
   /** Property carrying brightness, plus the scale factor a consumer applies to it. */
   readonly brightness?: {
     /** Name of the property that carries the value. */
@@ -139,6 +157,19 @@ export interface SensorSemantics {
     /** Factor a consumer applies to the value. */
     readonly scale: number;
   };
+  /** Property carrying the tone, its choices are the tones the device offers. */
+  readonly tone?: {
+    /** Name of the property that carries the value. */
+    readonly property: string;
+  };
+  /** Readings next to the state, each exported as a measurement of its own. */
+  readonly readings?: readonly SensorReading[];
+  /**
+   * Writable properties besides the command whose value is one of a list of
+   * choices, such as a tone or a preset. The host fills it per sensor from the
+   * property specs it offers.
+   */
+  readonly choices?: readonly string[];
 }
 
 /**

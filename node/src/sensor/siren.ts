@@ -138,5 +138,6 @@ export const sirenMeta = defineSensor({
     domain: SensorDomain.Siren,
     stateProperty: SirenProperty.Active,
     commandProperty: SirenProperty.Active,
+    volume: { property: SirenProperty.Volume, scale: 100 },
   },
 });

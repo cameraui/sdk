@@ -3,6 +3,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
+import { EVENT_TRIGGER_TYPES } from '../camera/events.js';
 import { PROTOCOL_LEVEL } from '../plugin/contract.js';
 import { SensorCategory, SensorType } from './base.js';
 import { BASE_AUDIO_LABELS } from './audio.js';
@@ -65,6 +66,20 @@ describe('cross-SDK parity', () => {
     expect([...python].sort()).toEqual([...BASE_AUDIO_LABELS].sort());
     expect([...pythonLiteral].sort()).toEqual([...BASE_AUDIO_LABELS].sort());
     expect([...go].sort()).toEqual([...BASE_AUDIO_LABELS].sort());
+  });
+
+  it('EVENT_TRIGGER_TYPES match across node, python and go', () => {
+    const source = read('python/camera_ui_sdk/camera/enums.py');
+    const python = values(block(source, /EVENT_TRIGGER_TYPES[^=]*= \(([\s\S]*?)\)/), /"([^"]+)"/g);
+    const pythonLiteral = values(block(source, /EventTriggerType = Literal\[([\s\S]*?)\]/), /"([^"]+)"/g);
+    const goSource = read('go/camera_enums.go');
+    const goValues = values(block(goSource, /type EventTriggerType = string\s*const \(([\s\S]*?)\n\)/), /EventTriggerType = "([^"]+)"/g);
+    const goList = values(block(goSource, /var EventTriggerTypes = \[\]EventTriggerType\{([\s\S]*?)\n\}/), /(EventTrigger\w+)/g);
+
+    expect([...python].sort()).toEqual([...EVENT_TRIGGER_TYPES].sort());
+    expect([...pythonLiteral].sort()).toEqual([...EVENT_TRIGGER_TYPES].sort());
+    expect([...goValues].sort()).toEqual([...EVENT_TRIGGER_TYPES].sort());
+    expect(goList.size).toBe(EVENT_TRIGGER_TYPES.length);
   });
 
   it('PluginAssignments keys match across node, python and go', () => {
@@ -266,6 +281,22 @@ describe('cross-SDK parity', () => {
         expect(accepted[kind], `${meta.type}.${property}`).toContain(go.get(property));
       }
     }
+  });
+
+  it('go proxies give every sensor type the category of its metadata', () => {
+    const goConsts = goSensorTypes();
+    const categoryConsts: Record<string, SensorCategory> = {
+      SensorCategoryControl: SensorCategory.Control,
+      SensorCategoryTrigger: SensorCategory.Trigger,
+      SensorCategoryInfo: SensorCategory.Info,
+    };
+    const listed = new Map<string, SensorCategory>();
+    const body = block(read('go/sensor_proxy.go'), /func categoryForSensorType\(st SensorType\) SensorCategory \{([\s\S]*?)\n\}/);
+    for (const [, types, category] of body.matchAll(/case ([\s\S]*?):\s+return (SensorCategory\w+)/g)) {
+      for (const [name] of types.matchAll(/SensorType\w+/g)) listed.set(goConsts.get(name)!, categoryConsts[category]);
+    }
+
+    for (const meta of SENSOR_META) expect(listed.get(meta.type) ?? SensorCategory.Sensor, meta.type).toBe(meta.category);
   });
 
   it('go contract-validation sensor list covers every SensorType', () => {

@@ -57,28 +57,28 @@ export interface AssistantAskRequest {
  */
 export type AssistantAskResult =
   | {
-    /** The model answered. */
-    ok: true;
-    /** Answer text. */
-    text: string;
-    /** Parsed answer, set when `outputSchema` was given. */
-    json?: unknown;
-    /** Tokens the call consumed. */
-    usage: {
-      /** Tokens of the request. */
-      promptTokens: number;
-      /** Tokens of the answer. */
-      completionTokens: number;
-    };
-  }
+      /** The model answered. */
+      ok: true;
+      /** Answer text. */
+      text: string;
+      /** Parsed answer, set when `outputSchema` was given. */
+      json?: unknown;
+      /** Tokens the call consumed. */
+      usage: {
+        /** Tokens of the request. */
+        promptTokens: number;
+        /** Tokens of the answer. */
+        completionTokens: number;
+      };
+    }
   | {
-    /** The call did not run. */
-    ok: false;
-    /** Why the call did not run. */
-    reason: 'not_allowed' | 'unconfigured' | 'timeout' | 'error';
-    /** Readable description of the failure. */
-    message: string;
-  };
+      /** The call did not run. */
+      ok: false;
+      /** Why the call did not run. */
+      reason: 'not_allowed' | 'unconfigured' | 'timeout' | 'error';
+      /** Readable description of the failure. */
+      message: string;
+    };
 
 /**
  * Whether this plugin may use the assistant model, and what the assigned model can do.

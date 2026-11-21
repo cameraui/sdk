@@ -4,53 +4,53 @@
  */
 export type AssistantToolProperty =
   | {
-    /** Always `string`. */
-    type: 'string';
-    /** What the argument means, written for the model. */
-    description?: string;
-    /** Allowed values. */
-    enum?: string[];
-    /** Expected text format. */
-    format?: 'date-time' | 'date' | 'time';
-  }
+      /** Always `string`. */
+      type: 'string';
+      /** What the argument means, written for the model. */
+      description?: string;
+      /** Allowed values. */
+      enum?: string[];
+      /** Expected text format. */
+      format?: 'date-time' | 'date' | 'time';
+    }
   | {
-    /** `number` or `integer`. */
-    type: 'number' | 'integer';
-    /** What the argument means, written for the model. */
-    description?: string;
-    /** Smallest allowed value. */
-    minimum?: number;
-    /** Largest allowed value. */
-    maximum?: number;
-  }
+      /** `number` or `integer`. */
+      type: 'number' | 'integer';
+      /** What the argument means, written for the model. */
+      description?: string;
+      /** Smallest allowed value. */
+      minimum?: number;
+      /** Largest allowed value. */
+      maximum?: number;
+    }
   | {
-    /** Always `boolean`. */
-    type: 'boolean';
-    /** What the argument means, written for the model. */
-    description?: string;
-  }
+      /** Always `boolean`. */
+      type: 'boolean';
+      /** What the argument means, written for the model. */
+      description?: string;
+    }
   | {
-    /** Always `array`. */
-    type: 'array';
-    /** What the argument means, written for the model. */
-    description?: string;
-    /** Schema of each element. */
-    items: AssistantToolProperty;
-    /** Fewest elements allowed. */
-    minItems?: number;
-    /** Most elements allowed. */
-    maxItems?: number;
-  }
+      /** Always `array`. */
+      type: 'array';
+      /** What the argument means, written for the model. */
+      description?: string;
+      /** Schema of each element. */
+      items: AssistantToolProperty;
+      /** Fewest elements allowed. */
+      minItems?: number;
+      /** Most elements allowed. */
+      maxItems?: number;
+    }
   | {
-    /** Always `object`. */
-    type: 'object';
-    /** What the argument means, written for the model. */
-    description?: string;
-    /** Named members of the object. */
-    properties: Record<string, AssistantToolProperty>;
-    /** Members the model has to provide. */
-    required?: string[];
-  };
+      /** Always `object`. */
+      type: 'object';
+      /** What the argument means, written for the model. */
+      description?: string;
+      /** Named members of the object. */
+      properties: Record<string, AssistantToolProperty>;
+      /** Members the model has to provide. */
+      required?: string[];
+    };
 
 /**
  * Input schema of a tool: always an object schema. The model fills the

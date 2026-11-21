@@ -44,19 +44,19 @@ export interface AssistantModelSpec {
  */
 export type AssistantModelContent =
   | {
-    /** Always `text`. */
-    type: 'text';
-    /** The text itself. */
-    text: string;
-  }
+      /** Always `text`. */
+      type: 'text';
+      /** The text itself. */
+      text: string;
+    }
   | {
-    /** Always `image`. */
-    type: 'image';
-    /** Base64-encoded image bytes. */
-    data: string;
-    /** MIME type of `data`. */
-    mimeType: 'image/jpeg' | 'image/png' | 'image/webp';
-  };
+      /** Always `image`. */
+      type: 'image';
+      /** Base64-encoded image bytes. */
+      data: string;
+      /** MIME type of `data`. */
+      mimeType: 'image/jpeg' | 'image/png' | 'image/webp';
+    };
 
 /**
  * One message of the conversation. `tool` messages carry the result of the
@@ -119,33 +119,33 @@ export interface AssistantModelRequest {
  */
 export type AssistantModelChunk =
   | {
-    /** Always `text`. */
-    type: 'text';
-    /** The text generated since the last chunk. */
-    delta: string;
-  }
+      /** Always `text`. */
+      type: 'text';
+      /** The text generated since the last chunk. */
+      delta: string;
+    }
   | {
-    /** Always `tool_call`. */
-    type: 'tool_call';
-    /** The call itself. */
-    call: AssistantModelToolCall;
-  }
+      /** Always `tool_call`. */
+      type: 'tool_call';
+      /** The call itself. */
+      call: AssistantModelToolCall;
+    }
   | {
-    /** Always `usage`. */
-    type: 'usage';
-    /** Tokens the request consumed. */
-    promptTokens: number;
-    /** Tokens the answer consumed. */
-    completionTokens: number;
-  }
+      /** Always `usage`. */
+      type: 'usage';
+      /** Tokens the request consumed. */
+      promptTokens: number;
+      /** Tokens the answer consumed. */
+      completionTokens: number;
+    }
   | {
-    /** Always `done`. */
-    type: 'done';
-    /** Why the model stopped. */
-    finish: 'stop' | 'tool_calls' | 'length' | 'error';
-    /** What went wrong, with `error`. */
-    message?: string;
-  };
+      /** Always `done`. */
+      type: 'done';
+      /** Why the model stopped. */
+      finish: 'stop' | 'tool_calls' | 'length' | 'error';
+      /** What went wrong, with `error`. */
+      message?: string;
+    };
 
 /**
  * Whether the plugin can answer right now. A model that has to be downloaded or

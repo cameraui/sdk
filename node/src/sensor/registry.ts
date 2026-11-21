@@ -1,16 +1,22 @@
+import { accessMeta } from './access.js';
+import { airQualityMeta } from './airQuality.js';
 import { audioMeta } from './audio.js';
 import { batteryMeta } from './battery.js';
+import { buttonMeta } from './button.js';
 import { carbonDioxideMeta } from './carbonDioxide.js';
 import { carbonMonoxideMeta } from './carbonMonoxide.js';
+import { chimeMeta } from './chime.js';
 import { classifierMeta } from './classifier.js';
 import { clipMeta } from './clip.js';
 import { coldMeta } from './cold.js';
 import { contactMeta } from './contact.js';
+import { displayMeta } from './display.js';
 import { doorbellMeta } from './doorbell.js';
 import { faceMeta } from './face.js';
 import { faceEmbedderMeta } from './faceEmbedder.js';
 import { garageMeta } from './garage.js';
 import { gasMeta } from './gas.js';
+import { glassBreakMeta } from './glassBreak.js';
 import { heatMeta } from './heat.js';
 import { humidityMeta } from './humidity.js';
 import { illuminanceMeta } from './illuminance.js';
@@ -40,19 +46,25 @@ import type { SensorMeta } from './meta.js';
 
 /** Every sensor's metadata. A new sensor type adds its meta here. */
 export const SENSOR_META = [
+  accessMeta,
+  airQualityMeta,
   audioMeta,
   batteryMeta,
+  buttonMeta,
   carbonDioxideMeta,
   carbonMonoxideMeta,
+  chimeMeta,
   classifierMeta,
   clipMeta,
   coldMeta,
   contactMeta,
+  displayMeta,
   doorbellMeta,
   faceMeta,
   faceEmbedderMeta,
   garageMeta,
   gasMeta,
+  glassBreakMeta,
   heatMeta,
   humidityMeta,
   illuminanceMeta,

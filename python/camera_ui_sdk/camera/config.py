@@ -201,6 +201,10 @@ class PluginAssignments(TypedDict, total=False):
     """Light control plugins."""
     siren: list[AssignedPlugin]
     """Siren control plugins."""
+    chime: list[AssignedPlugin]
+    """Chime control plugins."""
+    display: list[AssignedPlugin]
+    """Display control plugins."""
     switch: list[AssignedPlugin]
     """Switch control plugins."""
     securitySystem: list[AssignedPlugin]
@@ -233,8 +237,14 @@ class PluginAssignments(TypedDict, total=False):
     """Problem sensor plugins."""
     power: list[AssignedPlugin]
     """Power sensor plugins."""
+    glassBreak: list[AssignedPlugin]
+    """Glass break sensor plugins."""
     doorbell: list[AssignedPlugin]
     """Doorbell trigger plugins."""
+    button: list[AssignedPlugin]
+    """Button trigger plugins."""
+    access: list[AssignedPlugin]
+    """Access trigger plugins."""
     temperature: list[AssignedPlugin]
     """Temperature info plugins."""
     humidity: list[AssignedPlugin]
@@ -243,6 +253,8 @@ class PluginAssignments(TypedDict, total=False):
     """Illuminance info plugins."""
     carbonDioxide: list[AssignedPlugin]
     """Carbon dioxide info plugins."""
+    airQuality: list[AssignedPlugin]
+    """Air quality info plugins."""
     classifier: list[AssignedPlugin]
     """Image classifier plugins."""
     hub: list[AssignedPlugin]

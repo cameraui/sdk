@@ -726,7 +726,7 @@ func (m *SensorManager) syncSensors() []*sensorProxy {
 			syncAssignedCameras(held, data.AssignedCameraIDs)
 			// a disconnected sensor only has its saved values, its owner brings the current ones
 			if data.Connected {
-				held.applyRefreshedState(sensorRefreshedState{
+				held.applyRefreshedState(&sensorRefreshedState{
 					Type:         data.Type,
 					Properties:   data.Properties,
 					Capabilities: data.Capabilities,
@@ -792,7 +792,7 @@ func (m *SensorManager) resyncConsumed(sensorID string) {
 		return
 	}
 
-	proxy.applyRefreshedState(state, marks)
+	proxy.applyRefreshedState(&state, marks)
 }
 
 func (m *SensorManager) releaseConsumed(sensorID string) {
@@ -844,7 +844,7 @@ func (m *SensorManager) handleGlobalSensorEvent(msg sensorRegistryEventMessage) 
 		}
 		if alreadyConsumed {
 			// re-announced while held: the payload is authoritative, take it over the stale view
-			consumed.applyRefreshedState(added.State, consumed.eventMarks())
+			consumed.applyRefreshedState(&added.State, consumed.eventMarks())
 			return
 		}
 		if !m.isConsumable(&added.Sensor) {

@@ -36,11 +36,7 @@ var KnownEventTypes = func() map[string]struct{} {
 	for _, a := range DetectionAttributes {
 		m[a] = struct{}{}
 	}
-	for _, t := range []string{
-		EventTriggerMotion, EventTriggerAudio, EventTriggerContact,
-		EventTriggerDoorbell, EventTriggerSwitch, EventTriggerLight,
-		EventTriggerSiren, EventTriggerSecuritySystem,
-	} {
+	for _, t := range EventTriggerTypes {
 		m[t] = struct{}{}
 	}
 	return m

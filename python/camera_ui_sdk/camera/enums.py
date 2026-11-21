@@ -99,7 +99,30 @@ DetectionEventState = Literal["active", "ended"]
 """Event lifecycle state."""
 
 EventTriggerType = Literal[
-    "motion", "audio", "contact", "doorbell", "switch", "light", "siren", "security_system", "line-crossing"
+    "motion",
+    "audio",
+    "contact",
+    "doorbell",
+    "switch",
+    "light",
+    "siren",
+    "security_system",
+    "line-crossing",
+    "occupancy",
+    "smoke",
+    "leak",
+    "gas",
+    "carbonMonoxide",
+    "heat",
+    "cold",
+    "vibration",
+    "tamper",
+    "problem",
+    "power",
+    "lock",
+    "garage",
+    "glassBreak",
+    "access",
 ]
 """Event trigger type."""
 
@@ -113,6 +136,21 @@ EVENT_TRIGGER_TYPES: tuple[str, ...] = (
     "siren",
     "security_system",
     "line-crossing",
+    "occupancy",
+    "smoke",
+    "leak",
+    "gas",
+    "carbonMonoxide",
+    "heat",
+    "cold",
+    "vibration",
+    "tamper",
+    "problem",
+    "power",
+    "lock",
+    "garage",
+    "glassBreak",
+    "access",
 )
 """All event trigger types as a runtime-accessible tuple."""
 

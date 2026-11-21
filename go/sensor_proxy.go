@@ -96,7 +96,7 @@ func (s *sensorProxy) eventMarks() map[string]uint64 {
 	return maps.Clone(s.eventCounts)
 }
 
-func (s *sensorProxy) applyRefreshedState(state sensorRefreshedState, marks map[string]uint64) {
+func (s *sensorProxy) applyRefreshedState(state *sensorRefreshedState, marks map[string]uint64) {
 	s.eventMu.Lock()
 	defer s.eventMu.Unlock()
 	// an event since the marks is newer than the state
@@ -291,11 +291,12 @@ func toStringSlice(v any) []string {
 
 func categoryForSensorType(st SensorType) SensorCategory {
 	switch st {
-	case SensorTypeLight, SensorTypeSiren, SensorTypeSwitch, SensorTypePTZ, SensorTypeSecuritySystem:
+	case SensorTypeLight, SensorTypeSiren, SensorTypeSwitch, SensorTypeLock, SensorTypeGarage, SensorTypePTZ, SensorTypeSecuritySystem,
+		SensorTypeChime, SensorTypeDisplay:
 		return SensorCategoryControl
-	case SensorTypeDoorbell:
+	case SensorTypeDoorbell, SensorTypeButton, SensorTypeAccess:
 		return SensorCategoryTrigger
-	case SensorTypeBattery:
+	case SensorTypeBattery, SensorTypeTemperature, SensorTypeHumidity, SensorTypeIlluminance, SensorTypeCarbonDioxide, SensorTypeAirQuality:
 		return SensorCategoryInfo
 	default:
 		return SensorCategorySensor

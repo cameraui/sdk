@@ -34,6 +34,8 @@ const (
 	SensorTypePTZ            SensorType = "ptz"            // Pan-tilt-zoom camera control
 	SensorTypeSecuritySystem SensorType = "securitySystem" // Security system arm/disarm control
 	SensorTypeDoorbell       SensorType = "doorbell"       // Doorbell ring trigger
+	SensorTypeButton         SensorType = "button"         // Button with single, double and long presses
+	SensorTypeAccess         SensorType = "access"         // Access reader, such as a fingerprint or NFC reader
 	SensorTypeTemperature    SensorType = "temperature"    // Temperature sensor (°C)
 	SensorTypeHumidity       SensorType = "humidity"       // Humidity sensor (0-100%)
 	SensorTypeOccupancy      SensorType = "occupancy"      // Occupancy/presence sensor
@@ -49,7 +51,11 @@ const (
 	SensorTypePower          SensorType = "power"          // Power detection sensor
 	SensorTypeIlluminance    SensorType = "illuminance"    // Illuminance sensor (lx)
 	SensorTypeCarbonDioxide  SensorType = "carbonDioxide"  // Carbon dioxide sensor (ppm)
+	SensorTypeGlassBreak     SensorType = "glassBreak"     // Glass break detector
+	SensorTypeAirQuality     SensorType = "airQuality"     // Air quality level with particle and gas readings
 	SensorTypeGarage         SensorType = "garage"         // Garage door opener
+	SensorTypeChime          SensorType = "chime"          // Chime that plays tones
+	SensorTypeDisplay        SensorType = "display"        // Text display on a device
 	SensorTypeBattery        SensorType = "battery"        // Battery level and charging state
 )
 
@@ -859,12 +865,12 @@ func WithPrimary() SensorOption {
 
 // WithPropertySpec sets what the device accepts for one property, see
 // BaseSensor.SetPropertySpec.
-func WithPropertySpec(property string, spec PropertySpecOverride) SensorOption {
+func WithPropertySpec(property string, spec *PropertySpecOverride) SensorOption {
 	return func(o *sensorOptions) {
 		if o.specs == nil {
 			o.specs = map[string]PropertySpecOverride{}
 		}
-		o.specs[property] = spec
+		o.specs[property] = *spec
 	}
 }
 

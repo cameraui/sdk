@@ -24,6 +24,8 @@ export const EVENT_TRIGGER_TYPES = [
   'power',
   'lock',
   'garage',
+  'glassBreak',
+  'access',
 ] as const satisfies readonly EventTriggerType[];
 
 /** Event trigger (motion, audio, sensor, or line-crossing). */

@@ -228,6 +228,21 @@ const (
 	EventTriggerSiren          EventTriggerType = "siren"
 	EventTriggerSecuritySystem EventTriggerType = "security_system"
 	EventTriggerLineCrossing   EventTriggerType = "line-crossing"
+	EventTriggerOccupancy      EventTriggerType = "occupancy"
+	EventTriggerSmoke          EventTriggerType = "smoke"
+	EventTriggerLeak           EventTriggerType = "leak"
+	EventTriggerGas            EventTriggerType = "gas"
+	EventTriggerCarbonMonoxide EventTriggerType = "carbonMonoxide"
+	EventTriggerHeat           EventTriggerType = "heat"
+	EventTriggerCold           EventTriggerType = "cold"
+	EventTriggerVibration      EventTriggerType = "vibration"
+	EventTriggerTamper         EventTriggerType = "tamper"
+	EventTriggerProblem        EventTriggerType = "problem"
+	EventTriggerPower          EventTriggerType = "power"
+	EventTriggerLock           EventTriggerType = "lock"
+	EventTriggerGarage         EventTriggerType = "garage"
+	EventTriggerGlassBreak     EventTriggerType = "glassBreak"
+	EventTriggerAccess         EventTriggerType = "access"
 )
 
 // DetectionEventType is the lifecycle phase of a detection event message.
@@ -244,3 +259,13 @@ const (
 
 // Point is a zone polygon coordinate as [x, y] (0-100 percentage).
 type Point [2]float64
+
+// EventTriggerTypes lists every event trigger type.
+var EventTriggerTypes = []EventTriggerType{
+	EventTriggerMotion, EventTriggerAudio, EventTriggerContact, EventTriggerDoorbell,
+	EventTriggerSwitch, EventTriggerLight, EventTriggerSiren, EventTriggerSecuritySystem,
+	EventTriggerLineCrossing, EventTriggerOccupancy, EventTriggerSmoke, EventTriggerLeak,
+	EventTriggerGas, EventTriggerCarbonMonoxide, EventTriggerHeat, EventTriggerCold,
+	EventTriggerVibration, EventTriggerTamper, EventTriggerProblem, EventTriggerPower,
+	EventTriggerLock, EventTriggerGarage, EventTriggerGlassBreak, EventTriggerAccess,
+}

@@ -12,7 +12,7 @@ func float(v float64) *float64 { return &v }
 func intPtr(v int) *int { return &v }
 
 func TestSetPropertySpecSendsOnlyChanges(t *testing.T) {
-	noNight := PropertySpecOverride{Values: []any{SecuritySystemStateAwayArm, SecuritySystemStateStayArm, SecuritySystemStateDisarmed}}
+	noNight := &PropertySpecOverride{Values: []any{SecuritySystemStateAwayArm, SecuritySystemStateStayArm, SecuritySystemStateDisarmed}}
 	alarm := NewSecuritySystem("Alarm", WithPropertySpec(SecuritySystemPropertyTargetState, noNight))
 
 	specs := alarm.ToJSON().PropertySpecs

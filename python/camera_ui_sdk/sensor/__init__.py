@@ -1,5 +1,25 @@
 from typing import TYPE_CHECKING
 
+from .access import (
+    AccessAttempt,
+    AccessMethod,
+    AccessProperty,
+    AccessPropertyChangeData,
+    AccessResult,
+    AccessTrigger,
+    AccessTriggerLike,
+    AccessTriggerProperties,
+)
+from .air_quality import (
+    AirQualityCapability,
+    AirQualityInfo,
+    AirQualityInfoLike,
+    AirQualityInfoProperties,
+    AirQualityLevel,
+    AirQualityProperty,
+    AirQualityPropertyChangeData,
+    AirQualityReading,
+)
 from .audio import (
     BASE_AUDIO_LABELS,
     AudioDetectorSensor,
@@ -35,6 +55,14 @@ from .binary import (
     BinarySensor,
     BinarySensorProperties,
 )
+from .button import (
+    ButtonPress,
+    ButtonProperty,
+    ButtonPropertyChangeData,
+    ButtonTrigger,
+    ButtonTriggerLike,
+    ButtonTriggerProperties,
+)
 from .carbon_dioxide import (
     CarbonDioxideInfo,
     CarbonDioxideInfoLike,
@@ -48,6 +76,14 @@ from .carbon_monoxide import (
     CarbonMonoxideSensor,
     CarbonMonoxideSensorLike,
     CarbonMonoxideSensorProperties,
+)
+from .chime import (
+    ChimeCapability,
+    ChimeControl,
+    ChimeControlLike,
+    ChimeControlProperties,
+    ChimeProperty,
+    ChimePropertyChangeData,
 )
 from .classifier import (
     ClassifierDetection,
@@ -90,6 +126,14 @@ from .detection import (
     VideoFrameData,
 )
 from .device import DeviceInfo, SensorDevice
+from .display import (
+    DisplayCapability,
+    DisplayControl,
+    DisplayControlLike,
+    DisplayControlProperties,
+    DisplayProperty,
+    DisplayPropertyChangeData,
+)
 from .doorbell import (
     DoorbellProperty,
     DoorbellPropertyChangeData,
@@ -125,6 +169,13 @@ from .gas import (
     GasSensor,
     GasSensorLike,
     GasSensorProperties,
+)
+from .glass_break import (
+    GlassBreakProperty,
+    GlassBreakPropertyChangeData,
+    GlassBreakSensor,
+    GlassBreakSensorLike,
+    GlassBreakSensorProperties,
 )
 from .heat import (
     HeatProperty,
@@ -361,6 +412,13 @@ __all__ = [
     "ClassifierResult",
     "ObjectResult",
     "ChargingState",
+    "AirQualityCapability",
+    "AirQualityLevel",
+    "ChimeCapability",
+    "DisplayCapability",
+    "ButtonPress",
+    "AccessResult",
+    "AccessMethod",
     "PTZPosition",
     "PTZDirection",
     "PTZRelativeMove",
@@ -394,6 +452,7 @@ __all__ = [
     "HumidityInfo",
     "OccupancySensor",
     "SmokeSensor",
+    "GlassBreakSensor",
     "LeakSensor",
     "GasSensor",
     "CarbonMonoxideSensor",
@@ -408,12 +467,17 @@ __all__ = [
     "LightControl",
     "SecuritySystem",
     "SirenControl",
+    "ChimeControl",
+    "DisplayControl",
     "SwitchControl",
     "LockControl",
     "GarageControl",
     "PTZControl",
     "DoorbellTrigger",
+    "ButtonTrigger",
+    "AccessTrigger",
     "BatteryInfo",
+    "AirQualityInfo",
     # Public capability/state enums
     "LightCapability",
     "SirenCapability",
@@ -422,6 +486,7 @@ __all__ = [
     "LockState",
     "GarageState",
     "SecuritySystemState",
+    "AccessAttempt",
     # Property names
     "AudioProperty",
     "BatteryProperty",
@@ -431,6 +496,12 @@ __all__ = [
     "ColdProperty",
     "ContactProperty",
     "DoorbellProperty",
+    "ButtonProperty",
+    "AccessProperty",
+    "GlassBreakProperty",
+    "AirQualityProperty",
+    "ChimeProperty",
+    "DisplayProperty",
     "FaceProperty",
     "GarageProperty",
     "GasProperty",
@@ -465,6 +536,13 @@ __all__ = [
     "ColdSensorProperties",
     "ContactSensorProperties",
     "DoorbellTriggerProperties",
+    "ButtonTriggerProperties",
+    "AccessTriggerProperties",
+    "GlassBreakSensorProperties",
+    "AirQualityInfoProperties",
+    "AirQualityReading",
+    "ChimeControlProperties",
+    "DisplayControlProperties",
     "FaceSensorProperties",
     "GarageControlProperties",
     "GasSensorProperties",
@@ -497,6 +575,12 @@ __all__ = [
     "ColdPropertyChangeData",
     "ContactPropertyChangeData",
     "DoorbellPropertyChangeData",
+    "ButtonPropertyChangeData",
+    "AccessPropertyChangeData",
+    "GlassBreakPropertyChangeData",
+    "AirQualityPropertyChangeData",
+    "ChimePropertyChangeData",
+    "DisplayPropertyChangeData",
     "FacePropertyChangeData",
     "GaragePropertyChangeData",
     "GasPropertyChangeData",
@@ -529,6 +613,12 @@ __all__ = [
     "ColdSensorLike",
     "ContactSensorLike",
     "DoorbellTriggerLike",
+    "ButtonTriggerLike",
+    "AccessTriggerLike",
+    "GlassBreakSensorLike",
+    "AirQualityInfoLike",
+    "ChimeControlLike",
+    "DisplayControlLike",
     "FaceSensorLike",
     "GarageControlLike",
     "GasSensorLike",

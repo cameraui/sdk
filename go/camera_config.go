@@ -113,10 +113,18 @@ type PluginAssignments struct {
 	Light []AssignedPlugin `msgpack:"light,omitempty" json:"light,omitempty"`
 	// Siren are the assigned siren control plugins.
 	Siren []AssignedPlugin `msgpack:"siren,omitempty" json:"siren,omitempty"`
+	// Chime are the assigned chime control plugins.
+	Chime []AssignedPlugin `msgpack:"chime,omitempty" json:"chime,omitempty"`
+	// Display are the assigned display control plugins.
+	Display []AssignedPlugin `msgpack:"display,omitempty" json:"display,omitempty"`
 	// Contact are the assigned contact sensor plugins.
 	Contact []AssignedPlugin `msgpack:"contact,omitempty" json:"contact,omitempty"`
 	// Doorbell are the assigned doorbell trigger plugins.
 	Doorbell []AssignedPlugin `msgpack:"doorbell,omitempty" json:"doorbell,omitempty"`
+	// Button are the assigned button trigger plugins.
+	Button []AssignedPlugin `msgpack:"button,omitempty" json:"button,omitempty"`
+	// Access are the assigned access trigger plugins.
+	Access []AssignedPlugin `msgpack:"access,omitempty" json:"access,omitempty"`
 	// Switch are the assigned switch control plugins.
 	Switch []AssignedPlugin `msgpack:"switch,omitempty" json:"switch,omitempty"`
 	// SecuritySystem are the assigned security system control plugins.
@@ -147,6 +155,8 @@ type PluginAssignments struct {
 	Problem []AssignedPlugin `msgpack:"problem,omitempty" json:"problem,omitempty"`
 	// Power are the assigned power sensor plugins.
 	Power []AssignedPlugin `msgpack:"power,omitempty" json:"power,omitempty"`
+	// GlassBreak are the assigned glass break sensor plugins.
+	GlassBreak []AssignedPlugin `msgpack:"glassBreak,omitempty" json:"glassBreak,omitempty"`
 	// Temperature are the assigned temperature info plugins.
 	Temperature []AssignedPlugin `msgpack:"temperature,omitempty" json:"temperature,omitempty"`
 	// Humidity are the assigned humidity info plugins.
@@ -155,6 +165,8 @@ type PluginAssignments struct {
 	Illuminance []AssignedPlugin `msgpack:"illuminance,omitempty" json:"illuminance,omitempty"`
 	// CarbonDioxide are the assigned carbon dioxide info plugins.
 	CarbonDioxide []AssignedPlugin `msgpack:"carbonDioxide,omitempty" json:"carbonDioxide,omitempty"`
+	// AirQuality are the assigned air quality info plugins.
+	AirQuality []AssignedPlugin `msgpack:"airQuality,omitempty" json:"airQuality,omitempty"`
 	// Classifier are the assigned image classifier plugins.
 	Classifier []AssignedPlugin `msgpack:"classifier,omitempty" json:"classifier,omitempty"`
 	// Hub are the assigned hub/bridge plugins.

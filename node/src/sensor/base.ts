@@ -4,19 +4,25 @@ import { Subject } from '../observable/index.js';
 import type { CapabilityUpdateFn, PropertyUpdateFn, SensorDeviceState, SensorJSON, SensorMembership, SourceUpdateFn } from '../internal/sensor-rpc.js';
 import type { Observable } from '../observable/index.js';
 import type { DeviceStorage, JsonSchema } from '../storage/index.js';
+import type { AccessProperty } from './access.js';
+import type { AirQualityCapability, AirQualityProperty } from './airQuality.js';
 import type { AudioProperty } from './audio.js';
 import type { BatteryCapability, BatteryProperty } from './battery.js';
+import type { ButtonProperty } from './button.js';
 import type { CarbonDioxideProperty } from './carbonDioxide.js';
 import type { CarbonMonoxideProperty } from './carbonMonoxide.js';
+import type { ChimeCapability, ChimeProperty } from './chime.js';
 import type { ClassifierProperty } from './classifier.js';
 import type { ColdProperty } from './cold.js';
 import type { ContactProperty } from './contact.js';
 import type { Detection } from './detection.js';
 import type { DeviceInfo, SensorDevice, SetDeviceInfoOptions } from './device.js';
+import type { DisplayCapability, DisplayProperty } from './display.js';
 import type { DoorbellProperty } from './doorbell.js';
 import type { FaceProperty } from './face.js';
 import type { GarageProperty } from './garage.js';
 import type { GasProperty } from './gas.js';
+import type { GlassBreakProperty } from './glassBreak.js';
 import type { HeatProperty } from './heat.js';
 import type { HumidityProperty } from './humidity.js';
 import type { IlluminanceProperty } from './illuminance.js';
@@ -41,17 +47,23 @@ import type { VibrationProperty } from './vibration.js';
 
 /** Union of all sensor-specific property enums. */
 export type SensorPropertyType =
+  | AccessProperty
+  | AirQualityProperty
   | AudioProperty
   | BatteryProperty
+  | ButtonProperty
   | CarbonDioxideProperty
   | CarbonMonoxideProperty
+  | ChimeProperty
   | ClassifierProperty
   | ColdProperty
   | ContactProperty
+  | DisplayProperty
   | DoorbellProperty
   | FaceProperty
   | GarageProperty
   | GasProperty
+  | GlassBreakProperty
   | HeatProperty
   | HumidityProperty
   | IlluminanceProperty
@@ -74,7 +86,7 @@ export type SensorPropertyType =
   | VibrationProperty;
 
 /** Union of all sensor-specific capability enums. */
-export type SensorCapability = PTZCapability | LightCapability | SirenCapability | BatteryCapability;
+export type SensorCapability = PTZCapability | LightCapability | SirenCapability | BatteryCapability | AirQualityCapability | ChimeCapability | DisplayCapability;
 
 /**
  * The plugin's view of the source behind an adopted sensor. `unavailable`
@@ -150,6 +162,10 @@ export enum SensorType {
   Illuminance = 'illuminance',
   /** Carbon dioxide sensor (ppm). */
   CarbonDioxide = 'carbonDioxide',
+  /** Glass break detector. */
+  GlassBreak = 'glassBreak',
+  /** Air quality level with particle and gas readings. */
+  AirQuality = 'airQuality',
 
   // controls: writable sensors the user can toggle from the UI
   /** Light on/off and brightness control. */
@@ -166,10 +182,18 @@ export enum SensorType {
   SecuritySystem = 'securitySystem',
   /** Garage door opener. */
   Garage = 'garage',
+  /** Chime that plays tones. */
+  Chime = 'chime',
+  /** Text display on a device. */
+  Display = 'display',
 
   // triggers
   /** Doorbell ring trigger. */
   Doorbell = 'doorbell',
+  /** Button with single, double and long presses. */
+  Button = 'button',
+  /** Access reader, such as a fingerprint or NFC reader. */
+  Access = 'access',
 
   // info
   /** Battery level and charging state. */

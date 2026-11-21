@@ -122,7 +122,9 @@ export type EventTriggerType =
   | 'problem'
   | 'power'
   | 'lock'
-  | 'garage';
+  | 'garage'
+  | 'glassBreak'
+  | 'access';
 
 /** Stream direction (from SDP). */
 export type StreamDirection = 'sendonly' | 'recvonly' | 'sendrecv' | 'inactive';

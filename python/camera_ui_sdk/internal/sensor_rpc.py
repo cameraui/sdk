@@ -4,19 +4,25 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, NotRequired, TypeAlias, TypedDict
 
 if TYPE_CHECKING:
+    from ..sensor.access import AccessProperty
+    from ..sensor.air_quality import AirQualityCapability, AirQualityProperty
     from ..sensor.audio import AudioProperty
     from ..sensor.base import SensorCategory, SensorSourceState, SensorType
     from ..sensor.battery import BatteryCapability, BatteryProperty
+    from ..sensor.button import ButtonProperty
     from ..sensor.carbon_dioxide import CarbonDioxideProperty
     from ..sensor.carbon_monoxide import CarbonMonoxideProperty
+    from ..sensor.chime import ChimeCapability, ChimeProperty
     from ..sensor.classifier import ClassifierProperty
     from ..sensor.cold import ColdProperty
     from ..sensor.contact import ContactProperty
     from ..sensor.device import DeviceInfo, SensorDevice
+    from ..sensor.display import DisplayCapability, DisplayProperty
     from ..sensor.doorbell import DoorbellProperty
     from ..sensor.face import FaceProperty
     from ..sensor.garage import GarageProperty
     from ..sensor.gas import GasProperty
+    from ..sensor.glass_break import GlassBreakProperty
     from ..sensor.heat import HeatProperty
     from ..sensor.humidity import HumidityProperty
     from ..sensor.illuminance import IlluminanceProperty
@@ -41,17 +47,23 @@ if TYPE_CHECKING:
     from ..sensor.vibration import VibrationProperty
 
     SensorPropertyType: TypeAlias = (
-        AudioProperty
+        AccessProperty
+        | AirQualityProperty
+        | AudioProperty
         | BatteryProperty
+        | ButtonProperty
         | CarbonDioxideProperty
         | CarbonMonoxideProperty
+        | ChimeProperty
         | ClassifierProperty
         | ColdProperty
         | ContactProperty
+        | DisplayProperty
         | DoorbellProperty
         | FaceProperty
         | GarageProperty
         | GasProperty
+        | GlassBreakProperty
         | HeatProperty
         | HumidityProperty
         | IlluminanceProperty
@@ -62,9 +74,9 @@ if TYPE_CHECKING:
         | MotionProperty
         | ObjectProperty
         | OccupancyProperty
-        | PTZProperty
         | PowerProperty
         | ProblemProperty
+        | PTZProperty
         | SecuritySystemProperty
         | SirenProperty
         | SmokeProperty
@@ -74,7 +86,15 @@ if TYPE_CHECKING:
         | VibrationProperty
     )
 
-    SensorCapability: TypeAlias = PTZCapability | LightCapability | SirenCapability | BatteryCapability
+    SensorCapability: TypeAlias = (
+        PTZCapability
+        | LightCapability
+        | SirenCapability
+        | BatteryCapability
+        | AirQualityCapability
+        | ChimeCapability
+        | DisplayCapability
+    )
 
 
 class PropertyChangedEvent(TypedDict):

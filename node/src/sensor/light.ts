@@ -146,5 +146,6 @@ export const lightMeta = defineSensor({
     domain: SensorDomain.Light,
     stateProperty: LightProperty.On,
     commandProperty: LightProperty.On,
+    brightness: { property: LightProperty.Brightness, scale: 100 },
   },
 });

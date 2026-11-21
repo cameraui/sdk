@@ -76,6 +76,9 @@ var propertyTypeRegistry = map[SensorType]map[string]coerceFunc{
 	SensorTypeVibration: {
 		"detected": coerceBool,
 	},
+	SensorTypeGlassBreak: {
+		"detected": coerceBool,
+	},
 	SensorTypeCarbonDioxide: {
 		"current": coerceFloat64,
 	},
@@ -87,6 +90,14 @@ var propertyTypeRegistry = map[SensorType]map[string]coerceFunc{
 	},
 	SensorTypeTemperature: {
 		"current": coerceFloat64,
+	},
+	SensorTypeAirQuality: {
+		"level": coerceString,
+		"aqi":   coerceFloat64,
+		"pm25":  coerceFloat64,
+		"pm10":  coerceFloat64,
+		"voc":   coerceFloat64,
+		"no2":   coerceFloat64,
 	},
 	SensorTypeBattery: {
 		"level":    coerceInt,
@@ -104,6 +115,17 @@ var propertyTypeRegistry = map[SensorType]map[string]coerceFunc{
 		"active": coerceBool,
 		"volume": coerceInt,
 	},
+	SensorTypeChime: {
+		"active": coerceBool,
+		"tone":   coerceString,
+		"volume": coerceInt,
+		"repeat": coerceInt,
+	},
+	SensorTypeDisplay: {
+		"message":  coerceString,
+		"preset":   coerceString,
+		"duration": coerceInt,
+	},
 	SensorTypePTZ: {
 		"position":     coerceViaRoundTrip[PTZPosition],
 		"moving":       coerceBool,
@@ -119,6 +141,15 @@ var propertyTypeRegistry = map[SensorType]map[string]coerceFunc{
 	},
 	SensorTypeDoorbell: {
 		"ring": coerceBool,
+	},
+	SensorTypeButton: {
+		"press": coerceString,
+		"index": coerceInt,
+	},
+	SensorTypeAccess: {
+		"result": coerceString,
+		"method": coerceString,
+		"user":   coerceString,
 	},
 	SensorTypeLock: {
 		"currentState": coerceInt,
