@@ -131,6 +131,11 @@ export interface SensorSemantics {
   readonly commandProperty: string;
   /** Device class, where one applies. */
   readonly deviceClass?: string;
+  /**
+   * Enum property that says per sensor what it is, such as the kind of a cover.
+   * The host sets `deviceClass` from the one value the sensor offers for it.
+   */
+  readonly deviceClassProperty?: string;
   /** Unit of the state value, e.g. `%` or `°C`. */
   readonly unit?: string;
   /** Material Design icon name, e.g. `mdi:door`. */

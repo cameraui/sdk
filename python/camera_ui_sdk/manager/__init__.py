@@ -11,6 +11,8 @@ from typing import (
     runtime_checkable,
 )
 
+from .units import UnitSystem, UnitValue, fromUnitSystem, toUnitSystem
+
 if TYPE_CHECKING:
     from ..camera import CameraDevice
     from ..observable import Observable
@@ -160,7 +162,8 @@ class CoreManager(Protocol):
     def onEvent(self) -> Observable[CoreManagerEvent]:
         """
         Observable for core manager events (e.g. cloud account changes, ``assistantModelChanged``
-        with ``{pluginId, configured}``, ``languageChanged`` with ``{language}``).
+        with ``{pluginId, configured}``, ``languageChanged`` with ``{language}``,
+        ``unitSystemChanged`` with ``{unitSystem}``).
 
         Example:
             ```python
@@ -310,6 +313,27 @@ class CoreManager(Protocol):
                 language = await api.coreManager.getLanguage()
             except Exception:
                 language = "en"
+            ```
+        """
+        ...
+
+    async def getUnitSystem(self) -> UnitSystem:
+        """
+        Get the unit system the admin picked under Settings, System.
+
+        Readings keep their own unit. Texts a plugin writes for a person
+        convert with ``toUnitSystem``. Subscribe to the ``unitSystemChanged``
+        event to learn about changes while running.
+
+        Returns:
+            ``metric`` or ``imperial``
+
+        Example:
+            ```python
+            try:
+                system = await api.coreManager.getUnitSystem()
+            except Exception:
+                system = UnitSystem.Metric
             ```
         """
         ...
@@ -722,4 +746,9 @@ __all__ = [
     "PipeDownloadSource",
     # Discovery types
     "DiscoveredCamera",
+    # Units
+    "UnitSystem",
+    "UnitValue",
+    "fromUnitSystem",
+    "toUnitSystem",
 ]

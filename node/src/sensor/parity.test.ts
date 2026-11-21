@@ -299,6 +299,24 @@ describe('cross-SDK parity', () => {
     for (const meta of SENSOR_META) expect(listed.get(meta.type) ?? SensorCategory.Sensor, meta.type).toBe(meta.category);
   });
 
+  it('unit conversions match across node, python and go', () => {
+    const factor = (raw: string): number => raw.split('/').reduce((value, part, index) => (index === 0 ? Number(part) : value / Number(part)), 0);
+    const rows = (source: string, pattern: RegExp): string[] => [...source.matchAll(pattern)].map((m) => `${m[1]}>${m[2]}*${factor(m[3])}+${Number(m[4] ?? 0)}`).sort();
+    const node = rows(
+      block(read('node/src/manager/units.ts'), /const TO_IMPERIAL[^=]*= \{([\s\S]*?)\n\};/),
+      /^\s+'?([^':]+)'?: \{ to: '([^']+)', factor: ([\d./ ]+?)(?:, offset: (\d+))? \},$/gm,
+    );
+    const python = rows(
+      block(read('python/camera_ui_sdk/manager/units.py'), /_TO_IMPERIAL[^=]*= \{([\s\S]*?)\n\}/),
+      /^\s+"([^"]+)": _Conversion\("([^"]+)", ([\d./ ]+?)(?:, (\d+))?\),$/gm,
+    );
+    const go = rows(block(read('go/units.go'), /var toImperial = \[\]unitConversion\{([\s\S]*?)\n\}/), /^\s+\{"([^"]+)", "([^"]+)", ([\d./ ]+?), (\d+)\},$/gm);
+
+    expect(node.length).toBeGreaterThan(10);
+    expect(python).toEqual(node);
+    expect(go).toEqual(node);
+  });
+
   it('go contract-validation sensor list covers every SensorType', () => {
     const constByName = new Map([...read('go/sensor_base.go').matchAll(/(SensorType\w+)\s+SensorType\s*=\s*"([^"]+)"/g)].map((m) => [m[1], m[2]]));
     const listed = new Set(

@@ -79,6 +79,10 @@ var propertyTypeRegistry = map[SensorType]map[string]coerceFunc{
 	SensorTypeGlassBreak: {
 		"detected": coerceBool,
 	},
+	SensorTypePresence: {
+		"detected": coerceBool,
+		"zone":     coerceString,
+	},
 	SensorTypeCarbonDioxide: {
 		"current": coerceFloat64,
 	},

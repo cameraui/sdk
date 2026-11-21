@@ -36,6 +36,7 @@ export * from './objectAssist.js';
 export * from './occupancy.js';
 export * from './personEmbedder.js';
 export * from './power.js';
+export * from './presence.js';
 export * from './problem.js';
 export * from './ptz.js';
 export * from './registry.js';

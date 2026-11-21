@@ -255,6 +255,8 @@ class PluginAssignments(TypedDict, total=False):
     """Carbon dioxide info plugins."""
     airQuality: list[AssignedPlugin]
     """Air quality info plugins."""
+    presence: list[AssignedPlugin]
+    """Presence sensor plugins."""
     classifier: list[AssignedPlugin]
     """Image classifier plugins."""
     hub: list[AssignedPlugin]

@@ -34,6 +34,7 @@ if TYPE_CHECKING:
     from ..sensor.object import ObjectProperty
     from ..sensor.occupancy import OccupancyProperty
     from ..sensor.power import PowerProperty
+    from ..sensor.presence import PresenceProperty
     from ..sensor.problem import ProblemProperty
     from ..sensor.property_spec import PropertySpecOverride
     from ..sensor.ptz import PTZCapability, PTZProperty
@@ -75,6 +76,7 @@ if TYPE_CHECKING:
         | ObjectProperty
         | OccupancyProperty
         | PowerProperty
+        | PresenceProperty
         | ProblemProperty
         | PTZProperty
         | SecuritySystemProperty

@@ -38,7 +38,7 @@ const (
 	SensorTypeAccess         SensorType = "access"         // Access reader, such as a fingerprint or NFC reader
 	SensorTypeTemperature    SensorType = "temperature"    // Temperature sensor (°C)
 	SensorTypeHumidity       SensorType = "humidity"       // Humidity sensor (0-100%)
-	SensorTypeOccupancy      SensorType = "occupancy"      // Occupancy/presence sensor
+	SensorTypeOccupancy      SensorType = "occupancy"      // Occupancy sensor, whether someone is in a room
 	SensorTypeSmoke          SensorType = "smoke"          // Smoke detector
 	SensorTypeLeak           SensorType = "leak"           // Water leak detector
 	SensorTypeGas            SensorType = "gas"            // Gas detector
@@ -53,6 +53,7 @@ const (
 	SensorTypeCarbonDioxide  SensorType = "carbonDioxide"  // Carbon dioxide sensor (ppm)
 	SensorTypeGlassBreak     SensorType = "glassBreak"     // Glass break detector
 	SensorTypeAirQuality     SensorType = "airQuality"     // Air quality level with particle and gas readings
+	SensorTypePresence       SensorType = "presence"       // Whether a person is at home
 	SensorTypeGarage         SensorType = "garage"         // Garage door opener
 	SensorTypeChime          SensorType = "chime"          // Chime that plays tones
 	SensorTypeDisplay        SensorType = "display"        // Text display on a device

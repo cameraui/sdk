@@ -5,6 +5,9 @@ import type { BasePlugin, PluginInterfaces } from '../plugin/interfaces.js';
 import type { Notification } from '../plugin/notifier.js';
 import type { SensorType } from '../sensor/base.js';
 import type { DeviceInfo } from '../sensor/device.js';
+import type { UnitSystem } from './units.js';
+
+export * from './units.js';
 
 /** One recorded change of one sensor property. */
 export interface SensorHistoryEntry {
@@ -215,6 +218,22 @@ export interface CoreManager {
   getLanguage(): Promise<string>;
 
   /**
+   * Get the unit system the admin picked under Settings, System.
+   *
+   * Readings keep their own unit. Texts a plugin writes for a person convert with
+   * {@link toUnitSystem}. Subscribe to the `unitSystemChanged` event to learn about
+   * changes while running.
+   *
+   * @returns `metric` or `imperial`
+   *
+   * @example
+   * ```typescript
+   * const system = await api.coreManager.getUnitSystem().catch(() => UnitSystem.Metric);
+   * ```
+   */
+  getUnitSystem(): Promise<UnitSystem>;
+
+  /**
    * Get all installed, enabled plugins that implement a specific interface.
    * Plugins the admin disabled are excluded. A returned plugin may still be
    * starting up or may have crashed, so a call into one can fail.
@@ -256,7 +275,7 @@ export interface CoreManager {
 
   /**
    * Observable for core manager events (e.g. cloud account changes, `assistantModelChanged` with `{ pluginId, configured }`,
-   * `languageChanged` with `{ language }`).
+   * `languageChanged` with `{ language }`, `unitSystemChanged` with `{ unitSystem }`).
    *
    * @example
    * ```typescript

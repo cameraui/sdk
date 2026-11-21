@@ -273,6 +273,13 @@ from .power import (
     PowerSensorLike,
     PowerSensorProperties,
 )
+from .presence import (
+    PresenceProperty,
+    PresencePropertyChangeData,
+    PresenceSensor,
+    PresenceSensorLike,
+    PresenceSensorProperties,
+)
 from .problem import (
     ProblemProperty,
     ProblemPropertyChangeData,
@@ -478,6 +485,7 @@ __all__ = [
     "AccessTrigger",
     "BatteryInfo",
     "AirQualityInfo",
+    "PresenceSensor",
     # Public capability/state enums
     "LightCapability",
     "SirenCapability",
@@ -500,6 +508,7 @@ __all__ = [
     "AccessProperty",
     "GlassBreakProperty",
     "AirQualityProperty",
+    "PresenceProperty",
     "ChimeProperty",
     "DisplayProperty",
     "FaceProperty",
@@ -541,6 +550,7 @@ __all__ = [
     "GlassBreakSensorProperties",
     "AirQualityInfoProperties",
     "AirQualityReading",
+    "PresenceSensorProperties",
     "ChimeControlProperties",
     "DisplayControlProperties",
     "FaceSensorProperties",
@@ -579,6 +589,7 @@ __all__ = [
     "AccessPropertyChangeData",
     "GlassBreakPropertyChangeData",
     "AirQualityPropertyChangeData",
+    "PresencePropertyChangeData",
     "ChimePropertyChangeData",
     "DisplayPropertyChangeData",
     "FacePropertyChangeData",
@@ -617,6 +628,7 @@ __all__ = [
     "AccessTriggerLike",
     "GlassBreakSensorLike",
     "AirQualityInfoLike",
+    "PresenceSensorLike",
     "ChimeControlLike",
     "DisplayControlLike",
     "FaceSensorLike",

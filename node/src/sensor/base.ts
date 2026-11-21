@@ -35,6 +35,7 @@ import type { MotionProperty } from './motion.js';
 import type { ObjectProperty } from './object.js';
 import type { OccupancyProperty } from './occupancy.js';
 import type { PowerProperty } from './power.js';
+import type { PresenceProperty } from './presence.js';
 import type { ProblemProperty } from './problem.js';
 import type { PTZCapability, PTZProperty } from './ptz.js';
 import type { SecuritySystemProperty } from './securitySystem.js';
@@ -76,6 +77,7 @@ export type SensorPropertyType =
   | OccupancyProperty
   | PTZProperty
   | PowerProperty
+  | PresenceProperty
   | ProblemProperty
   | SecuritySystemProperty
   | SirenProperty
@@ -136,7 +138,7 @@ export enum SensorType {
   Temperature = 'temperature',
   /** Humidity sensor (0-100%). */
   Humidity = 'humidity',
-  /** Occupancy/presence sensor. */
+  /** Occupancy sensor, whether someone is in a room. */
   Occupancy = 'occupancy',
   /** Smoke detector. */
   Smoke = 'smoke',
@@ -166,6 +168,8 @@ export enum SensorType {
   GlassBreak = 'glassBreak',
   /** Air quality level with particle and gas readings. */
   AirQuality = 'airQuality',
+  /** Whether a person is at home. */
+  Presence = 'presence',
 
   // controls: writable sensors the user can toggle from the UI
   /** Light on/off and brightness control. */

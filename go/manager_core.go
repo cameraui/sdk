@@ -133,7 +133,7 @@ func newCoreManager(client *rpc.Client, logger *Logger) *CoreManager {
 
 // OnEvent returns an Observable for core manager events (e.g. cloud account
 // changes, "assistantModelChanged" with pluginId and configured,
-// "languageChanged" with language).
+// "languageChanged" with language, "unitSystemChanged" with unitSystem).
 func (cm *CoreManager) OnEvent() *Observable[CoreManagerEvent] {
 	return cm.event.AsObservable()
 }
@@ -307,6 +307,32 @@ func (cm *CoreManager) GetLanguage() (string, error) {
 		return "", fmt.Errorf("getLanguage: unexpected result type %T", result)
 	}
 	return language, nil
+}
+
+// GetUnitSystem returns the unit system the admin picked under Settings,
+// System.
+//
+// Readings keep their own unit. Texts a plugin writes for a person convert
+// with ToUnitSystem. Subscribe to OnEvent for "unitSystemChanged" to learn
+// about changes while running.
+//
+// Example:
+//
+//	system, err := api.CoreManager.GetUnitSystem()
+//	if err != nil {
+//		system = sdk.UnitSystemMetric
+//	}
+func (cm *CoreManager) GetUnitSystem() (UnitSystem, error) {
+	ctx := context.Background()
+	result, err := cm.proxy.Invoke(ctx, "getUnitSystem")
+	if err != nil {
+		return "", fmt.Errorf("getUnitSystem: %w", err)
+	}
+	system, ok := result.(string)
+	if !ok {
+		return "", fmt.Errorf("getUnitSystem: unexpected result type %T", result)
+	}
+	return UnitSystem(system), nil
 }
 
 // GetPluginsByInterface returns all installed, enabled plugins that implement a

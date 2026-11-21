@@ -30,6 +30,7 @@ import { objectAssistMeta } from './objectAssist.js';
 import { occupancyMeta } from './occupancy.js';
 import { personEmbedderMeta } from './personEmbedder.js';
 import { powerMeta } from './power.js';
+import { presenceMeta } from './presence.js';
 import { problemMeta } from './problem.js';
 import { ptzMeta } from './ptz.js';
 import { securitySystemMeta } from './securitySystem.js';
@@ -78,6 +79,7 @@ export const SENSOR_META = [
   occupancyMeta,
   personEmbedderMeta,
   powerMeta,
+  presenceMeta,
   problemMeta,
   ptzMeta,
   securitySystemMeta,

@@ -167,6 +167,8 @@ type PluginAssignments struct {
 	CarbonDioxide []AssignedPlugin `msgpack:"carbonDioxide,omitempty" json:"carbonDioxide,omitempty"`
 	// AirQuality are the assigned air quality info plugins.
 	AirQuality []AssignedPlugin `msgpack:"airQuality,omitempty" json:"airQuality,omitempty"`
+	// Presence are the assigned presence sensor plugins.
+	Presence []AssignedPlugin `msgpack:"presence,omitempty" json:"presence,omitempty"`
 	// Classifier are the assigned image classifier plugins.
 	Classifier []AssignedPlugin `msgpack:"classifier,omitempty" json:"classifier,omitempty"`
 	// Hub are the assigned hub/bridge plugins.
