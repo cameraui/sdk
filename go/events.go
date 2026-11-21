@@ -42,12 +42,20 @@ type sensorRefreshedState struct {
 	Capabilities []string           `msgpack:"capabilities,omitempty"`
 	DisplayName  string             `msgpack:"displayName,omitempty"`
 	DeviceState  *sensorDeviceState `msgpack:"deviceState,omitempty"`
+	// nil from an older server, it keeps what the proxy has
+	PropertySpecs map[string]SensorPropertySpec `msgpack:"propertySpecs,omitempty"`
 }
 
 type sensorDeviceChangedData struct {
 	SensorID    string            `msgpack:"sensorId"`
 	SensorType  SensorType        `msgpack:"sensorType"`
 	DeviceState sensorDeviceState `msgpack:"deviceState"`
+}
+
+type sensorSpecsChangedData struct {
+	SensorID      string                        `msgpack:"sensorId"`
+	SensorType    SensorType                    `msgpack:"sensorType"`
+	PropertySpecs map[string]SensorPropertySpec `msgpack:"propertySpecs"`
 }
 
 type sensorAssignmentChangedData struct {
@@ -58,32 +66,34 @@ type sensorAssignmentChangedData struct {
 }
 
 type sensorRegistration struct {
-	ID                string             `msgpack:"id"`
-	AssignedCameraIDs []string           `msgpack:"assignedCameraIds"`
-	Active            bool               `msgpack:"active"`
-	StateSubject      bool               `msgpack:"stateSubject"`
-	DeviceState       *sensorDeviceState `msgpack:"deviceState,omitempty"`
+	ID                string                        `msgpack:"id"`
+	AssignedCameraIDs []string                      `msgpack:"assignedCameraIds"`
+	Active            bool                          `msgpack:"active"`
+	StateSubject      bool                          `msgpack:"stateSubject"`
+	DeviceState       *sensorDeviceState            `msgpack:"deviceState,omitempty"`
+	PropertySpecs     map[string]SensorPropertySpec `msgpack:"propertySpecs,omitempty"`
 }
 
 type storedSensorData struct {
-	ID                string            `msgpack:"id"`
-	Type              SensorType        `msgpack:"type"`
-	Name              string            `msgpack:"name"`
-	DisplayName       string            `msgpack:"displayName"`
-	NativeID          string            `msgpack:"nativeId,omitempty"`
-	PluginID          string            `msgpack:"pluginId"`
-	AssignedCameraIDs []string          `msgpack:"assignedCameraIds"`
-	BoundCameraID     string            `msgpack:"boundCameraId,omitempty"`
-	Address           string            `msgpack:"address,omitempty"`
-	SourceState       SensorSourceState `msgpack:"sourceState,omitempty"`
-	Exposed           bool              `msgpack:"exposed"`
-	Connected         bool              `msgpack:"connected"`
-	Properties        map[string]any    `msgpack:"properties,omitempty"`
-	Capabilities      []string          `msgpack:"capabilities,omitempty"`
-	RequiresFrames    bool              `msgpack:"requiresFrames,omitempty"`
-	ShortName         string            `msgpack:"shortName,omitempty"`
-	Device            *SensorDevice     `msgpack:"device,omitempty"`
-	Primary           bool              `msgpack:"primary,omitempty"`
+	ID                string                        `msgpack:"id"`
+	Type              SensorType                    `msgpack:"type"`
+	Name              string                        `msgpack:"name"`
+	DisplayName       string                        `msgpack:"displayName"`
+	NativeID          string                        `msgpack:"nativeId,omitempty"`
+	PluginID          string                        `msgpack:"pluginId"`
+	AssignedCameraIDs []string                      `msgpack:"assignedCameraIds"`
+	BoundCameraID     string                        `msgpack:"boundCameraId,omitempty"`
+	Address           string                        `msgpack:"address,omitempty"`
+	SourceState       SensorSourceState             `msgpack:"sourceState,omitempty"`
+	Exposed           bool                          `msgpack:"exposed"`
+	Connected         bool                          `msgpack:"connected"`
+	Properties        map[string]any                `msgpack:"properties,omitempty"`
+	Capabilities      []string                      `msgpack:"capabilities,omitempty"`
+	RequiresFrames    bool                          `msgpack:"requiresFrames,omitempty"`
+	ShortName         string                        `msgpack:"shortName,omitempty"`
+	Device            *SensorDevice                 `msgpack:"device,omitempty"`
+	Primary           bool                          `msgpack:"primary,omitempty"`
+	PropertySpecs     map[string]SensorPropertySpec `msgpack:"propertySpecs,omitempty"`
 }
 
 type sensorEventMessage struct {

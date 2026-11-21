@@ -103,6 +103,17 @@ describe('cross-SDK parity', () => {
     expect([...go].sort()).toEqual([...node].sort());
   });
 
+  it.each(['SensorPropertySpec', 'PropertySpecOverride', 'SensorPropertyChoice'])('%s fields match across node, python and go', (name) => {
+    const node = values(block(read('node/src/sensor/meta.ts'), new RegExp(`export interface ${name} \\{([\\s\\S]*?)\\n\\}`)), /^\s{2}(?:readonly )?(\w+)\??:/gm);
+    const pythonSource = read('python/camera_ui_sdk/sensor/property_spec.py');
+    const python = values(block(pythonSource, new RegExp(`class ${name}\\(TypedDict\\):([\\s\\S]*?)(?=\\nclass |$)`)), /^\s{4}(\w+):/gm);
+    const go = values(block(read('go/sensor_property_spec.go'), new RegExp(`type ${name} struct \\{([\\s\\S]*?)\\n\\}`)), /json:"(\w+)/g);
+
+    expect(node.size).toBeGreaterThan(1);
+    expect([...python].sort()).toEqual([...node].sort());
+    expect([...go].sort()).toEqual([...node].sort());
+  });
+
   it('DiscoveredSensor fields match across node, python and go', () => {
     const node = values(block(read('node/src/manager/index.ts'), /export interface DiscoveredSensor \{([\s\S]*?)\n\}/), /^\s{2}(\w+)\??:/gm);
     const python = values(block(read('python/camera_ui_sdk/manager/__init__.py'), /class DiscoveredSensor\(TypedDict\):([\s\S]*?)(?=\nclass )/), /^\s{4}(\w+):/gm);

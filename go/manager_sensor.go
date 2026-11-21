@@ -967,6 +967,29 @@ func (m *SensorManager) handleGlobalSensorEvent(msg sensorRegistryEventMessage) 
 			consumed.applyDeviceEvent(&changed.DeviceState)
 		}
 
+	case "sensor:specs:changed":
+		encoded, err := rpc.Encode(msg.Data)
+		if err != nil {
+			return
+		}
+		var changed sensorSpecsChangedData
+		if !decodeMsgpack(m.logger, encoded, &changed, "sensorSpecsChangedData") {
+			return
+		}
+		m.mu.RLock()
+		owned := m.owned[changed.SensorID]
+		external := m.external[changed.SensorID]
+		consumed := m.consumed[changed.SensorID]
+		m.mu.RUnlock()
+		for _, target := range []Sensor{owned, external} {
+			if si, ok := target.(sensorInternalInit); ok {
+				si.applyPropertySpecs(changed.PropertySpecs)
+			}
+		}
+		if consumed != nil {
+			consumed.applyPropertySpecsEvent(changed.PropertySpecs)
+		}
+
 	case "sensor:assignment:changed":
 		encoded, err := rpc.Encode(msg.Data)
 		if err != nil {

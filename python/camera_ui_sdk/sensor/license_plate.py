@@ -11,6 +11,7 @@ from ..observable import Observable
 from .base import Sensor, SensorCategory, SensorLike, SensorType
 from .detection import Detection, VideoFrameData
 from .device import DeviceInfo
+from .property_spec import PropertySpecOverride
 from .spec import ModelSpec
 
 
@@ -97,9 +98,16 @@ class LicensePlateSensor(Sensor[LicensePlateSensorProperties, TStorage, str], Ge
         address: str | None = None,
         device: DeviceInfo | None = None,
         primary: bool = False,
+        property_specs: Mapping[str, PropertySpecOverride] | None = None,
     ) -> None:
         super().__init__(
-            name, native_id=native_id, origin=origin, address=address, device=device, primary=primary
+            name,
+            native_id=native_id,
+            origin=origin,
+            address=address,
+            device=device,
+            primary=primary,
+            property_specs=property_specs,
         )
         self._write_state(
             {

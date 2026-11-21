@@ -9,6 +9,7 @@ from typing_extensions import TypedDict, TypeVar
 from .base import Sensor, SensorCategory, SensorType
 from .detection import BoundingBox, VideoFrameData
 from .device import DeviceInfo
+from .property_spec import PropertySpecOverride
 from .spec import ModelSpec
 
 
@@ -64,9 +65,16 @@ class SegmenterSensor(Sensor[dict[str, Any], TStorage, str], Generic[TStorage]):
         address: str | None = None,
         device: DeviceInfo | None = None,
         primary: bool = False,
+        property_specs: Mapping[str, PropertySpecOverride] | None = None,
     ) -> None:
         super().__init__(
-            name, native_id=native_id, origin=origin, address=address, device=device, primary=primary
+            name,
+            native_id=native_id,
+            origin=origin,
+            address=address,
+            device=device,
+            primary=primary,
+            property_specs=property_specs,
         )
 
     @property

@@ -8,6 +8,7 @@ from typing_extensions import TypedDict, TypeVar
 
 from .base import Sensor, SensorCategory
 from .device import DeviceInfo
+from .property_spec import PropertySpecOverride
 
 
 class MeasurementInfoProperties(TypedDict):
@@ -40,9 +41,16 @@ class MeasurementInfo(Sensor[TProperties, TStorage, str], Generic[TProperties, T
         address: str | None = None,
         device: DeviceInfo | None = None,
         primary: bool = False,
+        property_specs: Mapping[str, PropertySpecOverride] | None = None,
     ) -> None:
         super().__init__(
-            name, native_id=native_id, origin=origin, address=address, device=device, primary=primary
+            name,
+            native_id=native_id,
+            origin=origin,
+            address=address,
+            device=device,
+            primary=primary,
+            property_specs=property_specs,
         )
         self._write_state({"current": self._initial})
 

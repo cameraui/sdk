@@ -39,6 +39,7 @@ type sensorInternalInit interface {
 	setAssignedCameras(cameraIDs []string)
 	setAssignmentLocked()
 	applyDeviceState(state *sensorDeviceState)
+	applyPropertySpecs(specs map[string]SensorPropertySpec)
 	setStorage(storage *DeviceStorage)
 	initUpdateFn(updateFn propertyUpdateFn)
 	initCapabilitiesUpdateFn(updateFn func([]string))
@@ -1251,6 +1252,7 @@ func applyRegistration(si sensorInternalInit, registration *sensorRegistration) 
 	if registration.DeviceState != nil {
 		si.applyDeviceState(registration.DeviceState)
 	}
+	si.applyPropertySpecs(registration.PropertySpecs)
 }
 
 func decodeSensorRegistration(result any) (*sensorRegistration, error) {

@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     from ..sensor.occupancy import OccupancyProperty
     from ..sensor.power import PowerProperty
     from ..sensor.problem import ProblemProperty
+    from ..sensor.property_spec import PropertySpecOverride
     from ..sensor.ptz import PTZCapability, PTZProperty
     from ..sensor.security_system import SecuritySystemProperty
     from ..sensor.siren import SirenCapability, SirenProperty
@@ -106,6 +107,7 @@ class SensorSourcePatch(TypedDict):
     sourceState: NotRequired[SensorSourceState]
     address: NotRequired[str]
     membership: NotRequired[SensorMembership]
+    propertySpecs: NotRequired[dict[str, PropertySpecOverride]]  # the full map, replaces the host's
 
 
 SourceUpdateFn = Callable[[SensorSourcePatch], None]
@@ -129,3 +131,6 @@ class SensorJSON(TypedDict):
     membership: NotRequired[
         SensorMembership
     ]  # absent when the plugin never set a device, the host keeps the one it has
+    propertySpecs: NotRequired[
+        dict[str, PropertySpecOverride]
+    ]  # absent from an older SDK, the host keeps the one it has

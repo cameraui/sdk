@@ -229,6 +229,12 @@ from .problem import (
     ProblemSensorLike,
     ProblemSensorProperties,
 )
+from .property_spec import (
+    PropertySpecOverride,
+    SensorPropertyChoice,
+    SensorPropertySpec,
+    SensorPropertyValueType,
+)
 from .ptz import (
     PTZCapability,
     PTZControl,
@@ -340,6 +346,10 @@ __all__ = [
     "VideoFrameData",
     "DeviceInfo",
     "SensorDevice",
+    "PropertySpecOverride",
+    "SensorPropertyChoice",
+    "SensorPropertySpec",
+    "SensorPropertyValueType",
     "MotionResult",
     "AudioFrameData",
     "AudioResult",

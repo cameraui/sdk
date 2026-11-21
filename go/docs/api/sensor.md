@@ -339,6 +339,13 @@ GetOrigin returns the source system the sensor was imported from, e.g. "homeassi
 
 GetPluginID returns the id of the plugin that owns the sensor, set at registration.
 
+<a name="BaseSensor.GetPropertySpecs"></a>
+### func \(\*BaseSensor\) GetPropertySpecs
+
+	func (s *BaseSensor) GetPropertySpecs() map[string]SensorPropertySpec
+
+GetPropertySpecs returns the specs of the properties the plugin narrowed or described, resolved against the type's. A property without an entry follows its type's spec.
+
 <a name="BaseSensor.GetShortName"></a>
 ### func \(\*BaseSensor\) GetShortName
 
@@ -421,6 +428,13 @@ OnDeviceInfoChanged fires with the device whenever the sensor joins or leaves on
 
 OnPropertyChanged subscribes to property changes. Returns a Disposable to unsubscribe.
 
+<a name="BaseSensor.OnPropertySpecsChanged"></a>
+### func \(\*BaseSensor\) OnPropertySpecsChanged
+
+	func (s *BaseSensor) OnPropertySpecsChanged(callback func(map[string]SensorPropertySpec)) *Disposable
+
+OnPropertySpecsChanged fires with the property specs whenever the plugin changes them.
+
 <a name="BaseSensor.Primary"></a>
 ### func \(\*BaseSensor\) Primary
 
@@ -474,6 +488,20 @@ SetDisplayName sets the display name \(the only mutable identifier on a sensor\)
 Example:
 
 	sensor.SetDisplayName("Front Door Motion")
+	
+
+<a name="BaseSensor.SetPropertySpec"></a>
+### func \(\*BaseSensor\) SetPropertySpec
+
+	func (s *BaseSensor) SetPropertySpec(property string, spec *PropertySpecOverride)
+
+SetPropertySpec narrows or describes one property for this device: a range and step, the enum values it supports, the choices it offers with their names, a text limit. The host rejects a command outside it before it reaches the plugin. Pass it with WithPropertySpec when it is known at construction, call this for what changes later. Only a change reaches the host. A nil spec follows the type's spec again.
+
+Example:
+
+	alarm.SetPropertySpec(sdk.SecuritySystemPropertyTargetState, &sdk.PropertySpecOverride{
+		Values: []any{sdk.SecuritySystemStateAwayArm, sdk.SecuritySystemStateStayArm, sdk.SecuritySystemStateDisarmed},
+	})
 	
 
 <a name="BaseSensor.SetSourceState"></a>
@@ -2798,6 +2826,28 @@ ProblemSensor reports the problem state.
 
 NewProblemSensor creates a problem sensor with the given name and options.
 
+<a name="PropertySpecOverride"></a>
+## type PropertySpecOverride
+
+PropertySpecOverride is what a plugin narrows or describes on one property of its sensor, on top of the type's spec: a thermostat's range, a chime's tones, an alarm without night mode. The host rejects a command outside it before it reaches the plugin, readings the plugin reports are not checked.
+
+	type PropertySpecOverride struct {
+	    // Min is the lowest accepted value, inside the type's range.
+	    Min *float64 `msgpack:"min,omitempty" json:"min,omitempty"`
+	    // Max is the highest accepted value, inside the type's range.
+	    Max *float64 `msgpack:"max,omitempty" json:"max,omitempty"`
+	    // Step is the accepted increment, commands are rounded to it.
+	    Step *float64 `msgpack:"step,omitempty" json:"step,omitempty"`
+	    // Unit is the display unit, only for a property whose type sets none.
+	    Unit string `msgpack:"unit,omitempty" json:"unit,omitempty"`
+	    // Values lists the values an enum property supports at the device, a subset of the type's.
+	    Values []any `msgpack:"values,omitempty" json:"values,omitempty"`
+	    // Choices lists the values the device offers with their names at the device, for a property without a fixed enum.
+	    Choices []SensorPropertyChoice `msgpack:"choices,omitempty" json:"choices,omitempty"`
+	    // MaxLength is the longest accepted text.
+	    MaxLength *int `msgpack:"maxLength,omitempty" json:"maxLength,omitempty"`
+	}
+
 <a name="SecuritySystem"></a>
 ## type SecuritySystem
 
@@ -3045,6 +3095,11 @@ State\-modifying methods \(SetOn, ReportDetections, etc.\) live on the concrete 
 	    // OnDeviceInfoChanged fires with the device whenever the sensor joins or leaves
 	    // one, or its device, names or main-sensor role change.
 	    OnDeviceInfoChanged(callback func(*SensorDevice)) *Disposable
+	    // GetPropertySpecs returns the specs of the properties the plugin narrowed or described,
+	    // resolved against the type's. A property without an entry follows its type's spec.
+	    GetPropertySpecs() map[string]SensorPropertySpec
+	    // OnPropertySpecsChanged fires with the property specs whenever the plugin changes them.
+	    OnPropertySpecsChanged(callback func(map[string]SensorPropertySpec)) *Disposable
 	}
 
 <a name="SensorCategory"></a>
@@ -3125,6 +3180,13 @@ WithOrigin marks the source system the sensor was imported from \(e.g. "homeassi
 
 WithPrimary marks the sensor as the main sensor of its device, called like the device when it stands alone.
 
+<a name="WithPropertySpec"></a>
+### func WithPropertySpec
+
+	func WithPropertySpec(property string, spec PropertySpecOverride) SensorOption
+
+WithPropertySpec sets what the device accepts for one property, see BaseSensor.SetPropertySpec.
+
 <a name="SensorPropertyChange"></a>
 ## type SensorPropertyChange
 
@@ -3138,6 +3200,65 @@ SensorPropertyChange is emitted when a sensor property value changes.
 	    // Timestamp is when the value was set (Unix ms).
 	    Timestamp int64
 	}
+
+<a name="SensorPropertyChoice"></a>
+## type SensorPropertyChoice
+
+SensorPropertyChoice is a value a device offers for a property, such as a chime tone or a TV input.
+
+	type SensorPropertyChoice struct {
+	    // Value is the value written to the property.
+	    Value any `msgpack:"value" json:"value"`
+	    // Label is the name of the value at the device, shown as it comes.
+	    Label string `msgpack:"label" json:"label"`
+	}
+
+<a name="SensorPropertySpec"></a>
+## type SensorPropertySpec
+
+SensorPropertySpec describes the values of one property: the type it carries, its enum values or numeric range, and whether it is a command or an internal detail.
+
+	type SensorPropertySpec struct {
+	    // Type is the runtime type of the value.
+	    Type SensorPropertyValueType `msgpack:"type" json:"type"`
+	    // Values maps the value names of an enum property to their wire values. Names double as i18n key stems.
+	    Values map[string]any `msgpack:"values,omitempty" json:"values,omitempty"`
+	    // Keys lists the scalar member keys of an object property, exposed as value-path variables.
+	    Keys []string `msgpack:"keys,omitempty" json:"keys,omitempty"`
+	    // Min is the lowest accepted value of a numeric property.
+	    Min *float64 `msgpack:"min,omitempty" json:"min,omitempty"`
+	    // Max is the highest accepted value of a numeric property.
+	    Max *float64 `msgpack:"max,omitempty" json:"max,omitempty"`
+	    // Step is the accepted increment of a numeric property, commands are rounded to it.
+	    Step *float64 `msgpack:"step,omitempty" json:"step,omitempty"`
+	    // Unit is the display unit of the value, e.g. % or °C.
+	    Unit string `msgpack:"unit,omitempty" json:"unit,omitempty"`
+	    // Choices lists the values the device offers with their names at the device, for a property without a fixed enum.
+	    Choices []SensorPropertyChoice `msgpack:"choices,omitempty" json:"choices,omitempty"`
+	    // MaxLength is the longest accepted text of a string property.
+	    MaxLength *int `msgpack:"maxLength,omitempty" json:"maxLength,omitempty"`
+	    // Writable reports whether the property accepts external writes (commands, target states, virtual sensor state).
+	    Writable bool `msgpack:"writable,omitempty" json:"writable,omitempty"`
+	    // Internal reports that the property is no observable state, hidden from trigger and condition pickers.
+	    Internal bool `msgpack:"internal,omitempty" json:"internal,omitempty"`
+	}
+
+<a name="SensorPropertyValueType"></a>
+## type SensorPropertyValueType
+
+SensorPropertyValueType is the runtime type of a sensor property: boolean, number, string, enum or object.
+
+	type SensorPropertyValueType string
+
+<a name="SensorPropertyValueTypeBoolean"></a>
+
+	const (
+	    SensorPropertyValueTypeBoolean SensorPropertyValueType = "boolean"
+	    SensorPropertyValueTypeNumber  SensorPropertyValueType = "number"
+	    SensorPropertyValueTypeString  SensorPropertyValueType = "string"
+	    SensorPropertyValueTypeEnum    SensorPropertyValueType = "enum"
+	    SensorPropertyValueTypeObject  SensorPropertyValueType = "object"
+	)
 
 <a name="SensorSourceState"></a>
 ## type SensorSourceState

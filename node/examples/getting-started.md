@@ -543,6 +543,17 @@ export default class SmartHome extends BasePlugin implements SensorDiscoveryProv
 }
 ```
 
+A device rarely does everything its type allows: an alarm without night mode, a thermostat from 5 to 30 °C, a chime with its own tones. Pass `propertySpecs` to the sensor you build to narrow a property: `min`, `max` and `step` for numbers, `values` for the enum values the device supports, `choices` with the names the device gives them, `maxLength` for text. The host rejects a command outside it before it reaches the plugin, and HomeKit, Home Assistant and the automation editor offer only what is left. Readings you report are not checked. `setPropertySpec(property, spec)` changes it later, `undefined` follows the type again.
+
+```ts
+const alarm = new SecuritySystem('Alarm', {
+  nativeId: panel.id,
+  propertySpecs: {
+    [SecuritySystemProperty.TargetState]: { values: [SecuritySystemState.AwayArm, SecuritySystemState.StayArm, SecuritySystemState.Disarmed] },
+  },
+});
+```
+
 ## 7. Logging
 
 `this.logger` is a `LoggerService`. The methods are `log`, `warn`, `error`, `success`, `debug`, `trace`, and `attention` — each accepts a list of arguments joined with spaces by the host. `debug` and `trace` are gated by host log level.

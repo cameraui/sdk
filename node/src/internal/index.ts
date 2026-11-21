@@ -6,3 +6,4 @@ export * from './camera-wire.js';
 export * from './streaming-internal.js';
 export * from './camera-enums.js';
 export * from './camera-config-internal.js';
+export * from './property-check.js';

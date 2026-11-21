@@ -19,6 +19,7 @@ from .detection import (
     VideoFrameData,
 )
 from .device import DeviceInfo
+from .property_spec import PropertySpecOverride
 
 # detection types are re-exported here, plugins import them from this module
 __all__ = [
@@ -112,9 +113,16 @@ class MotionSensor(Sensor[MotionSensorProperties, TStorage, str], Generic[TStora
         address: str | None = None,
         device: DeviceInfo | None = None,
         primary: bool = False,
+        property_specs: Mapping[str, PropertySpecOverride] | None = None,
     ) -> None:
         super().__init__(
-            name, native_id=native_id, origin=origin, address=address, device=device, primary=primary
+            name,
+            native_id=native_id,
+            origin=origin,
+            address=address,
+            device=device,
+            primary=primary,
+            property_specs=property_specs,
         )
         self._write_state(
             {

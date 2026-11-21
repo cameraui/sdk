@@ -51,6 +51,7 @@ func newSensorProxy(client *rpc.Client, logger *Logger, data *storedSensorData) 
 	if data.Capabilities != nil {
 		s.capabilities = append([]string(nil), data.Capabilities...)
 	}
+	s.propertySpecs = data.PropertySpecs
 
 	for k, v := range data.Properties {
 		s.properties[k] = coercePropertyValue(data.Type, k, v)
@@ -109,6 +110,10 @@ func (s *sensorProxy) applyRefreshedState(state sensorRefreshedState, marks map[
 		s.applyDeviceState(state.DeviceState)
 	}
 
+	if state.PropertySpecs != nil && current("propertySpecs") {
+		s.applyPropertySpecs(state.PropertySpecs)
+	}
+
 	s.mu.RLock()
 	stale := !isEqual(s.capabilities, state.Capabilities, true)
 	s.mu.RUnlock()
@@ -131,13 +136,24 @@ func (s *sensorProxy) applyDeviceEvent(state *sensorDeviceState) {
 	s.applyDeviceState(state)
 }
 
+func (s *sensorProxy) applyPropertySpecsEvent(specs map[string]SensorPropertySpec) {
+	s.eventMu.Lock()
+	defer s.eventMu.Unlock()
+	s.eventCounts["propertySpecs"]++
+	s.applyPropertySpecs(specs)
+}
+
 func (s *sensorProxy) UpdateValue(property string, value any) error {
 	// read-only types no-op on the owning side, so there is no category gate here
 	if s.proxy == nil {
 		return nil
 	}
+	value, err := checkPropertyWrite(s.GetPropertySpecs(), property, value)
+	if err != nil {
+		return err
+	}
 	ctx := context.Background()
-	_, err := s.proxy.Invoke(ctx, "updateValue", property, value)
+	_, err = s.proxy.Invoke(ctx, "updateValue", property, value)
 	return err
 }
 
@@ -165,6 +181,7 @@ func (s *sensorProxy) ToStoredData() storedSensorData {
 		ShortName:         s.shortName,
 		Device:            s.device,
 		Primary:           s.primary,
+		PropertySpecs:     maps.Clone(s.propertySpecs),
 	}
 }
 

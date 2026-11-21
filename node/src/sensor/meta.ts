@@ -38,12 +38,49 @@ export interface SensorPropertySpec {
   readonly min?: number;
   /** Numeric properties: highest accepted value. */
   readonly max?: number;
+  /** Numeric properties: accepted increment, commands are rounded to it. */
+  readonly step?: number;
   /** Display unit of the value, e.g. `%` or `°C`. */
   readonly unit?: string;
+  /** Values the device offers with their names at the device, for a property without a fixed enum. */
+  readonly choices?: readonly SensorPropertyChoice[];
+  /** String properties: longest accepted text. */
+  readonly maxLength?: number;
   /** Accepts external writes (commands, target states, virtual sensor state). */
   readonly writable?: boolean;
   /** Not an observable state: hidden from trigger/condition pickers. */
   readonly internal?: boolean;
+}
+
+/** A value a device offers for a property, such as a chime tone or a TV input. */
+export interface SensorPropertyChoice {
+  /** Value written to the property. */
+  readonly value: string | number;
+  /** Name of the value at the device, shown as it comes. */
+  readonly label: string;
+}
+
+/**
+ * What a plugin narrows or describes on one property of its sensor, on top of
+ * the type's spec: a thermostat's range, a chime's tones, an alarm without
+ * night mode. The host rejects a command outside it before it reaches the
+ * plugin, readings the plugin reports are not checked.
+ */
+export interface PropertySpecOverride {
+  /** Lowest accepted value, inside the type's range. */
+  min?: number;
+  /** Highest accepted value, inside the type's range. */
+  max?: number;
+  /** Accepted increment, commands are rounded to it. */
+  step?: number;
+  /** Display unit, only for a property whose type sets none. */
+  unit?: string;
+  /** Enum properties: the values the device supports, a subset of the type's. */
+  values?: (string | number)[];
+  /** Values the device offers with their names at the device, for a property without a fixed enum. */
+  choices?: SensorPropertyChoice[];
+  /** String properties: longest accepted text. */
+  maxLength?: number;
 }
 
 /** The kind of thing a sensor is, used by consumers to pick how to render it. */

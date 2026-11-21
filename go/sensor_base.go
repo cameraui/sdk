@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"maps"
+	"reflect"
 	"slices"
 	"sync"
 	"time"
@@ -132,33 +133,41 @@ type Sensor interface {
 	// OnDeviceInfoChanged fires with the device whenever the sensor joins or leaves
 	// one, or its device, names or main-sensor role change.
 	OnDeviceInfoChanged(callback func(*SensorDevice)) *Disposable
+	// GetPropertySpecs returns the specs of the properties the plugin narrowed or described,
+	// resolved against the type's. A property without an entry follows its type's spec.
+	GetPropertySpecs() map[string]SensorPropertySpec
+	// OnPropertySpecsChanged fires with the property specs whenever the plugin changes them.
+	OnPropertySpecsChanged(callback func(map[string]SensorPropertySpec)) *Disposable
 }
 
 // SensorOption configures a sensor at construction time.
 type SensorOption func(*sensorOptions)
 
 type sensorJSON struct {
-	ID             string            `msgpack:"id" json:"id"`
-	Type           SensorType        `msgpack:"type" json:"type"`
-	Name           string            `msgpack:"name" json:"name"`
-	DisplayName    string            `msgpack:"displayName" json:"displayName"`
-	Category       SensorCategory    `msgpack:"category" json:"category"`
-	NativeID       string            `msgpack:"nativeId,omitempty" json:"nativeId,omitempty"`
-	Origin         string            `msgpack:"origin,omitempty" json:"origin,omitempty"`
-	PluginID       string            `msgpack:"pluginId,omitempty" json:"pluginId,omitempty"`
-	Properties     map[string]any    `msgpack:"properties" json:"properties"`
-	Capabilities   []string          `msgpack:"capabilities" json:"capabilities"`
-	RequiresFrames bool              `msgpack:"requiresFrames" json:"requiresFrames"`
-	ModelSpec      any               `msgpack:"modelSpec,omitempty" json:"modelSpec,omitempty"`
-	SourceState    SensorSourceState `msgpack:"sourceState,omitempty" json:"sourceState,omitempty"`
-	Address        string            `msgpack:"address,omitempty" json:"address,omitempty"`
-	Membership     *sensorMembership `msgpack:"membership,omitempty" json:"membership,omitempty"` // nil when the plugin never set a device, the host keeps the one it has
+	ID             string                          `msgpack:"id" json:"id"`
+	Type           SensorType                      `msgpack:"type" json:"type"`
+	Name           string                          `msgpack:"name" json:"name"`
+	DisplayName    string                          `msgpack:"displayName" json:"displayName"`
+	Category       SensorCategory                  `msgpack:"category" json:"category"`
+	NativeID       string                          `msgpack:"nativeId,omitempty" json:"nativeId,omitempty"`
+	Origin         string                          `msgpack:"origin,omitempty" json:"origin,omitempty"`
+	PluginID       string                          `msgpack:"pluginId,omitempty" json:"pluginId,omitempty"`
+	Properties     map[string]any                  `msgpack:"properties" json:"properties"`
+	Capabilities   []string                        `msgpack:"capabilities" json:"capabilities"`
+	RequiresFrames bool                            `msgpack:"requiresFrames" json:"requiresFrames"`
+	ModelSpec      any                             `msgpack:"modelSpec,omitempty" json:"modelSpec,omitempty"`
+	SourceState    SensorSourceState               `msgpack:"sourceState,omitempty" json:"sourceState,omitempty"`
+	Address        string                          `msgpack:"address,omitempty" json:"address,omitempty"`
+	Membership     *sensorMembership               `msgpack:"membership,omitempty" json:"membership,omitempty"` // nil when the plugin never set a device, the host keeps the one it has
+	PropertySpecs  map[string]PropertySpecOverride `msgpack:"propertySpecs" json:"propertySpecs"`
 }
 
 type sensorSourcePatch struct {
 	SourceState SensorSourceState `msgpack:"sourceState,omitempty" json:"sourceState,omitempty"`
 	Address     string            `msgpack:"address,omitempty" json:"address,omitempty"`
 	Membership  *sensorMembership `msgpack:"membership,omitempty" json:"membership,omitempty"`
+	// nil keeps the host's map, an empty one clears it
+	PropertySpecs map[string]PropertySpecOverride `msgpack:"propertySpecs" json:"propertySpecs"`
 }
 
 type propertyUpdateFn func(properties map[string]any)
@@ -176,6 +185,7 @@ type sensorOptions struct {
 	address  string
 	device   *DeviceInfo
 	primary  bool
+	specs    map[string]PropertySpecOverride
 }
 
 // BaseSensor is the base struct for all sensors. Embed this in concrete sensor types.
@@ -197,6 +207,8 @@ type BaseSensor struct {
 	device               *SensorDevice
 	shortName            string
 	primary              bool
+	specOverrides        map[string]PropertySpecOverride
+	propertySpecs        map[string]SensorPropertySpec
 	pluginID             string
 	assignedCameraIDs    []string
 	capabilities         []string
@@ -211,6 +223,7 @@ type BaseSensor struct {
 	assignmentChanged    *Subject[[]string]
 	connectedChanged     *Subject[bool]
 	deviceInfoChanged    *Subject[*SensorDevice]
+	propertySpecsChanged *Subject[map[string]SensorPropertySpec]
 	registered           bool
 	active               bool
 	assignmentLocked     bool
@@ -238,20 +251,22 @@ func NewBaseSensor(name string, opts ...SensorOption) BaseSensor {
 	}
 	return BaseSensor{
 		// provisional id, replaced by the host's persistent id at registration
-		id:                  generateSensorID(),
-		name:                name,
-		displayName:         name,
-		nativeID:            cfg.nativeID,
-		origin:              cfg.origin,
-		address:             cfg.address,
-		membership:          membership,
-		properties:          make(map[string]any),
-		capabilities:        make([]string, 0),
-		propertyChanged:     NewSubject[SensorPropertyChange](),
-		capabilitiesChanged: NewSubject[[]string](),
-		assignmentChanged:   NewSubject[[]string](),
-		connectedChanged:    NewSubject[bool](),
-		deviceInfoChanged:   NewSubject[*SensorDevice](),
+		id:                   generateSensorID(),
+		name:                 name,
+		displayName:          name,
+		nativeID:             cfg.nativeID,
+		origin:               cfg.origin,
+		address:              cfg.address,
+		membership:           membership,
+		specOverrides:        maps.Clone(cfg.specs),
+		properties:           make(map[string]any),
+		capabilities:         make([]string, 0),
+		propertyChanged:      NewSubject[SensorPropertyChange](),
+		capabilitiesChanged:  NewSubject[[]string](),
+		assignmentChanged:    NewSubject[[]string](),
+		connectedChanged:     NewSubject[bool](),
+		deviceInfoChanged:    NewSubject[*SensorDevice](),
+		propertySpecsChanged: NewSubject[map[string]SensorPropertySpec](),
 	}
 }
 
@@ -328,6 +343,53 @@ func (s *BaseSensor) SetDeviceInfo(device *DeviceInfo, primary bool) {
 	if updateFn != nil {
 		updateFn(sensorSourcePatch{Membership: membership})
 	}
+}
+
+// SetPropertySpec narrows or describes one property for this device: a range
+// and step, the enum values it supports, the choices it offers with their
+// names, a text limit. The host rejects a command outside it before it reaches
+// the plugin. Pass it with WithPropertySpec when it is known at construction,
+// call this for what changes later. Only a change reaches the host. A nil spec
+// follows the type's spec again.
+//
+// Example:
+//
+//	alarm.SetPropertySpec(sdk.SecuritySystemPropertyTargetState, &sdk.PropertySpecOverride{
+//		Values: []any{sdk.SecuritySystemStateAwayArm, sdk.SecuritySystemStateStayArm, sdk.SecuritySystemStateDisarmed},
+//	})
+func (s *BaseSensor) SetPropertySpec(property string, spec *PropertySpecOverride) {
+	s.mu.Lock()
+	overrides := maps.Clone(s.specOverrides)
+	if overrides == nil {
+		overrides = map[string]PropertySpecOverride{}
+	}
+	delete(overrides, property)
+	if spec != nil {
+		overrides[property] = *spec
+	}
+	if reflect.DeepEqual(s.specOverrides, overrides) || (len(s.specOverrides) == 0 && len(overrides) == 0) {
+		s.mu.Unlock()
+		return
+	}
+	s.specOverrides = overrides
+	updateFn := s.sourceUpdateFn
+	s.mu.Unlock()
+	if updateFn != nil {
+		updateFn(sensorSourcePatch{PropertySpecs: maps.Clone(overrides)})
+	}
+}
+
+// GetPropertySpecs returns the specs of the properties the plugin narrowed or described,
+// resolved against the type's. A property without an entry follows its type's spec.
+func (s *BaseSensor) GetPropertySpecs() map[string]SensorPropertySpec {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return maps.Clone(s.propertySpecs)
+}
+
+// OnPropertySpecsChanged fires with the property specs whenever the plugin changes them.
+func (s *BaseSensor) OnPropertySpecsChanged(callback func(map[string]SensorPropertySpec)) *Disposable {
+	return s.propertySpecsChanged.Subscribe(callback)
 }
 
 // SetDisplayName sets the display name (the only mutable identifier on a
@@ -639,6 +701,17 @@ func (s *BaseSensor) applyDeviceState(state *sensorDeviceState) {
 	}
 }
 
+func (s *BaseSensor) applyPropertySpecs(specs map[string]SensorPropertySpec) {
+	s.mu.Lock()
+	if reflect.DeepEqual(s.propertySpecs, specs) || (len(s.propertySpecs) == 0 && len(specs) == 0) {
+		s.mu.Unlock()
+		return
+	}
+	s.propertySpecs = specs
+	s.mu.Unlock()
+	s.propertySpecsChanged.Next(maps.Clone(specs))
+}
+
 func (s *BaseSensor) setActive(active bool) bool {
 	s.mu.Lock()
 	if s.active == active {
@@ -657,6 +730,8 @@ func (s *BaseSensor) toBaseJSON(sensorType SensorType, category SensorCategory) 
 
 	props := make(map[string]any, len(s.properties))
 	maps.Copy(props, s.properties)
+	overrides := make(map[string]PropertySpecOverride, len(s.specOverrides))
+	maps.Copy(overrides, s.specOverrides)
 
 	return sensorJSON{
 		ID:             s.id,
@@ -673,6 +748,7 @@ func (s *BaseSensor) toBaseJSON(sensorType SensorType, category SensorCategory) 
 		SourceState:    s.sourceState,
 		Address:        s.address,
 		Membership:     s.membership,
+		PropertySpecs:  overrides,
 	}
 }
 
@@ -724,6 +800,7 @@ func (s *BaseSensor) cleanup() {
 	s.assignmentChanged.Complete()
 	s.connectedChanged.Complete()
 	s.deviceInfoChanged.Complete()
+	s.propertySpecsChanged.Complete()
 	s.storage = nil
 }
 
@@ -777,6 +854,17 @@ func WithDevice(device *DeviceInfo) SensorOption {
 func WithPrimary() SensorOption {
 	return func(o *sensorOptions) {
 		o.primary = true
+	}
+}
+
+// WithPropertySpec sets what the device accepts for one property, see
+// BaseSensor.SetPropertySpec.
+func WithPropertySpec(property string, spec PropertySpecOverride) SensorOption {
+	return func(o *sensorOptions) {
+		if o.specs == nil {
+			o.specs = map[string]PropertySpecOverride{}
+		}
+		o.specs[property] = spec
 	}
 }
 

@@ -715,6 +715,17 @@ func (p *HubPlugin) OnSensorUnadopted(nativeID string) error {
 }
 ```
 
+A device rarely does everything its type allows: an alarm without night mode, a thermostat from 5 to 30 °C, a chime with its own tones. Pass `WithPropertySpec` to the sensor you build to narrow a property: `Min`, `Max` and `Step` for numbers, `Values` for the enum values the device supports, `Choices` with the names the device gives them, `MaxLength` for text. The host rejects a command outside it before it reaches the plugin, and HomeKit, Home Assistant and the automation editor offer only what is left. Readings you report are not checked. `SetPropertySpec(property, spec)` changes it later, `nil` follows the type again.
+
+```go
+alarm := cameraui.NewSecuritySystem("Alarm",
+    cameraui.WithNativeID(panel.ID),
+    cameraui.WithPropertySpec(cameraui.SecuritySystemPropertyTargetState, cameraui.PropertySpecOverride{
+        Values: []any{cameraui.SecuritySystemStateAwayArm, cameraui.SecuritySystemStateStayArm, cameraui.SecuritySystemStateDisarmed},
+    }),
+)
+```
+
 ## 7. Logging
 
 `p.Logger` is a `*cameraui.Logger`. The methods are `Log`, `Warn`, `Error`, `Success`, `Debug`, `Trace`, and `Attention` — each accepts variadic `any` arguments joined with spaces by the host. `Debug` and `Trace` are gated by the host log level.

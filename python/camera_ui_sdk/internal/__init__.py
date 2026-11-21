@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from .camera_wire import DetectionEventMessage
     from .event_emitter import AsyncEventEmitter
     from .manager_rpc import ConnectionStatus, DiscoveredCameraWithState
+    from .property_check import check_property_write
     from .sensor_rpc import (
         CapabilityUpdateFn,
         PropertyChangedEvent,
@@ -40,6 +41,7 @@ __all__ = [
     "CameraInputSettings",
     "CameraConfigPartial",
     "is_equal",
+    "check_property_write",
 ]
 
 # resolved lazily to avoid circular imports during SDK bootstrap
@@ -62,6 +64,7 @@ _LAZY: dict[str, tuple[str, str]] = {
     "CameraInputSettings": (".camera_config_internal", "CameraInputSettings"),
     "CameraConfigPartial": (".camera_config_internal", "CameraConfigPartial"),
     "is_equal": (".shared_utils", "is_equal"),
+    "check_property_write": (".property_check", "check_property_write"),
 }
 
 

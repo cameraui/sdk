@@ -28,6 +28,7 @@ from ..internal.sensor_rpc import (
 from ..internal.shared_utils import is_equal
 from ..observable import Observable, Subject
 from .device import DeviceInfo, SensorDevice
+from .property_spec import PropertySpecOverride, SensorPropertySpec
 
 if TYPE_CHECKING:
     from ..storage import DeviceStorage, JsonSchema
@@ -214,6 +215,11 @@ class SensorLike(Protocol):
         ...
 
     @property
+    def propertySpecs(self) -> Mapping[str, SensorPropertySpec]:
+        """Specs of the properties the plugin narrowed or described, resolved against the type's. A property without an entry follows its type's spec."""
+        ...
+
+    @property
     def displayName(self) -> str:
         """Full name shown to the user: inside a device the device name plus ``shortName``, otherwise the plugin's name until the user renames the sensor."""
         ...
@@ -249,6 +255,11 @@ class SensorLike(Protocol):
     @property
     def onDeviceInfoChanged(self) -> Observable[SensorDevice | None]:
         """Emits the device whenever the sensor joins or leaves one, or its device, names or main-sensor role change."""
+        ...
+
+    @property
+    def onPropertySpecsChanged(self) -> Observable[Mapping[str, SensorPropertySpec]]:
+        """Emits the property specs whenever the plugin changes them."""
         ...
 
     def getValue(self, property: str) -> Any | None:
@@ -341,6 +352,7 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         address: str | None = None,
         device: DeviceInfo | None = None,
         primary: bool = False,
+        property_specs: Mapping[str, PropertySpecOverride] | None = None,
     ) -> None:
         self._name = name
         self._id = str(uuid4())  # provisional id, replaced by the host's persistent id at registration
@@ -352,6 +364,8 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         self._device: SensorDevice | None = None
         self._short_name = ""
         self._primary = False
+        self._spec_overrides: dict[str, PropertySpecOverride] = dict(property_specs or {})
+        self._property_specs: Mapping[str, SensorPropertySpec] = {}
         self._display_name = name
         self._plugin_id: str | None = None
         self._assigned_camera_ids: list[str] = []
@@ -362,6 +376,7 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         self._assignment_changed_subject: Subject[list[str]] = Subject()
         self._connected_changed_subject: Subject[bool] = Subject()
         self._device_info_changed_subject: Subject[SensorDevice | None] = Subject()
+        self._property_specs_changed_subject: Subject[Mapping[str, SensorPropertySpec]] = Subject()
 
         self._update_fn: PropertyUpdateFn | None = None
         self._capabilities_change_fn: Callable[[list[str]], None] | None = None
@@ -439,6 +454,11 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
     def primary(self) -> bool:
         """Whether the sensor is the main sensor of its device, called like the device when it stands alone."""
         return self._primary
+
+    @property
+    def propertySpecs(self) -> Mapping[str, SensorPropertySpec]:
+        """Specs of the properties the plugin narrowed or described, resolved against the type's. A property without an entry follows its type's spec."""
+        return self._property_specs
 
     @property
     def pluginId(self) -> str | None:
@@ -519,6 +539,11 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
     def onDeviceInfoChanged(self) -> Observable[SensorDevice | None]:
         """Emits the device whenever the sensor joins or leaves one, or its device, names or main-sensor role change."""
         return self._device_info_changed_subject.as_observable()
+
+    @property
+    def onPropertySpecsChanged(self) -> Observable[Mapping[str, SensorPropertySpec]]:
+        """Emits the property specs whenever the plugin changes them."""
+        return self._property_specs_changed_subject.as_observable()
 
     @property
     def onPropertyChanged(self) -> Observable[SensorPropertyChangeData]:
@@ -630,6 +655,42 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         if self._source_update_fn:
             self._source_update_fn({"membership": membership})
 
+    def setPropertySpec(self, property: str, spec: PropertySpecOverride | None) -> None:
+        """Narrow or describe one property for this device.
+
+        A range and step, the enum values it supports, the choices it offers
+        with their names, a text limit. The host rejects a command outside it
+        before it reaches the plugin. Pass it to the constructor when it is
+        known there, call this for what changes later. Only a change reaches
+        the host.
+
+        Args:
+            property: Property to describe.
+            spec: What the device accepts, ``None`` to follow the type's spec again.
+
+        Example:
+            ```python
+            alarm.setPropertySpec(
+                SecuritySystemProperty.TargetState,
+                {
+                    "values": [
+                        SecuritySystemState.AwayArm,
+                        SecuritySystemState.StayArm,
+                        SecuritySystemState.Disarmed,
+                    ]
+                },
+            )
+            ```
+        """
+        overrides = {key: value for key, value in self._spec_overrides.items() if key != property}
+        if spec is not None:
+            overrides[property] = spec
+        if is_equal(self._spec_overrides, overrides):
+            return
+        self._spec_overrides = overrides
+        if self._source_update_fn:
+            self._source_update_fn({"propertySpecs": overrides})
+
     def toJSON(self) -> SensorJSON:
         """Serialize this sensor to a JSON-safe dict for RPC transport."""
         result: SensorJSON = {
@@ -654,6 +715,7 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
             result["address"] = self._address
         if self._membership is not None:
             result["membership"] = self._membership
+        result["propertySpecs"] = self._spec_overrides
         return result
 
     def getValue(self, property: str) -> Any | None:
@@ -857,6 +919,12 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         if changed:
             self._device_info_changed_subject.next(device)
 
+    def _applyPropertySpecs(self, specs: Mapping[str, SensorPropertySpec]) -> None:
+        if is_equal(self._property_specs, specs):
+            return
+        self._property_specs = specs
+        self._property_specs_changed_subject.next(specs)
+
     def _cleanup(self) -> None:
         # pair on_stop even when the sensor is force-removed without teardown
         if self._active:
@@ -874,6 +942,7 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         self._assignment_changed_subject.complete()
         self._connected_changed_subject.complete()
         self._device_info_changed_subject.complete()
+        self._property_specs_changed_subject.complete()
 
     def _getProperties(self) -> dict[str, Any]:
         return self._properties_store.copy()

@@ -24,6 +24,7 @@ import type { LeakProperty } from './leak.js';
 import type { LicensePlateProperty } from './licensePlate.js';
 import type { LightCapability, LightProperty } from './light.js';
 import type { LockProperty } from './lock.js';
+import type { PropertySpecOverride, SensorPropertySpec } from './meta.js';
 import type { MotionProperty } from './motion.js';
 import type { ObjectProperty } from './object.js';
 import type { OccupancyProperty } from './occupancy.js';
@@ -237,6 +238,8 @@ export interface SensorLike {
   readonly deviceInfo?: SensorDevice;
   /** Whether the sensor is the main sensor of its device, called like the device when it stands alone. */
   readonly primary: boolean;
+  /** Specs of the properties the plugin narrowed or described, resolved against the type's. A property without an entry follows its type's spec. */
+  readonly propertySpecs: Readonly<Record<string, SensorPropertySpec>>;
   /** Emits on every property change. */
   readonly onPropertyChanged: Observable<{
     /** Name of the changed property. */
@@ -254,6 +257,8 @@ export interface SensorLike {
   readonly onAssignmentChanged: Observable<readonly string[]>;
   /** Emits the device whenever the sensor joins or leaves one, or its device, names or main-sensor role change. */
   readonly onDeviceInfoChanged: Observable<SensorDevice | undefined>;
+  /** Emits the property specs whenever the plugin changes them. */
+  readonly onPropertySpecsChanged: Observable<Readonly<Record<string, SensorPropertySpec>>>;
 
   /** Get the current value of a sensor property. */
   getValue(property: string): unknown;
@@ -309,6 +314,8 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   private _device?: SensorDevice;
   private _shortName = '';
   private _primary = false;
+  private _specOverrides: Record<string, PropertySpecOverride> = {};
+  private _propertySpecs: Readonly<Record<string, SensorPropertySpec>> = {};
   private _sourceUpdateFn?: SourceUpdateFn;
   private _assignedCameraIds: string[] = [];
   private _assignmentLocked = false;
@@ -332,6 +339,8 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   readonly onConnectedChanged: Observable<boolean> = this.#connectedChangedSubject.asObservable();
   readonly #deviceInfoChangedSubject = new Subject<SensorDevice | undefined>();
   readonly onDeviceInfoChanged: Observable<SensorDevice | undefined> = this.#deviceInfoChangedSubject.asObservable();
+  readonly #propertySpecsChangedSubject = new Subject<Readonly<Record<string, SensorPropertySpec>>>();
+  readonly onPropertySpecsChanged: Observable<Readonly<Record<string, SensorPropertySpec>>> = this.#propertySpecsChangedSubject.asObservable();
 
   private _updateFn?: PropertyUpdateFn;
 
@@ -345,6 +354,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     this._origin = options?.origin;
     this._address = options?.address;
     if (options?.device) this._membership = { device: options.device, primary: options.primary ?? false };
+    if (options?.propertySpecs) this._specOverrides = { ...options.propertySpecs };
     this._propertiesStore = {} as TProperties;
   }
 
@@ -385,6 +395,10 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
 
   get primary(): boolean {
     return this._primary;
+  }
+
+  get propertySpecs(): Readonly<Record<string, SensorPropertySpec>> {
+    return this._propertySpecs;
   }
 
   /** Whether the sensor is assigned to at least one camera. */
@@ -556,6 +570,31 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     this._sourceUpdateFn?.({ membership });
   }
 
+  /**
+   * Narrow or describe one property for this device: a range and step, the
+   * enum values it supports, the choices it offers with their names, a text
+   * limit. The host rejects a command outside it before it reaches the
+   * plugin. Pass it in the constructor options when it is known there, call
+   * this for what changes later. Only a change reaches the host.
+   *
+   * @param property - Property to describe
+   *
+   * @param spec - What the device accepts, `undefined` to follow the type's spec again
+   *
+   * @example
+   * ```typescript
+   * alarm.setPropertySpec(SecuritySystemProperty.TargetState, {
+   *   values: [SecuritySystemState.AwayArm, SecuritySystemState.StayArm, SecuritySystemState.Disarmed],
+   * });
+   * ```
+   */
+  setPropertySpec<K extends keyof TProperties & string>(property: K, spec: PropertySpecOverride | undefined): void {
+    const { [property]: current, ...rest } = this._specOverrides;
+    if (isEqual(current, spec)) return;
+    this._specOverrides = spec ? { ...rest, [property]: spec } : rest;
+    this._sourceUpdateFn?.({ propertySpecs: this._specOverrides });
+  }
+
   /** @internal */
   toJSON(): SensorJSON {
     return {
@@ -573,6 +612,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
       sourceState: this._sourceState,
       address: this._address,
       membership: this._membership,
+      propertySpecs: this._specOverrides,
     };
   }
 
@@ -644,6 +684,13 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   }
 
   /** @internal */
+  _applyPropertySpecs(specs: Record<string, SensorPropertySpec>): void {
+    if (isEqual(this._propertySpecs, specs)) return;
+    this._propertySpecs = specs;
+    this.#propertySpecsChangedSubject.next(specs);
+  }
+
+  /** @internal */
   _setActive(active: boolean): void {
     if (this._active === active) return;
     this._active = active;
@@ -675,6 +722,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     this.#assignmentChangedSubject.complete();
     this.#connectedChangedSubject.complete();
     this.#deviceInfoChangedSubject.complete();
+    this.#propertySpecsChangedSubject.complete();
   }
 
   /** Read-only view of the property values. */
@@ -830,4 +878,6 @@ export interface SensorOptions {
   device?: DeviceInfo;
   /** Whether the sensor is the main sensor of its `device`, called like the device when it stands alone. */
   primary?: boolean;
+  /** What the device accepts per property, see `setPropertySpec()`. */
+  propertySpecs?: Readonly<Record<string, PropertySpecOverride>>;
 }

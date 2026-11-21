@@ -10,6 +10,7 @@ from ..observable import Observable
 from .base import SensorLike, SensorType
 from .device import DeviceInfo
 from .measurement import MeasurementInfo
+from .property_spec import PropertySpecOverride
 
 
 class IlluminanceProperty(StrEnum):
@@ -69,9 +70,16 @@ class IlluminanceInfo(MeasurementInfo[IlluminanceInfoProperties, TStorage], Gene
         address: str | None = None,
         device: DeviceInfo | None = None,
         primary: bool = False,
+        property_specs: Mapping[str, PropertySpecOverride] | None = None,
     ) -> None:
         super().__init__(
-            name, native_id=native_id, origin=origin, address=address, device=device, primary=primary
+            name,
+            native_id=native_id,
+            origin=origin,
+            address=address,
+            device=device,
+            primary=primary,
+            property_specs=property_specs,
         )
 
     @property

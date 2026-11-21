@@ -1,5 +1,6 @@
 import type { SensorCategory, SensorPropertyType, SensorSourceState, SensorType } from '../sensor/base.js';
 import type { DeviceInfo, SensorDevice } from '../sensor/device.js';
+import type { PropertySpecOverride } from '../sensor/meta.js';
 import type { ModelSpec } from '../sensor/spec.js';
 
 export interface PropertyChangedEvent {
@@ -38,6 +39,8 @@ export interface SensorSourcePatch {
   sourceState?: SensorSourceState;
   address?: string;
   membership?: SensorMembership;
+  /** The full map, replaces the one the host has. */
+  propertySpecs?: Record<string, PropertySpecOverride>;
 }
 
 export type SourceUpdateFn = (patch: SensorSourcePatch) => void;
@@ -59,4 +62,6 @@ export interface SensorJSON {
   address?: string;
   /** Absent when the plugin never set a device, the host then keeps the one it has. */
   membership?: SensorMembership;
+  /** Absent from an older SDK, the host then keeps the one it has. */
+  propertySpecs?: Record<string, PropertySpecOverride>;
 }
