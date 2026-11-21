@@ -99,6 +99,8 @@ export enum SensorDomain {
   Lock = 'lock',
   /** Opening and closing, like a garage door. */
   Cover = 'cover',
+  /** Heating and cooling to a target temperature. */
+  Climate = 'climate',
   /** Armable alarm with several arm modes. */
   Alarm = 'alarm',
   /** Momentary happening of a kind, such as a button press, empty between happenings. */
@@ -115,6 +117,32 @@ export interface SensorReading {
   readonly deviceClass?: string;
   /** Unit of the reading. */
   readonly unit?: string;
+}
+
+/** A current and a target value, as a cover's position or tilt. */
+export interface SensorPosition {
+  /** Name of the property that carries the current value. */
+  readonly current: string;
+  /** Name of the property that carries the target value. */
+  readonly target: string;
+}
+
+/** Properties of a thermostat, named in {@link SensorSemantics.climate}. */
+export interface SensorClimate {
+  /** Name of the property that carries the current temperature. */
+  readonly current: string;
+  /** Name of the property that carries the target temperature. */
+  readonly target: string;
+  /** Name of the property that carries the lower end of the target range. */
+  readonly targetLow?: string;
+  /** Name of the property that carries the upper end of the target range. */
+  readonly targetHigh?: string;
+  /** Name of the property that carries the mode. */
+  readonly mode: string;
+  /** Name of the property that carries what the device does right now. */
+  readonly action?: string;
+  /** Name of the property that carries the current humidity. */
+  readonly humidity?: string;
 }
 
 /**
@@ -176,6 +204,17 @@ export interface SensorSemantics {
     /** Name of the property that carries the value. */
     readonly property: string;
   };
+  /** Properties carrying a cover's position, 0 closed to 100 open. */
+  readonly position?: SensorPosition;
+  /** Properties carrying the tilt of a cover's slats, 0 closed to 100 open. */
+  readonly tilt?: SensorPosition;
+  /** Property that stops a moving cover when written `true`. */
+  readonly stop?: {
+    /** Name of the property that carries the command. */
+    readonly property: string;
+  };
+  /** Properties of a thermostat in °C, the optional ones only when the sensor offers them. */
+  readonly climate?: SensorClimate;
   /** Readings next to the state, each exported as a measurement of its own. */
   readonly readings?: readonly SensorReading[];
   /**

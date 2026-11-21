@@ -237,6 +237,8 @@ light.SetBrightness(80)               // 0-100
 
 An adopted sensor works exactly the same once the host has bound it; the plugin only builds it (see Section 6.4).
 
+Some properties are commands rather than states: a cover's `stop` and a chime's `active`. The host writes `true`, the SDK calls `Stop()` or `Play()`, and the property reads `false` again once that is done, so the next command arrives the same way. Implement the method on your type that embeds the control to drive the hardware, and leave the property to the SDK.
+
 Every sensor also has an optional lifecycle pair. Implement `OnStart()` on your sensor type to run code once the sensor is registered and its storage is ready — start pollers, subscriptions, timers there. `OnStop()` is the counterpart and runs on removal, plugin shutdown and cleanup:
 
 ```go

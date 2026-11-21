@@ -135,6 +135,10 @@ type PluginAssignments struct {
 	Lock []AssignedPlugin `msgpack:"lock,omitempty" json:"lock,omitempty"`
 	// Garage are the assigned garage control plugins.
 	Garage []AssignedPlugin `msgpack:"garage,omitempty" json:"garage,omitempty"`
+	// Cover are the assigned cover control plugins.
+	Cover []AssignedPlugin `msgpack:"cover,omitempty" json:"cover,omitempty"`
+	// Thermostat are the assigned thermostat control plugins.
+	Thermostat []AssignedPlugin `msgpack:"thermostat,omitempty" json:"thermostat,omitempty"`
 	// Occupancy are the assigned occupancy sensor plugins.
 	Occupancy []AssignedPlugin `msgpack:"occupancy,omitempty" json:"occupancy,omitempty"`
 	// Smoke are the assigned smoke sensor plugins.

@@ -215,6 +215,10 @@ class PluginAssignments(TypedDict, total=False):
     """Lock control plugins."""
     garage: list[AssignedPlugin]
     """Garage control plugins."""
+    cover: list[AssignedPlugin]
+    """Cover control plugins."""
+    thermostat: list[AssignedPlugin]
+    """Thermostat control plugins."""
     contact: list[AssignedPlugin]
     """Contact sensor plugins."""
     occupancy: list[AssignedPlugin]

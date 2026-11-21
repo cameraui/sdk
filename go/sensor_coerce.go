@@ -171,6 +171,28 @@ var propertyTypeRegistry = map[SensorType]map[string]coerceFunc{
 		"targetState":         coerceInt,
 		"obstructionDetected": coerceBool,
 	},
+	SensorTypeCover: {
+		"currentState":        coerceInt,
+		"targetState":         coerceInt,
+		"currentPosition":     coerceInt,
+		"targetPosition":      coerceInt,
+		"currentTilt":         coerceInt,
+		"targetTilt":          coerceInt,
+		"stop":                coerceBool,
+		"obstructionDetected": coerceBool,
+		"kind":                coerceString,
+	},
+	SensorTypeThermostat: {
+		"currentTemperature":    coerceFloat64,
+		"targetTemperature":     coerceFloat64,
+		"targetTemperatureLow":  coerceFloat64,
+		"targetTemperatureHigh": coerceFloat64,
+		"mode":                  coerceString,
+		"action":                coerceString,
+		"currentHumidity":       coerceFloat64,
+		"preset":                coerceString,
+		"fanMode":               coerceString,
+	},
 }
 
 type coerceFunc func(raw any) any

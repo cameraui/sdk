@@ -182,6 +182,8 @@ await camera.addSensor(sensor)
 
 Other detector base classes follow the same shape. `ObjectDetectorSensor.detectObjects(frame)` takes a single frame; `FaceDetectorSensor.detectFaces(frames)`, `LicensePlateDetectorSensor.detectLicensePlates(frames)`, `ClassifierDetectorSensor.detectClassifications(frames)`, `ClipDetectorSensor.detectEmbeddings(frames)` all take a batch (`list[VideoFrameData]`); `AudioDetectorSensor.detectAudio(audio)` takes one `AudioFrameData`. The frame-based detectors also expose an abstract `modelSpec` property — return the input dimensions and (for classifier) the trigger labels. Smart-home sensors expose semantic methods instead — `LightControl` gives you `setOn()` / `setOff()` / `setBrightness(value)`, `ContactSensor` gives you `setDetected(value)`, `DoorbellTrigger` gives you `trigger()`. You construct them, register them, and then call those methods when your hardware reports a change.
 
+Some properties are commands rather than states: a cover's `stop` and a chime's `active`. The host writes `True`, the SDK class calls `stop()` or `play()`, and the property reads `False` again once that is done, so the next command arrives the same way. Override the method to drive the hardware and leave the property to the class.
+
 The host may send up to three frames to `detectObjects` at once, so the method must not keep per-call state on the sensor. A detector that needs one call at a time sets `_rpc_concurrency = {}` in its class.
 
 A standalone sensor works exactly the same once it runs, only nobody registers it: you build it from the adopted record the host hands you and return it, and the host binds it to the record by `nativeId`:

@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from ..sensor.classifier import ClassifierProperty
     from ..sensor.cold import ColdProperty
     from ..sensor.contact import ContactProperty
+    from ..sensor.cover import CoverCapability, CoverProperty
     from ..sensor.device import DeviceInfo, SensorDevice
     from ..sensor.display import DisplayCapability, DisplayProperty
     from ..sensor.doorbell import DoorbellProperty
@@ -33,7 +34,7 @@ if TYPE_CHECKING:
     from ..sensor.motion import MotionProperty
     from ..sensor.object import ObjectProperty
     from ..sensor.occupancy import OccupancyProperty
-    from ..sensor.outlet import OutletProperty
+    from ..sensor.outlet import OutletCapability, OutletProperty
     from ..sensor.power import PowerProperty
     from ..sensor.presence import PresenceProperty
     from ..sensor.problem import ProblemProperty
@@ -46,6 +47,7 @@ if TYPE_CHECKING:
     from ..sensor.switch import SwitchProperty
     from ..sensor.tamper import TamperProperty
     from ..sensor.temperature import TemperatureProperty
+    from ..sensor.thermostat import ThermostatCapability, ThermostatProperty
     from ..sensor.vibration import VibrationProperty
 
     SensorPropertyType: TypeAlias = (
@@ -60,6 +62,7 @@ if TYPE_CHECKING:
         | ClassifierProperty
         | ColdProperty
         | ContactProperty
+        | CoverProperty
         | DisplayProperty
         | DoorbellProperty
         | FaceProperty
@@ -87,6 +90,7 @@ if TYPE_CHECKING:
         | SwitchProperty
         | TamperProperty
         | TemperatureProperty
+        | ThermostatProperty
         | VibrationProperty
     )
 
@@ -98,6 +102,9 @@ if TYPE_CHECKING:
         | AirQualityCapability
         | ChimeCapability
         | DisplayCapability
+        | OutletCapability
+        | CoverCapability
+        | ThermostatCapability
     )
 
 

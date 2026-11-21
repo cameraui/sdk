@@ -56,6 +56,8 @@ const (
 	SensorTypeAirQuality     SensorType = "airQuality"     // Air quality level with particle and gas readings
 	SensorTypePresence       SensorType = "presence"       // Whether a person is at home
 	SensorTypeGarage         SensorType = "garage"         // Garage door opener
+	SensorTypeCover          SensorType = "cover"          // Blind, shutter, awning, curtain or other cover
+	SensorTypeThermostat     SensorType = "thermostat"     // Thermostat or air conditioner
 	SensorTypeChime          SensorType = "chime"          // Chime that plays tones
 	SensorTypeDisplay        SensorType = "display"        // Text display on a device
 	SensorTypeBattery        SensorType = "battery"        // Battery level and charging state

@@ -10,6 +10,7 @@ import { classifierMeta } from './classifier.js';
 import { clipMeta } from './clip.js';
 import { coldMeta } from './cold.js';
 import { contactMeta } from './contact.js';
+import { coverMeta } from './cover.js';
 import { displayMeta } from './display.js';
 import { doorbellMeta } from './doorbell.js';
 import { faceMeta } from './face.js';
@@ -41,6 +42,7 @@ import { smokeMeta } from './smoke.js';
 import { switchMeta } from './switch.js';
 import { tamperMeta } from './tamper.js';
 import { temperatureMeta } from './temperature.js';
+import { thermostatMeta } from './thermostat.js';
 import { vibrationMeta } from './vibration.js';
 
 import type { SensorType } from './base.js';
@@ -60,6 +62,7 @@ export const SENSOR_META = [
   clipMeta,
   coldMeta,
   contactMeta,
+  coverMeta,
   displayMeta,
   doorbellMeta,
   faceMeta,
@@ -91,6 +94,7 @@ export const SENSOR_META = [
   switchMeta,
   tamperMeta,
   temperatureMeta,
+  thermostatMeta,
   vibrationMeta,
 ] as const satisfies readonly SensorMeta[];
 

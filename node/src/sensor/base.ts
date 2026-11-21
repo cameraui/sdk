@@ -17,6 +17,7 @@ import type { ColdProperty } from './cold.js';
 import type { ContactProperty } from './contact.js';
 import type { Detection } from './detection.js';
 import type { DeviceInfo, SensorDevice, SetDeviceInfoOptions } from './device.js';
+import type { CoverCapability, CoverProperty } from './cover.js';
 import type { DisplayCapability, DisplayProperty } from './display.js';
 import type { DoorbellProperty } from './doorbell.js';
 import type { FaceProperty } from './face.js';
@@ -45,6 +46,7 @@ import type { SmokeProperty } from './smoke.js';
 import type { SwitchProperty } from './switch.js';
 import type { TamperProperty } from './tamper.js';
 import type { TemperatureProperty } from './temperature.js';
+import type { ThermostatCapability, ThermostatProperty } from './thermostat.js';
 import type { VibrationProperty } from './vibration.js';
 
 /** Union of all sensor-specific property enums. */
@@ -60,6 +62,7 @@ export type SensorPropertyType =
   | ClassifierProperty
   | ColdProperty
   | ContactProperty
+  | CoverProperty
   | DisplayProperty
   | DoorbellProperty
   | FaceProperty
@@ -87,11 +90,21 @@ export type SensorPropertyType =
   | SwitchProperty
   | TamperProperty
   | TemperatureProperty
+  | ThermostatProperty
   | VibrationProperty;
 
 /** Union of all sensor-specific capability enums. */
 export type SensorCapability =
-  PTZCapability | LightCapability | SirenCapability | BatteryCapability | AirQualityCapability | ChimeCapability | DisplayCapability | OutletCapability;
+  | PTZCapability
+  | LightCapability
+  | SirenCapability
+  | BatteryCapability
+  | AirQualityCapability
+  | ChimeCapability
+  | DisplayCapability
+  | OutletCapability
+  | CoverCapability
+  | ThermostatCapability;
 
 /**
  * The plugin's view of the source behind an adopted sensor. `unavailable`
@@ -191,6 +204,10 @@ export enum SensorType {
   SecuritySystem = 'securitySystem',
   /** Garage door opener. */
   Garage = 'garage',
+  /** Blind, shutter, awning, curtain or other cover. */
+  Cover = 'cover',
+  /** Thermostat or air conditioner. */
+  Thermostat = 'thermostat',
   /** Chime that plays tones. */
   Chime = 'chime',
   /** Text display on a device. */
