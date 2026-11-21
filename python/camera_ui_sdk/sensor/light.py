@@ -8,6 +8,7 @@ from typing_extensions import TypedDict, TypeVar
 
 from ..observable import Observable
 from .base import Sensor, SensorCategory, SensorLike, SensorType
+from .device import DeviceInfo
 
 
 class LightCapability(StrEnum):
@@ -89,8 +90,12 @@ class LightControl(Sensor[LightControlProperties, TStorage, LightCapability], Ge
         native_id: str | None = None,
         origin: str | None = None,
         address: str | None = None,
+        device: DeviceInfo | None = None,
+        primary: bool = False,
     ) -> None:
-        super().__init__(name, native_id=native_id, origin=origin, address=address)
+        super().__init__(
+            name, native_id=native_id, origin=origin, address=address, device=device, primary=primary
+        )
         self._write_state(
             {
                 LightProperty.On.value: False,

@@ -89,6 +89,7 @@ from .detection import (
     ObjectDetectionLabel,
     VideoFrameData,
 )
+from .device import DeviceInfo, SensorDevice
 from .doorbell import (
     DoorbellProperty,
     DoorbellPropertyChangeData,
@@ -337,6 +338,8 @@ __all__ = [
     "BoundingBox",
     "Detection",
     "VideoFrameData",
+    "DeviceInfo",
+    "SensorDevice",
     "MotionResult",
     "AudioFrameData",
     "AudioResult",

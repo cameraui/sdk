@@ -1,7 +1,7 @@
 import { isEqual } from '../internal/shared-utils.js';
 import { Subject } from '../observable/index.js';
 
-import type { CapabilityUpdateFn, PropertyUpdateFn, SensorJSON, SourceUpdateFn } from '../internal/sensor-rpc.js';
+import type { CapabilityUpdateFn, PropertyUpdateFn, SensorDeviceState, SensorJSON, SensorMembership, SourceUpdateFn } from '../internal/sensor-rpc.js';
 import type { Observable } from '../observable/index.js';
 import type { DeviceStorage, JsonSchema } from '../storage/index.js';
 import type { AudioProperty } from './audio.js';
@@ -12,6 +12,7 @@ import type { ClassifierProperty } from './classifier.js';
 import type { ColdProperty } from './cold.js';
 import type { ContactProperty } from './contact.js';
 import type { Detection } from './detection.js';
+import type { DeviceInfo, SensorDevice, SetDeviceInfoOptions } from './device.js';
 import type { DoorbellProperty } from './doorbell.js';
 import type { FaceProperty } from './face.js';
 import type { GarageProperty } from './garage.js';
@@ -216,8 +217,10 @@ export interface SensorLike {
   readonly type: SensorType;
   /** Name the plugin gave the sensor. */
   readonly name: string;
-  /** Name shown to the user, the plugin's name until the user renames the sensor. */
+  /** Full name shown to the user: inside a device the device name plus `shortName`, otherwise the plugin's name until the user renames the sensor. */
   readonly displayName: string;
+  /** Name inside its device, the same as `displayName` for a sensor without a device. */
+  readonly shortName: string;
   /** Durable identity the plugin supplied, e.g. an upstream device id. */
   readonly nativeId?: string;
   /** Id of the plugin that owns the sensor, set at registration. */
@@ -230,6 +233,10 @@ export interface SensorLike {
   readonly assignedCameraIds: readonly string[];
   /** Whether the sensor is bound to the camera it was added to, so the user cannot assign it elsewhere. */
   readonly assignmentLocked: boolean;
+  /** Device the sensor belongs to, `undefined` without one and for a camera's own sensor. */
+  readonly deviceInfo?: SensorDevice;
+  /** Whether the sensor is the main sensor of its device, called like the device when it stands alone. */
+  readonly primary: boolean;
   /** Emits on every property change. */
   readonly onPropertyChanged: Observable<{
     /** Name of the changed property. */
@@ -245,6 +252,8 @@ export interface SensorLike {
   readonly onConnectedChanged: Observable<boolean>;
   /** Emits the camera id list whenever the user changes the sensor's camera assignments. */
   readonly onAssignmentChanged: Observable<readonly string[]>;
+  /** Emits the device whenever the sensor joins or leaves one, or its device, names or main-sensor role change. */
+  readonly onDeviceInfoChanged: Observable<SensorDevice | undefined>;
 
   /** Get the current value of a sensor property. */
   getValue(property: string): unknown;
@@ -296,6 +305,10 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   private _origin?: string;
   private _sourceState?: SensorSourceState;
   private _address?: string;
+  private _membership?: SensorMembership;
+  private _device?: SensorDevice;
+  private _shortName = '';
+  private _primary = false;
   private _sourceUpdateFn?: SourceUpdateFn;
   private _assignedCameraIds: string[] = [];
   private _assignmentLocked = false;
@@ -317,6 +330,8 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   readonly onAssignmentChanged: Observable<readonly string[]> = this.#assignmentChangedSubject.asObservable();
   readonly #connectedChangedSubject = new Subject<boolean>();
   readonly onConnectedChanged: Observable<boolean> = this.#connectedChangedSubject.asObservable();
+  readonly #deviceInfoChangedSubject = new Subject<SensorDevice | undefined>();
+  readonly onDeviceInfoChanged: Observable<SensorDevice | undefined> = this.#deviceInfoChangedSubject.asObservable();
 
   private _updateFn?: PropertyUpdateFn;
 
@@ -329,6 +344,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     this._nativeId = options?.nativeId;
     this._origin = options?.origin;
     this._address = options?.address;
+    if (options?.device) this._membership = { device: options.device, primary: options.primary ?? false };
     this._propertiesStore = {} as TProperties;
   }
 
@@ -357,6 +373,18 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
 
   get displayName(): string {
     return this._displayName || this.name;
+  }
+
+  get shortName(): string {
+    return this._shortName || this.displayName;
+  }
+
+  get deviceInfo(): SensorDevice | undefined {
+    return this._device;
+  }
+
+  get primary(): boolean {
+    return this._primary;
   }
 
   /** Whether the sensor is assigned to at least one camera. */
@@ -504,6 +532,30 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     this._sourceUpdateFn?.({ address });
   }
 
+  /**
+   * Put the sensor into a device, or take it out with `undefined`. Sensors of
+   * this plugin that report the same `DeviceInfo.id` form one device. Pass the
+   * device in the constructor options when it is known there, call this for
+   * what changes later: a new firmware, a rename at the source. Only a change
+   * reaches the host. Ignored for a sensor added with `camera.addSensor()`,
+   * its camera is its device.
+   *
+   * @param device - Device at the source, `undefined` to leave the current one
+   *
+   * @param options - Whether this sensor is the device's main sensor
+   *
+   * @example
+   * ```typescript
+   * sensor.setDeviceInfo({ id: hub.serial, name: hub.name, manufacturer: 'Acme', firmware: hub.version }, { primary: true });
+   * ```
+   */
+  setDeviceInfo(device: DeviceInfo | undefined, options?: SetDeviceInfoOptions): void {
+    const membership: SensorMembership = { device: device ?? null, primary: options?.primary ?? false };
+    if (isEqual(this._membership, membership)) return;
+    this._membership = membership;
+    this._sourceUpdateFn?.({ membership });
+  }
+
   /** @internal */
   toJSON(): SensorJSON {
     return {
@@ -520,6 +572,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
       requiresFrames: this._requiresFrames,
       sourceState: this._sourceState,
       address: this._address,
+      membership: this._membership,
     };
   }
 
@@ -580,6 +633,17 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   }
 
   /** @internal */
+  _applyDeviceState(state: SensorDeviceState): void {
+    const changed =
+      !isEqual(this._device, state.device) || this._shortName !== state.shortName || this._primary !== state.primary || this._displayName !== state.displayName;
+    this._device = state.device;
+    this._displayName = state.displayName;
+    this._shortName = state.shortName;
+    this._primary = state.primary;
+    if (changed) this.#deviceInfoChangedSubject.next(state.device);
+  }
+
+  /** @internal */
   _setActive(active: boolean): void {
     if (this._active === active) return;
     this._active = active;
@@ -610,6 +674,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     this.#capabilitiesChangedSubject.complete();
     this.#assignmentChangedSubject.complete();
     this.#connectedChangedSubject.complete();
+    this.#deviceInfoChangedSubject.complete();
   }
 
   /** Read-only view of the property values. */
@@ -761,4 +826,8 @@ export interface SensorOptions {
    * only, may change over time; identity is `nativeId`.
    */
   address?: string;
+  /** Device the sensor belongs to. Sensors of the plugin that report the same `DeviceInfo.id` form one device. */
+  device?: DeviceInfo;
+  /** Whether the sensor is the main sensor of its `device`, called like the device when it stands alone. */
+  primary?: boolean;
 }

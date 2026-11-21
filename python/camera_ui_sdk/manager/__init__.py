@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from ..plugin import BasePlugin, PluginInfo, PluginInterface
     from ..plugin.notifier import Notification
     from ..sensor.base import SensorType
+    from ..sensor.device import DeviceInfo
 
 
 class CoreManagerEvent(TypedDict):
@@ -463,10 +464,16 @@ class DiscoveredSensor(TypedDict):
     """Room or area label from the source system (optional)."""
 
     manufacturer: NotRequired[str]
-    """Manufacturer label (optional)."""
+    """Manufacturer label (optional). Deprecated: set ``device["manufacturer"]``."""
 
     model: NotRequired[str]
-    """Model label (optional)."""
+    """Model label (optional). Deprecated: set ``device["model"]``."""
+
+    device: NotRequired[DeviceInfo]
+    """Device the sensor belongs to; the adoption list groups by it and adopting creates it (optional)."""
+
+    primary: NotRequired[bool]
+    """Whether the sensor is the main sensor of its ``device`` (optional)."""
 
 
 class AdoptedSensor(TypedDict):

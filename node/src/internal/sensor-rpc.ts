@@ -1,4 +1,5 @@
 import type { SensorCategory, SensorPropertyType, SensorSourceState, SensorType } from '../sensor/base.js';
+import type { DeviceInfo, SensorDevice } from '../sensor/device.js';
 import type { ModelSpec } from '../sensor/spec.js';
 
 export interface PropertyChangedEvent {
@@ -18,9 +19,25 @@ export type PropertyUpdateFn = (properties: Record<string, unknown>) => void;
 /** @internal */
 export type CapabilityUpdateFn = (capabilities: string[]) => void;
 
+/** @internal */
+export interface SensorMembership {
+  /** `null` leaves the device. */
+  device: DeviceInfo | null;
+  primary: boolean;
+}
+
+/** @internal */
+export interface SensorDeviceState {
+  device?: SensorDevice;
+  displayName: string;
+  shortName: string;
+  primary: boolean;
+}
+
 export interface SensorSourcePatch {
   sourceState?: SensorSourceState;
   address?: string;
+  membership?: SensorMembership;
 }
 
 export type SourceUpdateFn = (patch: SensorSourcePatch) => void;
@@ -40,4 +57,6 @@ export interface SensorJSON {
   modelSpec?: ModelSpec;
   sourceState?: SensorSourceState;
   address?: string;
+  /** Absent when the plugin never set a device, the host then keeps the one it has. */
+  membership?: SensorMembership;
 }

@@ -88,8 +88,15 @@ type Sensor interface {
 	GetType() SensorType
 	// GetName returns the name the plugin gave the sensor.
 	GetName() string
-	// GetDisplayName returns the name shown to the user, the plugin's name until the user renames the sensor.
+	// GetDisplayName returns the full name shown to the user: inside a device the device name plus
+	// the short name, otherwise the plugin's name until the user renames the sensor.
 	GetDisplayName() string
+	// GetShortName returns the name inside its device, the same as GetDisplayName for a sensor without a device.
+	GetShortName() string
+	// GetDeviceInfo returns the device the sensor belongs to, nil without one and for a camera's own sensor.
+	GetDeviceInfo() *SensorDevice
+	// Primary reports whether the sensor is the main sensor of its device, called like the device when it stands alone.
+	Primary() bool
 	// GetNativeID returns the durable identity the plugin supplied, e.g. an upstream device id.
 	GetNativeID() string
 	// GetPluginID returns the id of the plugin that owns the sensor, set at registration.
@@ -122,6 +129,9 @@ type Sensor interface {
 	OnAssignmentChanged(callback func([]string)) *Disposable
 	// OnConnectedChanged fires when the owning plugin's connectivity changes.
 	OnConnectedChanged(callback func(bool)) *Disposable
+	// OnDeviceInfoChanged fires with the device whenever the sensor joins or leaves
+	// one, or its device, names or main-sensor role change.
+	OnDeviceInfoChanged(callback func(*SensorDevice)) *Disposable
 }
 
 // SensorOption configures a sensor at construction time.
@@ -142,11 +152,13 @@ type sensorJSON struct {
 	ModelSpec      any               `msgpack:"modelSpec,omitempty" json:"modelSpec,omitempty"`
 	SourceState    SensorSourceState `msgpack:"sourceState,omitempty" json:"sourceState,omitempty"`
 	Address        string            `msgpack:"address,omitempty" json:"address,omitempty"`
+	Membership     *sensorMembership `msgpack:"membership,omitempty" json:"membership,omitempty"` // nil when the plugin never set a device, the host keeps the one it has
 }
 
 type sensorSourcePatch struct {
 	SourceState SensorSourceState `msgpack:"sourceState,omitempty" json:"sourceState,omitempty"`
 	Address     string            `msgpack:"address,omitempty" json:"address,omitempty"`
+	Membership  *sensorMembership `msgpack:"membership,omitempty" json:"membership,omitempty"`
 }
 
 type propertyUpdateFn func(properties map[string]any)
@@ -162,6 +174,8 @@ type sensorOptions struct {
 	nativeID string
 	origin   string
 	address  string
+	device   *DeviceInfo
+	primary  bool
 }
 
 // BaseSensor is the base struct for all sensors. Embed this in concrete sensor types.
@@ -179,6 +193,10 @@ type BaseSensor struct {
 	origin               string
 	address              string
 	sourceState          SensorSourceState
+	membership           *sensorMembership
+	device               *SensorDevice
+	shortName            string
+	primary              bool
 	pluginID             string
 	assignedCameraIDs    []string
 	capabilities         []string
@@ -192,6 +210,7 @@ type BaseSensor struct {
 	capabilitiesChanged  *Subject[[]string]
 	assignmentChanged    *Subject[[]string]
 	connectedChanged     *Subject[bool]
+	deviceInfoChanged    *Subject[*SensorDevice]
 	registered           bool
 	active               bool
 	assignmentLocked     bool
@@ -212,6 +231,11 @@ func NewBaseSensor(name string, opts ...SensorOption) BaseSensor {
 	for _, opt := range opts {
 		opt(&cfg)
 	}
+	var membership *sensorMembership
+	if cfg.device != nil {
+		device := *cfg.device
+		membership = &sensorMembership{Device: &device, Primary: cfg.primary}
+	}
 	return BaseSensor{
 		// provisional id, replaced by the host's persistent id at registration
 		id:                  generateSensorID(),
@@ -220,12 +244,14 @@ func NewBaseSensor(name string, opts ...SensorOption) BaseSensor {
 		nativeID:            cfg.nativeID,
 		origin:              cfg.origin,
 		address:             cfg.address,
+		membership:          membership,
 		properties:          make(map[string]any),
 		capabilities:        make([]string, 0),
 		propertyChanged:     NewSubject[SensorPropertyChange](),
 		capabilitiesChanged: NewSubject[[]string](),
 		assignmentChanged:   NewSubject[[]string](),
 		connectedChanged:    NewSubject[bool](),
+		deviceInfoChanged:   NewSubject[*SensorDevice](),
 	}
 }
 
@@ -239,11 +265,69 @@ func (s *BaseSensor) GetName() string {
 	return s.name
 }
 
-// GetDisplayName returns the name shown to the user, the plugin's name until the user renames the sensor.
+// GetDisplayName returns the full name shown to the user: inside a device the device name plus
+// the short name, otherwise the plugin's name until the user renames the sensor.
 func (s *BaseSensor) GetDisplayName() string {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.displayName
+}
+
+// GetShortName returns the name inside its device, the same as GetDisplayName for a sensor without a device.
+func (s *BaseSensor) GetShortName() string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if s.shortName != "" {
+		return s.shortName
+	}
+	return s.displayName
+}
+
+// GetDeviceInfo returns the device the sensor belongs to, nil without one and for a camera's own sensor.
+func (s *BaseSensor) GetDeviceInfo() *SensorDevice {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if s.device == nil {
+		return nil
+	}
+	device := *s.device
+	return &device
+}
+
+// Primary reports whether the sensor is the main sensor of its device, called like the device when it stands alone.
+func (s *BaseSensor) Primary() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.primary
+}
+
+// SetDeviceInfo puts the sensor into a device, or takes it out with nil. Sensors
+// of this plugin that report the same DeviceInfo.ID form one device. Pass the
+// device with WithDevice when it is known at construction, call this for what
+// changes later: a new firmware, a rename at the source. Only a change reaches
+// the host. Ignored for a sensor added with CameraDevice.AddSensor, its camera
+// is its device. primary marks the device's main sensor.
+//
+// Example:
+//
+//	sensor.SetDeviceInfo(&sdk.DeviceInfo{ID: hub.Serial, Name: hub.Name, Manufacturer: "Acme", Firmware: hub.Version}, true)
+func (s *BaseSensor) SetDeviceInfo(device *DeviceInfo, primary bool) {
+	membership := &sensorMembership{Primary: primary}
+	if device != nil {
+		info := *device
+		membership.Device = &info
+	}
+	s.mu.Lock()
+	if sameMembership(s.membership, membership) {
+		s.mu.Unlock()
+		return
+	}
+	s.membership = membership
+	updateFn := s.sourceUpdateFn
+	s.mu.Unlock()
+	if updateFn != nil {
+		updateFn(sensorSourcePatch{Membership: membership})
+	}
 }
 
 // SetDisplayName sets the display name (the only mutable identifier on a
@@ -356,6 +440,12 @@ func (s *BaseSensor) Connected() bool {
 // OnConnectedChanged fires when the sensor's registration state changes.
 func (s *BaseSensor) OnConnectedChanged(callback func(bool)) *Disposable {
 	return s.connectedChanged.Subscribe(callback)
+}
+
+// OnDeviceInfoChanged fires with the device whenever the sensor joins or leaves
+// one, or its device, names or main-sensor role change.
+func (s *BaseSensor) OnDeviceInfoChanged(callback func(*SensorDevice)) *Disposable {
+	return s.deviceInfoChanged.Subscribe(callback)
 }
 
 // GetCapabilities returns the capabilities the sensor advertises.
@@ -536,6 +626,19 @@ func (s *BaseSensor) initSourceUpdateFn(updateFn sourceUpdateFn) {
 	s.sourceUpdateFn = updateFn
 }
 
+func (s *BaseSensor) applyDeviceState(state *sensorDeviceState) {
+	s.mu.Lock()
+	changed := !sameSensorDevice(s.device, state.Device) || s.shortName != state.ShortName || s.primary != state.Primary || s.displayName != state.DisplayName
+	s.device = state.Device
+	s.displayName = state.DisplayName
+	s.shortName = state.ShortName
+	s.primary = state.Primary
+	s.mu.Unlock()
+	if changed {
+		s.deviceInfoChanged.Next(state.Device)
+	}
+}
+
 func (s *BaseSensor) setActive(active bool) bool {
 	s.mu.Lock()
 	if s.active == active {
@@ -569,6 +672,7 @@ func (s *BaseSensor) toBaseJSON(sensorType SensorType, category SensorCategory) 
 		RequiresFrames: s.requiresFrames,
 		SourceState:    s.sourceState,
 		Address:        s.address,
+		Membership:     s.membership,
 	}
 }
 
@@ -619,6 +723,7 @@ func (s *BaseSensor) cleanup() {
 	s.capabilitiesChanged.Complete()
 	s.assignmentChanged.Complete()
 	s.connectedChanged.Complete()
+	s.deviceInfoChanged.Complete()
 	s.storage = nil
 }
 
@@ -656,6 +761,22 @@ func WithOrigin(origin string) SensorOption {
 func WithAddress(address string) SensorOption {
 	return func(o *sensorOptions) {
 		o.address = address
+	}
+}
+
+// WithDevice sets the device the sensor belongs to. Sensors of the plugin that
+// report the same DeviceInfo.ID form one device.
+func WithDevice(device *DeviceInfo) SensorOption {
+	return func(o *sensorOptions) {
+		o.device = device
+	}
+}
+
+// WithPrimary marks the sensor as the main sensor of its device, called like
+// the device when it stands alone.
+func WithPrimary() SensorOption {
+	return func(o *sensorOptions) {
+		o.primary = true
 	}
 }
 

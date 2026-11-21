@@ -9,6 +9,7 @@ export * from './clip.js';
 export * from './cold.js';
 export * from './contact.js';
 export * from './detection.js';
+export * from './device.js';
 export * from './doorbell.js';
 export * from './face.js';
 export * from './faceEmbedder.js';

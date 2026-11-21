@@ -20,11 +20,14 @@ from uuid import uuid4
 from ..internal.sensor_rpc import (
     CapabilityUpdateFn,
     PropertyUpdateFn,
+    SensorDeviceState,
     SensorJSON,
+    SensorMembership,
     SourceUpdateFn,
 )
 from ..internal.shared_utils import is_equal
 from ..observable import Observable, Subject
+from .device import DeviceInfo, SensorDevice
 
 if TYPE_CHECKING:
     from ..storage import DeviceStorage, JsonSchema
@@ -201,12 +204,27 @@ class SensorLike(Protocol):
         ...
 
     @property
+    def deviceInfo(self) -> SensorDevice | None:
+        """Device the sensor belongs to, ``None`` without one and for a camera's own sensor."""
+        ...
+
+    @property
+    def primary(self) -> bool:
+        """Whether the sensor is the main sensor of its device, called like the device when it stands alone."""
+        ...
+
+    @property
     def displayName(self) -> str:
-        """Name shown to the user, the plugin's name until the user renames the sensor."""
+        """Full name shown to the user: inside a device the device name plus ``shortName``, otherwise the plugin's name until the user renames the sensor."""
         ...
 
     @displayName.setter
     def displayName(self, value: str) -> None: ...
+
+    @property
+    def shortName(self) -> str:
+        """Name inside its device, the same as ``displayName`` for a sensor without a device."""
+        ...
 
     @property
     def onPropertyChanged(self) -> Observable[Any]:
@@ -226,6 +244,11 @@ class SensorLike(Protocol):
     @property
     def onAssignmentChanged(self) -> Observable[list[str]]:
         """Emits the camera id list whenever the user changes the sensor's camera assignments."""
+        ...
+
+    @property
+    def onDeviceInfoChanged(self) -> Observable[SensorDevice | None]:
+        """Emits the device whenever the sensor joins or leaves one, or its device, names or main-sensor role change."""
         ...
 
     def getValue(self, property: str) -> Any | None:
@@ -316,6 +339,8 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         native_id: str | None = None,
         origin: str | None = None,
         address: str | None = None,
+        device: DeviceInfo | None = None,
+        primary: bool = False,
     ) -> None:
         self._name = name
         self._id = str(uuid4())  # provisional id, replaced by the host's persistent id at registration
@@ -323,6 +348,10 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         self._origin = origin
         self._source_state: SensorSourceState | None = None
         self._address = address
+        self._membership: SensorMembership | None = {"device": device, "primary": primary} if device else None
+        self._device: SensorDevice | None = None
+        self._short_name = ""
+        self._primary = False
         self._display_name = name
         self._plugin_id: str | None = None
         self._assigned_camera_ids: list[str] = []
@@ -332,6 +361,7 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         self._capabilities_changed_subject: Subject[list[TCapability]] = Subject()
         self._assignment_changed_subject: Subject[list[str]] = Subject()
         self._connected_changed_subject: Subject[bool] = Subject()
+        self._device_info_changed_subject: Subject[SensorDevice | None] = Subject()
 
         self._update_fn: PropertyUpdateFn | None = None
         self._capabilities_change_fn: Callable[[list[str]], None] | None = None
@@ -394,6 +424,21 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
     @displayName.setter
     def displayName(self, value: str) -> None:
         self._display_name = value
+
+    @property
+    def shortName(self) -> str:
+        """Name inside its device, the same as ``displayName`` for a sensor without a device."""
+        return self._short_name or self._display_name
+
+    @property
+    def deviceInfo(self) -> SensorDevice | None:
+        """Device the sensor belongs to, ``None`` without one and for a camera's own sensor."""
+        return self._device
+
+    @property
+    def primary(self) -> bool:
+        """Whether the sensor is the main sensor of its device, called like the device when it stands alone."""
+        return self._primary
 
     @property
     def pluginId(self) -> str | None:
@@ -469,6 +514,11 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
     def onConnectedChanged(self) -> Observable[bool]:
         """Emits when the connected state changes."""
         return self._connected_changed_subject.as_observable()
+
+    @property
+    def onDeviceInfoChanged(self) -> Observable[SensorDevice | None]:
+        """Emits the device whenever the sensor joins or leaves one, or its device, names or main-sensor role change."""
+        return self._device_info_changed_subject.as_observable()
 
     @property
     def onPropertyChanged(self) -> Observable[SensorPropertyChangeData]:
@@ -552,6 +602,34 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         if self._source_update_fn:
             self._source_update_fn({"address": address})
 
+    def setDeviceInfo(self, device: DeviceInfo | None, primary: bool = False) -> None:
+        """Put the sensor into a device, or take it out with ``None``.
+
+        Sensors of this plugin that report the same ``DeviceInfo["id"]`` form
+        one device. Pass the device to the constructor when it is known there,
+        call this for what changes later: a new firmware, a rename at the
+        source. Only a change reaches the host. Ignored for a sensor added with
+        ``camera.addSensor()``, its camera is its device.
+
+        Args:
+            device: Device at the source, ``None`` to leave the current one.
+            primary: Whether this sensor is the device's main sensor.
+
+        Example:
+            ```python
+            sensor.setDeviceInfo(
+                {"id": hub.serial, "name": hub.name, "manufacturer": "Acme", "firmware": hub.version},
+                primary=True,
+            )
+            ```
+        """
+        membership: SensorMembership = {"device": device, "primary": primary}
+        if is_equal(self._membership, membership):
+            return
+        self._membership = membership
+        if self._source_update_fn:
+            self._source_update_fn({"membership": membership})
+
     def toJSON(self) -> SensorJSON:
         """Serialize this sensor to a JSON-safe dict for RPC transport."""
         result: SensorJSON = {
@@ -574,6 +652,8 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
             result["sourceState"] = self._source_state
         if self._address:
             result["address"] = self._address
+        if self._membership is not None:
+            result["membership"] = self._membership
         return result
 
     def getValue(self, property: str) -> Any | None:
@@ -762,6 +842,21 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
     def _initSource(self, update_fn: SourceUpdateFn) -> None:
         self._source_update_fn = update_fn
 
+    def _applyDeviceState(self, state: SensorDeviceState) -> None:
+        device = state.get("device")
+        changed = (
+            not is_equal(self._device, device)
+            or self._short_name != state["shortName"]
+            or self._primary != state["primary"]
+            or self._display_name != state["displayName"]
+        )
+        self._device = device
+        self._display_name = state["displayName"]
+        self._short_name = state["shortName"]
+        self._primary = state["primary"]
+        if changed:
+            self._device_info_changed_subject.next(device)
+
     def _cleanup(self) -> None:
         # pair on_stop even when the sensor is force-removed without teardown
         if self._active:
@@ -778,6 +873,7 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         self._capabilities_changed_subject.complete()
         self._assignment_changed_subject.complete()
         self._connected_changed_subject.complete()
+        self._device_info_changed_subject.complete()
 
     def _getProperties(self) -> dict[str, Any]:
         return self._properties_store.copy()

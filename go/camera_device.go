@@ -38,6 +38,7 @@ type sensorInternalInit interface {
 	setOuter(outer Sensor)
 	setAssignedCameras(cameraIDs []string)
 	setAssignmentLocked()
+	applyDeviceState(state *sensorDeviceState)
 	setStorage(storage *DeviceStorage)
 	initUpdateFn(updateFn propertyUpdateFn)
 	initCapabilitiesUpdateFn(updateFn func([]string))
@@ -460,7 +461,7 @@ func (d *CameraDevice) addSensor(s Sensor) error {
 	if err != nil {
 		return fmt.Errorf("failed to decode sensor registration: %w", err)
 	}
-	si.setAssignedCameras(registration.AssignedCameraIDs)
+	applyRegistration(si, registration)
 	si.setAssignmentLocked()
 
 	// assignment changes arrive on the global stream the sensor manager owns
@@ -752,7 +753,7 @@ func (d *CameraDevice) reattach() error {
 		if err != nil {
 			return fmt.Errorf("decode the registration of sensor %s: %w", s.GetName(), err)
 		}
-		si.setAssignedCameras(registration.AssignedCameraIDs)
+		applyRegistration(si, registration)
 	}
 
 	if connectWanted {
@@ -1242,6 +1243,13 @@ func (g *refreshGuard) answer(mark uint64, apply func()) {
 	// an event since the mark is newer than the answer
 	if g.events == mark {
 		apply()
+	}
+}
+
+func applyRegistration(si sensorInternalInit, registration *sensorRegistration) {
+	si.setAssignedCameras(registration.AssignedCameraIDs)
+	if registration.DeviceState != nil {
+		si.applyDeviceState(registration.DeviceState)
 	}
 }
 

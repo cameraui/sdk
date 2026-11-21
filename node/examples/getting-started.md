@@ -491,6 +491,8 @@ Identity is the source's stable id, never its address. `DiscoveredSensor.id` bec
 
 The sensor reports its source on itself: `setSourceState('connected' | 'unavailable' | 'removed')`, and `setAddress(address)` after a rename. Neither deletes anything. An adopted sensor is deleted by the user only.
 
+Sensors of one physical device share a `device`. All sensors of this plugin with the same `DeviceInfo.id` form one device: one row on the Sensors page, one accessory in HomeKit, one device in Home Assistant and MQTT. Name each sensor by its function alone ("Temperature"), the host puts the device name in front. Mark the sensor that stands for the device `primary: true`, it carries the device name alone; without a mark the host picks one by type. Pass `device` and `primary` on the `DiscoveredSensor` and to the sensor you build. `setDeviceInfo(device, { primary })` updates the device later, `setDeviceInfo(undefined)` takes the sensor out of it. A camera-bound sensor belongs to its camera and ignores a device.
+
 ```ts
 import { BasePlugin, ContactSensor, LockControl, SensorType } from '@camera.ui/sdk';
 import type { AdoptedSensor, DiscoveredSensor, Sensor, SensorDiscoveryProvider } from '@camera.ui/sdk';
@@ -506,6 +508,8 @@ export default class SmartHome extends BasePlugin implements SensorDiscoveryProv
       name: e.name,
       type: e.domain === 'lock' ? SensorType.Lock : SensorType.Contact,
       room: e.area,
+      device: e.device && { id: e.device.id, name: e.device.name, model: e.device.model },
+      primary: e.isMain,
     }));
   }
 

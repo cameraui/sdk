@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from ..sensor.classifier import ClassifierProperty
     from ..sensor.cold import ColdProperty
     from ..sensor.contact import ContactProperty
+    from ..sensor.device import DeviceInfo, SensorDevice
     from ..sensor.doorbell import DoorbellProperty
     from ..sensor.face import FaceProperty
     from ..sensor.garage import GarageProperty
@@ -89,9 +90,22 @@ PropertyUpdateFn = Callable[[dict[str, Any]], None]
 CapabilityUpdateFn = Callable[[list[str]], None]
 
 
+class SensorMembership(TypedDict):
+    device: DeviceInfo | None  # None leaves the device
+    primary: bool
+
+
+class SensorDeviceState(TypedDict):
+    device: NotRequired[SensorDevice]
+    displayName: str
+    shortName: str
+    primary: bool
+
+
 class SensorSourcePatch(TypedDict):
     sourceState: NotRequired[SensorSourceState]
     address: NotRequired[str]
+    membership: NotRequired[SensorMembership]
 
 
 SourceUpdateFn = Callable[[SensorSourcePatch], None]
@@ -112,3 +126,6 @@ class SensorJSON(TypedDict):
     modelSpec: NotRequired[ModelSpec]
     sourceState: NotRequired[SensorSourceState]
     address: NotRequired[str]
+    membership: NotRequired[
+        SensorMembership
+    ]  # absent when the plugin never set a device, the host keeps the one it has

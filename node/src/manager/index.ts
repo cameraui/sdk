@@ -4,6 +4,7 @@ import type { PluginInfo, PluginInterface } from '../plugin/contract.js';
 import type { BasePlugin, PluginInterfaces } from '../plugin/interfaces.js';
 import type { Notification } from '../plugin/notifier.js';
 import type { SensorType } from '../sensor/base.js';
+import type { DeviceInfo } from '../sensor/device.js';
 
 /** One recorded change of one sensor property. */
 export interface SensorHistoryEntry {
@@ -558,10 +559,22 @@ export interface DiscoveredSensor {
   type: SensorType;
   /** Room or area label from the source system (optional). */
   room?: string;
-  /** Manufacturer label (optional). */
+  /**
+   * Manufacturer label (optional).
+   *
+   * @deprecated Set `device.manufacturer`.
+   */
   manufacturer?: string;
-  /** Model label (optional). */
+  /**
+   * Model label (optional).
+   *
+   * @deprecated Set `device.model`.
+   */
   model?: string;
+  /** Device the sensor belongs to; the adoption list groups by it and adopting creates it (optional). */
+  device?: DeviceInfo;
+  /** Whether the sensor is the main sensor of its `device` (optional). */
+  primary?: boolean;
 }
 
 /** A sensor the user adopted; what the host hands a `SensorDiscoveryProvider` to build its runtime sensor from. */

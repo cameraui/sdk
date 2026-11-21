@@ -37,10 +37,17 @@ type sensorExposedChangedData struct {
 }
 
 type sensorRefreshedState struct {
-	Type         SensorType     `msgpack:"type"`
-	Properties   map[string]any `msgpack:"properties,omitempty"`
-	Capabilities []string       `msgpack:"capabilities,omitempty"`
-	DisplayName  string         `msgpack:"displayName,omitempty"`
+	Type         SensorType         `msgpack:"type"`
+	Properties   map[string]any     `msgpack:"properties,omitempty"`
+	Capabilities []string           `msgpack:"capabilities,omitempty"`
+	DisplayName  string             `msgpack:"displayName,omitempty"`
+	DeviceState  *sensorDeviceState `msgpack:"deviceState,omitempty"`
+}
+
+type sensorDeviceChangedData struct {
+	SensorID    string            `msgpack:"sensorId"`
+	SensorType  SensorType        `msgpack:"sensorType"`
+	DeviceState sensorDeviceState `msgpack:"deviceState"`
 }
 
 type sensorAssignmentChangedData struct {
@@ -51,10 +58,11 @@ type sensorAssignmentChangedData struct {
 }
 
 type sensorRegistration struct {
-	ID                string   `msgpack:"id"`
-	AssignedCameraIDs []string `msgpack:"assignedCameraIds"`
-	Active            bool     `msgpack:"active"`
-	StateSubject      bool     `msgpack:"stateSubject"`
+	ID                string             `msgpack:"id"`
+	AssignedCameraIDs []string           `msgpack:"assignedCameraIds"`
+	Active            bool               `msgpack:"active"`
+	StateSubject      bool               `msgpack:"stateSubject"`
+	DeviceState       *sensorDeviceState `msgpack:"deviceState,omitempty"`
 }
 
 type storedSensorData struct {
@@ -73,6 +81,9 @@ type storedSensorData struct {
 	Properties        map[string]any    `msgpack:"properties,omitempty"`
 	Capabilities      []string          `msgpack:"capabilities,omitempty"`
 	RequiresFrames    bool              `msgpack:"requiresFrames,omitempty"`
+	ShortName         string            `msgpack:"shortName,omitempty"`
+	Device            *SensorDevice     `msgpack:"device,omitempty"`
+	Primary           bool              `msgpack:"primary,omitempty"`
 }
 
 type sensorEventMessage struct {

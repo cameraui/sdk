@@ -45,6 +45,9 @@ func newSensorProxy(client *rpc.Client, logger *Logger, data *storedSensorData) 
 	if data.DisplayName != "" {
 		s.displayName = data.DisplayName
 	}
+	s.shortName = data.ShortName
+	s.device = data.Device
+	s.primary = data.Primary
 	if data.Capabilities != nil {
 		s.capabilities = append([]string(nil), data.Capabilities...)
 	}
@@ -102,6 +105,10 @@ func (s *sensorProxy) applyRefreshedState(state sensorRefreshedState, marks map[
 		s.SetDisplayName(state.DisplayName)
 	}
 
+	if state.DeviceState != nil && current("device") {
+		s.applyDeviceState(state.DeviceState)
+	}
+
 	s.mu.RLock()
 	stale := !isEqual(s.capabilities, state.Capabilities, true)
 	s.mu.RUnlock()
@@ -114,6 +121,14 @@ func (s *sensorProxy) applyRefreshedState(state sensorRefreshedState, marks map[
 			s.onBackendPropertyChanged(property, coercePropertyValue(s.sensorType, property, value))
 		}
 	}
+}
+
+func (s *sensorProxy) applyDeviceEvent(state *sensorDeviceState) {
+	s.eventMu.Lock()
+	defer s.eventMu.Unlock()
+	s.eventCounts["device"]++
+	s.eventCounts["displayName"]++
+	s.applyDeviceState(state)
 }
 
 func (s *sensorProxy) UpdateValue(property string, value any) error {
@@ -147,6 +162,9 @@ func (s *sensorProxy) ToStoredData() storedSensorData {
 		Connected:         s.connected,
 		Properties:        props,
 		Capabilities:      caps,
+		ShortName:         s.shortName,
+		Device:            s.device,
+		Primary:           s.primary,
 	}
 }
 

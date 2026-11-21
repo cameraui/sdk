@@ -792,9 +792,18 @@ DiscoveredSensor is a sensor a plugin can offer for adoption \(see SensorDiscove
 	    // Room is the room or area label from the source system (optional).
 	    Room string `msgpack:"room,omitempty" json:"room,omitempty"`
 	    // Manufacturer is the manufacturer label (optional).
+	    //
+	    // Deprecated: set Device.Manufacturer.
 	    Manufacturer string `msgpack:"manufacturer,omitempty" json:"manufacturer,omitempty"`
 	    // Model is the model label (optional).
+	    //
+	    // Deprecated: set Device.Model.
 	    Model string `msgpack:"model,omitempty" json:"model,omitempty"`
+	    // Device is the device the sensor belongs to; the adoption list groups by
+	    // it and adopting creates it (optional).
+	    Device *DeviceInfo `msgpack:"device,omitempty" json:"device,omitempty"`
+	    // Primary marks the main sensor of its Device (optional).
+	    Primary bool `msgpack:"primary,omitempty" json:"primary,omitempty"`
 	}
 
 <a name="DiscoveryProvider"></a>

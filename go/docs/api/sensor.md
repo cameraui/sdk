@@ -290,12 +290,19 @@ GetAssignedCameraIDs returns the ids of the cameras the user assigned the sensor
 
 GetCapabilities returns the capabilities the sensor advertises.
 
+<a name="BaseSensor.GetDeviceInfo"></a>
+### func \(\*BaseSensor\) GetDeviceInfo
+
+	func (s *BaseSensor) GetDeviceInfo() *SensorDevice
+
+GetDeviceInfo returns the device the sensor belongs to, nil without one and for a camera's own sensor.
+
 <a name="BaseSensor.GetDisplayName"></a>
 ### func \(\*BaseSensor\) GetDisplayName
 
 	func (s *BaseSensor) GetDisplayName() string
 
-GetDisplayName returns the name shown to the user, the plugin's name until the user renames the sensor.
+GetDisplayName returns the full name shown to the user: inside a device the device name plus the short name, otherwise the plugin's name until the user renames the sensor.
 
 <a name="BaseSensor.GetID"></a>
 ### func \(\*BaseSensor\) GetID
@@ -331,6 +338,13 @@ GetOrigin returns the source system the sensor was imported from, e.g. "homeassi
 	func (s *BaseSensor) GetPluginID() string
 
 GetPluginID returns the id of the plugin that owns the sensor, set at registration.
+
+<a name="BaseSensor.GetShortName"></a>
+### func \(\*BaseSensor\) GetShortName
+
+	func (s *BaseSensor) GetShortName() string
+
+GetShortName returns the name inside its device, the same as GetDisplayName for a sensor without a device.
 
 <a name="BaseSensor.GetSourceState"></a>
 ### func \(\*BaseSensor\) GetSourceState
@@ -393,12 +407,26 @@ OnCapabilitiesChanged returns a Disposable that fires when capabilities change.
 
 OnConnectedChanged fires when the sensor's registration state changes.
 
+<a name="BaseSensor.OnDeviceInfoChanged"></a>
+### func \(\*BaseSensor\) OnDeviceInfoChanged
+
+	func (s *BaseSensor) OnDeviceInfoChanged(callback func(*SensorDevice)) *Disposable
+
+OnDeviceInfoChanged fires with the device whenever the sensor joins or leaves one, or its device, names or main\-sensor role change.
+
 <a name="BaseSensor.OnPropertyChanged"></a>
 ### func \(\*BaseSensor\) OnPropertyChanged
 
 	func (s *BaseSensor) OnPropertyChanged(callback func(SensorPropertyChange)) *Disposable
 
 OnPropertyChanged subscribes to property changes. Returns a Disposable to unsubscribe.
+
+<a name="BaseSensor.Primary"></a>
+### func \(\*BaseSensor\) Primary
+
+	func (s *BaseSensor) Primary() bool
+
+Primary reports whether the sensor is the main sensor of its device, called like the device when it stands alone.
 
 <a name="BaseSensor.SetAddress"></a>
 ### func \(\*BaseSensor\) SetAddress
@@ -422,6 +450,18 @@ SetCapabilities replaces the advertised feature flags and notifies the backend p
 Example:
 
 	sensor.SetCapabilities([]string{sdk.LightCapabilityBrightness})
+	
+
+<a name="BaseSensor.SetDeviceInfo"></a>
+### func \(\*BaseSensor\) SetDeviceInfo
+
+	func (s *BaseSensor) SetDeviceInfo(device *DeviceInfo, primary bool)
+
+SetDeviceInfo puts the sensor into a device, or takes it out with nil. Sensors of this plugin that report the same DeviceInfo.ID form one device. Pass the device with WithDevice when it is known at construction, call this for what changes later: a new firmware, a rename at the source. Only a change reaches the host. Ignored for a sensor added with CameraDevice.AddSensor, its camera is its device. primary marks the device's main sensor.
+
+Example:
+
+	sensor.SetDeviceInfo(&sdk.DeviceInfo{ID: hub.Serial, Name: hub.Name, Manufacturer: "Acme", Firmware: hub.Version}, true)
 	
 
 <a name="BaseSensor.SetDisplayName"></a>
@@ -1027,6 +1067,27 @@ DetectionAttribute identifies the kind of a sub\-detection \(face, license plate
 DetectionLabel is a label identifying a type of detection.
 
 	type DetectionLabel = string
+
+<a name="DeviceInfo"></a>
+## type DeviceInfo
+
+DeviceInfo is the physical device a sensor belongs to, as the plugin reports it. Sensors of one plugin that report the same ID form one device: one row on the sensors page, one HomeKit accessory, one Home Assistant device. A sensor without a device is its own device, and a sensor added with CameraDevice.AddSensor belongs to its camera.
+
+	type DeviceInfo struct {
+	    // ID is the source's stable id for the device, never an address: a vendor
+	    // device id, a Home Assistant device id, a serial number.
+	    ID  string `msgpack:"id" json:"id"`
+	    // Name is the name of the device at the source.
+	    Name string `msgpack:"name" json:"name"`
+	    // Manufacturer is the manufacturer label (optional).
+	    Manufacturer string `msgpack:"manufacturer,omitempty" json:"manufacturer,omitempty"`
+	    // Model is the model label (optional).
+	    Model string `msgpack:"model,omitempty" json:"model,omitempty"`
+	    // Firmware is the firmware version (optional).
+	    Firmware string `msgpack:"firmware,omitempty" json:"firmware,omitempty"`
+	    // SerialNumber is the serial number (optional).
+	    SerialNumber string `msgpack:"serialNumber,omitempty" json:"serialNumber,omitempty"`
+	}
 
 <a name="DoorbellProperty"></a>
 ## type DoorbellProperty
@@ -2940,8 +3001,15 @@ State\-modifying methods \(SetOn, ReportDetections, etc.\) live on the concrete 
 	    GetType() SensorType
 	    // GetName returns the name the plugin gave the sensor.
 	    GetName() string
-	    // GetDisplayName returns the name shown to the user, the plugin's name until the user renames the sensor.
+	    // GetDisplayName returns the full name shown to the user: inside a device the device name plus
+	    // the short name, otherwise the plugin's name until the user renames the sensor.
 	    GetDisplayName() string
+	    // GetShortName returns the name inside its device, the same as GetDisplayName for a sensor without a device.
+	    GetShortName() string
+	    // GetDeviceInfo returns the device the sensor belongs to, nil without one and for a camera's own sensor.
+	    GetDeviceInfo() *SensorDevice
+	    // Primary reports whether the sensor is the main sensor of its device, called like the device when it stands alone.
+	    Primary() bool
 	    // GetNativeID returns the durable identity the plugin supplied, e.g. an upstream device id.
 	    GetNativeID() string
 	    // GetPluginID returns the id of the plugin that owns the sensor, set at registration.
@@ -2974,6 +3042,9 @@ State\-modifying methods \(SetOn, ReportDetections, etc.\) live on the concrete 
 	    OnAssignmentChanged(callback func([]string)) *Disposable
 	    // OnConnectedChanged fires when the owning plugin's connectivity changes.
 	    OnConnectedChanged(callback func(bool)) *Disposable
+	    // OnDeviceInfoChanged fires with the device whenever the sensor joins or leaves
+	    // one, or its device, names or main-sensor role change.
+	    OnDeviceInfoChanged(callback func(*SensorDevice)) *Disposable
 	}
 
 <a name="SensorCategory"></a>
@@ -2992,6 +3063,26 @@ SensorCategory categorizes a sensor's role in the system. It determines how the 
 	    SensorCategoryInfo    SensorCategory = "info"    // Informational read-only state (battery level)
 	)
 
+<a name="SensorDevice"></a>
+## type SensorDevice
+
+SensorDevice is the device a sensor belongs to, as consumers see it.
+
+	type SensorDevice struct {
+	    // ID is the id of the device in camera.ui, not the plugin's DeviceInfo.ID.
+	    ID  string `msgpack:"id" json:"id"`
+	    // Name is the name shown to the user, the source's name until the user renames the device.
+	    Name string `msgpack:"name" json:"name"`
+	    // Manufacturer is the manufacturer label (optional).
+	    Manufacturer string `msgpack:"manufacturer,omitempty" json:"manufacturer,omitempty"`
+	    // Model is the model label (optional).
+	    Model string `msgpack:"model,omitempty" json:"model,omitempty"`
+	    // Firmware is the firmware version (optional).
+	    Firmware string `msgpack:"firmware,omitempty" json:"firmware,omitempty"`
+	    // SerialNumber is the serial number (optional).
+	    SerialNumber string `msgpack:"serialNumber,omitempty" json:"serialNumber,omitempty"`
+	}
+
 <a name="SensorOption"></a>
 ## type SensorOption
 
@@ -3006,6 +3097,13 @@ SensorOption configures a sensor at construction time.
 
 WithAddress sets the sensor's current address at the source, e.g. a Home Assistant entity id. Display only, may change over time; identity is the native id.
 
+<a name="WithDevice"></a>
+### func WithDevice
+
+	func WithDevice(device *DeviceInfo) SensorOption
+
+WithDevice sets the device the sensor belongs to. Sensors of the plugin that report the same DeviceInfo.ID form one device.
+
 <a name="WithNativeID"></a>
 ### func WithNativeID
 
@@ -3019,6 +3117,13 @@ WithNativeID sets the plugin\-supplied durable identity \(e.g. an upstream devic
 	func WithOrigin(origin string) SensorOption
 
 WithOrigin marks the source system the sensor was imported from \(e.g. "homeassistant"\). Export bridges targeting that system skip the sensor.
+
+<a name="WithPrimary"></a>
+### func WithPrimary
+
+	func WithPrimary() SensorOption
+
+WithPrimary marks the sensor as the main sensor of its device, called like the device when it stands alone.
 
 <a name="SensorPropertyChange"></a>
 ## type SensorPropertyChange

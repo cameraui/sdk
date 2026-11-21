@@ -187,6 +187,8 @@ BUCKETS: dict[str, str] = {
     "BinarySensor": "sensor",
     "MeasurementInfo": "sensor",
     "SensorSourceState": "sensor",
+    "DeviceInfo": "sensor",
+    "SensorDevice": "sensor",
     "SensorPropertyChange": "sensor",
     "SensorOption": "sensor",
     "SensorType": "sensor",

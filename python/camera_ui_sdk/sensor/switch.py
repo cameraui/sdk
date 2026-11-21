@@ -8,6 +8,7 @@ from typing_extensions import TypedDict, TypeVar
 
 from ..observable import Observable
 from .base import Sensor, SensorCategory, SensorLike, SensorType
+from .device import DeviceInfo
 
 
 class SwitchProperty(StrEnum):
@@ -69,8 +70,12 @@ class SwitchControl(Sensor[SwitchControlProperties, TStorage, str], Generic[TSto
         native_id: str | None = None,
         origin: str | None = None,
         address: str | None = None,
+        device: DeviceInfo | None = None,
+        primary: bool = False,
     ) -> None:
-        super().__init__(name, native_id=native_id, origin=origin, address=address)
+        super().__init__(
+            name, native_id=native_id, origin=origin, address=address, device=device, primary=primary
+        )
         self._write_state({SwitchProperty.On.value: False})
 
     @property

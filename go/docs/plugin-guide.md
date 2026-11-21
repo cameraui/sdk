@@ -667,6 +667,8 @@ Let users pick sensors from an external inventory instead of the plugin importin
 
 `DiscoveredSensor.ID` is the source's stable identity (a registry id, a `unique_id`, a device id), never a mutable address: it becomes the sensor's native id and decides whether a rename at the source keeps the record. Report the source's condition on the sensor itself with `SetSourceState` and `SetAddress`; a sensor the source no longer has gets `SensorSourceStateRemoved`, it is never dropped by the plugin.
 
+Sensors of one physical device share a `Device`. All sensors of this plugin with the same `DeviceInfo.ID` form one device: one row on the Sensors page, one accessory in HomeKit, one device in Home Assistant and MQTT. Name each sensor by its function alone ("Temperature"), the host puts the device name in front. Mark the sensor that stands for the device with `Primary: true` or `WithPrimary()`, it carries the device name alone; without a mark the host picks one by type. Set `Device` and `Primary` on the `DiscoveredSensor` and pass `WithDevice` to the sensor you build. `SetDeviceInfo(device, primary)` updates the device later, `SetDeviceInfo(nil, false)` takes the sensor out of it. A camera-bound sensor belongs to its camera and ignores a device.
+
 ```go
 var _ cameraui.SensorDiscoveryProvider = (*HubPlugin)(nil)
 
@@ -674,7 +676,14 @@ func (p *HubPlugin) OnDiscoverSensors() ([]cameraui.DiscoveredSensor, error) {
     entries := p.source.Entities()
     out := make([]cameraui.DiscoveredSensor, 0, len(entries))
     for _, e := range entries {
-        out = append(out, cameraui.DiscoveredSensor{ID: e.RegistryID, Address: e.EntityID, Name: e.Name, Type: cameraui.SensorTypeContact})
+        out = append(out, cameraui.DiscoveredSensor{
+            ID:      e.RegistryID,
+            Address: e.EntityID,
+            Name:    e.Name,
+            Type:    cameraui.SensorTypeContact,
+            Device:  &cameraui.DeviceInfo{ID: e.DeviceID, Name: e.DeviceName},
+            Primary: e.IsMain,
+        })
     }
     return out, nil
 }

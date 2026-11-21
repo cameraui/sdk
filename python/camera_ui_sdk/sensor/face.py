@@ -10,6 +10,7 @@ from typing_extensions import TypedDict, TypeVar
 from ..observable import Observable
 from .base import Sensor, SensorCategory, SensorLike, SensorType
 from .detection import Detection, VideoFrameData
+from .device import DeviceInfo
 from .spec import ModelSpec
 
 
@@ -90,8 +91,12 @@ class FaceSensor(Sensor[FaceSensorProperties, TStorage, str], Generic[TStorage])
         native_id: str | None = None,
         origin: str | None = None,
         address: str | None = None,
+        device: DeviceInfo | None = None,
+        primary: bool = False,
     ) -> None:
-        super().__init__(name, native_id=native_id, origin=origin, address=address)
+        super().__init__(
+            name, native_id=native_id, origin=origin, address=address, device=device, primary=primary
+        )
         self._write_state(
             {
                 FaceProperty.Detected.value: False,

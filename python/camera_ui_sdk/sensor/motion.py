@@ -18,6 +18,7 @@ from .detection import (
     DetectionLabel,
     VideoFrameData,
 )
+from .device import DeviceInfo
 
 # detection types are re-exported here, plugins import them from this module
 __all__ = [
@@ -109,8 +110,12 @@ class MotionSensor(Sensor[MotionSensorProperties, TStorage, str], Generic[TStora
         native_id: str | None = None,
         origin: str | None = None,
         address: str | None = None,
+        device: DeviceInfo | None = None,
+        primary: bool = False,
     ) -> None:
-        super().__init__(name, native_id=native_id, origin=origin, address=address)
+        super().__init__(
+            name, native_id=native_id, origin=origin, address=address, device=device, primary=primary
+        )
         self._write_state(
             {
                 MotionProperty.Detected.value: False,
