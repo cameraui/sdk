@@ -127,6 +127,8 @@ type PluginAssignments struct {
 	Access []AssignedPlugin `msgpack:"access,omitempty" json:"access,omitempty"`
 	// Switch are the assigned switch control plugins.
 	Switch []AssignedPlugin `msgpack:"switch,omitempty" json:"switch,omitempty"`
+	// Outlet are the assigned outlet control plugins.
+	Outlet []AssignedPlugin `msgpack:"outlet,omitempty" json:"outlet,omitempty"`
 	// SecuritySystem are the assigned security system control plugins.
 	SecuritySystem []AssignedPlugin `msgpack:"securitySystem,omitempty" json:"securitySystem,omitempty"`
 	// Lock are the assigned lock control plugins.

@@ -33,6 +33,7 @@ if TYPE_CHECKING:
     from ..sensor.motion import MotionProperty
     from ..sensor.object import ObjectProperty
     from ..sensor.occupancy import OccupancyProperty
+    from ..sensor.outlet import OutletProperty
     from ..sensor.power import PowerProperty
     from ..sensor.presence import PresenceProperty
     from ..sensor.problem import ProblemProperty
@@ -75,6 +76,7 @@ if TYPE_CHECKING:
         | MotionProperty
         | ObjectProperty
         | OccupancyProperty
+        | OutletProperty
         | PowerProperty
         | PresenceProperty
         | ProblemProperty

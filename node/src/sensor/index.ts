@@ -34,6 +34,7 @@ export * from './motion.js';
 export * from './object.js';
 export * from './objectAssist.js';
 export * from './occupancy.js';
+export * from './outlet.js';
 export * from './personEmbedder.js';
 export * from './power.js';
 export * from './presence.js';

@@ -207,6 +207,8 @@ class PluginAssignments(TypedDict, total=False):
     """Display control plugins."""
     switch: list[AssignedPlugin]
     """Switch control plugins."""
+    outlet: list[AssignedPlugin]
+    """Outlet control plugins."""
     securitySystem: list[AssignedPlugin]
     """Security system control plugins."""
     lock: list[AssignedPlugin]

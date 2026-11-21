@@ -28,6 +28,7 @@ import { motionMeta } from './motion.js';
 import { objectMeta } from './object.js';
 import { objectAssistMeta } from './objectAssist.js';
 import { occupancyMeta } from './occupancy.js';
+import { outletMeta } from './outlet.js';
 import { personEmbedderMeta } from './personEmbedder.js';
 import { powerMeta } from './power.js';
 import { presenceMeta } from './presence.js';
@@ -77,6 +78,7 @@ export const SENSOR_META = [
   objectMeta,
   objectAssistMeta,
   occupancyMeta,
+  outletMeta,
   personEmbedderMeta,
   powerMeta,
   presenceMeta,

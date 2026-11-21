@@ -114,6 +114,8 @@ class SensorType(StrEnum):
     """Siren on/off and volume control."""
     Switch = "switch"
     """Generic on/off switch."""
+    Outlet = "outlet"
+    """Power outlet or smart plug."""
     Lock = "lock"
     """Lock/unlock control."""
     Garage = "garage"

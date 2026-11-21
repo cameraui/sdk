@@ -17,6 +17,10 @@ class LightCapability(StrEnum):
 
     Brightness = "brightness"
     """Light supports brightness adjustment (0-100)."""
+    ColorTemperature = "colorTemperature"
+    """Light supports a white color temperature, in Kelvin."""
+    Color = "color"
+    """Light supports a color, as hue and saturation."""
 
 
 class LightProperty(StrEnum):
@@ -26,6 +30,30 @@ class LightProperty(StrEnum):
     """Whether the light is on."""
     Brightness = "brightness"
     """Brightness level (0-100)."""
+    ColorTemperature = "colorTemperature"
+    """White color temperature in Kelvin."""
+    Color = "color"
+    """Color as hue and saturation, see LightColor."""
+    ColorMode = "colorMode"
+    """Whether the light shows its color temperature or its color, see LightColorMode."""
+
+
+class LightColorMode(StrEnum):
+    """Which of its two color settings a light shows."""
+
+    Temperature = "temperature"
+    """The white color temperature."""
+    Color = "color"
+    """The color from hue and saturation."""
+
+
+class LightColor(TypedDict):
+    """Color of a light."""
+
+    hue: float
+    """Hue in degrees (0-360)."""
+    saturation: float
+    """Saturation in percent (0-100)."""
 
 
 class LightControlProperties(TypedDict):
@@ -33,6 +61,9 @@ class LightControlProperties(TypedDict):
 
     on: bool
     brightness: int
+    colorTemperature: int
+    color: LightColor
+    colorMode: LightColorMode
 
 
 class LightPropertyChangeData(TypedDict):
@@ -40,7 +71,7 @@ class LightPropertyChangeData(TypedDict):
 
     property: str
     """Name of the changed property, a LightProperty value."""
-    value: bool | int
+    value: bool | int | LightColor | LightColorMode
     """New value of the property."""
 
 
@@ -66,6 +97,12 @@ class LightControlLike(SensorLike, Protocol):
     @overload
     def getValue(self, property: Literal[LightProperty.Brightness]) -> int | None: ...
     @overload
+    def getValue(self, property: Literal[LightProperty.ColorTemperature]) -> int | None: ...
+    @overload
+    def getValue(self, property: Literal[LightProperty.Color]) -> LightColor | None: ...
+    @overload
+    def getValue(self, property: Literal[LightProperty.ColorMode]) -> LightColorMode | None: ...
+    @overload
     def getValue(self, property: str) -> object | None: ...
 
 
@@ -80,6 +117,12 @@ class LightControl(Sensor[LightControlProperties, TStorage, LightCapability], Ge
     For hardware-pushed updates (someone manually flipped the switch), call
     ``super().setOn()`` / ``super().setOff()`` from your event handler. That
     bypasses any plugin override and only syncs state.
+
+    A light with ``LightCapability.ColorTemperature`` or ``LightCapability.Color``
+    overrides ``setColorTemperature()`` and ``setColor()`` the same way. A
+    command switches the color mode to the setting it changed. When the device
+    reports its state, sync both settings and call ``setColorMode()`` with the
+    one it shows.
     """
 
     _requires_frames = False
@@ -108,6 +151,9 @@ class LightControl(Sensor[LightControlProperties, TStorage, LightCapability], Ge
             {
                 LightProperty.On.value: False,
                 LightProperty.Brightness.value: 100,
+                LightProperty.ColorTemperature.value: 2700,
+                LightProperty.Color.value: {"hue": 0, "saturation": 0},
+                LightProperty.ColorMode.value: LightColorMode.Temperature.value,
             }
         )
 
@@ -129,6 +175,21 @@ class LightControl(Sensor[LightControlProperties, TStorage, LightCapability], Ge
         """Brightness level (0-100)."""
         value = self.props.brightness
         return int(value) if value is not None else 0
+
+    @property
+    def colorTemperature(self) -> int:
+        """White color temperature in Kelvin."""
+        return int(self.props.colorTemperature)
+
+    @property
+    def color(self) -> LightColor:
+        """Color as hue and saturation."""
+        return self.props.color
+
+    @property
+    def colorMode(self) -> LightColorMode:
+        """Whether the light shows its color temperature or its color."""
+        return LightColorMode(self.props.colorMode)
 
     async def setOn(self) -> None:
         """Turn the light on. Override to drive hardware and call
@@ -169,11 +230,61 @@ class LightControl(Sensor[LightControlProperties, TStorage, LightCapability], Ge
         """
         self._write_state({LightProperty.Brightness.value: max(0, min(100, value))})
 
-    async def updateValue(self, property: str, value: Any) -> None:
-        """Routes generic property writes to the semantic setters.
+    async def setColorTemperature(self, kelvin: int) -> None:
+        """Set the white color temperature. Override to drive hardware and call
+        ``await super().setColorTemperature(kelvin)`` after the hardware call
+        succeeds. The default implementation rounds the value and clamps it to
+        1000-10000 K.
 
-        Only on and brightness are externally writable.
+        Args:
+            kelvin: Color temperature in Kelvin.
+
+        Example:
+            ```python
+            await light.setColorTemperature(2700)
+            ```
         """
+        self._write_state({LightProperty.ColorTemperature.value: round(max(1000, min(10000, kelvin)))})
+
+    async def setColor(self, hue: float, saturation: float) -> None:
+        """Set the color. Override to drive hardware and call
+        ``await super().setColor(hue, saturation)`` after the hardware call
+        succeeds. The default implementation clamps hue to 0-360 and saturation
+        to 0-100.
+
+        Args:
+            hue: Hue in degrees (0-360).
+            saturation: Saturation in percent (0-100).
+
+        Example:
+            ```python
+            await light.setColor(240, 100)
+            ```
+        """
+        self._write_state(
+            {
+                LightProperty.Color.value: {
+                    "hue": max(0, min(360, hue)),
+                    "saturation": max(0, min(100, saturation)),
+                }
+            }
+        )
+
+    def setColorMode(self, mode: LightColorMode) -> None:
+        """Report which of its two color settings the light shows.
+
+        Args:
+            mode: The color temperature or the color.
+
+        Example:
+            ```python
+            light.setColorMode(LightColorMode.Color)
+            ```
+        """
+        self._write_state({LightProperty.ColorMode.value: LightColorMode(mode).value})
+
+    async def updateValue(self, property: str, value: Any) -> None:
+        """Routes generic property writes to the semantic setters."""
         if property == LightProperty.On.value:
             if value:
                 await self.setOn()
@@ -182,4 +293,12 @@ class LightControl(Sensor[LightControlProperties, TStorage, LightCapability], Ge
             return
         if property == LightProperty.Brightness.value:
             await self.setBrightness(int(value))
+            return
+        if property == LightProperty.ColorTemperature.value:
+            await self.setColorTemperature(int(value))
+            self.setColorMode(LightColorMode.Temperature)
+            return
+        if property == LightProperty.Color.value:
+            await self.setColor(float(value["hue"]), float(value["saturation"]))
+            self.setColorMode(LightColorMode.Color)
             return

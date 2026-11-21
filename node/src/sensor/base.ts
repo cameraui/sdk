@@ -34,6 +34,7 @@ import type { PropertySpecOverride, SensorPropertySpec } from './meta.js';
 import type { MotionProperty } from './motion.js';
 import type { ObjectProperty } from './object.js';
 import type { OccupancyProperty } from './occupancy.js';
+import type { OutletCapability, OutletProperty } from './outlet.js';
 import type { PowerProperty } from './power.js';
 import type { PresenceProperty } from './presence.js';
 import type { ProblemProperty } from './problem.js';
@@ -75,6 +76,7 @@ export type SensorPropertyType =
   | MotionProperty
   | ObjectProperty
   | OccupancyProperty
+  | OutletProperty
   | PTZProperty
   | PowerProperty
   | PresenceProperty
@@ -88,7 +90,8 @@ export type SensorPropertyType =
   | VibrationProperty;
 
 /** Union of all sensor-specific capability enums. */
-export type SensorCapability = PTZCapability | LightCapability | SirenCapability | BatteryCapability | AirQualityCapability | ChimeCapability | DisplayCapability;
+export type SensorCapability =
+  PTZCapability | LightCapability | SirenCapability | BatteryCapability | AirQualityCapability | ChimeCapability | DisplayCapability | OutletCapability;
 
 /**
  * The plugin's view of the source behind an adopted sensor. `unavailable`
@@ -178,6 +181,8 @@ export enum SensorType {
   Siren = 'siren',
   /** Generic on/off switch. */
   Switch = 'switch',
+  /** Power outlet or smart plug. */
+  Outlet = 'outlet',
   /** Lock/unlock control. */
   Lock = 'lock',
   /** Pan-tilt-zoom camera control. */

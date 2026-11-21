@@ -162,6 +162,15 @@ export interface SensorSemantics {
     /** Factor a consumer applies to the value. */
     readonly scale: number;
   };
+  /** Properties carrying a light's color, each only when the sensor offers it. */
+  readonly color?: {
+    /** Name of the property that carries the white color temperature in Kelvin. */
+    readonly temperature?: string;
+    /** Name of the property that carries hue and saturation. */
+    readonly hueSaturation?: string;
+    /** Name of the property that says which of the two the light shows. */
+    readonly mode?: string;
+  };
   /** Property carrying the tone, its choices are the tones the device offers. */
   readonly tone?: {
     /** Name of the property that carries the value. */

@@ -217,6 +217,8 @@ from .license_plate import (
 )
 from .light import (
     LightCapability,
+    LightColor,
+    LightColorMode,
     LightControl,
     LightControlLike,
     LightControlProperties,
@@ -261,6 +263,14 @@ from .occupancy import (
     OccupancySensor,
     OccupancySensorLike,
     OccupancySensorProperties,
+)
+from .outlet import (
+    OutletCapability,
+    OutletControl,
+    OutletControlLike,
+    OutletControlProperties,
+    OutletProperty,
+    OutletPropertyChangeData,
 )
 from .person_embedder import (
     PersonEmbedderSensor,
@@ -477,6 +487,7 @@ __all__ = [
     "ChimeControl",
     "DisplayControl",
     "SwitchControl",
+    "OutletControl",
     "LockControl",
     "GarageControl",
     "PTZControl",
@@ -488,6 +499,7 @@ __all__ = [
     "PresenceSensor",
     # Public capability/state enums
     "LightCapability",
+    "OutletCapability",
     "SirenCapability",
     "PTZCapability",
     "BatteryCapability",
@@ -520,6 +532,8 @@ __all__ = [
     "LeakProperty",
     "LicensePlateProperty",
     "LightProperty",
+    "LightColorMode",
+    "LightColor",
     "LockProperty",
     "MotionProperty",
     "ObjectProperty",
@@ -531,6 +545,7 @@ __all__ = [
     "SirenProperty",
     "SmokeProperty",
     "SwitchProperty",
+    "OutletProperty",
     "TamperProperty",
     "TemperatureProperty",
     "VibrationProperty",
@@ -573,6 +588,7 @@ __all__ = [
     "SirenControlProperties",
     "SmokeSensorProperties",
     "SwitchControlProperties",
+    "OutletControlProperties",
     "TamperSensorProperties",
     "TemperatureInfoProperties",
     "VibrationSensorProperties",
@@ -612,6 +628,7 @@ __all__ = [
     "SirenPropertyChangeData",
     "SmokePropertyChangeData",
     "SwitchPropertyChangeData",
+    "OutletPropertyChangeData",
     "TamperPropertyChangeData",
     "TemperaturePropertyChangeData",
     "VibrationPropertyChangeData",
@@ -651,6 +668,7 @@ __all__ = [
     "SirenControlLike",
     "SmokeSensorLike",
     "SwitchControlLike",
+    "OutletControlLike",
     "TamperSensorLike",
     "TemperatureInfoLike",
     "VibrationSensorLike",

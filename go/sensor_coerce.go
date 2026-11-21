@@ -109,11 +109,18 @@ var propertyTypeRegistry = map[SensorType]map[string]coerceFunc{
 		"low":      coerceBool,
 	},
 	SensorTypeLight: {
-		"on":         coerceBool,
-		"brightness": coerceInt,
+		"on":               coerceBool,
+		"brightness":       coerceInt,
+		"colorTemperature": coerceInt,
+		"color":            coerceViaRoundTrip[LightColor],
+		"colorMode":        coerceString,
 	},
 	SensorTypeSwitch: {
 		"on": coerceBool,
+	},
+	SensorTypeOutlet: {
+		"on":    coerceBool,
+		"inUse": coerceBool,
 	},
 	SensorTypeSiren: {
 		"active": coerceBool,

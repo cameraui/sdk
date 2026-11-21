@@ -30,6 +30,7 @@ const (
 	SensorTypeLight          SensorType = "light"          // Light on/off and brightness control
 	SensorTypeSiren          SensorType = "siren"          // Siren on/off and volume control
 	SensorTypeSwitch         SensorType = "switch"         // Generic on/off switch
+	SensorTypeOutlet         SensorType = "outlet"         // Power outlet or smart plug
 	SensorTypeLock           SensorType = "lock"           // Lock/unlock control
 	SensorTypePTZ            SensorType = "ptz"            // Pan-tilt-zoom camera control
 	SensorTypeSecuritySystem SensorType = "securitySystem" // Security system arm/disarm control
