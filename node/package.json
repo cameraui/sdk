@@ -67,7 +67,11 @@
   },
   "keywords": [
     "camera.ui",
-    "sdk"
+    "sdk",
+    "plugin",
+    "plugins",
+    "camera",
+    "nvr"
   ],
   "allowScripts": {
     "esbuild": true,
