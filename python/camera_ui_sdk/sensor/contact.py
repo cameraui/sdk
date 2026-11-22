@@ -13,17 +13,28 @@ from .device import DeviceInfo
 from .property_spec import PropertySpecOverride
 
 
+class ContactKind(StrEnum):
+    """What a contact guards, it decides how smart homes show it."""
+
+    Door = "door"
+    GarageDoor = "garage_door"
+    Window = "window"
+
+
 class ContactProperty(StrEnum):
     """Property names of a contact sensor."""
 
     Detected = "detected"
     """Whether the contact is open (true = open, false = closed)."""
+    Kind = "kind"
+    """What the contact guards, a ContactKind."""
 
 
 class ContactSensorProperties(TypedDict):
     """Property values of a contact sensor."""
 
     detected: bool
+    kind: str | None
 
 
 class ContactPropertyChangeData(TypedDict):
@@ -31,7 +42,7 @@ class ContactPropertyChangeData(TypedDict):
 
     property: str
     """Name of the changed property, a ContactProperty value."""
-    value: bool
+    value: bool | ContactKind | None
     """New value of the property."""
 
 
@@ -51,6 +62,8 @@ class ContactSensorLike(SensorLike, Protocol):
 
     @overload
     def getValue(self, property: Literal[ContactProperty.Detected]) -> bool | None: ...
+    @overload
+    def getValue(self, property: Literal[ContactProperty.Kind]) -> ContactKind | None: ...
     @overload
     def getValue(self, property: str) -> object | None: ...
 
@@ -82,3 +95,21 @@ class ContactSensor(BinarySensor[ContactSensorProperties, TStorage], Generic[TSt
     @property
     def type(self) -> SensorType:
         return SensorType.Contact
+
+    @property
+    def kind(self) -> ContactKind | None:
+        """What the contact guards."""
+        value = self.props.kind
+        return ContactKind(value) if value is not None else None
+
+    def setKind(self, kind: ContactKind) -> None:
+        """Say what the contact guards. Smart homes show it by its kind, a window
+        or a door for example, and Home Assistant takes it as the device class.
+
+        Example:
+            ```python
+            contact.setKind(ContactKind.Window)
+            ```
+        """
+        self._write_state({ContactProperty.Kind.value: kind.value})
+        self.setPropertySpec(ContactProperty.Kind.value, {"values": [kind.value]})

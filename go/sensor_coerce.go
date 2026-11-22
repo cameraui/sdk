@@ -48,6 +48,7 @@ var propertyTypeRegistry = map[SensorType]map[string]coerceFunc{
 	},
 	SensorTypeContact: {
 		"detected": coerceBool,
+		"kind":     coerceString,
 	},
 	SensorTypeGas: {
 		"detected": coerceBool,

@@ -121,6 +121,7 @@ from .command import (
     CommandControlProperties,
 )
 from .contact import (
+    ContactKind,
     ContactProperty,
     ContactPropertyChangeData,
     ContactSensor,
@@ -666,6 +667,7 @@ __all__ = [
     "CarbonMonoxideProperty",
     "ClassifierProperty",
     "ColdProperty",
+    "ContactKind",
     "ContactProperty",
     "DoorbellProperty",
     "ButtonProperty",

@@ -58,6 +58,10 @@ export abstract class BinarySensor<TProperties extends BinarySensorProperties = 
  *
  * @param deviceClass - Device class consumers such as Home Assistant use for the type.
  *
+ * @param kinds - What a sensor of the type can be, a door or a window for example. With
+ * kinds the type gets a `kind` property, and a sensor that sets one replaces the device
+ * class with it.
+ *
  * @returns The metadata, with `type` and `assignmentKey` preserved as literal types.
  *
  * @example
@@ -65,7 +69,12 @@ export abstract class BinarySensor<TProperties extends BinarySensorProperties = 
  * export const smokeMeta = defineBinarySensor(SensorType.Smoke, 'smoke', 'smoke');
  * ```
  */
-export function defineBinarySensor<const T extends SensorType, const K extends string>(type: T, assignmentKey: K, deviceClass: string) {
+export function defineBinarySensor<const T extends SensorType, const K extends string>(
+  type: T,
+  assignmentKey: K,
+  deviceClass: string,
+  kinds?: Readonly<Record<string, string>>,
+) {
   return defineSensor({
     type,
     category: SensorCategory.Sensor,
@@ -74,6 +83,7 @@ export function defineBinarySensor<const T extends SensorType, const K extends s
     isDetectionType: false,
     properties: {
       detected: { type: 'boolean', writable: true },
+      ...(kinds && { kind: { type: 'enum', values: kinds, internal: true } }),
     },
     shortcutable: true,
     cascadeTrigger: { property: 'detected', values: [true], sustained: true },
@@ -83,6 +93,7 @@ export function defineBinarySensor<const T extends SensorType, const K extends s
       stateProperty: 'detected',
       commandProperty: 'detected',
       deviceClass,
+      ...(kinds && { deviceClassProperty: 'kind' }),
     },
   });
 }

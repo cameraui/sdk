@@ -451,6 +451,7 @@ export const mediaPlayerMeta = defineSensor({
       [MediaPlayerCapability.Power]: { [MediaPlayerProperty.On]: false },
       [MediaPlayerCapability.Volume]: { [MediaPlayerProperty.Volume]: 50 },
       [MediaPlayerCapability.Mute]: { [MediaPlayerProperty.Muted]: false },
+      [MediaPlayerCapability.Source]: {},
       [MediaPlayerCapability.NowPlaying]: {},
     },
   },
