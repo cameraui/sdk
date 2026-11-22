@@ -12,10 +12,12 @@ export interface SensorCascadeTrigger {
 
 /** Initial property values and capabilities for a user-created virtual sensor. */
 export interface SensorVirtualDefaults {
-  /** Property values the sensor starts with. */
+  /** Property values the sensor starts with, whatever capabilities it has. */
   readonly properties: Readonly<Record<string, unknown>>;
-  /** Capabilities the virtual sensor advertises. */
+  /** Capabilities a new virtual sensor has unless the user picks others. */
   readonly capabilities?: readonly string[];
+  /** Capabilities the user can pick, each with the start values of the properties it adds. */
+  readonly optionalCapabilities?: Readonly<Record<string, Readonly<Record<string, unknown>>>>;
 }
 
 /** Runtime value type of a sensor property. */

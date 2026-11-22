@@ -260,7 +260,14 @@ export const fanMeta = defineSensor({
     [FanProperty.Oscillating]: FanCapability.Oscillation,
     [FanProperty.Preset]: FanCapability.Preset,
   },
-  virtual: { properties: { [FanProperty.On]: false } },
+  virtual: {
+    properties: { [FanProperty.On]: false },
+    optionalCapabilities: {
+      [FanCapability.Speed]: { [FanProperty.Speed]: 50 },
+      [FanCapability.Direction]: { [FanProperty.Direction]: FanDirection.Forward },
+      [FanCapability.Oscillation]: { [FanProperty.Oscillating]: false },
+    },
+  },
   semantics: {
     domain: SensorDomain.Fan,
     stateProperty: FanProperty.On,

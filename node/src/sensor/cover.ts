@@ -379,7 +379,13 @@ export const coverMeta = defineSensor({
     [CoverProperty.TargetTilt]: CoverCapability.Tilt,
     [CoverProperty.Stop]: CoverCapability.Stop,
   },
-  virtual: { properties: { [CoverProperty.CurrentState]: CoverState.Closed, [CoverProperty.TargetState]: CoverState.Closed } },
+  virtual: {
+    properties: { [CoverProperty.CurrentState]: CoverState.Closed, [CoverProperty.TargetState]: CoverState.Closed },
+    optionalCapabilities: {
+      [CoverCapability.Position]: { [CoverProperty.CurrentPosition]: 0, [CoverProperty.TargetPosition]: 0 },
+      [CoverCapability.Tilt]: { [CoverProperty.CurrentTilt]: 0, [CoverProperty.TargetTilt]: 0 },
+    },
+  },
   semantics: {
     domain: SensorDomain.Cover,
     stateProperty: CoverProperty.CurrentState,

@@ -286,7 +286,13 @@ export const humidifierMeta = defineSensor({
     [HumidifierProperty.Action]: HumidifierCapability.Action,
     [HumidifierProperty.Mode]: HumidifierCapability.Mode,
   },
-  virtual: { properties: { [HumidifierProperty.On]: false, [HumidifierProperty.TargetHumidity]: 50 } },
+  virtual: {
+    properties: { [HumidifierProperty.On]: false, [HumidifierProperty.TargetHumidity]: 50 },
+    optionalCapabilities: {
+      [HumidifierCapability.Humidity]: { [HumidifierProperty.CurrentHumidity]: 50 },
+      [HumidifierCapability.Action]: { [HumidifierProperty.Action]: HumidifierAction.Off },
+    },
+  },
   semantics: {
     domain: SensorDomain.Humidifier,
     stateProperty: HumidifierProperty.On,

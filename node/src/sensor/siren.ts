@@ -133,7 +133,11 @@ export const sirenMeta = defineSensor({
   shortcutable: true,
   cascadeTrigger: { property: SirenProperty.Active, values: [true], sustained: true },
   propertyCapabilities: { [SirenProperty.Volume]: SirenCapability.Volume },
-  virtual: { properties: { [SirenProperty.Active]: false, [SirenProperty.Volume]: 100 }, capabilities: [SirenCapability.Volume] },
+  virtual: {
+    properties: { [SirenProperty.Active]: false },
+    capabilities: [SirenCapability.Volume],
+    optionalCapabilities: { [SirenCapability.Volume]: { [SirenProperty.Volume]: 100 } },
+  },
   semantics: {
     domain: SensorDomain.Siren,
     stateProperty: SirenProperty.Active,

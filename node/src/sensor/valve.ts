@@ -328,7 +328,10 @@ export const valveMeta = defineSensor({
     [ValveProperty.Duration]: ValveCapability.Duration,
     [ValveProperty.Remaining]: ValveCapability.Duration,
   },
-  virtual: { properties: { [ValveProperty.CurrentState]: ValveState.Closed, [ValveProperty.TargetState]: ValveState.Closed } },
+  virtual: {
+    properties: { [ValveProperty.CurrentState]: ValveState.Closed, [ValveProperty.TargetState]: ValveState.Closed },
+    optionalCapabilities: { [ValveCapability.Position]: { [ValveProperty.CurrentPosition]: 0, [ValveProperty.TargetPosition]: 0 } },
+  },
   semantics: {
     domain: SensorDomain.Valve,
     stateProperty: ValveProperty.CurrentState,

@@ -340,7 +340,16 @@ export const airPurifierMeta = defineSensor({
     [AirPurifierProperty.FilterLife]: AirPurifierCapability.Filter,
     [AirPurifierProperty.FilterChange]: AirPurifierCapability.Filter,
   },
-  virtual: { properties: { [AirPurifierProperty.On]: false } },
+  virtual: {
+    properties: { [AirPurifierProperty.On]: false },
+    optionalCapabilities: {
+      [AirPurifierCapability.State]: { [AirPurifierProperty.State]: AirPurifierState.Inactive },
+      [AirPurifierCapability.Speed]: { [AirPurifierProperty.Speed]: 50 },
+      [AirPurifierCapability.Auto]: { [AirPurifierProperty.Auto]: false },
+      [AirPurifierCapability.ChildLock]: { [AirPurifierProperty.ChildLock]: false },
+      [AirPurifierCapability.Filter]: { [AirPurifierProperty.FilterLife]: 100, [AirPurifierProperty.FilterChange]: false },
+    },
+  },
   semantics: {
     domain: SensorDomain.AirPurifier,
     stateProperty: AirPurifierProperty.On,

@@ -263,8 +263,13 @@ export const lightMeta = defineSensor({
     [LightProperty.ColorMode]: LightCapability.Color,
   },
   virtual: {
-    properties: { [LightProperty.On]: false, [LightProperty.Brightness]: 100 },
+    properties: { [LightProperty.On]: false },
     capabilities: [LightCapability.Brightness],
+    optionalCapabilities: {
+      [LightCapability.Brightness]: { [LightProperty.Brightness]: 100 },
+      [LightCapability.ColorTemperature]: { [LightProperty.ColorTemperature]: 4000 },
+      [LightCapability.Color]: { [LightProperty.Color]: { hue: 0, saturation: 0 }, [LightProperty.ColorMode]: LightColorMode.Color },
+    },
   },
   semantics: {
     domain: SensorDomain.Light,

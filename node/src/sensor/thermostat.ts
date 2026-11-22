@@ -434,7 +434,15 @@ export const thermostatMeta = defineSensor({
     [ThermostatProperty.FanMode]: ThermostatCapability.FanMode,
     [ThermostatProperty.TargetHumidity]: ThermostatCapability.TargetHumidity,
   },
-  virtual: { properties: { [ThermostatProperty.Mode]: ThermostatMode.Off, [ThermostatProperty.TargetTemperature]: 20 } },
+  virtual: {
+    properties: { [ThermostatProperty.Mode]: ThermostatMode.Off, [ThermostatProperty.TargetTemperature]: 20 },
+    optionalCapabilities: {
+      [ThermostatCapability.Range]: { [ThermostatProperty.TargetTemperatureLow]: 18, [ThermostatProperty.TargetTemperatureHigh]: 24 },
+      [ThermostatCapability.Action]: { [ThermostatProperty.Action]: ThermostatAction.Off },
+      [ThermostatCapability.Humidity]: { [ThermostatProperty.CurrentHumidity]: 50 },
+      [ThermostatCapability.TargetHumidity]: { [ThermostatProperty.TargetHumidity]: 50 },
+    },
+  },
   semantics: {
     domain: SensorDomain.Climate,
     stateProperty: ThermostatProperty.Mode,

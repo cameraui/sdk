@@ -229,7 +229,10 @@ export const waterHeaterMeta = defineSensor({
   propertyCapabilities: {
     [WaterHeaterProperty.Away]: WaterHeaterCapability.Away,
   },
-  virtual: { properties: { [WaterHeaterProperty.Mode]: WaterHeaterMode.Off, [WaterHeaterProperty.TargetTemperature]: 50 } },
+  virtual: {
+    properties: { [WaterHeaterProperty.Mode]: WaterHeaterMode.Off, [WaterHeaterProperty.TargetTemperature]: 50 },
+    optionalCapabilities: { [WaterHeaterCapability.Away]: { [WaterHeaterProperty.Away]: false } },
+  },
   semantics: {
     domain: SensorDomain.WaterHeater,
     stateProperty: WaterHeaterProperty.Mode,

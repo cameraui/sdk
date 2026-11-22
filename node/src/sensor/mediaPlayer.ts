@@ -445,14 +445,14 @@ export const mediaPlayerMeta = defineSensor({
     [MediaPlayerProperty.Artist]: MediaPlayerCapability.NowPlaying,
   },
   virtual: {
-    properties: {
-      [MediaPlayerProperty.On]: false,
-      [MediaPlayerProperty.State]: MediaPlayerState.Off,
-      [MediaPlayerProperty.Kind]: MediaPlayerKind.Tv,
-      [MediaPlayerProperty.Volume]: 50,
-      [MediaPlayerProperty.Muted]: false,
-    },
+    properties: { [MediaPlayerProperty.State]: MediaPlayerState.Off, [MediaPlayerProperty.Kind]: MediaPlayerKind.Tv },
     capabilities: [MediaPlayerCapability.Power, MediaPlayerCapability.Volume, MediaPlayerCapability.Mute],
+    optionalCapabilities: {
+      [MediaPlayerCapability.Power]: { [MediaPlayerProperty.On]: false },
+      [MediaPlayerCapability.Volume]: { [MediaPlayerProperty.Volume]: 50 },
+      [MediaPlayerCapability.Mute]: { [MediaPlayerProperty.Muted]: false },
+      [MediaPlayerCapability.NowPlaying]: {},
+    },
   },
   semantics: {
     domain: SensorDomain.MediaPlayer,
