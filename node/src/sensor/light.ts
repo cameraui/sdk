@@ -255,7 +255,7 @@ export const lightMeta = defineSensor({
     [LightProperty.ColorMode]: { type: 'enum', values: { temperature: LightColorMode.Temperature, color: LightColorMode.Color } },
   },
   shortcutable: true,
-  cascadeTrigger: { property: LightProperty.On, value: true, sustained: true },
+  cascadeTrigger: { property: LightProperty.On, values: [true], sustained: true },
   propertyCapabilities: {
     [LightProperty.Brightness]: LightCapability.Brightness,
     [LightProperty.ColorTemperature]: LightCapability.ColorTemperature,

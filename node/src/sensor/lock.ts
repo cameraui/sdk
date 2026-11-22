@@ -136,7 +136,7 @@ export const lockMeta = defineSensor({
     },
   },
   shortcutable: true,
-  cascadeTrigger: { property: LockProperty.CurrentState, value: 1, sustained: true },
+  cascadeTrigger: { property: LockProperty.CurrentState, values: [1], sustained: true },
   virtual: { properties: { [LockProperty.CurrentState]: 0, [LockProperty.TargetState]: 0 } },
   semantics: {
     domain: SensorDomain.Lock,

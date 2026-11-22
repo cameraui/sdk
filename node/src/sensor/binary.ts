@@ -76,7 +76,7 @@ export function defineBinarySensor<const T extends SensorType, const K extends s
       detected: { type: 'boolean', writable: true },
     },
     shortcutable: true,
-    cascadeTrigger: { property: 'detected', value: true, sustained: true },
+    cascadeTrigger: { property: 'detected', values: [true], sustained: true },
     virtual: { properties: { detected: false } },
     semantics: {
       domain: SensorDomain.Binary,

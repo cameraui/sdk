@@ -170,7 +170,7 @@ export const garageMeta = defineSensor({
     [GarageProperty.ObstructionDetected]: { type: 'boolean' },
   },
   shortcutable: true,
-  cascadeTrigger: { property: GarageProperty.CurrentState, value: 0, sustained: true },
+  cascadeTrigger: { property: GarageProperty.CurrentState, values: [0], sustained: true },
   virtual: { properties: { [GarageProperty.CurrentState]: 1, [GarageProperty.TargetState]: 1 } },
   semantics: {
     domain: SensorDomain.Cover,

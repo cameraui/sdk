@@ -4,8 +4,8 @@ import type { SensorCategory, SensorType } from './base.js';
 export interface SensorCascadeTrigger {
   /** Property watched for the arming condition. */
   readonly property: string;
-  /** Value that arms the cascade. */
-  readonly value: unknown;
+  /** Values that arm the cascade, any other value disarms a sustained one. */
+  readonly values: readonly unknown[];
   /** Whether the value must hold, instead of firing once. */
   readonly sustained: boolean;
 }
@@ -135,6 +135,14 @@ export interface SensorReading {
   readonly deviceClass?: string;
   /** Unit of the reading. */
   readonly unit?: string;
+}
+
+/** An on/off reading a sensor carries next to its state, exported as a binary sensor of its own. */
+export interface SensorIndicator {
+  /** Name of the property that carries the reading, `true` while it applies. */
+  readonly property: string;
+  /** Device class, where one applies. */
+  readonly deviceClass?: string;
 }
 
 /** A current and a target value, as a cover's position or tilt. */
@@ -287,6 +295,11 @@ export interface SensorSemantics {
   /** Readings next to the state, each exported as a measurement of its own. */
   readonly readings?: readonly SensorReading[];
   /**
+   * On/off readings next to the state, such as a filter that needs a change,
+   * each exported as a binary sensor of its own. Only those the sensor offers.
+   */
+  readonly indicators?: readonly SensorIndicator[];
+  /**
    * Writable properties besides the command whose value is one of a list of
    * choices, such as a tone or a preset. The host fills it per sensor from the
    * property specs it offers.
@@ -297,6 +310,12 @@ export interface SensorSemantics {
    * exported as a switch of its own. Only those the sensor offers.
    */
   readonly toggles?: readonly string[];
+  /**
+   * Properties among the choices, toggles and volume that set the device up
+   * instead of operating it, such as a child lock or a tone. Consumers file
+   * them under configuration. Only those the sensor offers.
+   */
+  readonly configuration?: readonly string[];
   /**
    * One-off commands a robot such as a vacuum takes through its command
    * property, name to wire value. The host narrows it to the commands the

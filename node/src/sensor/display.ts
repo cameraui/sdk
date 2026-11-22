@@ -150,5 +150,6 @@ export const displayMeta = defineSensor({
     domain: SensorDomain.Text,
     stateProperty: DisplayProperty.Message,
     commandProperty: DisplayProperty.Message,
+    configuration: [DisplayProperty.Preset],
   },
 });

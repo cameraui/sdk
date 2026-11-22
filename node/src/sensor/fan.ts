@@ -253,6 +253,7 @@ export const fanMeta = defineSensor({
     [FanProperty.Preset]: { type: 'string', writable: true },
   },
   shortcutable: true,
+  cascadeTrigger: { property: FanProperty.On, values: [true], sustained: true },
   propertyCapabilities: {
     [FanProperty.Speed]: FanCapability.Speed,
     [FanProperty.Direction]: FanCapability.Direction,

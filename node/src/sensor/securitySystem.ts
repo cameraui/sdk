@@ -146,7 +146,7 @@ export const securitySystemMeta = defineSensor({
     },
   },
   shortcutable: true,
-  cascadeTrigger: { property: SecuritySystemProperty.CurrentState, value: 4, sustained: true },
+  cascadeTrigger: { property: SecuritySystemProperty.CurrentState, values: [4], sustained: true },
   virtual: { properties: { [SecuritySystemProperty.CurrentState]: 3, [SecuritySystemProperty.TargetState]: 3 } },
   semantics: {
     domain: SensorDomain.Alarm,

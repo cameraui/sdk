@@ -371,6 +371,7 @@ export const coverMeta = defineSensor({
     },
   },
   shortcutable: true,
+  cascadeTrigger: { property: CoverProperty.CurrentState, values: [CoverState.Open], sustained: true },
   propertyCapabilities: {
     [CoverProperty.CurrentPosition]: CoverCapability.Position,
     [CoverProperty.TargetPosition]: CoverCapability.Position,

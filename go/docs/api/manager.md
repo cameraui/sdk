@@ -196,6 +196,23 @@ It changes every time a backup is restored or a restore is undone and is empty b
 
 GetServerAddresses returns the server addresses \(IP addresses the server is listening on\). A plugin running on a worker gets the addresses selected for that worker, empty when none are selected.
 
+<a name="CoreManager.GetUnitSystem"></a>
+### func \(\*CoreManager\) GetUnitSystem
+
+	func (cm *CoreManager) GetUnitSystem() (UnitSystem, error)
+
+GetUnitSystem returns the unit system the admin picked under Settings, System.
+
+Readings keep their own unit. Texts a plugin writes for a person convert with ToUnitSystem. Subscribe to OnEvent for "unitSystemChanged" to learn about changes while running.
+
+Example:
+
+	system, err := api.CoreManager.GetUnitSystem()
+	if err != nil {
+		system = sdk.UnitSystemMetric
+	}
+	
+
 <a name="CoreManager.InvokeInto"></a>
 ### func \(\*CoreManager\) InvokeInto
 
@@ -210,7 +227,7 @@ It is the escape hatch for host methods that have no typed wrapper here, which a
 
 	func (cm *CoreManager) OnEvent() *Observable[CoreManagerEvent]
 
-OnEvent returns an Observable for core manager events \(e.g. cloud account changes, "assistantModelChanged" with pluginId and configured, "languageChanged" with language\).
+OnEvent returns an Observable for core manager events \(e.g. cloud account changes, "assistantModelChanged" with pluginId and configured, "languageChanged" with language, "unitSystemChanged" with unitSystem\).
 
 <a name="CoreManagerEvent"></a>
 ## type CoreManagerEvent

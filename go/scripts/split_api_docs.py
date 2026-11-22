@@ -331,7 +331,62 @@ BUCKETS: dict[str, str] = {
     "MediaPlayerCommand": "sensor",
     "MediaPlayerControl": "sensor",
     "MediaPlayerProperty": "sensor",
+    "AccessAttempt": "sensor",
+    "AccessMethod": "sensor",
+    "AccessProperty": "sensor",
+    "AccessResult": "sensor",
+    "AccessTrigger": "sensor",
+    "AirPurifierControl": "sensor",
+    "AirPurifierProperty": "sensor",
+    "AirPurifierState": "sensor",
+    "AirQualityInfo": "sensor",
+    "AirQualityLevel": "sensor",
+    "AirQualityProperty": "sensor",
+    "ButtonConfig": "sensor",
+    "ButtonPress": "sensor",
+    "ButtonProperty": "sensor",
+    "ButtonTrigger": "sensor",
+    "ChimeControl": "sensor",
+    "ChimeProperty": "sensor",
+    "CoverControl": "sensor",
+    "CoverKind": "sensor",
+    "CoverProperty": "sensor",
+    "CoverState": "sensor",
+    "DisplayControl": "sensor",
+    "DisplayProperty": "sensor",
+    "FanControl": "sensor",
+    "FanDirection": "sensor",
+    "FanProperty": "sensor",
+    "GlassBreakProperty": "sensor",
+    "GlassBreakSensor": "sensor",
+    "HumidifierAction": "sensor",
+    "HumidifierControl": "sensor",
+    "HumidifierKind": "sensor",
+    "HumidifierProperty": "sensor",
+    "LightColor": "sensor",
+    "LightColorMode": "sensor",
+    "OutletControl": "sensor",
+    "OutletProperty": "sensor",
+    "PresenceProperty": "sensor",
+    "PresenceSensor": "sensor",
+    "SceneControl": "sensor",
+    "SceneProperty": "sensor",
+    "ThermostatAction": "sensor",
+    "ThermostatControl": "sensor",
+    "ThermostatMode": "sensor",
+    "ThermostatProperty": "sensor",
+    "ValveConfig": "sensor",
+    "ValveControl": "sensor",
+    "ValveKind": "sensor",
+    "ValveProperty": "sensor",
+    "ValveState": "sensor",
+    "WaterHeaterControl": "sensor",
+    "WaterHeaterMode": "sensor",
+    "WaterHeaterProperty": "sensor",
     "SensorTriggerSettings": "sensor",
+    "UnitSystem": "types",
+    "ToUnitSystem": "types",
+    "FromUnitSystem": "types",
     "DeviceStorage": "storage",
     "JsonSchema": "storage",
     "JsonSchemaType": "storage",
@@ -410,9 +465,10 @@ PAGE_INTROS: dict[str, str] = {
     ),
     "sensor": (
         "Detection sensors (motion, object, face, license-plate, audio, classifier, "
-        "clip) and smart-home sensors (contact, doorbell, lock, garage, light, switch, "
-        "PTZ, security system, environmental). Plus the sensor-level model specs and "
-        "shared detection types (`Detection`, `BoundingBox`, `TrackedDetection`)."
+        "clip), smart-home sensors and accessories (contact, lock, light, cover, "
+        "thermostat, media player, environmental readings and the rest) and PTZ. Plus "
+        "the sensor-level model specs and shared detection types (`Detection`, "
+        "`BoundingBox`, `TrackedDetection`)."
     ),
     "storage": (
         "Schema-driven configuration store rendered as UI forms by the host. "
@@ -434,8 +490,9 @@ PAGE_INTROS: dict[str, str] = {
     ),
     "types": (
         "Shared utility types: the `Logger` interface every plugin and camera exposes, "
-        "and pointer-helper functions (`Bool`, `Int`, `Float64`) used by JSON schemas "
-        "with optional numeric / boolean fields."
+        "the unit system and its conversions (`UnitSystem`, `ToUnitSystem`, "
+        "`FromUnitSystem`), and pointer-helper functions (`Bool`, `Int`, `Float64`) "
+        "used by JSON schemas with optional numeric / boolean fields."
     ),
 }
 

@@ -23,6 +23,11 @@ class WaterHeaterMode(StrEnum):
     HeatPump = "heat_pump"
     HighDemand = "high_demand"
     Performance = "performance"
+    Auto = "auto"
+    """The device decides by its own schedule or logic."""
+    Heat = "heat"
+    On = "on"
+    """Running in a mode without a name of its own."""
 
 
 class WaterHeaterCapability(StrEnum):

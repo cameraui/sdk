@@ -13,6 +13,11 @@ export enum WaterHeaterMode {
   HeatPump = 'heat_pump',
   HighDemand = 'high_demand',
   Performance = 'performance',
+  /** The device decides by its own schedule or logic. */
+  Auto = 'auto',
+  Heat = 'heat',
+  /** Running in a mode without a name of its own. */
+  On = 'on',
 }
 
 /** Optional capabilities of a water heater. */
@@ -211,12 +216,16 @@ export const waterHeaterMeta = defineSensor({
         heat_pump: WaterHeaterMode.HeatPump,
         high_demand: WaterHeaterMode.HighDemand,
         performance: WaterHeaterMode.Performance,
+        auto: WaterHeaterMode.Auto,
+        heat: WaterHeaterMode.Heat,
+        on: WaterHeaterMode.On,
       },
       writable: true,
     },
     [WaterHeaterProperty.Away]: { type: 'boolean', writable: true },
   },
   shortcutable: true,
+  cascadeTrigger: { property: WaterHeaterProperty.Mode, values: Object.values(WaterHeaterMode).filter((mode) => mode !== WaterHeaterMode.Off), sustained: true },
   propertyCapabilities: {
     [WaterHeaterProperty.Away]: WaterHeaterCapability.Away,
   },

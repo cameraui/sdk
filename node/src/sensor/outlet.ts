@@ -125,7 +125,7 @@ export const outletMeta = defineSensor({
     [OutletProperty.InUse]: { type: 'boolean' },
   },
   shortcutable: true,
-  cascadeTrigger: { property: OutletProperty.On, value: true, sustained: true },
+  cascadeTrigger: { property: OutletProperty.On, values: [true], sustained: true },
   propertyCapabilities: { [OutletProperty.InUse]: OutletCapability.InUse },
   virtual: { properties: { [OutletProperty.On]: false } },
   semantics: {

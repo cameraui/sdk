@@ -435,6 +435,7 @@ export const mediaPlayerMeta = defineSensor({
     [MediaPlayerProperty.Artist]: { type: 'string' },
   },
   shortcutable: true,
+  cascadeTrigger: { property: MediaPlayerProperty.State, values: Object.values(MediaPlayerState).filter((state) => state !== MediaPlayerState.Off), sustained: true },
   propertyCapabilities: {
     [MediaPlayerProperty.On]: MediaPlayerCapability.Power,
     [MediaPlayerProperty.Volume]: MediaPlayerCapability.Volume,

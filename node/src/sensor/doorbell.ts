@@ -100,7 +100,7 @@ export const doorbellMeta = defineSensor({
     [DoorbellProperty.Ring]: { type: 'boolean', writable: true },
   },
   shortcutable: true,
-  cascadeTrigger: { property: DoorbellProperty.Ring, value: true, sustained: false },
+  cascadeTrigger: { property: DoorbellProperty.Ring, values: [true], sustained: false },
   virtual: { properties: { [DoorbellProperty.Ring]: false } },
   semantics: {
     domain: SensorDomain.Binary,

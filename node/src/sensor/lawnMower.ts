@@ -146,6 +146,7 @@ export const lawnMowerMeta = defineSensor({
     [LawnMowerProperty.Command]: { type: 'enum', values: LAWN_MOWER_COMMANDS, writable: true },
   },
   shortcutable: true,
+  cascadeTrigger: { property: LawnMowerProperty.Activity, values: [LawnMowerActivity.Mowing], sustained: true },
   virtual: { properties: { [LawnMowerProperty.Activity]: LawnMowerActivity.Docked } },
   semantics: {
     domain: SensorDomain.LawnMower,

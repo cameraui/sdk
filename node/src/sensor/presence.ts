@@ -75,6 +75,7 @@ export const presenceMeta = defineSensor({
     [PresenceProperty.Zone]: { type: 'string', writable: true },
   },
   shortcutable: true,
+  cascadeTrigger: { property: PresenceProperty.Detected, values: [true], sustained: true },
   virtual: { properties: { [PresenceProperty.Detected]: false, [PresenceProperty.Zone]: '' } },
   semantics: {
     domain: SensorDomain.Binary,

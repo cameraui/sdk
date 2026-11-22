@@ -26,6 +26,22 @@ export const EVENT_TRIGGER_TYPES = [
   'garage',
   'glassBreak',
   'access',
+  'presence',
+  'cover',
+  'valve',
+  'fan',
+  'humidifier',
+  'airPurifier',
+  'thermostat',
+  'waterHeater',
+  'vacuum',
+  'lawnMower',
+  'mediaPlayer',
+  'scene',
+  'chime',
+  'button',
+  'battery',
+  'airQuality',
 ] as const satisfies readonly EventTriggerType[];
 
 /** Event trigger (motion, audio, sensor, or line-crossing). */

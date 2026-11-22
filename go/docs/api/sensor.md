@@ -1,6 +1,6 @@
 # Sensors
 
-Detection sensors (motion, object, face, license-plate, audio, classifier, clip) and smart-home sensors (contact, doorbell, lock, garage, light, switch, PTZ, security system, environmental). Plus the sensor-level model specs and shared detection types (`Detection`, `BoundingBox`, `TrackedDetection`).
+Detection sensors (motion, object, face, license-plate, audio, classifier, clip), smart-home sensors and accessories (contact, lock, light, cover, thermostat, media player, environmental readings and the rest) and PTZ. Plus the sensor-level model specs and shared detection types (`Detection`, `BoundingBox`, `TrackedDetection`).
 
 !!! note
     The reference below is auto-generated from Go doc comments via [`gomarkdoc`](https://github.com/princjef/gomarkdoc). Re-run `scripts/gen-api-docs.sh` to refresh it.
@@ -11,6 +11,507 @@ Detection sensors (motion, object, face, license-plate, audio, classifier, clip)
 	func UpdateModelSpec(sensor Sensor)
 
 UpdateModelSpec re\-announces a detector's model spec, e.g. once its models finished loading: what a detector reports at registration is only what it knew then, models loading in the background are missing from it. sensor must be the concrete sensor value.
+
+<a name="AccessAttempt"></a>
+## type AccessAttempt
+
+AccessAttempt holds the details of an access attempt, as the device reports them.
+
+	type AccessAttempt struct {
+	    // Method is how the attempt was made.
+	    Method AccessMethod
+	    // User is who made it, when the device knows.
+	    User string
+	}
+
+<a name="AccessMethod"></a>
+## type AccessMethod
+
+AccessMethod is how an access attempt was made.
+
+	type AccessMethod string
+
+<a name="AccessMethodFingerprint"></a>
+
+	const (
+	    AccessMethodFingerprint AccessMethod = "fingerprint" // Fingerprint
+	    AccessMethodNfc         AccessMethod = "nfc"         // NFC card or tag
+	    AccessMethodPin         AccessMethod = "pin"         // PIN code
+	    AccessMethodFace        AccessMethod = "face"        // Face recognition at the device
+	    AccessMethodApp         AccessMethod = "app"         // App on a phone
+	)
+
+<a name="AccessProperty"></a>
+## type AccessProperty
+
+AccessProperty is a property name of an access reader.
+
+	type AccessProperty = string
+
+<a name="AccessPropertyResult"></a>Property names of an access reader.
+
+	const (
+	    AccessPropertyResult AccessProperty = "result" // Result of the attempt in progress, empty between attempts
+	    AccessPropertyMethod AccessProperty = "method" // How the last attempt was made
+	    AccessPropertyUser   AccessProperty = "user"   // Who made the last attempt, empty when unknown
+	)
+
+<a name="AccessResult"></a>
+## type AccessResult
+
+AccessResult is the result of an access attempt.
+
+	type AccessResult string
+
+<a name="AccessResultGranted"></a>
+
+	const (
+	    AccessResultGranted AccessResult = "granted" // Access was granted
+	    AccessResultDenied  AccessResult = "denied"  // Access was denied
+	)
+
+<a name="AccessTrigger"></a>
+## type AccessTrigger
+
+AccessTrigger is an access reader, such as a fingerprint or NFC reader on a doorbell or a keypad.
+
+Call Report for each attempt: result is set and goes back to empty after accessAutoResetMs, method and user stay until the next attempt.
+
+	type AccessTrigger struct {
+	    BaseSensor
+	    // contains filtered or unexported fields
+	}
+
+<a name="NewAccessTrigger"></a>
+### func NewAccessTrigger
+
+	func NewAccessTrigger(name string, opts ...SensorOption) *AccessTrigger
+
+NewAccessTrigger creates an access reader with the given name and options.
+
+<a name="AccessTrigger.GetCategory"></a>
+### func \(\*AccessTrigger\) GetCategory
+
+	func (s *AccessTrigger) GetCategory() SensorCategory
+
+
+
+<a name="AccessTrigger.GetMethod"></a>
+### func \(\*AccessTrigger\) GetMethod
+
+	func (s *AccessTrigger) GetMethod() AccessMethod
+
+GetMethod returns how the last attempt was made.
+
+<a name="AccessTrigger.GetResult"></a>
+### func \(\*AccessTrigger\) GetResult
+
+	func (s *AccessTrigger) GetResult() AccessResult
+
+GetResult returns the result of the attempt in progress, empty between attempts.
+
+<a name="AccessTrigger.GetType"></a>
+### func \(\*AccessTrigger\) GetType
+
+	func (s *AccessTrigger) GetType() SensorType
+
+
+
+<a name="AccessTrigger.GetUser"></a>
+### func \(\*AccessTrigger\) GetUser
+
+	func (s *AccessTrigger) GetUser() string
+
+GetUser returns who made the last attempt, empty when unknown.
+
+<a name="AccessTrigger.Report"></a>
+### func \(\*AccessTrigger\) Report
+
+	func (s *AccessTrigger) Report(result AccessResult, attempt AccessAttempt)
+
+Report reports an access attempt. An attempt while the last result is still set counts as a new one.
+
+Example:
+
+	reader.Report(sdk.AccessResultGranted, sdk.AccessAttempt{Method: sdk.AccessMethodFingerprint, User: "Anna"})
+	
+
+<a name="AccessTrigger.ToJSON"></a>
+### func \(\*AccessTrigger\) ToJSON
+
+	func (s *AccessTrigger) ToJSON() sensorJSON
+
+
+
+<a name="AccessTrigger.UpdateValue"></a>
+### func \(\*AccessTrigger\) UpdateValue
+
+	func (s *AccessTrigger) UpdateValue(string, any) error
+
+UpdateValue ignores writes, attempts come from the device.
+
+<a name="AirPurifierControl"></a>
+## type AirPurifierControl
+
+AirPurifierControl is an air purifier. Override SetOn, SetOff, SetSpeed, SetAuto, SetPreset and SetChildLock \(by embedding AirPurifierControl in your own type and shadowing the methods\) to drive hardware, then call the embedded AirPurifierControl's methods to sync the SDK state. Report what the purifier does and how its filter is with SetState, SetFilterLife and SetFilterChange.
+
+Each optional part comes with its AirPurifierCapability constant. The presets it offers come as choices: SetPropertySpec\(AirPurifierPropertyPreset, &PropertySpecOverride\{Choices: ...\}\).
+
+	type AirPurifierControl struct{ BaseSensor }
+
+<a name="NewAirPurifierControl"></a>
+### func NewAirPurifierControl
+
+	func NewAirPurifierControl(name string, opts ...SensorOption) *AirPurifierControl
+
+NewAirPurifierControl creates an air purifier with the given name and options.
+
+<a name="AirPurifierControl.GetCategory"></a>
+### func \(\*AirPurifierControl\) GetCategory
+
+	func (s *AirPurifierControl) GetCategory() SensorCategory
+
+
+
+<a name="AirPurifierControl.GetFilterLife"></a>
+### func \(\*AirPurifierControl\) GetFilterLife
+
+	func (s *AirPurifierControl) GetFilterLife() (int, bool)
+
+GetFilterLife returns the filter life left in percent, false before the first report.
+
+<a name="AirPurifierControl.GetPreset"></a>
+### func \(\*AirPurifierControl\) GetPreset
+
+	func (s *AirPurifierControl) GetPreset() string
+
+GetPreset returns the active preset.
+
+<a name="AirPurifierControl.GetSpeed"></a>
+### func \(\*AirPurifierControl\) GetSpeed
+
+	func (s *AirPurifierControl) GetSpeed() int
+
+GetSpeed returns the speed in percent.
+
+<a name="AirPurifierControl.GetState"></a>
+### func \(\*AirPurifierControl\) GetState
+
+	func (s *AirPurifierControl) GetState() AirPurifierState
+
+GetState returns what the purifier does right now, empty before the first report.
+
+<a name="AirPurifierControl.GetType"></a>
+### func \(\*AirPurifierControl\) GetType
+
+	func (s *AirPurifierControl) GetType() SensorType
+
+
+
+<a name="AirPurifierControl.IsAuto"></a>
+### func \(\*AirPurifierControl\) IsAuto
+
+	func (s *AirPurifierControl) IsAuto() bool
+
+IsAuto reports true while the purifier runs in its automatic mode.
+
+<a name="AirPurifierControl.IsChildLocked"></a>
+### func \(\*AirPurifierControl\) IsChildLocked
+
+	func (s *AirPurifierControl) IsChildLocked() bool
+
+IsChildLocked reports true while the buttons on the purifier are locked.
+
+<a name="AirPurifierControl.IsOn"></a>
+### func \(\*AirPurifierControl\) IsOn
+
+	func (s *AirPurifierControl) IsOn() bool
+
+IsOn reports true while the purifier is on.
+
+<a name="AirPurifierControl.NeedsFilterChange"></a>
+### func \(\*AirPurifierControl\) NeedsFilterChange
+
+	func (s *AirPurifierControl) NeedsFilterChange() bool
+
+NeedsFilterChange reports true when the filter needs a change.
+
+<a name="AirPurifierControl.SetAuto"></a>
+### func \(\*AirPurifierControl\) SetAuto
+
+	func (s *AirPurifierControl) SetAuto(auto bool)
+
+SetAuto switches the automatic mode on, or back to a set speed with false.
+
+Example:
+
+	purifier.SetAuto(true)
+	
+
+<a name="AirPurifierControl.SetChildLock"></a>
+### func \(\*AirPurifierControl\) SetChildLock
+
+	func (s *AirPurifierControl) SetChildLock(locked bool)
+
+SetChildLock locks the buttons on the purifier, or unlocks them with false.
+
+Example:
+
+	purifier.SetChildLock(true)
+	
+
+<a name="AirPurifierControl.SetFilterChange"></a>
+### func \(\*AirPurifierControl\) SetFilterChange
+
+	func (s *AirPurifierControl) SetFilterChange(change bool)
+
+SetFilterChange reports whether the filter needs a change.
+
+Example:
+
+	purifier.SetFilterChange(true)
+	
+
+<a name="AirPurifierControl.SetFilterLife"></a>
+### func \(\*AirPurifierControl\) SetFilterLife
+
+	func (s *AirPurifierControl) SetFilterLife(percent float64)
+
+SetFilterLife reports how much filter life is left, 0 to 100 percent.
+
+Example:
+
+	purifier.SetFilterLife(35)
+	
+
+<a name="AirPurifierControl.SetOff"></a>
+### func \(\*AirPurifierControl\) SetOff
+
+	func (s *AirPurifierControl) SetOff()
+
+SetOff turns the purifier off.
+
+Example:
+
+	purifier.SetOff()
+	
+
+<a name="AirPurifierControl.SetOn"></a>
+### func \(\*AirPurifierControl\) SetOn
+
+	func (s *AirPurifierControl) SetOn()
+
+SetOn turns the purifier on.
+
+Example:
+
+	purifier.SetOn()
+	
+
+<a name="AirPurifierControl.SetPreset"></a>
+### func \(\*AirPurifierControl\) SetPreset
+
+	func (s *AirPurifierControl) SetPreset(value string)
+
+SetPreset sets the preset, one of the preset choices.
+
+Example:
+
+	purifier.SetPreset("sleep")
+	
+
+<a name="AirPurifierControl.SetSpeed"></a>
+### func \(\*AirPurifierControl\) SetSpeed
+
+	func (s *AirPurifierControl) SetSpeed(speed int)
+
+SetSpeed sets the speed, 0 to 100 percent.
+
+Example:
+
+	purifier.SetSpeed(60)
+	
+
+<a name="AirPurifierControl.SetState"></a>
+### func \(\*AirPurifierControl\) SetState
+
+	func (s *AirPurifierControl) SetState(value AirPurifierState)
+
+SetState reports what the purifier does right now: inactive, idle or purifying.
+
+Example:
+
+	purifier.SetState(AirPurifierStateIdle)
+	
+
+<a name="AirPurifierControl.ToJSON"></a>
+### func \(\*AirPurifierControl\) ToJSON
+
+	func (s *AirPurifierControl) ToJSON() sensorJSON
+
+
+
+<a name="AirPurifierControl.UpdateValue"></a>
+### func \(\*AirPurifierControl\) UpdateValue
+
+	func (s *AirPurifierControl) UpdateValue(property string, value any) error
+
+UpdateValue routes generic property writes to the semantic setters.
+
+<a name="AirPurifierProperty"></a>
+## type AirPurifierProperty
+
+AirPurifierProperty is a property name of an air purifier.
+
+	type AirPurifierProperty = string
+
+<a name="AirPurifierPropertyOn"></a>Property names of an air purifier.
+
+	const (
+	    AirPurifierPropertyOn           AirPurifierProperty = "on"           // True while the purifier is on, a command when written
+	    AirPurifierPropertyState        AirPurifierProperty = "state"        // What the purifier does right now, an AirPurifierState
+	    AirPurifierPropertySpeed        AirPurifierProperty = "speed"        // Speed in percent
+	    AirPurifierPropertyAuto         AirPurifierProperty = "auto"         // True while the purifier runs in its automatic mode
+	    AirPurifierPropertyPreset       AirPurifierProperty = "preset"       // Active preset, one of the choices the plugin sets
+	    AirPurifierPropertyChildLock    AirPurifierProperty = "childLock"    // True while the buttons on the purifier are locked
+	    AirPurifierPropertyFilterLife   AirPurifierProperty = "filterLife"   // Filter life left in percent
+	    AirPurifierPropertyFilterChange AirPurifierProperty = "filterChange" // True when the filter needs a change
+	)
+
+<a name="AirPurifierState"></a>
+## type AirPurifierState
+
+AirPurifierState is what an air purifier does right now.
+
+	type AirPurifierState = string
+
+<a name="AirPurifierStateInactive"></a>States of an air purifier.
+
+	const (
+	    AirPurifierStateInactive  AirPurifierState = "inactive"
+	    AirPurifierStateIdle      AirPurifierState = "idle"
+	    AirPurifierStatePurifying AirPurifierState = "purifying"
+	)
+
+<a name="AirQualityInfo"></a>
+## type AirQualityInfo
+
+AirQualityInfo reports an overall air quality level and the readings the device has.
+
+Set the capabilities to the readings the device offers. Without a level of its own from the plugin, the level follows the air quality index, else PM2.5.
+
+	type AirQualityInfo struct {
+	    BaseSensor
+	    // contains filtered or unexported fields
+	}
+
+<a name="NewAirQualityInfo"></a>
+### func NewAirQualityInfo
+
+	func NewAirQualityInfo(name string, opts ...SensorOption) *AirQualityInfo
+
+NewAirQualityInfo creates an air quality sensor with the given name and options.
+
+<a name="AirQualityInfo.GetCategory"></a>
+### func \(\*AirQualityInfo\) GetCategory
+
+	func (s *AirQualityInfo) GetCategory() SensorCategory
+
+
+
+<a name="AirQualityInfo.GetLevel"></a>
+### func \(\*AirQualityInfo\) GetLevel
+
+	func (s *AirQualityInfo) GetLevel() AirQualityLevel
+
+GetLevel returns the overall air quality, empty while unknown.
+
+<a name="AirQualityInfo.GetReading"></a>
+### func \(\*AirQualityInfo\) GetReading
+
+	func (s *AirQualityInfo) GetReading(property AirQualityProperty) float64
+
+GetReading returns a reading, 0 when the device has none.
+
+<a name="AirQualityInfo.GetType"></a>
+### func \(\*AirQualityInfo\) GetType
+
+	func (s *AirQualityInfo) GetType() SensorType
+
+
+
+<a name="AirQualityInfo.SetLevel"></a>
+### func \(\*AirQualityInfo\) SetLevel
+
+	func (s *AirQualityInfo) SetLevel(value AirQualityLevel)
+
+SetLevel reports the overall air quality as the device rates it. From then on the level no longer follows the readings.
+
+Example:
+
+	airQuality.SetLevel(sdk.AirQualityLevelGood)
+	
+
+<a name="AirQualityInfo.SetReading"></a>
+### func \(\*AirQualityInfo\) SetReading
+
+	func (s *AirQualityInfo) SetReading(property AirQualityProperty, value float64)
+
+SetReading reports a reading. A value that is not a finite number is ignored, a negative one counts as 0.
+
+Example:
+
+	airQuality.SetReading(sdk.AirQualityPropertyPm25, 12.4)
+	
+
+<a name="AirQualityInfo.ToJSON"></a>
+### func \(\*AirQualityInfo\) ToJSON
+
+	func (s *AirQualityInfo) ToJSON() sensorJSON
+
+
+
+<a name="AirQualityInfo.UpdateValue"></a>
+### func \(\*AirQualityInfo\) UpdateValue
+
+	func (s *AirQualityInfo) UpdateValue(string, any) error
+
+UpdateValue ignores writes, readings come from the device.
+
+<a name="AirQualityLevel"></a>
+## type AirQualityLevel
+
+AirQualityLevel is the overall air quality, from best to worst.
+
+	type AirQualityLevel string
+
+<a name="AirQualityLevelExcellent"></a>
+
+	const (
+	    AirQualityLevelExcellent AirQualityLevel = "excellent" // Clean air
+	    AirQualityLevelGood      AirQualityLevel = "good"      // Good air
+	    AirQualityLevelFair      AirQualityLevel = "fair"      // Acceptable air
+	    AirQualityLevelInferior  AirQualityLevel = "inferior"  // Poor air for sensitive people
+	    AirQualityLevelPoor      AirQualityLevel = "poor"      // Poor air
+	)
+
+<a name="AirQualityProperty"></a>
+## type AirQualityProperty
+
+AirQualityProperty is a property name of an air quality sensor.
+
+	type AirQualityProperty = string
+
+<a name="AirQualityPropertyLevel"></a>Property names of an air quality sensor.
+
+	const (
+	    AirQualityPropertyLevel AirQualityProperty = "level" // Overall air quality, empty while unknown
+	    AirQualityPropertyAqi   AirQualityProperty = "aqi"   // Air quality index
+	    AirQualityPropertyPm25  AirQualityProperty = "pm25"  // Fine particles up to 2.5 μm, in μg/m³
+	    AirQualityPropertyPm10  AirQualityProperty = "pm10"  // Particles up to 10 μm, in μg/m³
+	    AirQualityPropertyVoc   AirQualityProperty = "voc"   // Volatile organic compounds, in μg/m³
+	    AirQualityPropertyNo2   AirQualityProperty = "no2"   // Nitrogen dioxide, in μg/m³
+	)
 
 <a name="AudioDetector"></a>
 ## type AudioDetector
@@ -708,6 +1209,120 @@ BoundingBox is the bounding box of a detection. All coordinates are normalized t
 	    Height float64 `msgpack:"height" json:"height"` // Height as a fraction of frame height (0-1)
 	}
 
+<a name="ButtonConfig"></a>
+## type ButtonConfig
+
+ButtonConfig describes a button at construction.
+
+	type ButtonConfig struct {
+	    // Index is the position of the button on its device, from 1, e.g. for HomeKit's button order.
+	    Index int
+	    // Presses lists the kinds of press the button reports besides a single press.
+	    Presses []ButtonPress
+	}
+
+<a name="ButtonPress"></a>
+## type ButtonPress
+
+ButtonPress is how a button was pressed.
+
+	type ButtonPress string
+
+<a name="ButtonPressSingle"></a>
+
+	const (
+	    ButtonPressSingle ButtonPress = "single" // One short press
+	    ButtonPressDouble ButtonPress = "double" // Two short presses in a row
+	    ButtonPressLong   ButtonPress = "long"   // A press held down
+	)
+
+<a name="ButtonProperty"></a>
+## type ButtonProperty
+
+ButtonProperty is a property name of a button.
+
+	type ButtonProperty = string
+
+<a name="ButtonPropertyPress"></a>Property names of a button.
+
+	const (
+	    ButtonPropertyPress ButtonProperty = "press" // Kind of the press in progress, empty between presses
+	    ButtonPropertyIndex ButtonProperty = "index" // Position of the button on its device, from 1, 0 leaves the order to the creation order
+	)
+
+<a name="ButtonTrigger"></a>
+## type ButtonTrigger
+
+ButtonTrigger is a physical button, such as one on a remote or a wall switch.
+
+Call Press when the device reports a press: press is set to its kind and goes back to empty after pressAutoResetMs. A single press is always offered, double and long presses only when listed in ButtonConfig.Presses.
+
+	type ButtonTrigger struct {
+	    BaseSensor
+	    // contains filtered or unexported fields
+	}
+
+<a name="NewButtonTrigger"></a>
+### func NewButtonTrigger
+
+	func NewButtonTrigger(name string, config ButtonConfig, opts ...SensorOption) *ButtonTrigger
+
+NewButtonTrigger creates a button with the given name, config and options.
+
+<a name="ButtonTrigger.GetCategory"></a>
+### func \(\*ButtonTrigger\) GetCategory
+
+	func (s *ButtonTrigger) GetCategory() SensorCategory
+
+
+
+<a name="ButtonTrigger.GetIndex"></a>
+### func \(\*ButtonTrigger\) GetIndex
+
+	func (s *ButtonTrigger) GetIndex() int
+
+GetIndex returns the position of the button on its device, 0 when not set.
+
+<a name="ButtonTrigger.GetPress"></a>
+### func \(\*ButtonTrigger\) GetPress
+
+	func (s *ButtonTrigger) GetPress() ButtonPress
+
+GetPress returns the kind of the press in progress, empty between presses.
+
+<a name="ButtonTrigger.GetType"></a>
+### func \(\*ButtonTrigger\) GetType
+
+	func (s *ButtonTrigger) GetType() SensorType
+
+
+
+<a name="ButtonTrigger.Press"></a>
+### func \(\*ButtonTrigger\) Press
+
+	func (s *ButtonTrigger) Press(kind ButtonPress) error
+
+Press reports a press. A press while the last one is still set counts as a new one. It fails when the button does not offer this kind of press.
+
+Example:
+
+	err := button.Press(sdk.ButtonPressDouble)
+	
+
+<a name="ButtonTrigger.ToJSON"></a>
+### func \(\*ButtonTrigger\) ToJSON
+
+	func (s *ButtonTrigger) ToJSON() sensorJSON
+
+
+
+<a name="ButtonTrigger.UpdateValue"></a>
+### func \(\*ButtonTrigger\) UpdateValue
+
+	func (s *ButtonTrigger) UpdateValue(string, any) error
+
+UpdateValue ignores writes, presses come from the device.
+
 <a name="CarbonDioxideInfo"></a>
 ## type CarbonDioxideInfo
 
@@ -776,6 +1391,155 @@ ChargingState defines battery charging states.
 	    ChargingStateNotChargeable ChargingState = "NOT_CHARGEABLE" // Device has no rechargeable battery
 	    ChargingStateCharging      ChargingState = "CHARGING"       // Battery is currently charging
 	    ChargingStateFull          ChargingState = "FULL"           // Battery is fully charged
+	)
+
+<a name="ChimeControl"></a>
+## type ChimeControl
+
+ChimeControl is a chime, such as a door chime or a speaker that plays ringtones. Offer the device's tones with SetPropertySpec\(ChimePropertyTone\) and its Choices. Override Play \(by embedding ChimeControl in your own type and shadowing the method\) to drive your hardware, then call the embedded method to sync the SDK state, and call Stop when the device reports the end. Without that the chime counts as done after chimeAutoResetMs.
+
+	type ChimeControl struct {
+	    BaseSensor
+	    // contains filtered or unexported fields
+	}
+
+<a name="NewChimeControl"></a>
+### func NewChimeControl
+
+	func NewChimeControl(name string, opts ...SensorOption) *ChimeControl
+
+NewChimeControl creates a chime with the given name and options.
+
+<a name="ChimeControl.GetCategory"></a>
+### func \(\*ChimeControl\) GetCategory
+
+	func (s *ChimeControl) GetCategory() SensorCategory
+
+
+
+<a name="ChimeControl.GetRepeat"></a>
+### func \(\*ChimeControl\) GetRepeat
+
+	func (s *ChimeControl) GetRepeat() int
+
+GetRepeat returns how often the tone plays.
+
+<a name="ChimeControl.GetTone"></a>
+### func \(\*ChimeControl\) GetTone
+
+	func (s *ChimeControl) GetTone() string
+
+GetTone returns the tone the chime plays.
+
+<a name="ChimeControl.GetType"></a>
+### func \(\*ChimeControl\) GetType
+
+	func (s *ChimeControl) GetType() SensorType
+
+
+
+<a name="ChimeControl.GetVolume"></a>
+### func \(\*ChimeControl\) GetVolume
+
+	func (s *ChimeControl) GetVolume() int
+
+GetVolume returns the volume level \(0\-100\).
+
+<a name="ChimeControl.IsActive"></a>
+### func \(\*ChimeControl\) IsActive
+
+	func (s *ChimeControl) IsActive() bool
+
+IsActive reports whether the chime is playing.
+
+<a name="ChimeControl.Play"></a>
+### func \(\*ChimeControl\) Play
+
+	func (s *ChimeControl) Play()
+
+Play plays the tone.
+
+Example:
+
+	chime.Play()
+	
+
+<a name="ChimeControl.SetRepeat"></a>
+### func \(\*ChimeControl\) SetRepeat
+
+	func (s *ChimeControl) SetRepeat(value int)
+
+SetRepeat sets how often the tone plays \(clamped to \[1,10\]\).
+
+Example:
+
+	chime.SetRepeat(2)
+	
+
+<a name="ChimeControl.SetTone"></a>
+### func \(\*ChimeControl\) SetTone
+
+	func (s *ChimeControl) SetTone(value string)
+
+SetTone chooses the tone, one of the tones offered as choices.
+
+Example:
+
+	chime.SetTone("ding-dong")
+	
+
+<a name="ChimeControl.SetVolume"></a>
+### func \(\*ChimeControl\) SetVolume
+
+	func (s *ChimeControl) SetVolume(value int)
+
+SetVolume sets the chime volume \(clamped to \[0,100\]\).
+
+Example:
+
+	chime.SetVolume(60)
+	
+
+<a name="ChimeControl.Stop"></a>
+### func \(\*ChimeControl\) Stop
+
+	func (s *ChimeControl) Stop()
+
+Stop stops playing, call it too when the device reports the end.
+
+Example:
+
+	chime.Stop()
+	
+
+<a name="ChimeControl.ToJSON"></a>
+### func \(\*ChimeControl\) ToJSON
+
+	func (s *ChimeControl) ToJSON() sensorJSON
+
+
+
+<a name="ChimeControl.UpdateValue"></a>
+### func \(\*ChimeControl\) UpdateValue
+
+	func (s *ChimeControl) UpdateValue(property string, value any) error
+
+UpdateValue routes generic property writes to the semantic setters.
+
+<a name="ChimeProperty"></a>
+## type ChimeProperty
+
+ChimeProperty is a property name of a chime.
+
+	type ChimeProperty = string
+
+<a name="ChimePropertyActive"></a>Property names of a chime.
+
+	const (
+	    ChimePropertyActive ChimeProperty = "active" // Whether the chime is playing
+	    ChimePropertyTone   ChimeProperty = "tone"   // Tone the chime plays, one of the tones the device offers
+	    ChimePropertyVolume ChimeProperty = "volume" // Volume level (0-100)
+	    ChimePropertyRepeat ChimeProperty = "repeat" // How often the tone plays (1-10)
 	)
 
 <a name="ClassifierDetection"></a>
@@ -1043,6 +1807,35 @@ ColdSensor reports abnormal cold detection state.
 
 NewColdSensor creates a cold sensor with the given name and options.
 
+<a name="CommandControl"></a>
+## type CommandControl
+
+CommandControl is the base of the controls that take one\-off commands, such as a vacuum or a media player. A command reads in command for a moment \(commandAutoResetMs\) and then empty again, so the history records each one and the next arrives the same way. The concrete control types embed it.
+
+	type CommandControl struct {
+	    BaseSensor
+	    // contains filtered or unexported fields
+	}
+
+<a name="CommandControl.GetCategory"></a>
+### func \(\*CommandControl\) GetCategory
+
+	func (s *CommandControl) GetCategory() SensorCategory
+
+
+
+<a name="CommandControl.GetType"></a>
+### func \(\*CommandControl\) GetType
+
+	func (s *CommandControl) GetType() SensorType
+
+
+
+<a name="CommandControl.ToJSON"></a>
+### func \(\*CommandControl\) ToJSON
+
+	func (s *CommandControl) ToJSON() sensorJSON
+
 <a name="ContactProperty"></a>
 ## type ContactProperty
 
@@ -1069,6 +1862,272 @@ ContactSensor reports door/window open\-close state.
 	func NewContactSensor(name string, opts ...SensorOption) *ContactSensor
 
 NewContactSensor creates a contact sensor with the given name and options.
+
+<a name="CoverControl"></a>
+## type CoverControl
+
+CoverControl is a blind, shutter, awning, curtain or other cover. Override SetTargetState, SetTargetPosition and SetTargetTilt \(by embedding CoverControl in your own type and shadowing the methods\) to drive hardware, then call the embedded CoverControl's methods to sync the SDK state. Report what the hardware does with SetCurrentState, SetCurrentPosition and SetCurrentTilt.
+
+A cover that moves to positions adds CoverCapabilityPosition, one with slats CoverCapabilityTilt, one that stops on command CoverCapabilityStop and shadows Stop. SetKind says what the cover is.
+
+	type CoverControl struct{ BaseSensor }
+
+<a name="NewCoverControl"></a>
+### func NewCoverControl
+
+	func NewCoverControl(name string, opts ...SensorOption) *CoverControl
+
+NewCoverControl creates a cover with the given name and options.
+
+<a name="CoverControl.GetCategory"></a>
+### func \(\*CoverControl\) GetCategory
+
+	func (s *CoverControl) GetCategory() SensorCategory
+
+
+
+<a name="CoverControl.GetCurrentPosition"></a>
+### func \(\*CoverControl\) GetCurrentPosition
+
+	func (s *CoverControl) GetCurrentPosition() int
+
+GetCurrentPosition returns the current position, 0 \(closed\) to 100 \(open\).
+
+<a name="CoverControl.GetCurrentState"></a>
+### func \(\*CoverControl\) GetCurrentState
+
+	func (s *CoverControl) GetCurrentState() CoverState
+
+GetCurrentState returns the current state.
+
+<a name="CoverControl.GetCurrentTilt"></a>
+### func \(\*CoverControl\) GetCurrentTilt
+
+	func (s *CoverControl) GetCurrentTilt() int
+
+GetCurrentTilt returns the current tilt of the slats, 0 \(closed\) to 100 \(open\).
+
+<a name="CoverControl.GetKind"></a>
+### func \(\*CoverControl\) GetKind
+
+	func (s *CoverControl) GetKind() CoverKind
+
+GetKind returns what the cover is, empty when the plugin did not say.
+
+<a name="CoverControl.GetTargetPosition"></a>
+### func \(\*CoverControl\) GetTargetPosition
+
+	func (s *CoverControl) GetTargetPosition() int
+
+GetTargetPosition returns the target position, 0 \(closed\) to 100 \(open\).
+
+<a name="CoverControl.GetTargetState"></a>
+### func \(\*CoverControl\) GetTargetState
+
+	func (s *CoverControl) GetTargetState() CoverState
+
+GetTargetState returns the target state.
+
+<a name="CoverControl.GetTargetTilt"></a>
+### func \(\*CoverControl\) GetTargetTilt
+
+	func (s *CoverControl) GetTargetTilt() int
+
+GetTargetTilt returns the target tilt of the slats, 0 \(closed\) to 100 \(open\).
+
+<a name="CoverControl.GetType"></a>
+### func \(\*CoverControl\) GetType
+
+	func (s *CoverControl) GetType() SensorType
+
+
+
+<a name="CoverControl.IsObstructionDetected"></a>
+### func \(\*CoverControl\) IsObstructionDetected
+
+	func (s *CoverControl) IsObstructionDetected() bool
+
+IsObstructionDetected reports whether something blocks the cover.
+
+<a name="CoverControl.SetCurrentPosition"></a>
+### func \(\*CoverControl\) SetCurrentPosition
+
+	func (s *CoverControl) SetCurrentPosition(position int)
+
+SetCurrentPosition reports the position of the cover, 0 \(closed\) to 100 \(open\).
+
+Example:
+
+	cover.SetCurrentPosition(30)
+	
+
+<a name="CoverControl.SetCurrentState"></a>
+### func \(\*CoverControl\) SetCurrentState
+
+	func (s *CoverControl) SetCurrentState(value CoverState)
+
+SetCurrentState reports the state of the cover.
+
+Example:
+
+	cover.SetCurrentState(CoverStateOpening)
+	
+
+<a name="CoverControl.SetCurrentTilt"></a>
+### func \(\*CoverControl\) SetCurrentTilt
+
+	func (s *CoverControl) SetCurrentTilt(tilt int)
+
+SetCurrentTilt reports the tilt of the slats, 0 \(closed\) to 100 \(open\).
+
+Example:
+
+	cover.SetCurrentTilt(40)
+	
+
+<a name="CoverControl.SetKind"></a>
+### func \(\*CoverControl\) SetKind
+
+	func (s *CoverControl) SetKind(kind CoverKind)
+
+SetKind says what the cover is. Smart homes show it by its kind, a window or a door for example, and Home Assistant takes it as the device class.
+
+Example:
+
+	cover.SetKind(CoverKindShutter)
+	
+
+<a name="CoverControl.SetObstructionDetected"></a>
+### func \(\*CoverControl\) SetObstructionDetected
+
+	func (s *CoverControl) SetObstructionDetected(detected bool)
+
+SetObstructionDetected reports whether something blocks the cover.
+
+Example:
+
+	cover.SetObstructionDetected(true)
+	
+
+<a name="CoverControl.SetTargetPosition"></a>
+### func \(\*CoverControl\) SetTargetPosition
+
+	func (s *CoverControl) SetTargetPosition(position int)
+
+SetTargetPosition moves the cover to a position, 0 \(closed\) to 100 \(open\). Writes both targetPosition and currentPosition.
+
+Example:
+
+	cover.SetTargetPosition(50)
+	
+
+<a name="CoverControl.SetTargetState"></a>
+### func \(\*CoverControl\) SetTargetState
+
+	func (s *CoverControl) SetTargetState(value CoverState)
+
+SetTargetState opens or closes the cover. Writes both targetState and currentState.
+
+Example:
+
+	cover.SetTargetState(CoverStateOpen)
+	
+
+<a name="CoverControl.SetTargetTilt"></a>
+### func \(\*CoverControl\) SetTargetTilt
+
+	func (s *CoverControl) SetTargetTilt(tilt int)
+
+SetTargetTilt tilts the slats, 0 \(closed\) to 100 \(open\). Writes both targetTilt and currentTilt.
+
+Example:
+
+	cover.SetTargetTilt(100)
+	
+
+<a name="CoverControl.Stop"></a>
+### func \(\*CoverControl\) Stop
+
+	func (s *CoverControl) Stop()
+
+Stop stops the cover and reports it as stopped. The stop property is a command and stays false.
+
+Example:
+
+	cover.Stop()
+	
+
+<a name="CoverControl.ToJSON"></a>
+### func \(\*CoverControl\) ToJSON
+
+	func (s *CoverControl) ToJSON() sensorJSON
+
+
+
+<a name="CoverControl.UpdateValue"></a>
+### func \(\*CoverControl\) UpdateValue
+
+	func (s *CoverControl) UpdateValue(property string, value any) error
+
+UpdateValue routes generic property writes to the semantic setters.
+
+<a name="CoverKind"></a>
+## type CoverKind
+
+CoverKind says what a cover is, it decides how smart homes show it.
+
+	type CoverKind = string
+
+<a name="CoverKindAwning"></a>Kinds of a cover.
+
+	const (
+	    CoverKindAwning  CoverKind = "awning"
+	    CoverKindBlind   CoverKind = "blind"
+	    CoverKindCurtain CoverKind = "curtain"
+	    CoverKindDamper  CoverKind = "damper"
+	    CoverKindDoor    CoverKind = "door"
+	    CoverKindShade   CoverKind = "shade"
+	    CoverKindShutter CoverKind = "shutter"
+	    CoverKindWindow  CoverKind = "window"
+	)
+
+<a name="CoverProperty"></a>
+## type CoverProperty
+
+CoverProperty is a property name of a cover.
+
+	type CoverProperty = string
+
+<a name="CoverPropertyCurrentState"></a>Property names of a cover.
+
+	const (
+	    CoverPropertyCurrentState        CoverProperty = "currentState"        // Current state, a CoverState
+	    CoverPropertyTargetState         CoverProperty = "targetState"         // Target state, Open or Closed
+	    CoverPropertyCurrentPosition     CoverProperty = "currentPosition"     // Current position, 0 (closed) to 100 (open)
+	    CoverPropertyTargetPosition      CoverProperty = "targetPosition"      // Target position, 0 (closed) to 100 (open)
+	    CoverPropertyCurrentTilt         CoverProperty = "currentTilt"         // Current tilt of the slats, 0 (closed) to 100 (open)
+	    CoverPropertyTargetTilt          CoverProperty = "targetTilt"          // Target tilt of the slats, 0 (closed) to 100 (open)
+	    CoverPropertyStop                CoverProperty = "stop"                // Command that stops the cover, it reads false again once handled
+	    CoverPropertyObstructionDetected CoverProperty = "obstructionDetected" // Whether something blocks the cover
+	    CoverPropertyKind                CoverProperty = "kind"                // What the cover is, a CoverKind
+	)
+
+<a name="CoverState"></a>
+## type CoverState
+
+CoverState is the state of a cover. A target takes Open and Closed.
+
+	type CoverState int
+
+<a name="CoverStateOpen"></a>
+
+	const (
+	    CoverStateOpen    CoverState = 0
+	    CoverStateClosed  CoverState = 1
+	    CoverStateOpening CoverState = 2
+	    CoverStateClosing CoverState = 3
+	    CoverStateStopped CoverState = 4
+	)
 
 <a name="Detection"></a>
 ## type Detection
@@ -1116,6 +2175,120 @@ DeviceInfo is the physical device a sensor belongs to, as the plugin reports it.
 	    // SerialNumber is the serial number (optional).
 	    SerialNumber string `msgpack:"serialNumber,omitempty" json:"serialNumber,omitempty"`
 	}
+
+<a name="DisplayControl"></a>
+## type DisplayControl
+
+DisplayControl is a text display on a device, such as the screen of a doorbell. Set the longest text with SetPropertySpec\(DisplayPropertyMessage\) and its MaxLength, the presets with SetPropertySpec\(DisplayPropertyPreset\) and its Choices. Override SetMessage and SetPreset \(by embedding DisplayControl in your own type and shadowing the methods\) to drive your hardware, then call the embedded methods to sync the SDK state.
+
+	type DisplayControl struct{ BaseSensor }
+
+<a name="NewDisplayControl"></a>
+### func NewDisplayControl
+
+	func NewDisplayControl(name string, opts ...SensorOption) *DisplayControl
+
+NewDisplayControl creates a display with the given name and options.
+
+<a name="DisplayControl.GetCategory"></a>
+### func \(\*DisplayControl\) GetCategory
+
+	func (s *DisplayControl) GetCategory() SensorCategory
+
+
+
+<a name="DisplayControl.GetDuration"></a>
+### func \(\*DisplayControl\) GetDuration
+
+	func (s *DisplayControl) GetDuration() int
+
+GetDuration returns the seconds a new message stays on the display, 0 until it is cleared.
+
+<a name="DisplayControl.GetMessage"></a>
+### func \(\*DisplayControl\) GetMessage
+
+	func (s *DisplayControl) GetMessage() string
+
+GetMessage returns the text on the display, empty when none is shown.
+
+<a name="DisplayControl.GetPreset"></a>
+### func \(\*DisplayControl\) GetPreset
+
+	func (s *DisplayControl) GetPreset() string
+
+GetPreset returns the preset message on the display, empty when none is shown.
+
+<a name="DisplayControl.GetType"></a>
+### func \(\*DisplayControl\) GetType
+
+	func (s *DisplayControl) GetType() SensorType
+
+
+
+<a name="DisplayControl.SetDuration"></a>
+### func \(\*DisplayControl\) SetDuration
+
+	func (s *DisplayControl) SetDuration(value int)
+
+SetDuration sets how long a new message stays on the display, 0 keeps it until it is cleared.
+
+Example:
+
+	display.SetDuration(60)
+	
+
+<a name="DisplayControl.SetMessage"></a>
+### func \(\*DisplayControl\) SetMessage
+
+	func (s *DisplayControl) SetMessage(value string)
+
+SetMessage shows a text, an empty one clears the display.
+
+Example:
+
+	display.SetMessage("Back in 5 minutes")
+	
+
+<a name="DisplayControl.SetPreset"></a>
+### func \(\*DisplayControl\) SetPreset
+
+	func (s *DisplayControl) SetPreset(value string)
+
+SetPreset shows a preset message, an empty one clears the display.
+
+Example:
+
+	display.SetPreset("LEAVE_PACKAGE_AT_DOOR")
+	
+
+<a name="DisplayControl.ToJSON"></a>
+### func \(\*DisplayControl\) ToJSON
+
+	func (s *DisplayControl) ToJSON() sensorJSON
+
+
+
+<a name="DisplayControl.UpdateValue"></a>
+### func \(\*DisplayControl\) UpdateValue
+
+	func (s *DisplayControl) UpdateValue(property string, value any) error
+
+UpdateValue routes generic property writes to the semantic setters.
+
+<a name="DisplayProperty"></a>
+## type DisplayProperty
+
+DisplayProperty is a property name of a display.
+
+	type DisplayProperty = string
+
+<a name="DisplayPropertyMessage"></a>Property names of a display.
+
+	const (
+	    DisplayPropertyMessage  DisplayProperty = "message"  // Text on the display, empty when none is shown
+	    DisplayPropertyPreset   DisplayProperty = "preset"   // Preset message on the display, empty when none is shown
+	    DisplayPropertyDuration DisplayProperty = "duration" // Seconds a new message stays on the display, 0 until it is cleared
+	)
 
 <a name="DoorbellProperty"></a>
 ## type DoorbellProperty
@@ -1425,6 +2598,188 @@ Example:
 
 UpdateValue on a read\-only sensor: external writes are ignored.
 
+<a name="FanControl"></a>
+## type FanControl
+
+FanControl is a ceiling, desk or other fan. Override SetOn, SetOff, SetSpeed and the other commands \(by embedding FanControl in your own type and shadowing the methods\) to drive hardware, then call the embedded FanControl's methods to sync the SDK state.
+
+A fan with speeds adds FanCapabilitySpeed, one that turns both ways FanCapabilityDirection, one that swings FanCapabilityOscillation. Presets are the device's own, add FanCapabilityPreset and set them as Choices. A fan with a few fixed speeds sets the speed's Step, three speeds are a step of 33.
+
+	type FanControl struct{ BaseSensor }
+
+<a name="NewFanControl"></a>
+### func NewFanControl
+
+	func NewFanControl(name string, opts ...SensorOption) *FanControl
+
+NewFanControl creates a fan with the given name and options.
+
+<a name="FanControl.GetCategory"></a>
+### func \(\*FanControl\) GetCategory
+
+	func (s *FanControl) GetCategory() SensorCategory
+
+
+
+<a name="FanControl.GetDirection"></a>
+### func \(\*FanControl\) GetDirection
+
+	func (s *FanControl) GetDirection() FanDirection
+
+GetDirection returns the direction the fan turns.
+
+<a name="FanControl.GetPreset"></a>
+### func \(\*FanControl\) GetPreset
+
+	func (s *FanControl) GetPreset() string
+
+GetPreset returns the active preset.
+
+<a name="FanControl.GetSpeed"></a>
+### func \(\*FanControl\) GetSpeed
+
+	func (s *FanControl) GetSpeed() int
+
+GetSpeed returns the speed, 0 to 100 percent.
+
+<a name="FanControl.GetType"></a>
+### func \(\*FanControl\) GetType
+
+	func (s *FanControl) GetType() SensorType
+
+
+
+<a name="FanControl.IsOn"></a>
+### func \(\*FanControl\) IsOn
+
+	func (s *FanControl) IsOn() bool
+
+IsOn reports whether the fan runs.
+
+<a name="FanControl.IsOscillating"></a>
+### func \(\*FanControl\) IsOscillating
+
+	func (s *FanControl) IsOscillating() bool
+
+IsOscillating reports whether the fan swings from side to side.
+
+<a name="FanControl.SetDirection"></a>
+### func \(\*FanControl\) SetDirection
+
+	func (s *FanControl) SetDirection(direction FanDirection)
+
+SetDirection sets the direction, forward or reverse.
+
+Example:
+
+	fan.SetDirection(FanDirectionReverse)
+	
+
+<a name="FanControl.SetOff"></a>
+### func \(\*FanControl\) SetOff
+
+	func (s *FanControl) SetOff()
+
+SetOff turns the fan off.
+
+Example:
+
+	fan.SetOff()
+	
+
+<a name="FanControl.SetOn"></a>
+### func \(\*FanControl\) SetOn
+
+	func (s *FanControl) SetOn()
+
+SetOn turns the fan on.
+
+Example:
+
+	fan.SetOn()
+	
+
+<a name="FanControl.SetOscillating"></a>
+### func \(\*FanControl\) SetOscillating
+
+	func (s *FanControl) SetOscillating(value bool)
+
+SetOscillating lets the fan swing, or stops it with false.
+
+Example:
+
+	fan.SetOscillating(true)
+	
+
+<a name="FanControl.SetPreset"></a>
+### func \(\*FanControl\) SetPreset
+
+	func (s *FanControl) SetPreset(value string)
+
+SetPreset sets the preset, one of the preset choices.
+
+Example:
+
+	fan.SetPreset("sleep")
+	
+
+<a name="FanControl.SetSpeed"></a>
+### func \(\*FanControl\) SetSpeed
+
+	func (s *FanControl) SetSpeed(speed int)
+
+SetSpeed sets the speed, 0 to 100 percent.
+
+Example:
+
+	fan.SetSpeed(66)
+	
+
+<a name="FanControl.ToJSON"></a>
+### func \(\*FanControl\) ToJSON
+
+	func (s *FanControl) ToJSON() sensorJSON
+
+
+
+<a name="FanControl.UpdateValue"></a>
+### func \(\*FanControl\) UpdateValue
+
+	func (s *FanControl) UpdateValue(property string, value any) error
+
+UpdateValue routes generic property writes to the semantic setters.
+
+<a name="FanDirection"></a>
+## type FanDirection
+
+FanDirection is the direction a fan turns.
+
+	type FanDirection = string
+
+<a name="FanDirectionForward"></a>Directions of a fan.
+
+	const (
+	    FanDirectionForward FanDirection = "forward"
+	    FanDirectionReverse FanDirection = "reverse"
+	)
+
+<a name="FanProperty"></a>
+## type FanProperty
+
+FanProperty is a property name of a fan.
+
+	type FanProperty = string
+
+<a name="FanPropertyOn"></a>Property names of a fan.
+
+	const (
+	    FanPropertyOn          FanProperty = "on"          // Whether the fan runs
+	    FanPropertySpeed       FanProperty = "speed"       // Speed, 0 to 100 percent
+	    FanPropertyDirection   FanProperty = "direction"   // Direction, a FanDirection
+	    FanPropertyOscillating FanProperty = "oscillating" // Whether the fan swings from side to side
+	    FanPropertyPreset      FanProperty = "preset"      // Active preset, one of the choices the device offers
+	)
+
 <a name="GarageControl"></a>
 ## type GarageControl
 
@@ -1585,6 +2940,33 @@ GasSensor reports gas detection state.
 
 NewGasSensor creates a gas sensor with the given name and options.
 
+<a name="GlassBreakProperty"></a>
+## type GlassBreakProperty
+
+GlassBreakProperty is a property name of a glass break sensor.
+
+	type GlassBreakProperty = string
+
+<a name="GlassBreakPropertyDetected"></a>Property names of a glass break sensor.
+
+	const (
+	    GlassBreakPropertyDetected GlassBreakProperty = "detected" // Whether breaking glass is detected
+	)
+
+<a name="GlassBreakSensor"></a>
+## type GlassBreakSensor
+
+GlassBreakSensor reports glass break detection state.
+
+	type GlassBreakSensor struct{ BinarySensor }
+
+<a name="NewGlassBreakSensor"></a>
+### func NewGlassBreakSensor
+
+	func NewGlassBreakSensor(name string, opts ...SensorOption) *GlassBreakSensor
+
+NewGlassBreakSensor creates a glass break sensor with the given name and options.
+
 <a name="HeatProperty"></a>
 ## type HeatProperty
 
@@ -1611,6 +2993,224 @@ HeatSensor reports abnormal heat detection state.
 	func NewHeatSensor(name string, opts ...SensorOption) *HeatSensor
 
 NewHeatSensor creates a heat sensor with the given name and options.
+
+<a name="HumidifierAction"></a>
+## type HumidifierAction
+
+HumidifierAction is what a humidifier does right now.
+
+	type HumidifierAction = string
+
+<a name="HumidifierActionOff"></a>Actions of a humidifier.
+
+	const (
+	    HumidifierActionOff         HumidifierAction = "off"
+	    HumidifierActionIdle        HumidifierAction = "idle"
+	    HumidifierActionHumidifying HumidifierAction = "humidifying"
+	    HumidifierActionDrying      HumidifierAction = "drying"
+	)
+
+<a name="HumidifierControl"></a>
+## type HumidifierControl
+
+HumidifierControl is a humidifier or dehumidifier that works toward a target humidity. Override SetOn, SetOff, SetTargetHumidity and SetMode \(by embedding HumidifierControl in your own type and shadowing the methods\) to drive hardware, then call the embedded HumidifierControl's methods to sync the SDK state. Report what the device measures and does with SetCurrentHumidity and SetAction.
+
+SetKind says whether it humidifies or dehumidifies. The modes it offers come as choices: SetPropertySpec\(HumidifierPropertyMode, &PropertySpecOverride\{Choices: ...\}\).
+
+	type HumidifierControl struct{ BaseSensor }
+
+<a name="NewHumidifierControl"></a>
+### func NewHumidifierControl
+
+	func NewHumidifierControl(name string, opts ...SensorOption) *HumidifierControl
+
+NewHumidifierControl creates a humidifier with the given name and options.
+
+<a name="HumidifierControl.GetAction"></a>
+### func \(\*HumidifierControl\) GetAction
+
+	func (s *HumidifierControl) GetAction() HumidifierAction
+
+GetAction returns what the humidifier does right now, empty before the first report.
+
+<a name="HumidifierControl.GetCategory"></a>
+### func \(\*HumidifierControl\) GetCategory
+
+	func (s *HumidifierControl) GetCategory() SensorCategory
+
+
+
+<a name="HumidifierControl.GetCurrentHumidity"></a>
+### func \(\*HumidifierControl\) GetCurrentHumidity
+
+	func (s *HumidifierControl) GetCurrentHumidity() (float64, bool)
+
+GetCurrentHumidity returns the measured humidity in percent, false before the first reading.
+
+<a name="HumidifierControl.GetKind"></a>
+### func \(\*HumidifierControl\) GetKind
+
+	func (s *HumidifierControl) GetKind() HumidifierKind
+
+GetKind returns whether it humidifies or dehumidifies, empty when the plugin did not say.
+
+<a name="HumidifierControl.GetMode"></a>
+### func \(\*HumidifierControl\) GetMode
+
+	func (s *HumidifierControl) GetMode() string
+
+GetMode returns the active mode.
+
+<a name="HumidifierControl.GetTargetHumidity"></a>
+### func \(\*HumidifierControl\) GetTargetHumidity
+
+	func (s *HumidifierControl) GetTargetHumidity() int
+
+GetTargetHumidity returns the target humidity in percent.
+
+<a name="HumidifierControl.GetType"></a>
+### func \(\*HumidifierControl\) GetType
+
+	func (s *HumidifierControl) GetType() SensorType
+
+
+
+<a name="HumidifierControl.IsOn"></a>
+### func \(\*HumidifierControl\) IsOn
+
+	func (s *HumidifierControl) IsOn() bool
+
+IsOn reports true while the humidifier is on.
+
+<a name="HumidifierControl.SetAction"></a>
+### func \(\*HumidifierControl\) SetAction
+
+	func (s *HumidifierControl) SetAction(value HumidifierAction)
+
+SetAction reports what the humidifier does right now: off, idle, humidifying or drying.
+
+Example:
+
+	humidifier.SetAction(HumidifierActionHumidifying)
+	
+
+<a name="HumidifierControl.SetCurrentHumidity"></a>
+### func \(\*HumidifierControl\) SetCurrentHumidity
+
+	func (s *HumidifierControl) SetCurrentHumidity(value float64)
+
+SetCurrentHumidity reports the humidity the device measures, 0 to 100 percent.
+
+Example:
+
+	humidifier.SetCurrentHumidity(38)
+	
+
+<a name="HumidifierControl.SetKind"></a>
+### func \(\*HumidifierControl\) SetKind
+
+	func (s *HumidifierControl) SetKind(kind HumidifierKind)
+
+SetKind says whether the device humidifies or dehumidifies. Smart homes show it by its kind, and Home Assistant takes it as the device class.
+
+Example:
+
+	humidifier.SetKind(HumidifierKindDehumidifier)
+	
+
+<a name="HumidifierControl.SetMode"></a>
+### func \(\*HumidifierControl\) SetMode
+
+	func (s *HumidifierControl) SetMode(value string)
+
+SetMode sets the mode, one of the mode choices.
+
+Example:
+
+	humidifier.SetMode("sleep")
+	
+
+<a name="HumidifierControl.SetOff"></a>
+### func \(\*HumidifierControl\) SetOff
+
+	func (s *HumidifierControl) SetOff()
+
+SetOff turns the humidifier off.
+
+Example:
+
+	humidifier.SetOff()
+	
+
+<a name="HumidifierControl.SetOn"></a>
+### func \(\*HumidifierControl\) SetOn
+
+	func (s *HumidifierControl) SetOn()
+
+SetOn turns the humidifier on.
+
+Example:
+
+	humidifier.SetOn()
+	
+
+<a name="HumidifierControl.SetTargetHumidity"></a>
+### func \(\*HumidifierControl\) SetTargetHumidity
+
+	func (s *HumidifierControl) SetTargetHumidity(value int)
+
+SetTargetHumidity sets the target humidity, 0 to 100 percent.
+
+Example:
+
+	humidifier.SetTargetHumidity(45)
+	
+
+<a name="HumidifierControl.ToJSON"></a>
+### func \(\*HumidifierControl\) ToJSON
+
+	func (s *HumidifierControl) ToJSON() sensorJSON
+
+
+
+<a name="HumidifierControl.UpdateValue"></a>
+### func \(\*HumidifierControl\) UpdateValue
+
+	func (s *HumidifierControl) UpdateValue(property string, value any) error
+
+UpdateValue routes generic property writes to the semantic setters.
+
+<a name="HumidifierKind"></a>
+## type HumidifierKind
+
+HumidifierKind says whether the device adds or removes moisture, it decides how smart homes show it.
+
+	type HumidifierKind = string
+
+<a name="HumidifierKindHumidifier"></a>Kinds of a humidifier.
+
+	const (
+	    HumidifierKindHumidifier   HumidifierKind = "humidifier"
+	    HumidifierKindDehumidifier HumidifierKind = "dehumidifier"
+	)
+
+<a name="HumidifierProperty"></a>
+## type HumidifierProperty
+
+HumidifierProperty is a property name of a humidifier.
+
+	type HumidifierProperty = string
+
+<a name="HumidifierPropertyOn"></a>Property names of a humidifier.
+
+	const (
+	    HumidifierPropertyOn              HumidifierProperty = "on"              // True while the humidifier is on, a command when written
+	    HumidifierPropertyTargetHumidity  HumidifierProperty = "targetHumidity"  // Target humidity in percent
+	    HumidifierPropertyCurrentHumidity HumidifierProperty = "currentHumidity" // Measured humidity in percent
+	    HumidifierPropertyAction          HumidifierProperty = "action"          // What the humidifier does right now, a HumidifierAction
+	    HumidifierPropertyMode            HumidifierProperty = "mode"            // Active mode, one of the choices the plugin sets
+	    HumidifierPropertyKind            HumidifierProperty = "kind"            // Whether it humidifies or dehumidifies, a HumidifierKind
+	)
 
 <a name="HumidityInfo"></a>
 ## type HumidityInfo
@@ -1664,6 +3264,111 @@ IlluminanceProperty is a property name of an illuminance sensor.
 
 	const (
 	    IlluminancePropertyCurrent IlluminanceProperty = "current" // Current illuminance in lux
+	)
+
+<a name="LawnMowerActivity"></a>
+## type LawnMowerActivity
+
+LawnMowerActivity is what a lawn mower does right now.
+
+	type LawnMowerActivity = string
+
+<a name="LawnMowerActivityMowing"></a>Activities of a lawn mower.
+
+	const (
+	    LawnMowerActivityMowing    LawnMowerActivity = "mowing"
+	    LawnMowerActivityDocked    LawnMowerActivity = "docked"
+	    LawnMowerActivityPaused    LawnMowerActivity = "paused"
+	    LawnMowerActivityReturning LawnMowerActivity = "returning"
+	    LawnMowerActivityError     LawnMowerActivity = "error"
+	)
+
+<a name="LawnMowerCommand"></a>
+## type LawnMowerCommand
+
+LawnMowerCommand is a command a lawn mower takes.
+
+	type LawnMowerCommand = string
+
+<a name="LawnMowerCommandStart"></a>Commands a lawn mower takes.
+
+	const (
+	    LawnMowerCommandStart LawnMowerCommand = "start"
+	    LawnMowerCommandPause LawnMowerCommand = "pause"
+	    LawnMowerCommandDock  LawnMowerCommand = "dock"
+	)
+
+<a name="LawnMowerControl"></a>
+## type LawnMowerControl
+
+LawnMowerControl is a robot lawn mower. Override Start, Pause and Dock \(by embedding LawnMowerControl in your own type and shadowing the methods\) to drive hardware, then call the embedded LawnMowerControl's methods after success. Report what the mower does with SetActivity.
+
+Narrow the commands to those the mower takes with SetPropertySpec\(LawnMowerPropertyCommand, &PropertySpecOverride\{Values: ...\}\).
+
+	type LawnMowerControl struct{ RobotControl }
+
+<a name="NewLawnMowerControl"></a>
+### func NewLawnMowerControl
+
+	func NewLawnMowerControl(name string, opts ...SensorOption) *LawnMowerControl
+
+NewLawnMowerControl creates a lawn mower with the given name and options.
+
+<a name="LawnMowerControl.Dock"></a>
+### func \(\*LawnMowerControl\) Dock
+
+	func (s *LawnMowerControl) Dock()
+
+Dock stops mowing and sends the mower back to its dock.
+
+Example:
+
+	mower.Dock()
+	
+
+<a name="LawnMowerControl.Pause"></a>
+### func \(\*LawnMowerControl\) Pause
+
+	func (s *LawnMowerControl) Pause()
+
+Pause pauses mowing where the mower is.
+
+Example:
+
+	mower.Pause()
+	
+
+<a name="LawnMowerControl.Start"></a>
+### func \(\*LawnMowerControl\) Start
+
+	func (s *LawnMowerControl) Start()
+
+Start starts or resumes mowing.
+
+Example:
+
+	mower.Start()
+	
+
+<a name="LawnMowerControl.UpdateValue"></a>
+### func \(\*LawnMowerControl\) UpdateValue
+
+	func (s *LawnMowerControl) UpdateValue(property string, value any) error
+
+UpdateValue routes generic property writes to the semantic setters.
+
+<a name="LawnMowerProperty"></a>
+## type LawnMowerProperty
+
+LawnMowerProperty is a property name of a lawn mower.
+
+	type LawnMowerProperty = string
+
+<a name="LawnMowerPropertyActivity"></a>Property names of a lawn mower.
+
+	const (
+	    LawnMowerPropertyActivity LawnMowerProperty = "activity" // What the mower does right now, a LawnMowerActivity
+	    LawnMowerPropertyCommand  LawnMowerProperty = "command"  // One-off LawnMowerCommand when written, empty again right after
 	)
 
 <a name="LeakProperty"></a>
@@ -1852,6 +3557,32 @@ Example:
 
 UpdateValue on a read\-only sensor: external writes are ignored.
 
+<a name="LightColor"></a>
+## type LightColor
+
+LightColor is the color of a light.
+
+	type LightColor struct {
+	    // Hue in degrees (0-360).
+	    Hue float64 `msgpack:"hue" json:"hue"`
+	    // Saturation in percent (0-100).
+	    Saturation float64 `msgpack:"saturation" json:"saturation"`
+	}
+
+<a name="LightColorMode"></a>
+## type LightColorMode
+
+LightColorMode says which of its two color settings a light shows.
+
+	type LightColorMode = string
+
+<a name="LightColorModeTemperature"></a>Color modes of a light.
+
+	const (
+	    LightColorModeTemperature LightColorMode = "temperature" // The white color temperature
+	    LightColorModeColor       LightColorMode = "color"       // The color from hue and saturation
+	)
+
 <a name="LightControl"></a>
 ## type LightControl
 
@@ -1860,6 +3591,8 @@ LightControl is a light on/off and brightness control sensor. Override SetOn / S
 Plugins with no hardware\-action use case can leave the methods unoverridden, the base implementation just updates the state.
 
 For hardware\-pushed updates \(someone manually flipped the switch\), call the embedded LightControl's SetOn / SetOff directly from your event handler. That bypasses any plugin override and only syncs state.
+
+A light with LightCapabilityColorTemperature or LightCapabilityColor overrides SetColorTemperature and SetColor the same way. A command switches the color mode to the setting it changed. When the device reports its state, sync both settings and call SetColorMode with the one it shows.
 
 	type LightControl struct{ BaseSensor }
 
@@ -1883,6 +3616,27 @@ GetBrightness returns the brightness level \(0\-100\).
 	func (s *LightControl) GetCategory() SensorCategory
 
 
+
+<a name="LightControl.GetColor"></a>
+### func \(\*LightControl\) GetColor
+
+	func (s *LightControl) GetColor() LightColor
+
+GetColor returns the color as hue and saturation.
+
+<a name="LightControl.GetColorMode"></a>
+### func \(\*LightControl\) GetColorMode
+
+	func (s *LightControl) GetColorMode() LightColorMode
+
+GetColorMode returns whether the light shows its color temperature or its color.
+
+<a name="LightControl.GetColorTemperature"></a>
+### func \(\*LightControl\) GetColorTemperature
+
+	func (s *LightControl) GetColorTemperature() int
+
+GetColorTemperature returns the white color temperature in Kelvin.
 
 <a name="LightControl.GetType"></a>
 ### func \(\*LightControl\) GetType
@@ -1908,6 +3662,42 @@ SetBrightness sets the brightness level \(clamped to \[0, 100\]\). Override \(vi
 Example:
 
 	light.SetBrightness(75)
+	
+
+<a name="LightControl.SetColor"></a>
+### func \(\*LightControl\) SetColor
+
+	func (s *LightControl) SetColor(hue, saturation float64)
+
+SetColor sets the color \(hue clamped to \[0, 360\], saturation to \[0, 100\]\). Override \(via embedding\) to drive hardware and call the embedded LightControl's SetColor to sync the SDK state.
+
+Example:
+
+	light.SetColor(240, 100)
+	
+
+<a name="LightControl.SetColorMode"></a>
+### func \(\*LightControl\) SetColorMode
+
+	func (s *LightControl) SetColorMode(mode LightColorMode)
+
+SetColorMode reports which of its two color settings the light shows.
+
+Example:
+
+	light.SetColorMode(sdk.LightColorModeColor)
+	
+
+<a name="LightControl.SetColorTemperature"></a>
+### func \(\*LightControl\) SetColorTemperature
+
+	func (s *LightControl) SetColorTemperature(kelvin int)
+
+SetColorTemperature sets the white color temperature in Kelvin \(clamped to \[1000, 10000\]\). Override \(via embedding\) to drive hardware and call the embedded LightControl's SetColorTemperature to sync the SDK state.
+
+Example:
+
+	light.SetColorTemperature(2700)
 	
 
 <a name="LightControl.SetOff"></a>
@@ -1946,7 +3736,7 @@ Example:
 
 	func (s *LightControl) UpdateValue(property string, value any) error
 
-UpdateValue routes generic property writes to the semantic setters. Only on and brightness are externally writable.
+UpdateValue routes generic property writes to the semantic setters.
 
 <a name="LightProperty"></a>
 ## type LightProperty
@@ -1958,8 +3748,11 @@ LightProperty is a property name of a light control.
 <a name="LightPropertyOn"></a>Property names of a light control.
 
 	const (
-	    LightPropertyOn         LightProperty = "on"         // Whether the light is on
-	    LightPropertyBrightness LightProperty = "brightness" // Brightness level (0-100)
+	    LightPropertyOn               LightProperty = "on"               // Whether the light is on
+	    LightPropertyBrightness       LightProperty = "brightness"       // Brightness level (0-100)
+	    LightPropertyColorTemperature LightProperty = "colorTemperature" // White color temperature in Kelvin
+	    LightPropertyColor            LightProperty = "color"            // Color as hue and saturation, see LightColor
+	    LightPropertyColorMode        LightProperty = "colorMode"        // Whether the light shows its color temperature or its color
 	)
 
 <a name="LoadedModel"></a>
@@ -2084,6 +3877,7 @@ LockState defines lock states.
 	    LockStateSecured   LockState = 0 // Locked
 	    LockStateUnsecured LockState = 1 // Unlocked
 	    LockStateUnknown   LockState = 2 // State cannot be determined, e.g. while a motorized lock is moving
+	    LockStateJammed    LockState = 3 // Something blocks the bolt, the lock is neither locked nor unlocked
 	)
 
 <a name="MeasurementInfo"></a>
@@ -2142,6 +3936,313 @@ Example:
 	func (s *MeasurementInfo) UpdateValue(property string, value any) error
 
 UpdateValue on a read\-only sensor: external writes are ignored.
+
+<a name="MediaPlayerCommand"></a>
+## type MediaPlayerCommand
+
+MediaPlayerCommand is a command a media player takes.
+
+	type MediaPlayerCommand = string
+
+<a name="MediaPlayerCommandPlay"></a>Commands a media player takes.
+
+	const (
+	    MediaPlayerCommandPlay     MediaPlayerCommand = "play"
+	    MediaPlayerCommandPause    MediaPlayerCommand = "pause"
+	    MediaPlayerCommandStop     MediaPlayerCommand = "stop"
+	    MediaPlayerCommandNext     MediaPlayerCommand = "next"
+	    MediaPlayerCommandPrevious MediaPlayerCommand = "previous"
+	)
+
+<a name="MediaPlayerControl"></a>
+## type MediaPlayerControl
+
+MediaPlayerControl is a TV, speaker, receiver or projector. Override SetOn, SetOff, Play, Pause, Stop, Next, Previous, SetVolume, SetMuted and SetSource \(by embedding MediaPlayerControl in your own type and shadowing the methods\) to drive hardware, then call the embedded MediaPlayerControl's methods after success. Report what the player does with SetState and what plays with SetNowPlaying.
+
+SetKind says what kind of device it is. Narrow the commands to those the player takes with SetPropertySpec\(MediaPlayerPropertyCommand, &PropertySpecOverride\{Values: ...\}\). The inputs come as choices with the source capability: SetPropertySpec\(MediaPlayerPropertySource, &PropertySpecOverride\{Choices: ...\}\).
+
+	type MediaPlayerControl struct{ CommandControl }
+
+<a name="NewMediaPlayerControl"></a>
+### func NewMediaPlayerControl
+
+	func NewMediaPlayerControl(name string, opts ...SensorOption) *MediaPlayerControl
+
+NewMediaPlayerControl creates a media player with the given name and options.
+
+<a name="MediaPlayerControl.GetArtist"></a>
+### func \(\*MediaPlayerControl\) GetArtist
+
+	func (s *MediaPlayerControl) GetArtist() string
+
+GetArtist returns the artist of what plays.
+
+<a name="MediaPlayerControl.GetKind"></a>
+### func \(\*MediaPlayerControl\) GetKind
+
+	func (s *MediaPlayerControl) GetKind() MediaPlayerKind
+
+GetKind returns what kind of device it is, empty when the plugin did not say.
+
+<a name="MediaPlayerControl.GetSource"></a>
+### func \(\*MediaPlayerControl\) GetSource
+
+	func (s *MediaPlayerControl) GetSource() string
+
+GetSource returns the selected input or app.
+
+<a name="MediaPlayerControl.GetState"></a>
+### func \(\*MediaPlayerControl\) GetState
+
+	func (s *MediaPlayerControl) GetState() MediaPlayerState
+
+GetState returns what the player does right now, empty before the first report.
+
+<a name="MediaPlayerControl.GetTitle"></a>
+### func \(\*MediaPlayerControl\) GetTitle
+
+	func (s *MediaPlayerControl) GetTitle() string
+
+GetTitle returns the title of what plays.
+
+<a name="MediaPlayerControl.GetVolume"></a>
+### func \(\*MediaPlayerControl\) GetVolume
+
+	func (s *MediaPlayerControl) GetVolume() (int, bool)
+
+GetVolume returns the volume, 0 to 100, false before the first report.
+
+<a name="MediaPlayerControl.IsMuted"></a>
+### func \(\*MediaPlayerControl\) IsMuted
+
+	func (s *MediaPlayerControl) IsMuted() bool
+
+IsMuted reports whether the sound is muted.
+
+<a name="MediaPlayerControl.IsOn"></a>
+### func \(\*MediaPlayerControl\) IsOn
+
+	func (s *MediaPlayerControl) IsOn() bool
+
+IsOn reports whether the player is on.
+
+<a name="MediaPlayerControl.Next"></a>
+### func \(\*MediaPlayerControl\) Next
+
+	func (s *MediaPlayerControl) Next()
+
+Next skips to the next track or channel.
+
+Example:
+
+	player.Next()
+	
+
+<a name="MediaPlayerControl.Pause"></a>
+### func \(\*MediaPlayerControl\) Pause
+
+	func (s *MediaPlayerControl) Pause()
+
+Pause pauses playback.
+
+Example:
+
+	player.Pause()
+	
+
+<a name="MediaPlayerControl.Play"></a>
+### func \(\*MediaPlayerControl\) Play
+
+	func (s *MediaPlayerControl) Play()
+
+Play starts or resumes playback.
+
+Example:
+
+	player.Play()
+	
+
+<a name="MediaPlayerControl.Previous"></a>
+### func \(\*MediaPlayerControl\) Previous
+
+	func (s *MediaPlayerControl) Previous()
+
+Previous goes back to the previous track or channel.
+
+Example:
+
+	player.Previous()
+	
+
+<a name="MediaPlayerControl.SetKind"></a>
+### func \(\*MediaPlayerControl\) SetKind
+
+	func (s *MediaPlayerControl) SetKind(kind MediaPlayerKind)
+
+SetKind says what kind of device the player is. Smart homes show it by its kind, and Home Assistant takes it as the device class.
+
+Example:
+
+	player.SetKind(MediaPlayerKindSpeaker)
+	
+
+<a name="MediaPlayerControl.SetMuted"></a>
+### func \(\*MediaPlayerControl\) SetMuted
+
+	func (s *MediaPlayerControl) SetMuted(muted bool)
+
+SetMuted mutes the sound, or unmutes it with false.
+
+Example:
+
+	player.SetMuted(true)
+	
+
+<a name="MediaPlayerControl.SetNowPlaying"></a>
+### func \(\*MediaPlayerControl\) SetNowPlaying
+
+	func (s *MediaPlayerControl) SetNowPlaying(title, artist string)
+
+SetNowPlaying reports the title and artist of what plays, needs the nowPlaying capability. Pass empty strings when nothing plays.
+
+Example:
+
+	player.SetNowPlaying("So What", "Miles Davis")
+	
+
+<a name="MediaPlayerControl.SetOff"></a>
+### func \(\*MediaPlayerControl\) SetOff
+
+	func (s *MediaPlayerControl) SetOff()
+
+SetOff turns the player off.
+
+Example:
+
+	player.SetOff()
+	
+
+<a name="MediaPlayerControl.SetOn"></a>
+### func \(\*MediaPlayerControl\) SetOn
+
+	func (s *MediaPlayerControl) SetOn()
+
+SetOn turns the player on.
+
+Example:
+
+	player.SetOn()
+	
+
+<a name="MediaPlayerControl.SetSource"></a>
+### func \(\*MediaPlayerControl\) SetSource
+
+	func (s *MediaPlayerControl) SetSource(value string)
+
+SetSource switches to another input or app, one of the source choices.
+
+Example:
+
+	player.SetSource("hdmi1")
+	
+
+<a name="MediaPlayerControl.SetState"></a>
+### func \(\*MediaPlayerControl\) SetState
+
+	func (s *MediaPlayerControl) SetState(value MediaPlayerState)
+
+SetState reports what the player does right now: off, on, idle, playing, paused or buffering. IsOn follows: everything but off counts as on.
+
+Example:
+
+	player.SetState(MediaPlayerStatePlaying)
+	
+
+<a name="MediaPlayerControl.SetVolume"></a>
+### func \(\*MediaPlayerControl\) SetVolume
+
+	func (s *MediaPlayerControl) SetVolume(volume float64)
+
+SetVolume sets the volume, 0 to 100, clamped and rounded.
+
+Example:
+
+	player.SetVolume(30)
+	
+
+<a name="MediaPlayerControl.Stop"></a>
+### func \(\*MediaPlayerControl\) Stop
+
+	func (s *MediaPlayerControl) Stop()
+
+Stop stops playback.
+
+Example:
+
+	player.Stop()
+	
+
+<a name="MediaPlayerControl.UpdateValue"></a>
+### func \(\*MediaPlayerControl\) UpdateValue
+
+	func (s *MediaPlayerControl) UpdateValue(property string, value any) error
+
+UpdateValue routes generic property writes to the semantic setters.
+
+<a name="MediaPlayerKind"></a>
+## type MediaPlayerKind
+
+MediaPlayerKind is what kind of device a media player is.
+
+	type MediaPlayerKind = string
+
+<a name="MediaPlayerKindTv"></a>Kinds of a media player.
+
+	const (
+	    MediaPlayerKindTv        MediaPlayerKind = "tv"
+	    MediaPlayerKindSpeaker   MediaPlayerKind = "speaker"
+	    MediaPlayerKindReceiver  MediaPlayerKind = "receiver"
+	    MediaPlayerKindProjector MediaPlayerKind = "projector"
+	)
+
+<a name="MediaPlayerProperty"></a>
+## type MediaPlayerProperty
+
+MediaPlayerProperty is a property name of a media player.
+
+	type MediaPlayerProperty = string
+
+<a name="MediaPlayerPropertyOn"></a>Property names of a media player.
+
+	const (
+	    MediaPlayerPropertyOn      MediaPlayerProperty = "on"      // Whether the player is on, writable with the power capability
+	    MediaPlayerPropertyState   MediaPlayerProperty = "state"   // What the player does right now, a MediaPlayerState
+	    MediaPlayerPropertyKind    MediaPlayerProperty = "kind"    // What kind of device it is, a MediaPlayerKind
+	    MediaPlayerPropertyCommand MediaPlayerProperty = "command" // One-off MediaPlayerCommand when written, empty again right after
+	    MediaPlayerPropertyVolume  MediaPlayerProperty = "volume"  // Volume, 0 to 100
+	    MediaPlayerPropertyMuted   MediaPlayerProperty = "muted"   // Whether the sound is muted
+	    MediaPlayerPropertySource  MediaPlayerProperty = "source"  // Selected input or app, one of the choices the plugin sets
+	    MediaPlayerPropertyTitle   MediaPlayerProperty = "title"   // Title of what plays
+	    MediaPlayerPropertyArtist  MediaPlayerProperty = "artist"  // Artist of what plays
+	)
+
+<a name="MediaPlayerState"></a>
+## type MediaPlayerState
+
+MediaPlayerState is what a media player does right now.
+
+	type MediaPlayerState = string
+
+<a name="MediaPlayerStateOff"></a>States of a media player.
+
+	const (
+	    MediaPlayerStateOff       MediaPlayerState = "off"
+	    MediaPlayerStateOn        MediaPlayerState = "on" // On, without telling what it does
+	    MediaPlayerStateIdle      MediaPlayerState = "idle"
+	    MediaPlayerStatePlaying   MediaPlayerState = "playing"
+	    MediaPlayerStatePaused    MediaPlayerState = "paused"
+	    MediaPlayerStateBuffering MediaPlayerState = "buffering"
+	)
 
 <a name="ModelRuntime"></a>
 ## type ModelRuntime
@@ -2519,6 +4620,114 @@ OccupancySensor reports occupancy/presence state.
 
 NewOccupancySensor creates an occupancy sensor with the given name and options.
 
+<a name="OutletControl"></a>
+## type OutletControl
+
+OutletControl is a power outlet or smart plug. Override SetOn / SetOff \(by embedding OutletControl in your own type and shadowing the methods\) to drive hardware, then call the embedded OutletControl's methods to sync the SDK state. For hardware\-pushed updates, call the embedded methods directly from your event handler.
+
+An outlet that measures its load adds OutletCapabilityInUse and reports it with SetInUse.
+
+	type OutletControl struct{ BaseSensor }
+
+<a name="NewOutletControl"></a>
+### func NewOutletControl
+
+	func NewOutletControl(name string, opts ...SensorOption) *OutletControl
+
+NewOutletControl creates an outlet with the given name and options.
+
+<a name="OutletControl.GetCategory"></a>
+### func \(\*OutletControl\) GetCategory
+
+	func (s *OutletControl) GetCategory() SensorCategory
+
+
+
+<a name="OutletControl.GetType"></a>
+### func \(\*OutletControl\) GetType
+
+	func (s *OutletControl) GetType() SensorType
+
+
+
+<a name="OutletControl.IsInUse"></a>
+### func \(\*OutletControl\) IsInUse
+
+	func (s *OutletControl) IsInUse() bool
+
+IsInUse reports whether the device plugged into the outlet draws power.
+
+<a name="OutletControl.IsOn"></a>
+### func \(\*OutletControl\) IsOn
+
+	func (s *OutletControl) IsOn() bool
+
+IsOn reports whether the outlet is on.
+
+<a name="OutletControl.SetInUse"></a>
+### func \(\*OutletControl\) SetInUse
+
+	func (s *OutletControl) SetInUse(inUse bool)
+
+SetInUse reports whether the device plugged into the outlet draws power.
+
+Example:
+
+	outlet.SetInUse(watts > 1)
+	
+
+<a name="OutletControl.SetOff"></a>
+### func \(\*OutletControl\) SetOff
+
+	func (s *OutletControl) SetOff()
+
+SetOff turns the outlet off.
+
+Example:
+
+	outlet.SetOff()
+	
+
+<a name="OutletControl.SetOn"></a>
+### func \(\*OutletControl\) SetOn
+
+	func (s *OutletControl) SetOn()
+
+SetOn turns the outlet on.
+
+Example:
+
+	outlet.SetOn()
+	
+
+<a name="OutletControl.ToJSON"></a>
+### func \(\*OutletControl\) ToJSON
+
+	func (s *OutletControl) ToJSON() sensorJSON
+
+
+
+<a name="OutletControl.UpdateValue"></a>
+### func \(\*OutletControl\) UpdateValue
+
+	func (s *OutletControl) UpdateValue(property string, value any) error
+
+UpdateValue routes generic property writes to the semantic setters.
+
+<a name="OutletProperty"></a>
+## type OutletProperty
+
+OutletProperty is a property name of an outlet.
+
+	type OutletProperty = string
+
+<a name="OutletPropertyOn"></a>Property names of an outlet.
+
+	const (
+	    OutletPropertyOn    OutletProperty = "on"    // Whether the outlet is on
+	    OutletPropertyInUse OutletProperty = "inUse" // Whether the device plugged into the outlet draws power
+	)
+
 <a name="PTZControl"></a>
 ## type PTZControl
 
@@ -2799,6 +5008,53 @@ PowerSensor reports power detection state.
 
 NewPowerSensor creates a power sensor with the given name and options.
 
+<a name="PresenceProperty"></a>
+## type PresenceProperty
+
+PresenceProperty is a property name of a presence sensor.
+
+	type PresenceProperty = string
+
+<a name="PresencePropertyDetected"></a>Property names of a presence sensor.
+
+	const (
+	    PresencePropertyDetected PresenceProperty = "detected" // Whether the person is at home
+	    PresencePropertyZone     PresenceProperty = "zone"     // Name of the zone the person is in while away, empty at home or when unknown
+	)
+
+<a name="PresenceSensor"></a>
+## type PresenceSensor
+
+PresenceSensor reports whether one person is at home, such as from a phone's location or a tracker. Unlike an occupancy sensor it follows a person, not a room.
+
+	type PresenceSensor struct{ BinarySensor }
+
+<a name="NewPresenceSensor"></a>
+### func NewPresenceSensor
+
+	func NewPresenceSensor(name string, opts ...SensorOption) *PresenceSensor
+
+NewPresenceSensor creates a presence sensor with the given name and options.
+
+<a name="PresenceSensor.GetZone"></a>
+### func \(\*PresenceSensor\) GetZone
+
+	func (s *PresenceSensor) GetZone() string
+
+GetZone returns the name of the zone the person is in while away, empty at home or when unknown.
+
+<a name="PresenceSensor.SetZone"></a>
+### func \(\*PresenceSensor\) SetZone
+
+	func (s *PresenceSensor) SetZone(zone string)
+
+SetZone reports the zone the person is in while away, empty when the zone is unknown.
+
+Example:
+
+	presence.SetDetected(false)
+	presence.SetZone("Work")
+
 <a name="ProblemProperty"></a>
 ## type ProblemProperty
 
@@ -2847,6 +5103,108 @@ PropertySpecOverride is what a plugin narrows or describes on one property of it
 	    // MaxLength is the longest accepted text.
 	    MaxLength *int `msgpack:"maxLength,omitempty" json:"maxLength,omitempty"`
 	}
+
+<a name="RobotControl"></a>
+## type RobotControl
+
+RobotControl is the base of the robots that run on their own and take one\-off commands, such as a vacuum or a lawn mower. The concrete control types embed it.
+
+	type RobotControl struct{ CommandControl }
+
+<a name="RobotControl.GetActivity"></a>
+### func \(\*RobotControl\) GetActivity
+
+	func (s *RobotControl) GetActivity() string
+
+GetActivity returns what the robot does right now, empty before the first report.
+
+<a name="RobotControl.SetActivity"></a>
+### func \(\*RobotControl\) SetActivity
+
+	func (s *RobotControl) SetActivity(value string)
+
+SetActivity reports what the robot does right now, one of the activities of its type.
+
+Example:
+
+	robot.SetActivity(VacuumActivityDocked)
+
+<a name="SceneControl"></a>
+## type SceneControl
+
+SceneControl is a scene or script that runs on command and has no state of its own. Override Activate \(by embedding SceneControl in your own type and shadowing the method\) to run it on the device, then call the embedded method after success, which sets active for a moment \(sceneAutoResetMs\).
+
+	type SceneControl struct {
+	    BaseSensor
+	    // contains filtered or unexported fields
+	}
+
+<a name="NewSceneControl"></a>
+### func NewSceneControl
+
+	func NewSceneControl(name string, opts ...SensorOption) *SceneControl
+
+NewSceneControl creates a scene with the given name and options.
+
+<a name="SceneControl.Activate"></a>
+### func \(\*SceneControl\) Activate
+
+	func (s *SceneControl) Activate()
+
+Activate runs the scene. The active property reads true for a moment and then false again, so the next command arrives the same way.
+
+Example:
+
+	scene.Activate()
+	
+
+<a name="SceneControl.GetCategory"></a>
+### func \(\*SceneControl\) GetCategory
+
+	func (s *SceneControl) GetCategory() SensorCategory
+
+
+
+<a name="SceneControl.GetType"></a>
+### func \(\*SceneControl\) GetType
+
+	func (s *SceneControl) GetType() SensorType
+
+
+
+<a name="SceneControl.IsActive"></a>
+### func \(\*SceneControl\) IsActive
+
+	func (s *SceneControl) IsActive() bool
+
+IsActive reports true for a moment after the scene ran.
+
+<a name="SceneControl.ToJSON"></a>
+### func \(\*SceneControl\) ToJSON
+
+	func (s *SceneControl) ToJSON() sensorJSON
+
+
+
+<a name="SceneControl.UpdateValue"></a>
+### func \(\*SceneControl\) UpdateValue
+
+	func (s *SceneControl) UpdateValue(property string, value any) error
+
+UpdateValue routes generic property writes to the semantic setters. Writing active=false is ignored, the reset timer owns the off transition.
+
+<a name="SceneProperty"></a>
+## type SceneProperty
+
+SceneProperty is a property name of a scene.
+
+	type SceneProperty = string
+
+<a name="ScenePropertyActive"></a>Property names of a scene.
+
+	const (
+	    ScenePropertyActive SceneProperty = "active" // True for a moment while the scene runs, a command when written true
+	)
 
 <a name="SecuritySystem"></a>
 ## type SecuritySystem
@@ -3183,7 +5541,7 @@ WithPrimary marks the sensor as the main sensor of its device, called like the d
 <a name="WithPropertySpec"></a>
 ### func WithPropertySpec
 
-	func WithPropertySpec(property string, spec PropertySpecOverride) SensorOption
+	func WithPropertySpec(property string, spec *PropertySpecOverride) SensorOption
 
 WithPropertySpec sets what the device accepts for one property, see BaseSensor.SetPropertySpec.
 
@@ -3312,13 +5670,16 @@ SensorType identifies the kind of sensor. "Sensor" is camera.ui's umbrella term 
 	    SensorTypeLight          SensorType = "light"          // Light on/off and brightness control
 	    SensorTypeSiren          SensorType = "siren"          // Siren on/off and volume control
 	    SensorTypeSwitch         SensorType = "switch"         // Generic on/off switch
+	    SensorTypeOutlet         SensorType = "outlet"         // Power outlet or smart plug
 	    SensorTypeLock           SensorType = "lock"           // Lock/unlock control
 	    SensorTypePTZ            SensorType = "ptz"            // Pan-tilt-zoom camera control
 	    SensorTypeSecuritySystem SensorType = "securitySystem" // Security system arm/disarm control
 	    SensorTypeDoorbell       SensorType = "doorbell"       // Doorbell ring trigger
+	    SensorTypeButton         SensorType = "button"         // Button with single, double and long presses
+	    SensorTypeAccess         SensorType = "access"         // Access reader, such as a fingerprint or NFC reader
 	    SensorTypeTemperature    SensorType = "temperature"    // Temperature sensor (°C)
 	    SensorTypeHumidity       SensorType = "humidity"       // Humidity sensor (0-100%)
-	    SensorTypeOccupancy      SensorType = "occupancy"      // Occupancy/presence sensor
+	    SensorTypeOccupancy      SensorType = "occupancy"      // Occupancy sensor, whether someone is in a room
 	    SensorTypeSmoke          SensorType = "smoke"          // Smoke detector
 	    SensorTypeLeak           SensorType = "leak"           // Water leak detector
 	    SensorTypeGas            SensorType = "gas"            // Gas detector
@@ -3331,7 +5692,23 @@ SensorType identifies the kind of sensor. "Sensor" is camera.ui's umbrella term 
 	    SensorTypePower          SensorType = "power"          // Power detection sensor
 	    SensorTypeIlluminance    SensorType = "illuminance"    // Illuminance sensor (lx)
 	    SensorTypeCarbonDioxide  SensorType = "carbonDioxide"  // Carbon dioxide sensor (ppm)
+	    SensorTypeGlassBreak     SensorType = "glassBreak"     // Glass break detector
+	    SensorTypeAirQuality     SensorType = "airQuality"     // Air quality level with particle and gas readings
+	    SensorTypePresence       SensorType = "presence"       // Whether a person is at home
 	    SensorTypeGarage         SensorType = "garage"         // Garage door opener
+	    SensorTypeCover          SensorType = "cover"          // Blind, shutter, awning, curtain or other cover
+	    SensorTypeThermostat     SensorType = "thermostat"     // Thermostat or air conditioner
+	    SensorTypeFan            SensorType = "fan"            // Ceiling, desk or other fan
+	    SensorTypeValve          SensorType = "valve"          // Water or gas valve, or an irrigation zone
+	    SensorTypeScene          SensorType = "scene"          // Scene or script that runs on command
+	    SensorTypeHumidifier     SensorType = "humidifier"     // Humidifier or dehumidifier
+	    SensorTypeAirPurifier    SensorType = "airPurifier"    // Air purifier
+	    SensorTypeWaterHeater    SensorType = "waterHeater"    // Water heater or boiler
+	    SensorTypeVacuum         SensorType = "vacuum"         // Robot vacuum
+	    SensorTypeLawnMower      SensorType = "lawnMower"      // Robot lawn mower
+	    SensorTypeMediaPlayer    SensorType = "mediaPlayer"    // TV, speaker, receiver or projector
+	    SensorTypeChime          SensorType = "chime"          // Chime that plays tones
+	    SensorTypeDisplay        SensorType = "display"        // Text display on a device
 	    SensorTypeBattery        SensorType = "battery"        // Battery level and charging state
 	)
 
@@ -3608,6 +5985,301 @@ TemperatureProperty is a property name of a temperature sensor.
 	    TemperaturePropertyCurrent TemperatureProperty = "current" // Current temperature in degrees Celsius
 	)
 
+<a name="ThermostatAction"></a>
+## type ThermostatAction
+
+ThermostatAction is what a thermostat does right now.
+
+	type ThermostatAction = string
+
+<a name="ThermostatActionOff"></a>Actions of a thermostat.
+
+	const (
+	    ThermostatActionOff        ThermostatAction = "off"
+	    ThermostatActionIdle       ThermostatAction = "idle"
+	    ThermostatActionHeating    ThermostatAction = "heating"
+	    ThermostatActionCooling    ThermostatAction = "cooling"
+	    ThermostatActionDrying     ThermostatAction = "drying"
+	    ThermostatActionFan        ThermostatAction = "fan"
+	    ThermostatActionPreheating ThermostatAction = "preheating"
+	    ThermostatActionDefrosting ThermostatAction = "defrosting"
+	)
+
+<a name="ThermostatControl"></a>
+## type ThermostatControl
+
+ThermostatControl is a thermostat or air conditioner. Temperatures are in °C, a plugin converts from the device's unit. Override SetTargetTemperature, SetMode and the other commands \(by embedding ThermostatControl in your own type and shadowing the methods\) to drive hardware, then call the embedded ThermostatControl's methods to sync the SDK state. Report readings with SetCurrentTemperature, SetAction and SetCurrentHumidity.
+
+Narrow the modes to those the device has with SetPropertySpec\(ThermostatPropertyMode, &PropertySpecOverride\{Values: ...\}\), and its temperature range with Min, Max and Step on the target properties. Presets and fan modes are the device's own, set them as Choices.
+
+	type ThermostatControl struct{ BaseSensor }
+
+<a name="NewThermostatControl"></a>
+### func NewThermostatControl
+
+	func NewThermostatControl(name string, opts ...SensorOption) *ThermostatControl
+
+NewThermostatControl creates a thermostat with the given name and options.
+
+<a name="ThermostatControl.GetAction"></a>
+### func \(\*ThermostatControl\) GetAction
+
+	func (s *ThermostatControl) GetAction() ThermostatAction
+
+GetAction returns what the thermostat does right now, empty before the first report.
+
+<a name="ThermostatControl.GetCategory"></a>
+### func \(\*ThermostatControl\) GetCategory
+
+	func (s *ThermostatControl) GetCategory() SensorCategory
+
+
+
+<a name="ThermostatControl.GetCurrentHumidity"></a>
+### func \(\*ThermostatControl\) GetCurrentHumidity
+
+	func (s *ThermostatControl) GetCurrentHumidity() (float64, bool)
+
+GetCurrentHumidity returns the current humidity in percent, false before the first reading.
+
+<a name="ThermostatControl.GetCurrentTemperature"></a>
+### func \(\*ThermostatControl\) GetCurrentTemperature
+
+	func (s *ThermostatControl) GetCurrentTemperature() (float64, bool)
+
+GetCurrentTemperature returns the current temperature in °C, false before the first reading.
+
+<a name="ThermostatControl.GetFanMode"></a>
+### func \(\*ThermostatControl\) GetFanMode
+
+	func (s *ThermostatControl) GetFanMode() string
+
+GetFanMode returns the active fan mode.
+
+<a name="ThermostatControl.GetMode"></a>
+### func \(\*ThermostatControl\) GetMode
+
+	func (s *ThermostatControl) GetMode() ThermostatMode
+
+GetMode returns the mode.
+
+<a name="ThermostatControl.GetPreset"></a>
+### func \(\*ThermostatControl\) GetPreset
+
+	func (s *ThermostatControl) GetPreset() string
+
+GetPreset returns the active preset.
+
+<a name="ThermostatControl.GetTargetHumidity"></a>
+### func \(\*ThermostatControl\) GetTargetHumidity
+
+	func (s *ThermostatControl) GetTargetHumidity() int
+
+GetTargetHumidity returns the target humidity in percent.
+
+<a name="ThermostatControl.GetTargetTemperature"></a>
+### func \(\*ThermostatControl\) GetTargetTemperature
+
+	func (s *ThermostatControl) GetTargetTemperature() float64
+
+GetTargetTemperature returns the target temperature in °C.
+
+<a name="ThermostatControl.GetTargetTemperatureHigh"></a>
+### func \(\*ThermostatControl\) GetTargetTemperatureHigh
+
+	func (s *ThermostatControl) GetTargetTemperatureHigh() float64
+
+GetTargetTemperatureHigh returns the upper end of the target range in °C.
+
+<a name="ThermostatControl.GetTargetTemperatureLow"></a>
+### func \(\*ThermostatControl\) GetTargetTemperatureLow
+
+	func (s *ThermostatControl) GetTargetTemperatureLow() float64
+
+GetTargetTemperatureLow returns the lower end of the target range in °C.
+
+<a name="ThermostatControl.GetType"></a>
+### func \(\*ThermostatControl\) GetType
+
+	func (s *ThermostatControl) GetType() SensorType
+
+
+
+<a name="ThermostatControl.SetAction"></a>
+### func \(\*ThermostatControl\) SetAction
+
+	func (s *ThermostatControl) SetAction(value ThermostatAction)
+
+SetAction reports what the thermostat does right now.
+
+Example:
+
+	thermostat.SetAction(ThermostatActionHeating)
+	
+
+<a name="ThermostatControl.SetCurrentHumidity"></a>
+### func \(\*ThermostatControl\) SetCurrentHumidity
+
+	func (s *ThermostatControl) SetCurrentHumidity(value float64)
+
+SetCurrentHumidity reports the current humidity in percent.
+
+Example:
+
+	thermostat.SetCurrentHumidity(45)
+	
+
+<a name="ThermostatControl.SetCurrentTemperature"></a>
+### func \(\*ThermostatControl\) SetCurrentTemperature
+
+	func (s *ThermostatControl) SetCurrentTemperature(value float64)
+
+SetCurrentTemperature reports the current temperature in °C.
+
+Example:
+
+	thermostat.SetCurrentTemperature(20.4)
+	
+
+<a name="ThermostatControl.SetFanMode"></a>
+### func \(\*ThermostatControl\) SetFanMode
+
+	func (s *ThermostatControl) SetFanMode(value string)
+
+SetFanMode sets the fan mode, one of the fan mode choices.
+
+Example:
+
+	thermostat.SetFanMode("low")
+	
+
+<a name="ThermostatControl.SetMode"></a>
+### func \(\*ThermostatControl\) SetMode
+
+	func (s *ThermostatControl) SetMode(value ThermostatMode)
+
+SetMode sets the mode.
+
+Example:
+
+	thermostat.SetMode(ThermostatModeHeat)
+	
+
+<a name="ThermostatControl.SetPreset"></a>
+### func \(\*ThermostatControl\) SetPreset
+
+	func (s *ThermostatControl) SetPreset(value string)
+
+SetPreset sets the preset, one of the preset choices.
+
+Example:
+
+	thermostat.SetPreset("eco")
+	
+
+<a name="ThermostatControl.SetTargetHumidity"></a>
+### func \(\*ThermostatControl\) SetTargetHumidity
+
+	func (s *ThermostatControl) SetTargetHumidity(value int)
+
+SetTargetHumidity sets the target humidity in percent.
+
+Example:
+
+	thermostat.SetTargetHumidity(45)
+	
+
+<a name="ThermostatControl.SetTargetTemperature"></a>
+### func \(\*ThermostatControl\) SetTargetTemperature
+
+	func (s *ThermostatControl) SetTargetTemperature(value float64)
+
+SetTargetTemperature sets the target temperature in °C.
+
+Example:
+
+	thermostat.SetTargetTemperature(21.5)
+	
+
+<a name="ThermostatControl.SetTargetTemperatureHigh"></a>
+### func \(\*ThermostatControl\) SetTargetTemperatureHigh
+
+	func (s *ThermostatControl) SetTargetTemperatureHigh(value float64)
+
+SetTargetTemperatureHigh sets the upper end of the target range in °C.
+
+Example:
+
+	thermostat.SetTargetTemperatureHigh(24)
+	
+
+<a name="ThermostatControl.SetTargetTemperatureLow"></a>
+### func \(\*ThermostatControl\) SetTargetTemperatureLow
+
+	func (s *ThermostatControl) SetTargetTemperatureLow(value float64)
+
+SetTargetTemperatureLow sets the lower end of the target range in °C.
+
+Example:
+
+	thermostat.SetTargetTemperatureLow(19)
+	
+
+<a name="ThermostatControl.ToJSON"></a>
+### func \(\*ThermostatControl\) ToJSON
+
+	func (s *ThermostatControl) ToJSON() sensorJSON
+
+
+
+<a name="ThermostatControl.UpdateValue"></a>
+### func \(\*ThermostatControl\) UpdateValue
+
+	func (s *ThermostatControl) UpdateValue(property string, value any) error
+
+UpdateValue routes generic property writes to the semantic setters.
+
+<a name="ThermostatMode"></a>
+## type ThermostatMode
+
+ThermostatMode is what a thermostat is set to do.
+
+	type ThermostatMode = string
+
+<a name="ThermostatModeOff"></a>Modes of a thermostat.
+
+	const (
+	    ThermostatModeOff      ThermostatMode = "off"
+	    ThermostatModeHeat     ThermostatMode = "heat"
+	    ThermostatModeCool     ThermostatMode = "cool"
+	    ThermostatModeHeatCool ThermostatMode = "heat_cool" // Heats and cools to stay inside a target range
+	    ThermostatModeAuto     ThermostatMode = "auto"      // The device decides by its own schedule or logic
+	    ThermostatModeDry      ThermostatMode = "dry"
+	    ThermostatModeFanOnly  ThermostatMode = "fan_only"
+	)
+
+<a name="ThermostatProperty"></a>
+## type ThermostatProperty
+
+ThermostatProperty is a property name of a thermostat. Temperatures are in °C.
+
+	type ThermostatProperty = string
+
+<a name="ThermostatPropertyCurrentTemperature"></a>Property names of a thermostat.
+
+	const (
+	    ThermostatPropertyCurrentTemperature    ThermostatProperty = "currentTemperature"    // Current temperature
+	    ThermostatPropertyTargetTemperature     ThermostatProperty = "targetTemperature"     // Temperature the thermostat heats or cools to
+	    ThermostatPropertyTargetTemperatureLow  ThermostatProperty = "targetTemperatureLow"  // Lower end of the target range
+	    ThermostatPropertyTargetTemperatureHigh ThermostatProperty = "targetTemperatureHigh" // Upper end of the target range
+	    ThermostatPropertyMode                  ThermostatProperty = "mode"                  // Mode, a ThermostatMode
+	    ThermostatPropertyAction                ThermostatProperty = "action"                // What the thermostat does right now, a ThermostatAction
+	    ThermostatPropertyCurrentHumidity       ThermostatProperty = "currentHumidity"       // Current humidity in percent
+	    ThermostatPropertyPreset                ThermostatProperty = "preset"                // Active preset, one of the choices the device offers
+	    ThermostatPropertyFanMode               ThermostatProperty = "fanMode"               // Active fan mode, one of the choices the device offers
+	    ThermostatPropertyTargetHumidity        ThermostatProperty = "targetHumidity"        // Humidity in percent the thermostat keeps
+	)
+
 <a name="TrackVelocity"></a>
 ## type TrackVelocity
 
@@ -3634,6 +6306,416 @@ TrackedDetection extends Detection with tracking metadata \(stable IDs, velocity
 	    TrackLost       *bool          `msgpack:"trackLost,omitempty" json:"trackLost,omitempty"`             // True if the object was not matched in the current frame
 	    StationarySince *float64       `msgpack:"stationarySince,omitempty" json:"stationarySince,omitempty"` // Epoch ms since the object has been still; only present while it is settled
 	}
+
+<a name="VacuumActivity"></a>
+## type VacuumActivity
+
+VacuumActivity is what a vacuum does right now.
+
+	type VacuumActivity = string
+
+<a name="VacuumActivityCleaning"></a>Activities of a vacuum.
+
+	const (
+	    VacuumActivityCleaning  VacuumActivity = "cleaning"
+	    VacuumActivityDocked    VacuumActivity = "docked"
+	    VacuumActivityIdle      VacuumActivity = "idle"
+	    VacuumActivityPaused    VacuumActivity = "paused"
+	    VacuumActivityReturning VacuumActivity = "returning"
+	    VacuumActivityError     VacuumActivity = "error"
+	)
+
+<a name="VacuumCommand"></a>
+## type VacuumCommand
+
+VacuumCommand is a command a vacuum takes.
+
+	type VacuumCommand = string
+
+<a name="VacuumCommandStart"></a>Commands a vacuum takes.
+
+	const (
+	    VacuumCommandStart  VacuumCommand = "start"
+	    VacuumCommandPause  VacuumCommand = "pause"
+	    VacuumCommandStop   VacuumCommand = "stop"
+	    VacuumCommandDock   VacuumCommand = "dock"
+	    VacuumCommandLocate VacuumCommand = "locate"
+	    VacuumCommandSpot   VacuumCommand = "spot"
+	)
+
+<a name="VacuumControl"></a>
+## type VacuumControl
+
+VacuumControl is a robot vacuum. Override Start, Pause, Stop, Dock, Locate, Spot and SetFanSpeed \(by embedding VacuumControl in your own type and shadowing the methods\) to drive hardware, then call the embedded VacuumControl's methods after success. Report what the vacuum does with SetActivity.
+
+Narrow the commands to those the vacuum takes with SetPropertySpec\(VacuumPropertyCommand, &PropertySpecOverride\{Values: ...\}\). The suction levels come as choices with the fanSpeed capability: SetPropertySpec\(VacuumPropertyFanSpeed, &PropertySpecOverride\{Choices: ...\}\).
+
+	type VacuumControl struct{ RobotControl }
+
+<a name="NewVacuumControl"></a>
+### func NewVacuumControl
+
+	func NewVacuumControl(name string, opts ...SensorOption) *VacuumControl
+
+NewVacuumControl creates a vacuum with the given name and options.
+
+<a name="VacuumControl.Dock"></a>
+### func \(\*VacuumControl\) Dock
+
+	func (s *VacuumControl) Dock()
+
+Dock sends the vacuum back to its dock.
+
+Example:
+
+	vacuum.Dock()
+	
+
+<a name="VacuumControl.GetFanSpeed"></a>
+### func \(\*VacuumControl\) GetFanSpeed
+
+	func (s *VacuumControl) GetFanSpeed() string
+
+GetFanSpeed returns the suction level.
+
+<a name="VacuumControl.Locate"></a>
+### func \(\*VacuumControl\) Locate
+
+	func (s *VacuumControl) Locate()
+
+Locate makes the vacuum beep so it can be found.
+
+Example:
+
+	vacuum.Locate()
+	
+
+<a name="VacuumControl.Pause"></a>
+### func \(\*VacuumControl\) Pause
+
+	func (s *VacuumControl) Pause()
+
+Pause pauses cleaning where the vacuum is.
+
+Example:
+
+	vacuum.Pause()
+	
+
+<a name="VacuumControl.SetFanSpeed"></a>
+### func \(\*VacuumControl\) SetFanSpeed
+
+	func (s *VacuumControl) SetFanSpeed(value string)
+
+SetFanSpeed sets the suction level, one of the suction level choices.
+
+Example:
+
+	vacuum.SetFanSpeed("turbo")
+	
+
+<a name="VacuumControl.Spot"></a>
+### func \(\*VacuumControl\) Spot
+
+	func (s *VacuumControl) Spot()
+
+Spot cleans the spot around the vacuum.
+
+Example:
+
+	vacuum.Spot()
+	
+
+<a name="VacuumControl.Start"></a>
+### func \(\*VacuumControl\) Start
+
+	func (s *VacuumControl) Start()
+
+Start starts or resumes cleaning.
+
+Example:
+
+	vacuum.Start()
+	
+
+<a name="VacuumControl.Stop"></a>
+### func \(\*VacuumControl\) Stop
+
+	func (s *VacuumControl) Stop()
+
+Stop stops cleaning.
+
+Example:
+
+	vacuum.Stop()
+	
+
+<a name="VacuumControl.UpdateValue"></a>
+### func \(\*VacuumControl\) UpdateValue
+
+	func (s *VacuumControl) UpdateValue(property string, value any) error
+
+UpdateValue routes generic property writes to the semantic setters.
+
+<a name="VacuumProperty"></a>
+## type VacuumProperty
+
+VacuumProperty is a property name of a vacuum.
+
+	type VacuumProperty = string
+
+<a name="VacuumPropertyActivity"></a>Property names of a vacuum.
+
+	const (
+	    VacuumPropertyActivity VacuumProperty = "activity" // What the vacuum does right now, a VacuumActivity
+	    VacuumPropertyCommand  VacuumProperty = "command"  // One-off VacuumCommand when written, empty again right after
+	    VacuumPropertyFanSpeed VacuumProperty = "fanSpeed" // Suction level, one of the choices the plugin sets
+	)
+
+<a name="ValveConfig"></a>
+## type ValveConfig
+
+ValveConfig describes a valve at construction.
+
+	type ValveConfig struct {
+	    // Index is the position of the valve on its device, from 1, e.g. the zone of an irrigation controller.
+	    Index int
+	}
+
+<a name="ValveControl"></a>
+## type ValveControl
+
+ValveControl is a water or gas valve, or an irrigation zone. Override SetTargetState, SetTargetPosition and SetDuration \(by embedding ValveControl in your own type and shadowing the methods\) to drive hardware, then call the embedded ValveControl's methods to sync the SDK state. Report what the hardware does with SetCurrentState, SetCurrentPosition and SetRemaining.
+
+A valve that opens part way adds ValveCapabilityPosition, one that closes by itself after a set time ValveCapabilityDuration. SetKind says what the valve controls, ValveConfig.Index orders the zones of one irrigation controller.
+
+	type ValveControl struct{ BaseSensor }
+
+<a name="NewValveControl"></a>
+### func NewValveControl
+
+	func NewValveControl(name string, config ValveConfig, opts ...SensorOption) *ValveControl
+
+NewValveControl creates a valve with the given name, config and options.
+
+<a name="ValveControl.GetCategory"></a>
+### func \(\*ValveControl\) GetCategory
+
+	func (s *ValveControl) GetCategory() SensorCategory
+
+
+
+<a name="ValveControl.GetCurrentPosition"></a>
+### func \(\*ValveControl\) GetCurrentPosition
+
+	func (s *ValveControl) GetCurrentPosition() int
+
+GetCurrentPosition returns the current position, 0 \(closed\) to 100 \(open\).
+
+<a name="ValveControl.GetCurrentState"></a>
+### func \(\*ValveControl\) GetCurrentState
+
+	func (s *ValveControl) GetCurrentState() ValveState
+
+GetCurrentState returns the current state.
+
+<a name="ValveControl.GetDuration"></a>
+### func \(\*ValveControl\) GetDuration
+
+	func (s *ValveControl) GetDuration() int
+
+GetDuration returns the seconds the valve stays open before it closes by itself.
+
+<a name="ValveControl.GetIndex"></a>
+### func \(\*ValveControl\) GetIndex
+
+	func (s *ValveControl) GetIndex() int
+
+GetIndex returns the position of the valve on its device, 0 when not set.
+
+<a name="ValveControl.GetKind"></a>
+### func \(\*ValveControl\) GetKind
+
+	func (s *ValveControl) GetKind() ValveKind
+
+GetKind returns what the valve controls, empty when the plugin did not say.
+
+<a name="ValveControl.GetRemaining"></a>
+### func \(\*ValveControl\) GetRemaining
+
+	func (s *ValveControl) GetRemaining() int
+
+GetRemaining returns the seconds left until the open valve closes by itself.
+
+<a name="ValveControl.GetTargetPosition"></a>
+### func \(\*ValveControl\) GetTargetPosition
+
+	func (s *ValveControl) GetTargetPosition() int
+
+GetTargetPosition returns the target position, 0 \(closed\) to 100 \(open\).
+
+<a name="ValveControl.GetTargetState"></a>
+### func \(\*ValveControl\) GetTargetState
+
+	func (s *ValveControl) GetTargetState() ValveState
+
+GetTargetState returns the target state.
+
+<a name="ValveControl.GetType"></a>
+### func \(\*ValveControl\) GetType
+
+	func (s *ValveControl) GetType() SensorType
+
+
+
+<a name="ValveControl.SetCurrentPosition"></a>
+### func \(\*ValveControl\) SetCurrentPosition
+
+	func (s *ValveControl) SetCurrentPosition(position int)
+
+SetCurrentPosition reports the position of the valve, 0 \(closed\) to 100 \(open\).
+
+Example:
+
+	valve.SetCurrentPosition(30)
+	
+
+<a name="ValveControl.SetCurrentState"></a>
+### func \(\*ValveControl\) SetCurrentState
+
+	func (s *ValveControl) SetCurrentState(value ValveState)
+
+SetCurrentState reports the state of the valve.
+
+Example:
+
+	valve.SetCurrentState(ValveStateOpening)
+	
+
+<a name="ValveControl.SetDuration"></a>
+### func \(\*ValveControl\) SetDuration
+
+	func (s *ValveControl) SetDuration(seconds int)
+
+SetDuration sets how long the valve stays open, in seconds until it closes by itself.
+
+Example:
+
+	valve.SetDuration(900)
+	
+
+<a name="ValveControl.SetKind"></a>
+### func \(\*ValveControl\) SetKind
+
+	func (s *ValveControl) SetKind(kind ValveKind)
+
+SetKind says what the valve controls. Smart homes show it by its kind, and Home Assistant takes it as the device class.
+
+Example:
+
+	valve.SetKind(ValveKindGas)
+	
+
+<a name="ValveControl.SetRemaining"></a>
+### func \(\*ValveControl\) SetRemaining
+
+	func (s *ValveControl) SetRemaining(seconds int)
+
+SetRemaining reports how long the open valve has left, in seconds until it closes by itself, 0 when closed.
+
+Example:
+
+	valve.SetRemaining(420)
+	
+
+<a name="ValveControl.SetTargetPosition"></a>
+### func \(\*ValveControl\) SetTargetPosition
+
+	func (s *ValveControl) SetTargetPosition(position int)
+
+SetTargetPosition opens the valve to a position, 0 \(closed\) to 100 \(open\). Writes both targetPosition and currentPosition.
+
+Example:
+
+	valve.SetTargetPosition(50)
+	
+
+<a name="ValveControl.SetTargetState"></a>
+### func \(\*ValveControl\) SetTargetState
+
+	func (s *ValveControl) SetTargetState(value ValveState)
+
+SetTargetState opens or closes the valve. Writes both targetState and currentState.
+
+Example:
+
+	valve.SetTargetState(ValveStateOpen)
+	
+
+<a name="ValveControl.ToJSON"></a>
+### func \(\*ValveControl\) ToJSON
+
+	func (s *ValveControl) ToJSON() sensorJSON
+
+
+
+<a name="ValveControl.UpdateValue"></a>
+### func \(\*ValveControl\) UpdateValue
+
+	func (s *ValveControl) UpdateValue(property string, value any) error
+
+UpdateValue routes generic property writes to the semantic setters.
+
+<a name="ValveKind"></a>
+## type ValveKind
+
+ValveKind says what a valve controls, it decides how smart homes show it.
+
+	type ValveKind = string
+
+<a name="ValveKindWater"></a>Kinds of a valve.
+
+	const (
+	    ValveKindWater      ValveKind = "water"
+	    ValveKindGas        ValveKind = "gas"
+	    ValveKindIrrigation ValveKind = "irrigation"
+	)
+
+<a name="ValveProperty"></a>
+## type ValveProperty
+
+ValveProperty is a property name of a valve.
+
+	type ValveProperty = string
+
+<a name="ValvePropertyCurrentState"></a>Property names of a valve.
+
+	const (
+	    ValvePropertyCurrentState    ValveProperty = "currentState"    // Current state, a ValveState
+	    ValvePropertyTargetState     ValveProperty = "targetState"     // Target state, Open or Closed
+	    ValvePropertyCurrentPosition ValveProperty = "currentPosition" // Current position, 0 (closed) to 100 (open)
+	    ValvePropertyTargetPosition  ValveProperty = "targetPosition"  // Target position, 0 (closed) to 100 (open)
+	    ValvePropertyDuration        ValveProperty = "duration"        // Seconds the valve stays open before it closes by itself
+	    ValvePropertyRemaining       ValveProperty = "remaining"       // Seconds left until the open valve closes by itself
+	    ValvePropertyKind            ValveProperty = "kind"            // What the valve controls, a ValveKind
+	    ValvePropertyIndex           ValveProperty = "index"           // Position of the valve on its device, from 1
+	)
+
+<a name="ValveState"></a>
+## type ValveState
+
+ValveState is the state of a valve. A target takes Open and Closed.
+
+	type ValveState int
+
+<a name="ValveStateOpen"></a>
+
+	const (
+	    ValveStateOpen    ValveState = 0
+	    ValveStateClosed  ValveState = 1
+	    ValveStateOpening ValveState = 2
+	    ValveStateClosing ValveState = 3
+	)
 
 <a name="VibrationProperty"></a>
 ## type VibrationProperty
@@ -3672,3 +6754,161 @@ VideoInputSpec describes the expected video input dimensions and pixel format fo
 	    Height int         `msgpack:"height" json:"height"` // Expected frame height in pixels
 	    Format FrameFormat `msgpack:"format" json:"format"` // Pixel format: rgb = 3 bytes/pixel, gray = 1 byte/pixel, nv12 = YUV semi-planar
 	}
+
+<a name="WaterHeaterControl"></a>
+## type WaterHeaterControl
+
+WaterHeaterControl is a water heater or boiler that keeps its water at a target temperature. Override SetMode, SetTargetTemperature and SetAway \(by embedding WaterHeaterControl in your own type and shadowing the methods\) to drive hardware, then call the embedded WaterHeaterControl's methods to sync the SDK state. Report the water temperature with SetCurrentTemperature.
+
+Narrow the modes to those the device has with SetPropertySpec\(WaterHeaterPropertyMode, &PropertySpecOverride\{Values: ...\}\), and its temperature range with Min, Max and Step on the target temperature. Temperatures are always in °C.
+
+	type WaterHeaterControl struct{ BaseSensor }
+
+<a name="NewWaterHeaterControl"></a>
+### func NewWaterHeaterControl
+
+	func NewWaterHeaterControl(name string, opts ...SensorOption) *WaterHeaterControl
+
+NewWaterHeaterControl creates a water heater with the given name and options.
+
+<a name="WaterHeaterControl.GetCategory"></a>
+### func \(\*WaterHeaterControl\) GetCategory
+
+	func (s *WaterHeaterControl) GetCategory() SensorCategory
+
+
+
+<a name="WaterHeaterControl.GetCurrentTemperature"></a>
+### func \(\*WaterHeaterControl\) GetCurrentTemperature
+
+	func (s *WaterHeaterControl) GetCurrentTemperature() (float64, bool)
+
+GetCurrentTemperature returns the current water temperature in °C, false before the first reading.
+
+<a name="WaterHeaterControl.GetMode"></a>
+### func \(\*WaterHeaterControl\) GetMode
+
+	func (s *WaterHeaterControl) GetMode() WaterHeaterMode
+
+GetMode returns the operating mode.
+
+<a name="WaterHeaterControl.GetTargetTemperature"></a>
+### func \(\*WaterHeaterControl\) GetTargetTemperature
+
+	func (s *WaterHeaterControl) GetTargetTemperature() float64
+
+GetTargetTemperature returns the target water temperature in °C.
+
+<a name="WaterHeaterControl.GetType"></a>
+### func \(\*WaterHeaterControl\) GetType
+
+	func (s *WaterHeaterControl) GetType() SensorType
+
+
+
+<a name="WaterHeaterControl.IsAway"></a>
+### func \(\*WaterHeaterControl\) IsAway
+
+	func (s *WaterHeaterControl) IsAway() bool
+
+IsAway reports true while the away mode is on.
+
+<a name="WaterHeaterControl.SetAway"></a>
+### func \(\*WaterHeaterControl\) SetAway
+
+	func (s *WaterHeaterControl) SetAway(away bool)
+
+SetAway switches the away mode on, or off with false.
+
+Example:
+
+	boiler.SetAway(true)
+	
+
+<a name="WaterHeaterControl.SetCurrentTemperature"></a>
+### func \(\*WaterHeaterControl\) SetCurrentTemperature
+
+	func (s *WaterHeaterControl) SetCurrentTemperature(value float64)
+
+SetCurrentTemperature reports the current water temperature in °C.
+
+Example:
+
+	boiler.SetCurrentTemperature(48.5)
+	
+
+<a name="WaterHeaterControl.SetMode"></a>
+### func \(\*WaterHeaterControl\) SetMode
+
+	func (s *WaterHeaterControl) SetMode(value WaterHeaterMode)
+
+SetMode sets the operating mode, one of the modes the water heater offers.
+
+Example:
+
+	boiler.SetMode(WaterHeaterModeEco)
+	
+
+<a name="WaterHeaterControl.SetTargetTemperature"></a>
+### func \(\*WaterHeaterControl\) SetTargetTemperature
+
+	func (s *WaterHeaterControl) SetTargetTemperature(value float64)
+
+SetTargetTemperature sets the target temperature in °C.
+
+Example:
+
+	boiler.SetTargetTemperature(55)
+	
+
+<a name="WaterHeaterControl.ToJSON"></a>
+### func \(\*WaterHeaterControl\) ToJSON
+
+	func (s *WaterHeaterControl) ToJSON() sensorJSON
+
+
+
+<a name="WaterHeaterControl.UpdateValue"></a>
+### func \(\*WaterHeaterControl\) UpdateValue
+
+	func (s *WaterHeaterControl) UpdateValue(property string, value any) error
+
+UpdateValue routes generic property writes to the semantic setters.
+
+<a name="WaterHeaterMode"></a>
+## type WaterHeaterMode
+
+WaterHeaterMode is the operating mode of a water heater.
+
+	type WaterHeaterMode = string
+
+<a name="WaterHeaterModeOff"></a>Modes of a water heater.
+
+	const (
+	    WaterHeaterModeOff         WaterHeaterMode = "off"
+	    WaterHeaterModeEco         WaterHeaterMode = "eco"
+	    WaterHeaterModeElectric    WaterHeaterMode = "electric"
+	    WaterHeaterModeGas         WaterHeaterMode = "gas"
+	    WaterHeaterModeHeatPump    WaterHeaterMode = "heat_pump"
+	    WaterHeaterModeHighDemand  WaterHeaterMode = "high_demand"
+	    WaterHeaterModePerformance WaterHeaterMode = "performance"
+	    WaterHeaterModeAuto        WaterHeaterMode = "auto" // The device decides by its own schedule or logic
+	    WaterHeaterModeHeat        WaterHeaterMode = "heat"
+	    WaterHeaterModeOn          WaterHeaterMode = "on" // Running in a mode without a name of its own
+	)
+
+<a name="WaterHeaterProperty"></a>
+## type WaterHeaterProperty
+
+WaterHeaterProperty is a property name of a water heater.
+
+	type WaterHeaterProperty = string
+
+<a name="WaterHeaterPropertyCurrentTemperature"></a>Property names of a water heater.
+
+	const (
+	    WaterHeaterPropertyCurrentTemperature WaterHeaterProperty = "currentTemperature" // Current water temperature in °C
+	    WaterHeaterPropertyTargetTemperature  WaterHeaterProperty = "targetTemperature"  // Target water temperature in °C
+	    WaterHeaterPropertyMode               WaterHeaterProperty = "mode"               // Operating mode, a WaterHeaterMode, a command when written
+	    WaterHeaterPropertyAway               WaterHeaterProperty = "away"               // True while the away mode is on
+	)

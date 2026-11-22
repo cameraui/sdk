@@ -124,7 +124,23 @@ export type EventTriggerType =
   | 'lock'
   | 'garage'
   | 'glassBreak'
-  | 'access';
+  | 'access'
+  | 'presence'
+  | 'cover'
+  | 'valve'
+  | 'fan'
+  | 'humidifier'
+  | 'airPurifier'
+  | 'thermostat'
+  | 'waterHeater'
+  | 'vacuum'
+  | 'lawnMower'
+  | 'mediaPlayer'
+  | 'scene'
+  | 'chime'
+  | 'button'
+  | 'battery'
+  | 'airQuality';
 
 /** Stream direction (from SDP). */
 export type StreamDirection = 'sendonly' | 'recvonly' | 'sendrecv' | 'inactive';

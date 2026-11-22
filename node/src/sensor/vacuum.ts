@@ -247,6 +247,7 @@ export const vacuumMeta = defineSensor({
     [VacuumProperty.FanSpeed]: { type: 'string', writable: true },
   },
   shortcutable: true,
+  cascadeTrigger: { property: VacuumProperty.Activity, values: [VacuumActivity.Cleaning], sustained: true },
   propertyCapabilities: {
     [VacuumProperty.FanSpeed]: VacuumCapability.FanSpeed,
   },

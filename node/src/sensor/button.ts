@@ -131,6 +131,7 @@ export const buttonMeta = defineSensor({
     [ButtonProperty.Index]: { type: 'number', min: 0, step: 1, internal: true },
   },
   shortcutable: true,
+  cascadeTrigger: { property: ButtonProperty.Press, values: Object.values(ButtonPress), sustained: false },
   semantics: {
     domain: SensorDomain.Event,
     stateProperty: ButtonProperty.Press,

@@ -190,6 +190,7 @@ export const airQualityMeta = defineSensor({
     [AirQualityProperty.No2]: { type: 'number', min: 0, step: 1, unit: 'μg/m³' },
   },
   shortcutable: true,
+  cascadeTrigger: { property: AirQualityProperty.Level, values: [AirQualityLevel.Inferior, AirQualityLevel.Poor], sustained: true },
   propertyCapabilities: {
     [AirQualityProperty.Aqi]: AirQualityCapability.Aqi,
     [AirQualityProperty.Pm25]: AirQualityCapability.Pm25,

@@ -155,7 +155,7 @@ export const accessMeta = defineSensor({
     [AccessProperty.User]: { type: 'string' },
   },
   shortcutable: true,
-  cascadeTrigger: { property: AccessProperty.Result, value: AccessResult.Granted, sustained: false },
+  cascadeTrigger: { property: AccessProperty.Result, values: [AccessResult.Granted], sustained: false },
   semantics: {
     domain: SensorDomain.Event,
     stateProperty: AccessProperty.Result,

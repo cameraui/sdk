@@ -243,6 +243,22 @@ const (
 	EventTriggerGarage         EventTriggerType = "garage"
 	EventTriggerGlassBreak     EventTriggerType = "glassBreak"
 	EventTriggerAccess         EventTriggerType = "access"
+	EventTriggerPresence       EventTriggerType = "presence"
+	EventTriggerCover          EventTriggerType = "cover"
+	EventTriggerValve          EventTriggerType = "valve"
+	EventTriggerFan            EventTriggerType = "fan"
+	EventTriggerHumidifier     EventTriggerType = "humidifier"
+	EventTriggerAirPurifier    EventTriggerType = "airPurifier"
+	EventTriggerThermostat     EventTriggerType = "thermostat"
+	EventTriggerWaterHeater    EventTriggerType = "waterHeater"
+	EventTriggerVacuum         EventTriggerType = "vacuum"
+	EventTriggerLawnMower      EventTriggerType = "lawnMower"
+	EventTriggerMediaPlayer    EventTriggerType = "mediaPlayer"
+	EventTriggerScene          EventTriggerType = "scene"
+	EventTriggerChime          EventTriggerType = "chime"
+	EventTriggerButton         EventTriggerType = "button"
+	EventTriggerBattery        EventTriggerType = "battery"
+	EventTriggerAirQuality     EventTriggerType = "airQuality"
 )
 
 // DetectionEventType is the lifecycle phase of a detection event message.
@@ -268,4 +284,8 @@ var EventTriggerTypes = []EventTriggerType{
 	EventTriggerGas, EventTriggerCarbonMonoxide, EventTriggerHeat, EventTriggerCold,
 	EventTriggerVibration, EventTriggerTamper, EventTriggerProblem, EventTriggerPower,
 	EventTriggerLock, EventTriggerGarage, EventTriggerGlassBreak, EventTriggerAccess,
+	EventTriggerPresence, EventTriggerCover, EventTriggerValve, EventTriggerFan,
+	EventTriggerHumidifier, EventTriggerAirPurifier, EventTriggerThermostat, EventTriggerWaterHeater,
+	EventTriggerVacuum, EventTriggerLawnMower, EventTriggerMediaPlayer, EventTriggerScene,
+	EventTriggerChime, EventTriggerButton, EventTriggerBattery, EventTriggerAirQuality,
 }

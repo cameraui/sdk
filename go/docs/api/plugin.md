@@ -1450,18 +1450,50 @@ PluginAssignments maps sensor types to their assigned plugin\(s\) for a camera. 
 	    Light []AssignedPlugin `msgpack:"light,omitempty" json:"light,omitempty"`
 	    // Siren are the assigned siren control plugins.
 	    Siren []AssignedPlugin `msgpack:"siren,omitempty" json:"siren,omitempty"`
+	    // Chime are the assigned chime control plugins.
+	    Chime []AssignedPlugin `msgpack:"chime,omitempty" json:"chime,omitempty"`
+	    // Display are the assigned display control plugins.
+	    Display []AssignedPlugin `msgpack:"display,omitempty" json:"display,omitempty"`
 	    // Contact are the assigned contact sensor plugins.
 	    Contact []AssignedPlugin `msgpack:"contact,omitempty" json:"contact,omitempty"`
 	    // Doorbell are the assigned doorbell trigger plugins.
 	    Doorbell []AssignedPlugin `msgpack:"doorbell,omitempty" json:"doorbell,omitempty"`
+	    // Button are the assigned button trigger plugins.
+	    Button []AssignedPlugin `msgpack:"button,omitempty" json:"button,omitempty"`
+	    // Access are the assigned access trigger plugins.
+	    Access []AssignedPlugin `msgpack:"access,omitempty" json:"access,omitempty"`
 	    // Switch are the assigned switch control plugins.
 	    Switch []AssignedPlugin `msgpack:"switch,omitempty" json:"switch,omitempty"`
+	    // Outlet are the assigned outlet control plugins.
+	    Outlet []AssignedPlugin `msgpack:"outlet,omitempty" json:"outlet,omitempty"`
 	    // SecuritySystem are the assigned security system control plugins.
 	    SecuritySystem []AssignedPlugin `msgpack:"securitySystem,omitempty" json:"securitySystem,omitempty"`
 	    // Lock are the assigned lock control plugins.
 	    Lock []AssignedPlugin `msgpack:"lock,omitempty" json:"lock,omitempty"`
 	    // Garage are the assigned garage control plugins.
 	    Garage []AssignedPlugin `msgpack:"garage,omitempty" json:"garage,omitempty"`
+	    // Cover are the assigned cover control plugins.
+	    Cover []AssignedPlugin `msgpack:"cover,omitempty" json:"cover,omitempty"`
+	    // Thermostat are the assigned thermostat control plugins.
+	    Thermostat []AssignedPlugin `msgpack:"thermostat,omitempty" json:"thermostat,omitempty"`
+	    // Fan are the assigned fan control plugins.
+	    Fan []AssignedPlugin `msgpack:"fan,omitempty" json:"fan,omitempty"`
+	    // Valve are the assigned valve control plugins.
+	    Valve []AssignedPlugin `msgpack:"valve,omitempty" json:"valve,omitempty"`
+	    // Scene are the assigned scene control plugins.
+	    Scene []AssignedPlugin `msgpack:"scene,omitempty" json:"scene,omitempty"`
+	    // Humidifier are the assigned humidifier control plugins.
+	    Humidifier []AssignedPlugin `msgpack:"humidifier,omitempty" json:"humidifier,omitempty"`
+	    // AirPurifier are the assigned air purifier control plugins.
+	    AirPurifier []AssignedPlugin `msgpack:"airPurifier,omitempty" json:"airPurifier,omitempty"`
+	    // WaterHeater are the assigned water heater control plugins.
+	    WaterHeater []AssignedPlugin `msgpack:"waterHeater,omitempty" json:"waterHeater,omitempty"`
+	    // Vacuum are the assigned vacuum control plugins.
+	    Vacuum []AssignedPlugin `msgpack:"vacuum,omitempty" json:"vacuum,omitempty"`
+	    // LawnMower are the assigned lawn mower control plugins.
+	    LawnMower []AssignedPlugin `msgpack:"lawnMower,omitempty" json:"lawnMower,omitempty"`
+	    // MediaPlayer are the assigned media player control plugins.
+	    MediaPlayer []AssignedPlugin `msgpack:"mediaPlayer,omitempty" json:"mediaPlayer,omitempty"`
 	    // Occupancy are the assigned occupancy sensor plugins.
 	    Occupancy []AssignedPlugin `msgpack:"occupancy,omitempty" json:"occupancy,omitempty"`
 	    // Smoke are the assigned smoke sensor plugins.
@@ -1484,6 +1516,8 @@ PluginAssignments maps sensor types to their assigned plugin\(s\) for a camera. 
 	    Problem []AssignedPlugin `msgpack:"problem,omitempty" json:"problem,omitempty"`
 	    // Power are the assigned power sensor plugins.
 	    Power []AssignedPlugin `msgpack:"power,omitempty" json:"power,omitempty"`
+	    // GlassBreak are the assigned glass break sensor plugins.
+	    GlassBreak []AssignedPlugin `msgpack:"glassBreak,omitempty" json:"glassBreak,omitempty"`
 	    // Temperature are the assigned temperature info plugins.
 	    Temperature []AssignedPlugin `msgpack:"temperature,omitempty" json:"temperature,omitempty"`
 	    // Humidity are the assigned humidity info plugins.
@@ -1492,6 +1526,10 @@ PluginAssignments maps sensor types to their assigned plugin\(s\) for a camera. 
 	    Illuminance []AssignedPlugin `msgpack:"illuminance,omitempty" json:"illuminance,omitempty"`
 	    // CarbonDioxide are the assigned carbon dioxide info plugins.
 	    CarbonDioxide []AssignedPlugin `msgpack:"carbonDioxide,omitempty" json:"carbonDioxide,omitempty"`
+	    // AirQuality are the assigned air quality info plugins.
+	    AirQuality []AssignedPlugin `msgpack:"airQuality,omitempty" json:"airQuality,omitempty"`
+	    // Presence are the assigned presence sensor plugins.
+	    Presence []AssignedPlugin `msgpack:"presence,omitempty" json:"presence,omitempty"`
 	    // Classifier are the assigned image classifier plugins.
 	    Classifier []AssignedPlugin `msgpack:"classifier,omitempty" json:"classifier,omitempty"`
 	    // Hub are the assigned hub/bridge plugins.

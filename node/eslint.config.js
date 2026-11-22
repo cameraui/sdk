@@ -135,6 +135,9 @@ export default [
       '@stylistic/max-len': ['error', { code: 170, tabWidth: 2 }],
       '@stylistic/quotes': ['error', 'single', { avoidEscape: true }],
       '@stylistic/operator-linebreak': 'off',
+      // prettier owns indentation, it indents union members deeper than these rules
+      '@stylistic/indent': 'off',
+      '@stylistic/indent-binary-ops': 'off',
       '@stylistic/comma-dangle': [
         'error',
         {

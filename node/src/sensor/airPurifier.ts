@@ -330,6 +330,7 @@ export const airPurifierMeta = defineSensor({
     [AirPurifierProperty.FilterChange]: { type: 'boolean' },
   },
   shortcutable: true,
+  cascadeTrigger: { property: AirPurifierProperty.On, values: [true], sustained: true },
   propertyCapabilities: {
     [AirPurifierProperty.State]: AirPurifierCapability.State,
     [AirPurifierProperty.Speed]: AirPurifierCapability.Speed,
@@ -347,6 +348,8 @@ export const airPurifierMeta = defineSensor({
     icon: 'mdi:air-purifier',
     fan: { speed: AirPurifierProperty.Speed },
     toggles: [AirPurifierProperty.Auto, AirPurifierProperty.ChildLock],
+    configuration: [AirPurifierProperty.ChildLock],
     readings: [{ property: AirPurifierProperty.FilterLife, unit: '%' }],
+    indicators: [{ property: AirPurifierProperty.FilterChange, deviceClass: 'problem' }],
   },
 });

@@ -14,6 +14,9 @@ const (
 	WaterHeaterModeHeatPump    WaterHeaterMode = "heat_pump"
 	WaterHeaterModeHighDemand  WaterHeaterMode = "high_demand"
 	WaterHeaterModePerformance WaterHeaterMode = "performance"
+	WaterHeaterModeAuto        WaterHeaterMode = "auto" // The device decides by its own schedule or logic
+	WaterHeaterModeHeat        WaterHeaterMode = "heat"
+	WaterHeaterModeOn          WaterHeaterMode = "on" // Running in a mode without a name of its own
 )
 
 // Optional capabilities of a water heater.

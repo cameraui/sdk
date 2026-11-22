@@ -321,6 +321,7 @@ export const valveMeta = defineSensor({
     [ValveProperty.Index]: { type: 'number', min: 0, step: 1, internal: true },
   },
   shortcutable: true,
+  cascadeTrigger: { property: ValveProperty.CurrentState, values: [ValveState.Open], sustained: true },
   propertyCapabilities: {
     [ValveProperty.CurrentPosition]: ValveCapability.Position,
     [ValveProperty.TargetPosition]: ValveCapability.Position,

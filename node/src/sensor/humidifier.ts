@@ -280,6 +280,7 @@ export const humidifierMeta = defineSensor({
     },
   },
   shortcutable: true,
+  cascadeTrigger: { property: HumidifierProperty.On, values: [true], sustained: true },
   propertyCapabilities: {
     [HumidifierProperty.CurrentHumidity]: HumidifierCapability.Humidity,
     [HumidifierProperty.Action]: HumidifierCapability.Action,

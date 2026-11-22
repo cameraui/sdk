@@ -420,6 +420,11 @@ export const thermostatMeta = defineSensor({
     [ThermostatProperty.TargetHumidity]: { type: 'number', min: 0, max: 100, step: 1, unit: '%', writable: true },
   },
   shortcutable: true,
+  cascadeTrigger: {
+    property: ThermostatProperty.Action,
+    values: Object.values(ThermostatAction).filter((action) => action !== ThermostatAction.Off && action !== ThermostatAction.Idle),
+    sustained: true,
+  },
   propertyCapabilities: {
     [ThermostatProperty.TargetTemperatureLow]: ThermostatCapability.Range,
     [ThermostatProperty.TargetTemperatureHigh]: ThermostatCapability.Range,

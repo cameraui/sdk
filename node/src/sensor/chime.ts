@@ -213,6 +213,7 @@ export const chimeMeta = defineSensor({
     [ChimeProperty.Repeat]: { type: 'number', min: 1, max: 10, step: 1, writable: true },
   },
   shortcutable: true,
+  cascadeTrigger: { property: ChimeProperty.Active, values: [true], sustained: true },
   propertyCapabilities: { [ChimeProperty.Volume]: ChimeCapability.Volume, [ChimeProperty.Repeat]: ChimeCapability.Repeat },
   semantics: {
     domain: SensorDomain.Siren,
@@ -221,5 +222,6 @@ export const chimeMeta = defineSensor({
     icon: 'mdi:bell-ring',
     tone: { property: ChimeProperty.Tone },
     volume: { property: ChimeProperty.Volume, scale: 100 },
+    configuration: [ChimeProperty.Tone, ChimeProperty.Volume],
   },
 });

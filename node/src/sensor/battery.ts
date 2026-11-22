@@ -157,6 +157,7 @@ export const batteryMeta = defineSensor({
     [BatteryProperty.Low]: { type: 'boolean' },
   },
   shortcutable: true,
+  cascadeTrigger: { property: BatteryProperty.Low, values: [true], sustained: true },
   propertyCapabilities: { [BatteryProperty.Charging]: BatteryCapability.Charging, [BatteryProperty.Low]: BatteryCapability.LowBattery },
   semantics: {
     domain: SensorDomain.Measurement,

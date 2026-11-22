@@ -107,6 +107,7 @@ export const sceneMeta = defineSensor({
     [SceneProperty.Active]: { type: 'boolean', writable: true },
   },
   shortcutable: true,
+  cascadeTrigger: { property: SceneProperty.Active, values: [true], sustained: false },
   virtual: { properties: { [SceneProperty.Active]: false } },
   semantics: {
     domain: SensorDomain.Scene,
