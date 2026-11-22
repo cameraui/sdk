@@ -12,6 +12,8 @@ export enum LockState {
   Unsecured = 1,
   /** State cannot be determined, e.g. while a motorized lock is moving. */
   Unknown = 2,
+  /** Something blocks the bolt, the lock is neither locked nor unlocked. */
+  Jammed = 3,
 }
 
 /** Property names of a lock control. */
@@ -125,7 +127,7 @@ export const lockMeta = defineSensor({
   properties: {
     [LockProperty.CurrentState]: {
       type: 'enum',
-      values: { secured: LockState.Secured, unsecured: LockState.Unsecured, unknown: LockState.Unknown },
+      values: { secured: LockState.Secured, unsecured: LockState.Unsecured, unknown: LockState.Unknown, jammed: LockState.Jammed },
     },
     [LockProperty.TargetState]: {
       type: 'enum',
@@ -140,6 +142,6 @@ export const lockMeta = defineSensor({
     domain: SensorDomain.Lock,
     stateProperty: LockProperty.CurrentState,
     commandProperty: LockProperty.TargetState,
-    states: { locked: LockState.Secured, unlocked: LockState.Unsecured },
+    states: { locked: LockState.Secured, unlocked: LockState.Unsecured, jammed: LockState.Jammed },
   },
 });

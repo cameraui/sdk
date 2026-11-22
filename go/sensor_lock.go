@@ -7,6 +7,7 @@ const (
 	LockStateSecured   LockState = 0 // Locked
 	LockStateUnsecured LockState = 1 // Unlocked
 	LockStateUnknown   LockState = 2 // State cannot be determined, e.g. while a motorized lock is moving
+	LockStateJammed    LockState = 3 // Something blocks the bolt, the lock is neither locked nor unlocked
 )
 
 // LockProperty is a property name of a lock control.

@@ -15,6 +15,7 @@ import { displayMeta } from './display.js';
 import { doorbellMeta } from './doorbell.js';
 import { faceMeta } from './face.js';
 import { faceEmbedderMeta } from './faceEmbedder.js';
+import { fanMeta } from './fan.js';
 import { garageMeta } from './garage.js';
 import { gasMeta } from './gas.js';
 import { glassBreakMeta } from './glassBreak.js';
@@ -35,6 +36,7 @@ import { powerMeta } from './power.js';
 import { presenceMeta } from './presence.js';
 import { problemMeta } from './problem.js';
 import { ptzMeta } from './ptz.js';
+import { sceneMeta } from './scene.js';
 import { securitySystemMeta } from './securitySystem.js';
 import { segmenterMeta } from './segmenter.js';
 import { sirenMeta } from './siren.js';
@@ -43,6 +45,7 @@ import { switchMeta } from './switch.js';
 import { tamperMeta } from './tamper.js';
 import { temperatureMeta } from './temperature.js';
 import { thermostatMeta } from './thermostat.js';
+import { valveMeta } from './valve.js';
 import { vibrationMeta } from './vibration.js';
 
 import type { SensorType } from './base.js';
@@ -67,6 +70,7 @@ export const SENSOR_META = [
   doorbellMeta,
   faceMeta,
   faceEmbedderMeta,
+  fanMeta,
   garageMeta,
   gasMeta,
   glassBreakMeta,
@@ -87,6 +91,7 @@ export const SENSOR_META = [
   presenceMeta,
   problemMeta,
   ptzMeta,
+  sceneMeta,
   securitySystemMeta,
   segmenterMeta,
   sirenMeta,
@@ -95,6 +100,7 @@ export const SENSOR_META = [
   tamperMeta,
   temperatureMeta,
   thermostatMeta,
+  valveMeta,
   vibrationMeta,
 ] as const satisfies readonly SensorMeta[];
 

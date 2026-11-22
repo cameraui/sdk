@@ -21,6 +21,8 @@ class LockState(IntEnum):
     """Unlocked."""
     Unknown = 2
     """State cannot be determined, e.g. while a motorized lock is moving."""
+    Jammed = 3
+    """Something blocks the bolt, the lock is neither locked nor unlocked."""
 
 
 class LockProperty(StrEnum):

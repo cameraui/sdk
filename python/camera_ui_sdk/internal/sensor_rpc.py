@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from ..sensor.display import DisplayCapability, DisplayProperty
     from ..sensor.doorbell import DoorbellProperty
     from ..sensor.face import FaceProperty
+    from ..sensor.fan import FanCapability, FanProperty
     from ..sensor.garage import GarageProperty
     from ..sensor.gas import GasProperty
     from ..sensor.glass_break import GlassBreakProperty
@@ -40,6 +41,7 @@ if TYPE_CHECKING:
     from ..sensor.problem import ProblemProperty
     from ..sensor.property_spec import PropertySpecOverride
     from ..sensor.ptz import PTZCapability, PTZProperty
+    from ..sensor.scene import SceneProperty
     from ..sensor.security_system import SecuritySystemProperty
     from ..sensor.siren import SirenCapability, SirenProperty
     from ..sensor.smoke import SmokeProperty
@@ -48,6 +50,7 @@ if TYPE_CHECKING:
     from ..sensor.tamper import TamperProperty
     from ..sensor.temperature import TemperatureProperty
     from ..sensor.thermostat import ThermostatCapability, ThermostatProperty
+    from ..sensor.valve import ValveCapability, ValveProperty
     from ..sensor.vibration import VibrationProperty
 
     SensorPropertyType: TypeAlias = (
@@ -66,6 +69,7 @@ if TYPE_CHECKING:
         | DisplayProperty
         | DoorbellProperty
         | FaceProperty
+        | FanProperty
         | GarageProperty
         | GasProperty
         | GlassBreakProperty
@@ -84,6 +88,7 @@ if TYPE_CHECKING:
         | PresenceProperty
         | ProblemProperty
         | PTZProperty
+        | SceneProperty
         | SecuritySystemProperty
         | SirenProperty
         | SmokeProperty
@@ -91,6 +96,7 @@ if TYPE_CHECKING:
         | TamperProperty
         | TemperatureProperty
         | ThermostatProperty
+        | ValveProperty
         | VibrationProperty
     )
 
@@ -105,6 +111,8 @@ if TYPE_CHECKING:
         | OutletCapability
         | CoverCapability
         | ThermostatCapability
+        | FanCapability
+        | ValveCapability
     )
 
 

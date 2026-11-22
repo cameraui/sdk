@@ -6,6 +6,7 @@ from typing import Any, Generic, Literal, Protocol, overload, runtime_checkable
 
 from typing_extensions import TypedDict, TypeVar
 
+from ..internal.shared_utils import round_percent
 from ..observable import Observable
 from .base import Sensor, SensorCategory, SensorLike, SensorType
 from .device import DeviceInfo
@@ -52,6 +53,8 @@ class ThermostatCapability(StrEnum):
     """Thermostat has presets, such as eco or away."""
     FanMode = "fanMode"
     """Thermostat has fan modes."""
+    TargetHumidity = "targetHumidity"
+    """Thermostat keeps the humidity at a target."""
 
 
 class ThermostatProperty(StrEnum):
@@ -75,6 +78,8 @@ class ThermostatProperty(StrEnum):
     """Active preset, one of the choices the device offers."""
     FanMode = "fanMode"
     """Active fan mode, one of the choices the device offers."""
+    TargetHumidity = "targetHumidity"
+    """Humidity in percent the thermostat keeps."""
 
 
 class ThermostatControlProperties(TypedDict):
@@ -89,6 +94,7 @@ class ThermostatControlProperties(TypedDict):
     currentHumidity: float | None
     preset: str | None
     fanMode: str | None
+    targetHumidity: int
 
 
 class ThermostatPropertyChangeData(TypedDict):
@@ -135,6 +141,8 @@ class ThermostatControlLike(SensorLike, Protocol):
     def getValue(self, property: Literal[ThermostatProperty.Preset]) -> str | None: ...
     @overload
     def getValue(self, property: Literal[ThermostatProperty.FanMode]) -> str | None: ...
+    @overload
+    def getValue(self, property: Literal[ThermostatProperty.TargetHumidity]) -> int | None: ...
     @overload
     def getValue(self, property: str) -> object | None: ...
 
@@ -183,6 +191,7 @@ class ThermostatControl(
                 ThermostatProperty.TargetTemperatureLow.value: 18,
                 ThermostatProperty.TargetTemperatureHigh.value: 24,
                 ThermostatProperty.Mode.value: ThermostatMode.Off.value,
+                ThermostatProperty.TargetHumidity.value: 50,
             }
         )
 
@@ -240,6 +249,11 @@ class ThermostatControl(
     def fanMode(self) -> str | None:
         """Active fan mode."""
         return self.props.fanMode
+
+    @property
+    def targetHumidity(self) -> int:
+        """Target humidity in percent."""
+        return int(self.props.targetHumidity or 0)
 
     async def setTargetTemperature(self, value: float) -> None:
         """Set the target temperature. Override to drive hardware and call
@@ -324,6 +338,20 @@ class ThermostatControl(
         """
         self._write_state({ThermostatProperty.FanMode.value: value})
 
+    async def setTargetHumidity(self, value: float) -> None:
+        """Set the target humidity. Override to drive hardware and call
+        ``await super().setTargetHumidity(value)`` after success to sync the SDK state.
+
+        Args:
+            value: Humidity in percent.
+
+        Example:
+            ```python
+            await thermostat.setTargetHumidity(45)
+            ```
+        """
+        self._write_state({ThermostatProperty.TargetHumidity.value: round_percent(value)})
+
     def setCurrentTemperature(self, value: float) -> None:
         """Report the current temperature.
 
@@ -374,3 +402,5 @@ class ThermostatControl(
             await self.setPreset(str(value))
         elif property == ThermostatProperty.FanMode.value:
             await self.setFanMode(str(value))
+        elif property == ThermostatProperty.TargetHumidity.value:
+            await self.setTargetHumidity(float(value))

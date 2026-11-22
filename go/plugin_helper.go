@@ -15,7 +15,7 @@ var validSensorTypes = []SensorType{
 	SensorTypeProblem, SensorTypePower, SensorTypeIlluminance, SensorTypeCarbonDioxide,
 	SensorTypeGlassBreak, SensorTypeAirQuality, SensorTypePresence,
 	SensorTypeLight, SensorTypeSiren, SensorTypeSwitch, SensorTypeOutlet, SensorTypeLock, SensorTypeGarage, SensorTypeCover, SensorTypeThermostat,
-	SensorTypeChime, SensorTypeDisplay,
+	SensorTypeFan, SensorTypeValve, SensorTypeScene, SensorTypeChime, SensorTypeDisplay,
 	SensorTypePTZ, SensorTypeSecuritySystem, SensorTypeDoorbell, SensorTypeButton, SensorTypeAccess, SensorTypeBattery,
 	SensorTypeClip, SensorTypeObjectAssist,
 }

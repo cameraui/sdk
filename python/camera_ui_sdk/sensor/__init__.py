@@ -165,6 +165,15 @@ from .face_embedder import (
     FaceEmbedderSensor,
     FaceEmbeddingResult,
 )
+from .fan import (
+    FanCapability,
+    FanControl,
+    FanControlLike,
+    FanControlProperties,
+    FanDirection,
+    FanProperty,
+    FanPropertyChangeData,
+)
 from .garage import (
     GarageControl,
     GarageControlLike,
@@ -324,6 +333,13 @@ from .ptz import (
     PTZPropertyChangeData,
     PTZRelativeMove,
 )
+from .scene import (
+    SceneControl,
+    SceneControlLike,
+    SceneControlProperties,
+    SceneProperty,
+    ScenePropertyChangeData,
+)
 from .security_system import (
     SecuritySystem,
     SecuritySystemLike,
@@ -392,6 +408,16 @@ from .thermostat import (
     ThermostatMode,
     ThermostatProperty,
     ThermostatPropertyChangeData,
+)
+from .valve import (
+    ValveCapability,
+    ValveControl,
+    ValveControlLike,
+    ValveControlProperties,
+    ValveKind,
+    ValveProperty,
+    ValvePropertyChangeData,
+    ValveState,
 )
 from .vibration import (
     VibrationProperty,
@@ -512,6 +538,9 @@ __all__ = [
     "GarageControl",
     "CoverControl",
     "ThermostatControl",
+    "FanControl",
+    "ValveControl",
+    "SceneControl",
     "PTZControl",
     "DoorbellTrigger",
     "ButtonTrigger",
@@ -524,6 +553,8 @@ __all__ = [
     "OutletCapability",
     "CoverCapability",
     "ThermostatCapability",
+    "FanCapability",
+    "ValveCapability",
     "SirenCapability",
     "PTZCapability",
     "BatteryCapability",
@@ -533,6 +564,9 @@ __all__ = [
     "CoverKind",
     "ThermostatMode",
     "ThermostatAction",
+    "FanDirection",
+    "ValveState",
+    "ValveKind",
     "SecuritySystemState",
     "AccessAttempt",
     # Property names
@@ -555,6 +589,9 @@ __all__ = [
     "GarageProperty",
     "CoverProperty",
     "ThermostatProperty",
+    "FanProperty",
+    "ValveProperty",
+    "SceneProperty",
     "GasProperty",
     "HeatProperty",
     "HumidityProperty",
@@ -602,6 +639,9 @@ __all__ = [
     "GarageControlProperties",
     "CoverControlProperties",
     "ThermostatControlProperties",
+    "FanControlProperties",
+    "ValveControlProperties",
+    "SceneControlProperties",
     "GasSensorProperties",
     "HeatSensorProperties",
     "HumidityInfoProperties",
@@ -644,6 +684,9 @@ __all__ = [
     "GaragePropertyChangeData",
     "CoverPropertyChangeData",
     "ThermostatPropertyChangeData",
+    "FanPropertyChangeData",
+    "ValvePropertyChangeData",
+    "ScenePropertyChangeData",
     "GasPropertyChangeData",
     "HeatPropertyChangeData",
     "HumidityPropertyChangeData",
@@ -686,6 +729,9 @@ __all__ = [
     "GarageControlLike",
     "CoverControlLike",
     "ThermostatControlLike",
+    "FanControlLike",
+    "ValveControlLike",
+    "SceneControlLike",
     "GasSensorLike",
     "HeatSensorLike",
     "HumidityInfoLike",

@@ -41,6 +41,8 @@ export enum ThermostatCapability {
   Preset = 'preset',
   /** Thermostat has fan modes. */
   FanMode = 'fanMode',
+  /** Thermostat keeps the humidity at a target. */
+  TargetHumidity = 'targetHumidity',
 }
 
 /** Property names of a thermostat. Temperatures are in °C. */
@@ -63,6 +65,8 @@ export enum ThermostatProperty {
   Preset = 'preset',
   /** Active fan mode, one of the choices the device offers. */
   FanMode = 'fanMode',
+  /** Humidity in percent the thermostat keeps. */
+  TargetHumidity = 'targetHumidity',
 }
 
 /** Property values of a thermostat. */
@@ -76,6 +80,7 @@ export interface ThermostatControlProperties {
   [ThermostatProperty.CurrentHumidity]: number | undefined;
   [ThermostatProperty.Preset]: string | undefined;
   [ThermostatProperty.FanMode]: string | undefined;
+  [ThermostatProperty.TargetHumidity]: number;
 }
 
 /** Read-only proxy interface for a thermostat. */
@@ -93,6 +98,7 @@ export interface ThermostatControlLike extends SensorLike {
   getValue(property: ThermostatProperty.CurrentHumidity): number | undefined;
   getValue(property: ThermostatProperty.Preset): string | undefined;
   getValue(property: ThermostatProperty.FanMode): string | undefined;
+  getValue(property: ThermostatProperty.TargetHumidity): number | undefined;
   getValue(property: string): unknown;
 }
 
@@ -137,6 +143,7 @@ export class ThermostatControl<TStorage extends object = Record<string, any>> ex
       [ThermostatProperty.TargetTemperatureLow]: 18,
       [ThermostatProperty.TargetTemperatureHigh]: 24,
       [ThermostatProperty.Mode]: ThermostatMode.Off,
+      [ThermostatProperty.TargetHumidity]: 50,
     });
   }
 
@@ -183,6 +190,11 @@ export class ThermostatControl<TStorage extends object = Record<string, any>> ex
   /** Active fan mode. */
   get fanMode(): string | undefined {
     return this.props.fanMode;
+  }
+
+  /** Target humidity in percent. */
+  get targetHumidity(): number {
+    return this.props.targetHumidity;
   }
 
   /**
@@ -276,6 +288,21 @@ export class ThermostatControl<TStorage extends object = Record<string, any>> ex
   }
 
   /**
+   * Set the target humidity. Override to drive hardware and call
+   * `await super.setTargetHumidity(value)` after success to sync the SDK state.
+   *
+   * @param value - Humidity in percent.
+   *
+   * @example
+   * ```ts
+   * await thermostat.setTargetHumidity(45);
+   * ```
+   */
+  async setTargetHumidity(value: number): Promise<void> {
+    this._writeState({ [ThermostatProperty.TargetHumidity]: Math.max(0, Math.min(100, Math.round(value))) });
+  }
+
+  /**
    * Report the current temperature.
    *
    * @param value - Temperature in °C.
@@ -338,6 +365,9 @@ export class ThermostatControl<TStorage extends object = Record<string, any>> ex
       case ThermostatProperty.FanMode:
         await this.setFanMode(String(value));
         return;
+      case ThermostatProperty.TargetHumidity:
+        await this.setTargetHumidity(Number(value));
+        return;
     }
   }
 }
@@ -385,6 +415,7 @@ export const thermostatMeta = defineSensor({
     [ThermostatProperty.CurrentHumidity]: { type: 'number', min: 0, max: 100, unit: '%' },
     [ThermostatProperty.Preset]: { type: 'string', writable: true },
     [ThermostatProperty.FanMode]: { type: 'string', writable: true },
+    [ThermostatProperty.TargetHumidity]: { type: 'number', min: 0, max: 100, step: 1, unit: '%', writable: true },
   },
   shortcutable: true,
   propertyCapabilities: {
@@ -394,6 +425,7 @@ export const thermostatMeta = defineSensor({
     [ThermostatProperty.CurrentHumidity]: ThermostatCapability.Humidity,
     [ThermostatProperty.Preset]: ThermostatCapability.Preset,
     [ThermostatProperty.FanMode]: ThermostatCapability.FanMode,
+    [ThermostatProperty.TargetHumidity]: ThermostatCapability.TargetHumidity,
   },
   virtual: { properties: { [ThermostatProperty.Mode]: ThermostatMode.Off, [ThermostatProperty.TargetTemperature]: 20 } },
   semantics: {
@@ -408,6 +440,7 @@ export const thermostatMeta = defineSensor({
       mode: ThermostatProperty.Mode,
       action: ThermostatProperty.Action,
       humidity: ThermostatProperty.CurrentHumidity,
+      targetHumidity: ThermostatProperty.TargetHumidity,
     },
   },
 });

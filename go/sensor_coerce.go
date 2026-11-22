@@ -192,6 +192,27 @@ var propertyTypeRegistry = map[SensorType]map[string]coerceFunc{
 		"currentHumidity":       coerceFloat64,
 		"preset":                coerceString,
 		"fanMode":               coerceString,
+		"targetHumidity":        coerceInt,
+	},
+	SensorTypeFan: {
+		"on":          coerceBool,
+		"speed":       coerceInt,
+		"direction":   coerceString,
+		"oscillating": coerceBool,
+		"preset":      coerceString,
+	},
+	SensorTypeValve: {
+		"currentState":    coerceInt,
+		"targetState":     coerceInt,
+		"currentPosition": coerceInt,
+		"targetPosition":  coerceInt,
+		"duration":        coerceInt,
+		"remaining":       coerceInt,
+		"kind":            coerceString,
+		"index":           coerceInt,
+	},
+	SensorTypeScene: {
+		"active": coerceBool,
 	},
 }
 

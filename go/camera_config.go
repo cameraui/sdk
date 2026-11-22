@@ -139,6 +139,12 @@ type PluginAssignments struct {
 	Cover []AssignedPlugin `msgpack:"cover,omitempty" json:"cover,omitempty"`
 	// Thermostat are the assigned thermostat control plugins.
 	Thermostat []AssignedPlugin `msgpack:"thermostat,omitempty" json:"thermostat,omitempty"`
+	// Fan are the assigned fan control plugins.
+	Fan []AssignedPlugin `msgpack:"fan,omitempty" json:"fan,omitempty"`
+	// Valve are the assigned valve control plugins.
+	Valve []AssignedPlugin `msgpack:"valve,omitempty" json:"valve,omitempty"`
+	// Scene are the assigned scene control plugins.
+	Scene []AssignedPlugin `msgpack:"scene,omitempty" json:"scene,omitempty"`
 	// Occupancy are the assigned occupancy sensor plugins.
 	Occupancy []AssignedPlugin `msgpack:"occupancy,omitempty" json:"occupancy,omitempty"`
 	// Smoke are the assigned smoke sensor plugins.

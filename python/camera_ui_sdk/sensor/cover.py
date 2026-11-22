@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import math
 from collections.abc import Mapping
 from enum import IntEnum, StrEnum
 from typing import Any, Generic, Literal, Protocol, overload, runtime_checkable
 
 from typing_extensions import TypedDict, TypeVar
 
+from ..internal.shared_utils import round_percent
 from ..observable import Observable
 from .base import Sensor, SensorCategory, SensorLike, SensorType
 from .device import DeviceInfo
@@ -284,7 +284,7 @@ class CoverControl(Sensor[CoverControlProperties, TStorage, CoverCapability], Ge
             await cover.setTargetPosition(50)
             ```
         """
-        value = _percent(position)
+        value = round_percent(position)
         self._write_state(
             {CoverProperty.TargetPosition.value: value, CoverProperty.CurrentPosition.value: value}
         )
@@ -300,7 +300,7 @@ class CoverControl(Sensor[CoverControlProperties, TStorage, CoverCapability], Ge
             cover.setCurrentPosition(30)
             ```
         """
-        self._write_state({CoverProperty.CurrentPosition.value: _percent(position)})
+        self._write_state({CoverProperty.CurrentPosition.value: round_percent(position)})
 
     async def setTargetTilt(self, tilt: float) -> None:
         """Tilt the slats. Override to drive hardware and call
@@ -314,7 +314,7 @@ class CoverControl(Sensor[CoverControlProperties, TStorage, CoverCapability], Ge
             await cover.setTargetTilt(100)
             ```
         """
-        value = _percent(tilt)
+        value = round_percent(tilt)
         self._write_state({CoverProperty.TargetTilt.value: value, CoverProperty.CurrentTilt.value: value})
 
     def setCurrentTilt(self, tilt: float) -> None:
@@ -328,7 +328,7 @@ class CoverControl(Sensor[CoverControlProperties, TStorage, CoverCapability], Ge
             cover.setCurrentTilt(40)
             ```
         """
-        self._write_state({CoverProperty.CurrentTilt.value: _percent(tilt)})
+        self._write_state({CoverProperty.CurrentTilt.value: round_percent(tilt)})
 
     def setObstructionDetected(self, value: bool) -> None:
         """Report whether something blocks the cover.
@@ -362,7 +362,3 @@ class CoverControl(Sensor[CoverControlProperties, TStorage, CoverCapability], Ge
             await self.setTargetTilt(float(value))
         elif property == CoverProperty.Stop.value and value:
             await self.stop()
-
-
-def _percent(value: float) -> int:
-    return max(0, min(100, math.floor(value + 0.5)))

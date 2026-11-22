@@ -20,6 +20,7 @@ import type { DeviceInfo, SensorDevice, SetDeviceInfoOptions } from './device.js
 import type { CoverCapability, CoverProperty } from './cover.js';
 import type { DisplayCapability, DisplayProperty } from './display.js';
 import type { DoorbellProperty } from './doorbell.js';
+import type { FanCapability, FanProperty } from './fan.js';
 import type { FaceProperty } from './face.js';
 import type { GarageProperty } from './garage.js';
 import type { GasProperty } from './gas.js';
@@ -40,6 +41,7 @@ import type { PowerProperty } from './power.js';
 import type { PresenceProperty } from './presence.js';
 import type { ProblemProperty } from './problem.js';
 import type { PTZCapability, PTZProperty } from './ptz.js';
+import type { SceneProperty } from './scene.js';
 import type { SecuritySystemProperty } from './securitySystem.js';
 import type { SirenCapability, SirenProperty } from './siren.js';
 import type { SmokeProperty } from './smoke.js';
@@ -47,6 +49,7 @@ import type { SwitchProperty } from './switch.js';
 import type { TamperProperty } from './tamper.js';
 import type { TemperatureProperty } from './temperature.js';
 import type { ThermostatCapability, ThermostatProperty } from './thermostat.js';
+import type { ValveCapability, ValveProperty } from './valve.js';
 import type { VibrationProperty } from './vibration.js';
 
 /** Union of all sensor-specific property enums. */
@@ -65,6 +68,7 @@ export type SensorPropertyType =
   | CoverProperty
   | DisplayProperty
   | DoorbellProperty
+  | FanProperty
   | FaceProperty
   | GarageProperty
   | GasProperty
@@ -84,6 +88,7 @@ export type SensorPropertyType =
   | PowerProperty
   | PresenceProperty
   | ProblemProperty
+  | SceneProperty
   | SecuritySystemProperty
   | SirenProperty
   | SmokeProperty
@@ -91,6 +96,7 @@ export type SensorPropertyType =
   | TamperProperty
   | TemperatureProperty
   | ThermostatProperty
+  | ValveProperty
   | VibrationProperty;
 
 /** Union of all sensor-specific capability enums. */
@@ -104,7 +110,9 @@ export type SensorCapability =
   | DisplayCapability
   | OutletCapability
   | CoverCapability
-  | ThermostatCapability;
+  | ThermostatCapability
+  | FanCapability
+  | ValveCapability;
 
 /**
  * The plugin's view of the source behind an adopted sensor. `unavailable`
@@ -208,6 +216,12 @@ export enum SensorType {
   Cover = 'cover',
   /** Thermostat or air conditioner. */
   Thermostat = 'thermostat',
+  /** Ceiling, desk or other fan. */
+  Fan = 'fan',
+  /** Water or gas valve, or an irrigation zone. */
+  Valve = 'valve',
+  /** Scene or script that runs on command. */
+  Scene = 'scene',
   /** Chime that plays tones. */
   Chime = 'chime',
   /** Text display on a device. */

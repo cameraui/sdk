@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from typing import Any
 
 
@@ -45,3 +46,7 @@ def is_equal(first: Any, second: Any, ignore_order: bool = False) -> bool:
         return True
 
     return bool(first == second)
+
+
+def round_percent(value: float) -> int:
+    return max(0, min(100, math.floor(value + 0.5)))

@@ -1,5 +1,7 @@
 package sdk
 
+import "math"
+
 // ThermostatMode is what a thermostat is set to do.
 type ThermostatMode = string
 
@@ -31,11 +33,12 @@ const (
 
 // Optional capabilities of a thermostat.
 const (
-	ThermostatCapabilityRange    = "range"    // Thermostat keeps the temperature inside a range, in heat_cool mode
-	ThermostatCapabilityAction   = "action"   // Thermostat reports what it does right now
-	ThermostatCapabilityHumidity = "humidity" // Thermostat reports the humidity
-	ThermostatCapabilityPreset   = "preset"   // Thermostat has presets, such as eco or away
-	ThermostatCapabilityFanMode  = "fanMode"  // Thermostat has fan modes
+	ThermostatCapabilityRange          = "range"          // Thermostat keeps the temperature inside a range, in heat_cool mode
+	ThermostatCapabilityAction         = "action"         // Thermostat reports what it does right now
+	ThermostatCapabilityHumidity       = "humidity"       // Thermostat reports the humidity
+	ThermostatCapabilityPreset         = "preset"         // Thermostat has presets, such as eco or away
+	ThermostatCapabilityFanMode        = "fanMode"        // Thermostat has fan modes
+	ThermostatCapabilityTargetHumidity = "targetHumidity" // Thermostat keeps the humidity at a target
 )
 
 // ThermostatProperty is a property name of a thermostat. Temperatures are in °C.
@@ -52,6 +55,7 @@ const (
 	ThermostatPropertyCurrentHumidity       ThermostatProperty = "currentHumidity"       // Current humidity in percent
 	ThermostatPropertyPreset                ThermostatProperty = "preset"                // Active preset, one of the choices the device offers
 	ThermostatPropertyFanMode               ThermostatProperty = "fanMode"               // Active fan mode, one of the choices the device offers
+	ThermostatPropertyTargetHumidity        ThermostatProperty = "targetHumidity"        // Humidity in percent the thermostat keeps
 )
 
 type thermostatSetters interface {
@@ -61,6 +65,7 @@ type thermostatSetters interface {
 	SetMode(value ThermostatMode)
 	SetPreset(value string)
 	SetFanMode(value string)
+	SetTargetHumidity(value int)
 }
 
 // ThermostatControl is a thermostat or air conditioner. Temperatures are in
@@ -84,6 +89,7 @@ func NewThermostatControl(name string, opts ...SensorOption) *ThermostatControl 
 		ThermostatPropertyTargetTemperatureLow:  18.0,
 		ThermostatPropertyTargetTemperatureHigh: 24.0,
 		ThermostatPropertyMode:                  ThermostatModeOff,
+		ThermostatPropertyTargetHumidity:        50,
 	})
 	return s
 }
@@ -146,6 +152,12 @@ func (s *ThermostatControl) GetFanMode() string {
 	return v
 }
 
+// GetTargetHumidity returns the target humidity in percent.
+func (s *ThermostatControl) GetTargetHumidity() int {
+	v, _ := s.GetValue(ThermostatPropertyTargetHumidity).(int)
+	return v
+}
+
 // SetTargetTemperature sets the target temperature in °C.
 //
 // Example:
@@ -198,6 +210,15 @@ func (s *ThermostatControl) SetPreset(value string) {
 //	thermostat.SetFanMode("low")
 func (s *ThermostatControl) SetFanMode(value string) {
 	s.writeState(map[string]any{ThermostatPropertyFanMode: value})
+}
+
+// SetTargetHumidity sets the target humidity in percent.
+//
+// Example:
+//
+//	thermostat.SetTargetHumidity(45)
+func (s *ThermostatControl) SetTargetHumidity(value int) {
+	s.writeState(map[string]any{ThermostatPropertyTargetHumidity: max(0, min(100, value))})
 }
 
 // SetCurrentTemperature reports the current temperature in °C.
@@ -254,6 +275,10 @@ func (s *ThermostatControl) UpdateValue(property string, value any) error {
 	case ThermostatPropertyFanMode:
 		if v, ok := value.(string); ok {
 			setters.SetFanMode(v)
+		}
+	case ThermostatPropertyTargetHumidity:
+		if v, ok := toFloat64(value); ok {
+			setters.SetTargetHumidity(int(math.Round(v)))
 		}
 	}
 	return nil

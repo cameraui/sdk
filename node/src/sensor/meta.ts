@@ -101,6 +101,12 @@ export enum SensorDomain {
   Cover = 'cover',
   /** Heating and cooling to a target temperature. */
   Climate = 'climate',
+  /** Switchable fan with optional speed, direction and swing. */
+  Fan = 'fan',
+  /** Opening and closing a flow, like a water valve. */
+  Valve = 'valve',
+  /** Runs on command, no state of its own. */
+  Scene = 'scene',
   /** Armable alarm with several arm modes. */
   Alarm = 'alarm',
   /** Momentary happening of a kind, such as a button press, empty between happenings. */
@@ -143,6 +149,18 @@ export interface SensorClimate {
   readonly action?: string;
   /** Name of the property that carries the current humidity. */
   readonly humidity?: string;
+  /** Name of the property that carries the target humidity. */
+  readonly targetHumidity?: string;
+}
+
+/** Properties of a fan, named in {@link SensorSemantics.fan}. */
+export interface SensorFan {
+  /** Name of the property that carries the speed in percent. */
+  readonly speed?: string;
+  /** Name of the property that carries the direction. */
+  readonly direction?: string;
+  /** Name of the property that says whether the fan swings. */
+  readonly oscillating?: string;
 }
 
 /**
@@ -204,7 +222,7 @@ export interface SensorSemantics {
     /** Name of the property that carries the value. */
     readonly property: string;
   };
-  /** Properties carrying a cover's position, 0 closed to 100 open. */
+  /** Properties carrying the position of a cover or valve, 0 closed to 100 open. */
   readonly position?: SensorPosition;
   /** Properties carrying the tilt of a cover's slats, 0 closed to 100 open. */
   readonly tilt?: SensorPosition;
@@ -215,6 +233,15 @@ export interface SensorSemantics {
   };
   /** Properties of a thermostat in °C, the optional ones only when the sensor offers them. */
   readonly climate?: SensorClimate;
+  /** Properties of a fan, each only when the sensor offers it. */
+  readonly fan?: SensorFan;
+  /** Properties of a valve that closes by itself after a set time, in seconds. */
+  readonly duration?: {
+    /** Name of the property that carries how long the valve stays open. */
+    readonly property: string;
+    /** Name of the property that carries the time left. */
+    readonly remaining: string;
+  };
   /** Readings next to the state, each exported as a measurement of its own. */
   readonly readings?: readonly SensorReading[];
   /**
