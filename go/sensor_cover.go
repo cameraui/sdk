@@ -250,7 +250,7 @@ func (s *CoverControl) UpdateValue(property string, value any) error {
 			setters.SetTargetTilt(int(math.Round(v)))
 		}
 	case CoverPropertyStop:
-		if b, ok := value.(bool); ok && b {
+		if isTruthy(value) {
 			setters.Stop()
 		}
 	}

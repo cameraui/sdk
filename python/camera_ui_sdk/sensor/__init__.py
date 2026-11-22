@@ -10,6 +10,15 @@ from .access import (
     AccessTriggerLike,
     AccessTriggerProperties,
 )
+from .air_purifier import (
+    AirPurifierCapability,
+    AirPurifierControl,
+    AirPurifierControlLike,
+    AirPurifierControlProperties,
+    AirPurifierProperty,
+    AirPurifierPropertyChangeData,
+    AirPurifierState,
+)
 from .air_quality import (
     AirQualityCapability,
     AirQualityInfo,
@@ -436,6 +445,15 @@ from .vibration import (
     VibrationSensorLike,
     VibrationSensorProperties,
 )
+from .water_heater import (
+    WaterHeaterCapability,
+    WaterHeaterControl,
+    WaterHeaterControlLike,
+    WaterHeaterControlProperties,
+    WaterHeaterMode,
+    WaterHeaterProperty,
+    WaterHeaterPropertyChangeData,
+)
 
 if TYPE_CHECKING:
     from ..internal.sensor_rpc import SensorCapability, SensorPropertyType  # noqa: F401
@@ -552,6 +570,8 @@ __all__ = [
     "ValveControl",
     "SceneControl",
     "HumidifierControl",
+    "AirPurifierControl",
+    "WaterHeaterControl",
     "PTZControl",
     "DoorbellTrigger",
     "ButtonTrigger",
@@ -567,6 +587,8 @@ __all__ = [
     "FanCapability",
     "ValveCapability",
     "HumidifierCapability",
+    "AirPurifierCapability",
+    "WaterHeaterCapability",
     "SirenCapability",
     "PTZCapability",
     "BatteryCapability",
@@ -581,6 +603,8 @@ __all__ = [
     "ValveKind",
     "HumidifierAction",
     "HumidifierKind",
+    "AirPurifierState",
+    "WaterHeaterMode",
     "SecuritySystemState",
     "AccessAttempt",
     # Property names
@@ -607,6 +631,8 @@ __all__ = [
     "ValveProperty",
     "SceneProperty",
     "HumidifierProperty",
+    "AirPurifierProperty",
+    "WaterHeaterProperty",
     "GasProperty",
     "HeatProperty",
     "HumidityProperty",
@@ -658,6 +684,8 @@ __all__ = [
     "ValveControlProperties",
     "SceneControlProperties",
     "HumidifierControlProperties",
+    "AirPurifierControlProperties",
+    "WaterHeaterControlProperties",
     "GasSensorProperties",
     "HeatSensorProperties",
     "HumidityInfoProperties",
@@ -704,6 +732,8 @@ __all__ = [
     "ValvePropertyChangeData",
     "ScenePropertyChangeData",
     "HumidifierPropertyChangeData",
+    "AirPurifierPropertyChangeData",
+    "WaterHeaterPropertyChangeData",
     "GasPropertyChangeData",
     "HeatPropertyChangeData",
     "HumidityPropertyChangeData",
@@ -750,6 +780,8 @@ __all__ = [
     "ValveControlLike",
     "SceneControlLike",
     "HumidifierControlLike",
+    "AirPurifierControlLike",
+    "WaterHeaterControlLike",
     "GasSensorLike",
     "HeatSensorLike",
     "HumidityInfoLike",

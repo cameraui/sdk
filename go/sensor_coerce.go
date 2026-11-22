@@ -222,6 +222,22 @@ var propertyTypeRegistry = map[SensorType]map[string]coerceFunc{
 		"mode":            coerceString,
 		"kind":            coerceString,
 	},
+	SensorTypeAirPurifier: {
+		"on":           coerceBool,
+		"state":        coerceString,
+		"speed":        coerceInt,
+		"auto":         coerceBool,
+		"preset":       coerceString,
+		"childLock":    coerceBool,
+		"filterLife":   coerceInt,
+		"filterChange": coerceBool,
+	},
+	SensorTypeWaterHeater: {
+		"currentTemperature": coerceFloat64,
+		"targetTemperature":  coerceFloat64,
+		"mode":               coerceString,
+		"away":               coerceBool,
+	},
 }
 
 type coerceFunc func(raw any) any

@@ -1,4 +1,5 @@
 import { accessMeta } from './access.js';
+import { airPurifierMeta } from './airPurifier.js';
 import { airQualityMeta } from './airQuality.js';
 import { audioMeta } from './audio.js';
 import { batteryMeta } from './battery.js';
@@ -48,6 +49,7 @@ import { temperatureMeta } from './temperature.js';
 import { thermostatMeta } from './thermostat.js';
 import { valveMeta } from './valve.js';
 import { vibrationMeta } from './vibration.js';
+import { waterHeaterMeta } from './waterHeater.js';
 
 import type { SensorType } from './base.js';
 import type { SensorMeta } from './meta.js';
@@ -55,6 +57,7 @@ import type { SensorMeta } from './meta.js';
 /** Every sensor's metadata. A new sensor type adds its meta here. */
 export const SENSOR_META = [
   accessMeta,
+  airPurifierMeta,
   airQualityMeta,
   audioMeta,
   batteryMeta,
@@ -104,6 +107,7 @@ export const SENSOR_META = [
   thermostatMeta,
   valveMeta,
   vibrationMeta,
+  waterHeaterMeta,
 ] as const satisfies readonly SensorMeta[];
 
 /** Union of every declared assignment key, derived from the registry. */

@@ -109,6 +109,10 @@ export enum SensorDomain {
   Scene = 'scene',
   /** Works toward a target humidity. */
   Humidifier = 'humidifier',
+  /** Switchable air purifier with optional speed. */
+  AirPurifier = 'airPurifier',
+  /** Heats water to a target temperature. */
+  WaterHeater = 'waterHeater',
   /** Armable alarm with several arm modes. */
   Alarm = 'alarm',
   /** Momentary happening of a kind, such as a button press, empty between happenings. */
@@ -245,9 +249,9 @@ export interface SensorSemantics {
     /** Name of the property that carries the command. */
     readonly property: string;
   };
-  /** Properties of a thermostat in °C, the optional ones only when the sensor offers them. */
+  /** Properties of a thermostat or water heater in °C, the optional ones only when the sensor offers them. */
   readonly climate?: SensorClimate;
-  /** Properties of a fan, each only when the sensor offers it. */
+  /** Properties of a fan or an air purifier, each only when the sensor offers it. */
   readonly fan?: SensorFan;
   /** Properties of a humidifier, the optional ones only when the sensor offers them. */
   readonly humidifier?: SensorHumidifier;
@@ -266,6 +270,11 @@ export interface SensorSemantics {
    * property specs it offers.
    */
   readonly choices?: readonly string[];
+  /**
+   * Writable on/off settings besides the command, such as a child lock, each
+   * exported as a switch of its own. Only those the sensor offers.
+   */
+  readonly toggles?: readonly string[];
 }
 
 /**

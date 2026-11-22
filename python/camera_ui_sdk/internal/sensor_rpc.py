@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, NotRequired, TypeAlias, TypedDict
 
 if TYPE_CHECKING:
     from ..sensor.access import AccessProperty
+    from ..sensor.air_purifier import AirPurifierCapability, AirPurifierProperty
     from ..sensor.air_quality import AirQualityCapability, AirQualityProperty
     from ..sensor.audio import AudioProperty
     from ..sensor.base import SensorCategory, SensorSourceState, SensorType
@@ -53,9 +54,11 @@ if TYPE_CHECKING:
     from ..sensor.thermostat import ThermostatCapability, ThermostatProperty
     from ..sensor.valve import ValveCapability, ValveProperty
     from ..sensor.vibration import VibrationProperty
+    from ..sensor.water_heater import WaterHeaterCapability, WaterHeaterProperty
 
     SensorPropertyType: TypeAlias = (
         AccessProperty
+        | AirPurifierProperty
         | AirQualityProperty
         | AudioProperty
         | BatteryProperty
@@ -100,6 +103,7 @@ if TYPE_CHECKING:
         | ThermostatProperty
         | ValveProperty
         | VibrationProperty
+        | WaterHeaterProperty
     )
 
     SensorCapability: TypeAlias = (
@@ -116,6 +120,8 @@ if TYPE_CHECKING:
         | FanCapability
         | ValveCapability
         | HumidifierCapability
+        | AirPurifierCapability
+        | WaterHeaterCapability
     )
 
 

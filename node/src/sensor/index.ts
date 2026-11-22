@@ -1,4 +1,5 @@
 export * from './access.js';
+export * from './airPurifier.js';
 export * from './airQuality.js';
 export * from './audio.js';
 export * from './base.js';
@@ -56,3 +57,4 @@ export * from './temperature.js';
 export * from './thermostat.js';
 export * from './valve.js';
 export * from './vibration.js';
+export * from './waterHeater.js';

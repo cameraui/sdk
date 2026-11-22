@@ -5,6 +5,7 @@ import type { CapabilityUpdateFn, PropertyUpdateFn, SensorDeviceState, SensorJSO
 import type { Observable } from '../observable/index.js';
 import type { DeviceStorage, JsonSchema } from '../storage/index.js';
 import type { AccessProperty } from './access.js';
+import type { AirPurifierCapability, AirPurifierProperty } from './airPurifier.js';
 import type { AirQualityCapability, AirQualityProperty } from './airQuality.js';
 import type { AudioProperty } from './audio.js';
 import type { BatteryCapability, BatteryProperty } from './battery.js';
@@ -52,10 +53,12 @@ import type { TemperatureProperty } from './temperature.js';
 import type { ThermostatCapability, ThermostatProperty } from './thermostat.js';
 import type { ValveCapability, ValveProperty } from './valve.js';
 import type { VibrationProperty } from './vibration.js';
+import type { WaterHeaterCapability, WaterHeaterProperty } from './waterHeater.js';
 
 /** Union of all sensor-specific property enums. */
 export type SensorPropertyType =
   | AccessProperty
+  | AirPurifierProperty
   | AirQualityProperty
   | AudioProperty
   | BatteryProperty
@@ -99,7 +102,8 @@ export type SensorPropertyType =
   | TemperatureProperty
   | ThermostatProperty
   | ValveProperty
-  | VibrationProperty;
+  | VibrationProperty
+  | WaterHeaterProperty;
 
 /** Union of all sensor-specific capability enums. */
 export type SensorCapability =
@@ -115,7 +119,9 @@ export type SensorCapability =
   | ThermostatCapability
   | FanCapability
   | ValveCapability
-  | HumidifierCapability;
+  | HumidifierCapability
+  | AirPurifierCapability
+  | WaterHeaterCapability;
 
 /**
  * The plugin's view of the source behind an adopted sensor. `unavailable`
@@ -227,6 +233,10 @@ export enum SensorType {
   Scene = 'scene',
   /** Humidifier or dehumidifier. */
   Humidifier = 'humidifier',
+  /** Air purifier. */
+  AirPurifier = 'airPurifier',
+  /** Water heater or boiler. */
+  WaterHeater = 'waterHeater',
   /** Chime that plays tones. */
   Chime = 'chime',
   /** Text display on a device. */

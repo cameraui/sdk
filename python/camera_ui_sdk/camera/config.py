@@ -227,6 +227,10 @@ class PluginAssignments(TypedDict, total=False):
     """Scene control plugins."""
     humidifier: list[AssignedPlugin]
     """Humidifier control plugins."""
+    airPurifier: list[AssignedPlugin]
+    """Air purifier control plugins."""
+    waterHeater: list[AssignedPlugin]
+    """Water heater control plugins."""
     contact: list[AssignedPlugin]
     """Contact sensor plugins."""
     occupancy: list[AssignedPlugin]

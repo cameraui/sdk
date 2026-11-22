@@ -300,7 +300,8 @@ func toStringSlice(v any) []string {
 func categoryForSensorType(st SensorType) SensorCategory {
 	switch st {
 	case SensorTypeLight, SensorTypeSiren, SensorTypeSwitch, SensorTypeOutlet, SensorTypeLock, SensorTypeGarage, SensorTypeCover, SensorTypeThermostat,
-		SensorTypeFan, SensorTypeValve, SensorTypeScene, SensorTypeHumidifier, SensorTypePTZ, SensorTypeSecuritySystem, SensorTypeChime, SensorTypeDisplay:
+		SensorTypeFan, SensorTypeValve, SensorTypeScene, SensorTypeHumidifier, SensorTypeAirPurifier, SensorTypeWaterHeater,
+		SensorTypePTZ, SensorTypeSecuritySystem, SensorTypeChime, SensorTypeDisplay:
 		return SensorCategoryControl
 	case SensorTypeDoorbell, SensorTypeButton, SensorTypeAccess:
 		return SensorCategoryTrigger

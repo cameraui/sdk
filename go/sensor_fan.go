@@ -172,9 +172,7 @@ func (s *FanControl) UpdateValue(property string, value any) error {
 			setters.SetDirection(v)
 		}
 	case FanPropertyOscillating:
-		if b, ok := value.(bool); ok {
-			setters.SetOscillating(b)
-		}
+		setters.SetOscillating(isTruthy(value))
 	case FanPropertyPreset:
 		if v, ok := value.(string); ok {
 			setters.SetPreset(v)
