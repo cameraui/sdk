@@ -14,10 +14,18 @@ from camera_ui_sdk import (
     AirQualityProperty,
     ButtonPress,
     ButtonTrigger,
+    LawnMowerCommand,
+    LawnMowerControl,
+    LawnMowerProperty,
+    VacuumActivity,
+    VacuumCommand,
+    VacuumControl,
+    VacuumProperty,
 )
+from camera_ui_sdk.sensor.robot import COMMAND_AUTO_RESET_MS
 
 
-def recorded(sensor: ButtonTrigger[Any] | AccessTrigger[Any]) -> list[dict[str, Any]]:
+def recorded(sensor: ButtonTrigger[Any] | AccessTrigger[Any] | VacuumControl[Any]) -> list[dict[str, Any]]:
     deltas: list[dict[str, Any]] = []
     sensor._init(deltas.append)  # pyright: ignore[reportPrivateUsage]
     return deltas
@@ -27,6 +35,16 @@ class AirQuality(AirQualityInfo[dict[str, Any]]):
     def __init__(self, capabilities: list[AirQualityCapability]) -> None:
         super().__init__()
         self.capabilities = capabilities
+
+
+class Vacuum(VacuumControl[dict[str, Any]]):
+    def __init__(self) -> None:
+        super().__init__()
+        self.docked = 0
+
+    async def dock(self) -> None:
+        self.docked += 1
+        await super().dock()
 
 
 class TestButton:
@@ -76,3 +94,39 @@ class TestAirQuality:
         sensor.setReading(AirQualityProperty.Pm10, float("nan"))
         assert sensor.level == AirQualityLevel.Inferior
         assert sensor.getValue(AirQualityProperty.Pm10) == 0
+
+
+class TestRobots:
+    @pytest.mark.asyncio
+    async def test_runs_the_method_of_a_written_command_and_reads_empty_again_after_the_reset_time(
+        self,
+    ) -> None:
+        vacuum = Vacuum()
+        deltas = recorded(vacuum)
+        await vacuum.updateValue(VacuumProperty.Command, VacuumCommand.Dock)
+        await vacuum.updateValue(VacuumProperty.Command, VacuumCommand.Dock)
+        assert vacuum.docked == 2
+        assert vacuum.getValue(VacuumProperty.Command) == VacuumCommand.Dock
+        assert deltas == [{"command": "dock"}, {"command": ""}, {"command": "dock"}]
+
+        timer = vacuum._command_reset_timer  # pyright: ignore[reportPrivateUsage]
+        assert timer is not None
+        assert timer.interval == COMMAND_AUTO_RESET_MS / 1000
+        timer.cancel()
+        timer.function()
+        assert vacuum.getValue(VacuumProperty.Command) == ""
+        vacuum._cleanup()  # pyright: ignore[reportPrivateUsage]
+
+    @pytest.mark.asyncio
+    async def test_keeps_the_activity_a_plugin_reports_and_the_fan_speed_it_was_set_to(self) -> None:
+        vacuum = VacuumControl()
+        assert vacuum.activity is None
+        await vacuum.updateValue(VacuumProperty.FanSpeed, "turbo")
+        vacuum.setActivity(VacuumActivity.Cleaning)
+        assert (vacuum.activity, vacuum.fanSpeed) == ("cleaning", "turbo")
+        vacuum._cleanup()  # pyright: ignore[reportPrivateUsage]
+
+        mower = LawnMowerControl()
+        await mower.updateValue(LawnMowerProperty.Command, LawnMowerCommand.Start)
+        assert mower.getValue(LawnMowerProperty.Command) == LawnMowerCommand.Start
+        mower._cleanup()  # pyright: ignore[reportPrivateUsage]

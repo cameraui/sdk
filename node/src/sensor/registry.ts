@@ -24,6 +24,7 @@ import { heatMeta } from './heat.js';
 import { humidifierMeta } from './humidifier.js';
 import { humidityMeta } from './humidity.js';
 import { illuminanceMeta } from './illuminance.js';
+import { lawnMowerMeta } from './lawnMower.js';
 import { leakMeta } from './leak.js';
 import { licensePlateMeta } from './licensePlate.js';
 import { lightMeta } from './light.js';
@@ -47,6 +48,7 @@ import { switchMeta } from './switch.js';
 import { tamperMeta } from './tamper.js';
 import { temperatureMeta } from './temperature.js';
 import { thermostatMeta } from './thermostat.js';
+import { vacuumMeta } from './vacuum.js';
 import { valveMeta } from './valve.js';
 import { vibrationMeta } from './vibration.js';
 import { waterHeaterMeta } from './waterHeater.js';
@@ -82,6 +84,7 @@ export const SENSOR_META = [
   humidifierMeta,
   humidityMeta,
   illuminanceMeta,
+  lawnMowerMeta,
   leakMeta,
   licensePlateMeta,
   lightMeta,
@@ -105,6 +108,7 @@ export const SENSOR_META = [
   tamperMeta,
   temperatureMeta,
   thermostatMeta,
+  vacuumMeta,
   valveMeta,
   vibrationMeta,
   waterHeaterMeta,

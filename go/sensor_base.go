@@ -64,6 +64,8 @@ const (
 	SensorTypeHumidifier     SensorType = "humidifier"     // Humidifier or dehumidifier
 	SensorTypeAirPurifier    SensorType = "airPurifier"    // Air purifier
 	SensorTypeWaterHeater    SensorType = "waterHeater"    // Water heater or boiler
+	SensorTypeVacuum         SensorType = "vacuum"         // Robot vacuum
+	SensorTypeLawnMower      SensorType = "lawnMower"      // Robot lawn mower
 	SensorTypeChime          SensorType = "chime"          // Chime that plays tones
 	SensorTypeDisplay        SensorType = "display"        // Text display on a device
 	SensorTypeBattery        SensorType = "battery"        // Battery level and charging state

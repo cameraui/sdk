@@ -238,6 +238,15 @@ var propertyTypeRegistry = map[SensorType]map[string]coerceFunc{
 		"mode":               coerceString,
 		"away":               coerceBool,
 	},
+	SensorTypeVacuum: {
+		"activity": coerceString,
+		"command":  coerceString,
+		"fanSpeed": coerceString,
+	},
+	SensorTypeLawnMower: {
+		"activity": coerceString,
+		"command":  coerceString,
+	},
 }
 
 type coerceFunc func(raw any) any

@@ -301,6 +301,7 @@ func categoryForSensorType(st SensorType) SensorCategory {
 	switch st {
 	case SensorTypeLight, SensorTypeSiren, SensorTypeSwitch, SensorTypeOutlet, SensorTypeLock, SensorTypeGarage, SensorTypeCover, SensorTypeThermostat,
 		SensorTypeFan, SensorTypeValve, SensorTypeScene, SensorTypeHumidifier, SensorTypeAirPurifier, SensorTypeWaterHeater,
+		SensorTypeVacuum, SensorTypeLawnMower,
 		SensorTypePTZ, SensorTypeSecuritySystem, SensorTypeChime, SensorTypeDisplay:
 		return SensorCategoryControl
 	case SensorTypeDoorbell, SensorTypeButton, SensorTypeAccess:

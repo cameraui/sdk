@@ -113,6 +113,10 @@ export enum SensorDomain {
   AirPurifier = 'airPurifier',
   /** Heats water to a target temperature. */
   WaterHeater = 'waterHeater',
+  /** Robot that cleans floors on command. */
+  Vacuum = 'vacuum',
+  /** Robot that mows the lawn on command. */
+  LawnMower = 'lawnMower',
   /** Armable alarm with several arm modes. */
   Alarm = 'alarm',
   /** Momentary happening of a kind, such as a button press, empty between happenings. */
@@ -275,6 +279,17 @@ export interface SensorSemantics {
    * exported as a switch of its own. Only those the sensor offers.
    */
   readonly toggles?: readonly string[];
+  /**
+   * One-off commands a robot such as a vacuum takes through its command
+   * property, name to wire value. The host narrows it to the commands the
+   * sensor offers.
+   */
+  readonly commands?: Readonly<Record<string, string>>;
+  /** Property carrying a vacuum's suction level, its choices are the levels the device offers. */
+  readonly fanSpeed?: {
+    /** Name of the property that carries the value. */
+    readonly property: string;
+  };
 }
 
 /**

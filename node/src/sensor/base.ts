@@ -30,6 +30,7 @@ import type { HeatProperty } from './heat.js';
 import type { HumidifierCapability, HumidifierProperty } from './humidifier.js';
 import type { HumidityProperty } from './humidity.js';
 import type { IlluminanceProperty } from './illuminance.js';
+import type { LawnMowerProperty } from './lawnMower.js';
 import type { LeakProperty } from './leak.js';
 import type { LicensePlateProperty } from './licensePlate.js';
 import type { LightCapability, LightProperty } from './light.js';
@@ -51,6 +52,7 @@ import type { SwitchProperty } from './switch.js';
 import type { TamperProperty } from './tamper.js';
 import type { TemperatureProperty } from './temperature.js';
 import type { ThermostatCapability, ThermostatProperty } from './thermostat.js';
+import type { VacuumCapability, VacuumProperty } from './vacuum.js';
 import type { ValveCapability, ValveProperty } from './valve.js';
 import type { VibrationProperty } from './vibration.js';
 import type { WaterHeaterCapability, WaterHeaterProperty } from './waterHeater.js';
@@ -81,6 +83,7 @@ export type SensorPropertyType =
   | HumidifierProperty
   | HumidityProperty
   | IlluminanceProperty
+  | LawnMowerProperty
   | LeakProperty
   | LicensePlateProperty
   | LightProperty
@@ -101,6 +104,7 @@ export type SensorPropertyType =
   | TamperProperty
   | TemperatureProperty
   | ThermostatProperty
+  | VacuumProperty
   | ValveProperty
   | VibrationProperty
   | WaterHeaterProperty;
@@ -121,7 +125,8 @@ export type SensorCapability =
   | ValveCapability
   | HumidifierCapability
   | AirPurifierCapability
-  | WaterHeaterCapability;
+  | WaterHeaterCapability
+  | VacuumCapability;
 
 /**
  * The plugin's view of the source behind an adopted sensor. `unavailable`
@@ -237,6 +242,10 @@ export enum SensorType {
   AirPurifier = 'airPurifier',
   /** Water heater or boiler. */
   WaterHeater = 'waterHeater',
+  /** Robot vacuum. */
+  Vacuum = 'vacuum',
+  /** Robot lawn mower. */
+  LawnMower = 'lawnMower',
   /** Chime that plays tones. */
   Chime = 'chime',
   /** Text display on a device. */

@@ -151,6 +151,10 @@ type PluginAssignments struct {
 	AirPurifier []AssignedPlugin `msgpack:"airPurifier,omitempty" json:"airPurifier,omitempty"`
 	// WaterHeater are the assigned water heater control plugins.
 	WaterHeater []AssignedPlugin `msgpack:"waterHeater,omitempty" json:"waterHeater,omitempty"`
+	// Vacuum are the assigned vacuum control plugins.
+	Vacuum []AssignedPlugin `msgpack:"vacuum,omitempty" json:"vacuum,omitempty"`
+	// LawnMower are the assigned lawn mower control plugins.
+	LawnMower []AssignedPlugin `msgpack:"lawnMower,omitempty" json:"lawnMower,omitempty"`
 	// Occupancy are the assigned occupancy sensor plugins.
 	Occupancy []AssignedPlugin `msgpack:"occupancy,omitempty" json:"occupancy,omitempty"`
 	// Smoke are the assigned smoke sensor plugins.

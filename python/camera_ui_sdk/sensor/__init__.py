@@ -236,6 +236,15 @@ from .illuminance import (
     IlluminanceProperty,
     IlluminancePropertyChangeData,
 )
+from .lawn_mower import (
+    LawnMowerActivity,
+    LawnMowerCommand,
+    LawnMowerControl,
+    LawnMowerControlLike,
+    LawnMowerControlProperties,
+    LawnMowerProperty,
+    LawnMowerPropertyChangeData,
+)
 from .leak import (
     LeakProperty,
     LeakPropertyChangeData,
@@ -352,6 +361,10 @@ from .ptz import (
     PTZPropertyChangeData,
     PTZRelativeMove,
 )
+from .robot import (
+    RobotControl,
+    RobotControlProperties,
+)
 from .scene import (
     SceneControl,
     SceneControlLike,
@@ -428,6 +441,16 @@ from .thermostat import (
     ThermostatProperty,
     ThermostatPropertyChangeData,
 )
+from .vacuum import (
+    VacuumActivity,
+    VacuumCapability,
+    VacuumCommand,
+    VacuumControl,
+    VacuumControlLike,
+    VacuumControlProperties,
+    VacuumProperty,
+    VacuumPropertyChangeData,
+)
 from .valve import (
     ValveCapability,
     ValveControl,
@@ -463,6 +486,7 @@ __all__ = [
     "SensorLike",
     "BinarySensor",
     "MeasurementInfo",
+    "RobotControl",
     "SensorType",
     "SensorCategory",
     "SensorPropertyChangeData",
@@ -572,6 +596,8 @@ __all__ = [
     "HumidifierControl",
     "AirPurifierControl",
     "WaterHeaterControl",
+    "VacuumControl",
+    "LawnMowerControl",
     "PTZControl",
     "DoorbellTrigger",
     "ButtonTrigger",
@@ -589,6 +615,7 @@ __all__ = [
     "HumidifierCapability",
     "AirPurifierCapability",
     "WaterHeaterCapability",
+    "VacuumCapability",
     "SirenCapability",
     "PTZCapability",
     "BatteryCapability",
@@ -605,6 +632,10 @@ __all__ = [
     "HumidifierKind",
     "AirPurifierState",
     "WaterHeaterMode",
+    "VacuumActivity",
+    "VacuumCommand",
+    "LawnMowerActivity",
+    "LawnMowerCommand",
     "SecuritySystemState",
     "AccessAttempt",
     # Property names
@@ -633,6 +664,8 @@ __all__ = [
     "HumidifierProperty",
     "AirPurifierProperty",
     "WaterHeaterProperty",
+    "VacuumProperty",
+    "LawnMowerProperty",
     "GasProperty",
     "HeatProperty",
     "HumidityProperty",
@@ -660,6 +693,7 @@ __all__ = [
     # Property values
     "BinarySensorProperties",
     "MeasurementInfoProperties",
+    "RobotControlProperties",
     "AudioSensorProperties",
     "BatteryInfoProperties",
     "CarbonDioxideInfoProperties",
@@ -686,6 +720,8 @@ __all__ = [
     "HumidifierControlProperties",
     "AirPurifierControlProperties",
     "WaterHeaterControlProperties",
+    "VacuumControlProperties",
+    "LawnMowerControlProperties",
     "GasSensorProperties",
     "HeatSensorProperties",
     "HumidityInfoProperties",
@@ -734,6 +770,8 @@ __all__ = [
     "HumidifierPropertyChangeData",
     "AirPurifierPropertyChangeData",
     "WaterHeaterPropertyChangeData",
+    "VacuumPropertyChangeData",
+    "LawnMowerPropertyChangeData",
     "GasPropertyChangeData",
     "HeatPropertyChangeData",
     "HumidityPropertyChangeData",
@@ -782,6 +820,8 @@ __all__ = [
     "HumidifierControlLike",
     "AirPurifierControlLike",
     "WaterHeaterControlLike",
+    "VacuumControlLike",
+    "LawnMowerControlLike",
     "GasSensorLike",
     "HeatSensorLike",
     "HumidityInfoLike",

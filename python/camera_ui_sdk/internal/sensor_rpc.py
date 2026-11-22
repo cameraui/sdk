@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from ..sensor.humidifier import HumidifierCapability, HumidifierProperty
     from ..sensor.humidity import HumidityProperty
     from ..sensor.illuminance import IlluminanceProperty
+    from ..sensor.lawn_mower import LawnMowerProperty
     from ..sensor.leak import LeakProperty
     from ..sensor.license_plate import LicensePlateProperty
     from ..sensor.light import LightCapability, LightProperty
@@ -52,6 +53,7 @@ if TYPE_CHECKING:
     from ..sensor.tamper import TamperProperty
     from ..sensor.temperature import TemperatureProperty
     from ..sensor.thermostat import ThermostatCapability, ThermostatProperty
+    from ..sensor.vacuum import VacuumCapability, VacuumProperty
     from ..sensor.valve import ValveCapability, ValveProperty
     from ..sensor.vibration import VibrationProperty
     from ..sensor.water_heater import WaterHeaterCapability, WaterHeaterProperty
@@ -81,6 +83,7 @@ if TYPE_CHECKING:
         | HumidifierProperty
         | HumidityProperty
         | IlluminanceProperty
+        | LawnMowerProperty
         | LeakProperty
         | LicensePlateProperty
         | LightProperty
@@ -101,6 +104,7 @@ if TYPE_CHECKING:
         | TamperProperty
         | TemperatureProperty
         | ThermostatProperty
+        | VacuumProperty
         | ValveProperty
         | VibrationProperty
         | WaterHeaterProperty
@@ -122,6 +126,7 @@ if TYPE_CHECKING:
         | HumidifierCapability
         | AirPurifierCapability
         | WaterHeaterCapability
+        | VacuumCapability
     )
 
 

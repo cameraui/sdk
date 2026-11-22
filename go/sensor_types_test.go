@@ -4,7 +4,18 @@ import (
 	"math"
 	"reflect"
 	"testing"
+	"time"
 )
+
+type shadowVacuum struct {
+	*VacuumControl
+	docked int
+}
+
+func (s *shadowVacuum) Dock() {
+	s.docked++
+	s.VacuumControl.Dock()
+}
 
 func TestButtonOffersOnlyItsPresses(t *testing.T) {
 	button := NewButtonTrigger("Remote", ButtonConfig{Index: 2, Presses: []ButtonPress{ButtonPressLong, ButtonPressSingle}})
@@ -41,5 +52,56 @@ func TestAirQualityLevelFollowsTheReadings(t *testing.T) {
 	sensor.SetReading(AirQualityPropertyPm10, math.NaN())
 	if sensor.GetLevel() != AirQualityLevelInferior || sensor.GetReading(AirQualityPropertyPm10) != 0 {
 		t.Fatalf("level = %q, pm10 = %v", sensor.GetLevel(), sensor.GetReading(AirQualityPropertyPm10))
+	}
+}
+
+func TestRobotRunsTheWrittenCommandAndReadsEmptyAgain(t *testing.T) {
+	vacuum := &shadowVacuum{VacuumControl: NewVacuumControl("Vacuum")}
+	vacuum.setOuter(vacuum)
+	defer vacuum.cleanup()
+
+	for range 2 {
+		if err := vacuum.UpdateValue(VacuumPropertyCommand, VacuumCommandDock); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if vacuum.docked != 2 || vacuum.GetValue(VacuumPropertyCommand) != VacuumCommandDock {
+		t.Fatalf("docked = %d, command = %v", vacuum.docked, vacuum.GetValue(VacuumPropertyCommand))
+	}
+
+	// fire the reset now instead of waiting commandAutoResetMs
+	vacuum.mu.Lock()
+	vacuum.commandResetTimer.Reset(0)
+	vacuum.mu.Unlock()
+	for deadline := time.Now().Add(2 * time.Second); vacuum.GetValue(VacuumPropertyCommand) != "" && time.Now().Before(deadline); {
+		time.Sleep(time.Millisecond)
+	}
+	if got := vacuum.GetValue(VacuumPropertyCommand); got != "" {
+		t.Fatalf("command after the reset = %v", got)
+	}
+}
+
+func TestRobotKeepsTheActivityAndTheFanSpeed(t *testing.T) {
+	vacuum := NewVacuumControl("Vacuum")
+	defer vacuum.cleanup()
+
+	if vacuum.GetActivity() != "" || vacuum.GetType() != SensorTypeVacuum || vacuum.GetCategory() != SensorCategoryControl {
+		t.Fatalf("activity = %q, type = %q, category = %q", vacuum.GetActivity(), vacuum.GetType(), vacuum.GetCategory())
+	}
+	if err := vacuum.UpdateValue(VacuumPropertyFanSpeed, "turbo"); err != nil {
+		t.Fatal(err)
+	}
+	vacuum.SetActivity(VacuumActivityCleaning)
+	if vacuum.GetActivity() != VacuumActivityCleaning || vacuum.GetFanSpeed() != "turbo" {
+		t.Fatalf("activity = %q, fan speed = %q", vacuum.GetActivity(), vacuum.GetFanSpeed())
+	}
+
+	mower := NewLawnMowerControl("Mower")
+	defer mower.cleanup()
+	if err := mower.UpdateValue(LawnMowerPropertyCommand, LawnMowerCommandStart); err != nil {
+		t.Fatal(err)
+	}
+	if got := mower.GetValue(LawnMowerPropertyCommand); got != LawnMowerCommandStart || mower.GetType() != SensorTypeLawnMower {
+		t.Fatalf("command = %v, type = %q", got, mower.GetType())
 	}
 }

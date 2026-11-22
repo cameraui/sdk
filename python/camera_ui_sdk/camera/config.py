@@ -231,6 +231,10 @@ class PluginAssignments(TypedDict, total=False):
     """Air purifier control plugins."""
     waterHeater: list[AssignedPlugin]
     """Water heater control plugins."""
+    vacuum: list[AssignedPlugin]
+    """Vacuum control plugins."""
+    lawnMower: list[AssignedPlugin]
+    """Lawn mower control plugins."""
     contact: list[AssignedPlugin]
     """Contact sensor plugins."""
     occupancy: list[AssignedPlugin]
