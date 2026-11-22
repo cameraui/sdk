@@ -145,6 +145,8 @@ type PluginAssignments struct {
 	Valve []AssignedPlugin `msgpack:"valve,omitempty" json:"valve,omitempty"`
 	// Scene are the assigned scene control plugins.
 	Scene []AssignedPlugin `msgpack:"scene,omitempty" json:"scene,omitempty"`
+	// Humidifier are the assigned humidifier control plugins.
+	Humidifier []AssignedPlugin `msgpack:"humidifier,omitempty" json:"humidifier,omitempty"`
 	// Occupancy are the assigned occupancy sensor plugins.
 	Occupancy []AssignedPlugin `msgpack:"occupancy,omitempty" json:"occupancy,omitempty"`
 	// Smoke are the assigned smoke sensor plugins.

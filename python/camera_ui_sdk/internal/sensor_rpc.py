@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     from ..sensor.gas import GasProperty
     from ..sensor.glass_break import GlassBreakProperty
     from ..sensor.heat import HeatProperty
+    from ..sensor.humidifier import HumidifierCapability, HumidifierProperty
     from ..sensor.humidity import HumidityProperty
     from ..sensor.illuminance import IlluminanceProperty
     from ..sensor.leak import LeakProperty
@@ -74,6 +75,7 @@ if TYPE_CHECKING:
         | GasProperty
         | GlassBreakProperty
         | HeatProperty
+        | HumidifierProperty
         | HumidityProperty
         | IlluminanceProperty
         | LeakProperty
@@ -113,6 +115,7 @@ if TYPE_CHECKING:
         | ThermostatCapability
         | FanCapability
         | ValveCapability
+        | HumidifierCapability
     )
 
 

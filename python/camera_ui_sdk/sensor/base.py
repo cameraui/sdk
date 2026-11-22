@@ -130,6 +130,8 @@ class SensorType(StrEnum):
     """Water or gas valve, or an irrigation zone."""
     Scene = "scene"
     """Scene or script that runs on command."""
+    Humidifier = "humidifier"
+    """Humidifier or dehumidifier."""
     Chime = "chime"
     """Chime that plays tones."""
     Display = "display"

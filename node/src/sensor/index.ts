@@ -24,6 +24,7 @@ export * from './garage.js';
 export * from './gas.js';
 export * from './glassBreak.js';
 export * from './heat.js';
+export * from './humidifier.js';
 export * from './humidity.js';
 export * from './illuminance.js';
 export * from './leak.js';

@@ -62,13 +62,7 @@ func (s *SwitchControl) SetOff() {
 func (s *SwitchControl) UpdateValue(property string, value any) error {
 	setters := outerOr[switchSetters](&s.BaseSensor, s)
 	if property == SwitchPropertyOn {
-		on := false
-		if b, ok := value.(bool); ok {
-			on = b
-		} else if v, ok := toInt64(value); ok {
-			on = v != 0
-		}
-		if on {
+		if isTruthy(value) {
 			setters.SetOn()
 		} else {
 			setters.SetOff()

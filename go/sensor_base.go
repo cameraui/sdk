@@ -61,6 +61,7 @@ const (
 	SensorTypeFan            SensorType = "fan"            // Ceiling, desk or other fan
 	SensorTypeValve          SensorType = "valve"          // Water or gas valve, or an irrigation zone
 	SensorTypeScene          SensorType = "scene"          // Scene or script that runs on command
+	SensorTypeHumidifier     SensorType = "humidifier"     // Humidifier or dehumidifier
 	SensorTypeChime          SensorType = "chime"          // Chime that plays tones
 	SensorTypeDisplay        SensorType = "display"        // Text display on a device
 	SensorTypeBattery        SensorType = "battery"        // Battery level and charging state

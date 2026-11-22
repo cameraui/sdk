@@ -107,6 +107,8 @@ export enum SensorDomain {
   Valve = 'valve',
   /** Runs on command, no state of its own. */
   Scene = 'scene',
+  /** Works toward a target humidity. */
+  Humidifier = 'humidifier',
   /** Armable alarm with several arm modes. */
   Alarm = 'alarm',
   /** Momentary happening of a kind, such as a button press, empty between happenings. */
@@ -161,6 +163,18 @@ export interface SensorFan {
   readonly direction?: string;
   /** Name of the property that says whether the fan swings. */
   readonly oscillating?: string;
+}
+
+/** Properties of a humidifier, named in {@link SensorSemantics.humidifier}. */
+export interface SensorHumidifier {
+  /** Name of the property that carries the target humidity. */
+  readonly target: string;
+  /** Name of the property that carries the measured humidity. */
+  readonly current?: string;
+  /** Name of the property that carries what the device does right now. */
+  readonly action?: string;
+  /** Name of the property that carries the mode. */
+  readonly mode?: string;
 }
 
 /**
@@ -235,6 +249,8 @@ export interface SensorSemantics {
   readonly climate?: SensorClimate;
   /** Properties of a fan, each only when the sensor offers it. */
   readonly fan?: SensorFan;
+  /** Properties of a humidifier, the optional ones only when the sensor offers them. */
+  readonly humidifier?: SensorHumidifier;
   /** Properties of a valve that closes by itself after a set time, in seconds. */
   readonly duration?: {
     /** Name of the property that carries how long the valve stays open. */

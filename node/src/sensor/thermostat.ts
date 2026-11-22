@@ -313,6 +313,7 @@ export class ThermostatControl<TStorage extends object = Record<string, any>> ex
    * ```
    */
   setCurrentTemperature(value: number): void {
+    if (!Number.isFinite(value)) return;
     this._writeState({ [ThermostatProperty.CurrentTemperature]: value });
   }
 
@@ -341,6 +342,7 @@ export class ThermostatControl<TStorage extends object = Record<string, any>> ex
    * ```
    */
   setCurrentHumidity(value: number): void {
+    if (!Number.isFinite(value)) return;
     this._writeState({ [ThermostatProperty.CurrentHumidity]: Math.max(0, Math.min(100, value)) });
   }
 

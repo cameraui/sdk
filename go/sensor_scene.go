@@ -70,13 +70,7 @@ func (s *SceneControl) UpdateValue(property string, value any) error {
 	if property != ScenePropertyActive {
 		return nil
 	}
-	truthy := false
-	if b, ok := value.(bool); ok {
-		truthy = b
-	} else if v, ok := toInt64(value); ok {
-		truthy = v != 0
-	}
-	if truthy {
+	if isTruthy(value) {
 		outerOr[sceneSetters](&s.BaseSensor, s).Activate()
 	}
 	return nil

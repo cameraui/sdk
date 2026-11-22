@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from collections.abc import Mapping
 from enum import StrEnum
 from typing import Any, Generic, Literal, Protocol, overload, runtime_checkable
@@ -363,6 +364,8 @@ class ThermostatControl(
             thermostat.setCurrentTemperature(20.4)
             ```
         """
+        if not math.isfinite(value):
+            return
         self._write_state({ThermostatProperty.CurrentTemperature.value: value})
 
     def setAction(self, value: ThermostatAction) -> None:
@@ -386,6 +389,8 @@ class ThermostatControl(
             thermostat.setCurrentHumidity(45)
             ```
         """
+        if not math.isfinite(value):
+            return
         self._write_state({ThermostatProperty.CurrentHumidity.value: max(0.0, min(100.0, value))})
 
     async def updateValue(self, property: str, value: Any) -> None:

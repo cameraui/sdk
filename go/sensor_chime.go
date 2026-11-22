@@ -147,13 +147,7 @@ func (s *ChimeControl) UpdateValue(property string, value any) error {
 	setters := outerOr[chimeSetters](&s.BaseSensor, s)
 	switch property {
 	case ChimePropertyActive:
-		active := false
-		if b, ok := value.(bool); ok {
-			active = b
-		} else if v, ok := toInt64(value); ok {
-			active = v != 0
-		}
-		if active {
+		if isTruthy(value) {
 			setters.Play()
 		} else {
 			setters.Stop()

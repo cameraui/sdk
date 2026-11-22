@@ -225,6 +225,8 @@ class PluginAssignments(TypedDict, total=False):
     """Valve control plugins."""
     scene: list[AssignedPlugin]
     """Scene control plugins."""
+    humidifier: list[AssignedPlugin]
+    """Humidifier control plugins."""
     contact: list[AssignedPlugin]
     """Contact sensor plugins."""
     occupancy: list[AssignedPlugin]

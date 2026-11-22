@@ -190,13 +190,7 @@ func (s *LightControl) UpdateValue(property string, value any) error {
 	setters := outerOr[lightSetters](&s.BaseSensor, s)
 	switch property {
 	case LightPropertyOn:
-		on := false
-		if b, ok := value.(bool); ok {
-			on = b
-		} else if v, ok := toInt64(value); ok {
-			on = v != 0
-		}
-		if on {
+		if isTruthy(value) {
 			setters.SetOn()
 		} else {
 			setters.SetOff()

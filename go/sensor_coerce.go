@@ -214,6 +214,14 @@ var propertyTypeRegistry = map[SensorType]map[string]coerceFunc{
 	SensorTypeScene: {
 		"active": coerceBool,
 	},
+	SensorTypeHumidifier: {
+		"on":              coerceBool,
+		"targetHumidity":  coerceInt,
+		"currentHumidity": coerceFloat64,
+		"action":          coerceString,
+		"mode":            coerceString,
+		"kind":            coerceString,
+	},
 }
 
 type coerceFunc func(raw any) any

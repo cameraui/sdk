@@ -26,6 +26,7 @@ import type { GarageProperty } from './garage.js';
 import type { GasProperty } from './gas.js';
 import type { GlassBreakProperty } from './glassBreak.js';
 import type { HeatProperty } from './heat.js';
+import type { HumidifierCapability, HumidifierProperty } from './humidifier.js';
 import type { HumidityProperty } from './humidity.js';
 import type { IlluminanceProperty } from './illuminance.js';
 import type { LeakProperty } from './leak.js';
@@ -74,6 +75,7 @@ export type SensorPropertyType =
   | GasProperty
   | GlassBreakProperty
   | HeatProperty
+  | HumidifierProperty
   | HumidityProperty
   | IlluminanceProperty
   | LeakProperty
@@ -112,7 +114,8 @@ export type SensorCapability =
   | CoverCapability
   | ThermostatCapability
   | FanCapability
-  | ValveCapability;
+  | ValveCapability
+  | HumidifierCapability;
 
 /**
  * The plugin's view of the source behind an adopted sensor. `unavailable`
@@ -222,6 +225,8 @@ export enum SensorType {
   Valve = 'valve',
   /** Scene or script that runs on command. */
   Scene = 'scene',
+  /** Humidifier or dehumidifier. */
+  Humidifier = 'humidifier',
   /** Chime that plays tones. */
   Chime = 'chime',
   /** Text display on a device. */

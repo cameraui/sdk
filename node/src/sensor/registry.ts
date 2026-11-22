@@ -20,6 +20,7 @@ import { garageMeta } from './garage.js';
 import { gasMeta } from './gas.js';
 import { glassBreakMeta } from './glassBreak.js';
 import { heatMeta } from './heat.js';
+import { humidifierMeta } from './humidifier.js';
 import { humidityMeta } from './humidity.js';
 import { illuminanceMeta } from './illuminance.js';
 import { leakMeta } from './leak.js';
@@ -75,6 +76,7 @@ export const SENSOR_META = [
   gasMeta,
   glassBreakMeta,
   heatMeta,
+  humidifierMeta,
   humidityMeta,
   illuminanceMeta,
   leakMeta,

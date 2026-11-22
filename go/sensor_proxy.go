@@ -232,6 +232,14 @@ func (s *sensorProxy) cleanupProxy() {
 	s.cleanup()
 }
 
+func isTruthy(v any) bool {
+	if b, ok := v.(bool); ok {
+		return b
+	}
+	n, ok := toInt64(v)
+	return ok && n != 0
+}
+
 func toInt64(v any) (int64, bool) {
 	switch n := v.(type) {
 	case int:
@@ -292,7 +300,7 @@ func toStringSlice(v any) []string {
 func categoryForSensorType(st SensorType) SensorCategory {
 	switch st {
 	case SensorTypeLight, SensorTypeSiren, SensorTypeSwitch, SensorTypeOutlet, SensorTypeLock, SensorTypeGarage, SensorTypeCover, SensorTypeThermostat,
-		SensorTypeFan, SensorTypeValve, SensorTypeScene, SensorTypePTZ, SensorTypeSecuritySystem, SensorTypeChime, SensorTypeDisplay:
+		SensorTypeFan, SensorTypeValve, SensorTypeScene, SensorTypeHumidifier, SensorTypePTZ, SensorTypeSecuritySystem, SensorTypeChime, SensorTypeDisplay:
 		return SensorCategoryControl
 	case SensorTypeDoorbell, SensorTypeButton, SensorTypeAccess:
 		return SensorCategoryTrigger

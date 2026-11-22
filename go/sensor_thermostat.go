@@ -227,6 +227,9 @@ func (s *ThermostatControl) SetTargetHumidity(value int) {
 //
 //	thermostat.SetCurrentTemperature(20.4)
 func (s *ThermostatControl) SetCurrentTemperature(value float64) {
+	if math.IsNaN(value) || math.IsInf(value, 0) {
+		return
+	}
 	s.writeState(map[string]any{ThermostatPropertyCurrentTemperature: value})
 }
 
@@ -245,6 +248,9 @@ func (s *ThermostatControl) SetAction(value ThermostatAction) {
 //
 //	thermostat.SetCurrentHumidity(45)
 func (s *ThermostatControl) SetCurrentHumidity(value float64) {
+	if math.IsNaN(value) || math.IsInf(value, 0) {
+		return
+	}
 	s.writeState(map[string]any{ThermostatPropertyCurrentHumidity: max(0, min(100, value))})
 }
 

@@ -94,13 +94,7 @@ func (s *SirenControl) UpdateValue(property string, value any) error {
 	setters := outerOr[sirenSetters](&s.BaseSensor, s)
 	switch property {
 	case SirenPropertyActive:
-		active := false
-		if b, ok := value.(bool); ok {
-			active = b
-		} else if v, ok := toInt64(value); ok {
-			active = v != 0
-		}
-		if active {
+		if isTruthy(value) {
 			setters.SetActive()
 		} else {
 			setters.SetInactive()
