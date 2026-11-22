@@ -155,6 +155,8 @@ type PluginAssignments struct {
 	Vacuum []AssignedPlugin `msgpack:"vacuum,omitempty" json:"vacuum,omitempty"`
 	// LawnMower are the assigned lawn mower control plugins.
 	LawnMower []AssignedPlugin `msgpack:"lawnMower,omitempty" json:"lawnMower,omitempty"`
+	// MediaPlayer are the assigned media player control plugins.
+	MediaPlayer []AssignedPlugin `msgpack:"mediaPlayer,omitempty" json:"mediaPlayer,omitempty"`
 	// Occupancy are the assigned occupancy sensor plugins.
 	Occupancy []AssignedPlugin `msgpack:"occupancy,omitempty" json:"occupancy,omitempty"`
 	// Smoke are the assigned smoke sensor plugins.

@@ -140,6 +140,8 @@ class SensorType(StrEnum):
     """Robot vacuum."""
     LawnMower = "lawnMower"
     """Robot lawn mower."""
+    MediaPlayer = "mediaPlayer"
+    """TV, speaker, receiver or projector."""
     Chime = "chime"
     """Chime that plays tones."""
     Display = "display"

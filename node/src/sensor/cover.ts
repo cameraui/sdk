@@ -1,5 +1,6 @@
 import { Sensor, SensorCategory, SensorType } from './base.js';
 import { defineSensor, SensorDomain } from './meta.js';
+import { PERCENT } from '../internal/shared-utils.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
@@ -333,8 +334,6 @@ const COVER_STATES = {
   closing: CoverState.Closing,
   stopped: CoverState.Stopped,
 };
-
-const PERCENT = { type: 'number', min: 0, max: 100, step: 1, unit: '%' } as const;
 
 /** Registry metadata for {@link CoverControl}. */
 export const coverMeta = defineSensor({

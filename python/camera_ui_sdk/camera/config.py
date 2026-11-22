@@ -235,6 +235,8 @@ class PluginAssignments(TypedDict, total=False):
     """Vacuum control plugins."""
     lawnMower: list[AssignedPlugin]
     """Lawn mower control plugins."""
+    mediaPlayer: list[AssignedPlugin]
+    """Media player control plugins."""
     contact: list[AssignedPlugin]
     """Contact sensor plugins."""
     occupancy: list[AssignedPlugin]

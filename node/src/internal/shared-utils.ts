@@ -1,4 +1,7 @@
 /** @internal */
+export const PERCENT = { type: 'number', min: 0, max: 100, step: 1, unit: '%' } as const;
+
+/** @internal */
 export function isEqual(first: unknown, second: unknown, ignoreOrder = false): boolean {
   if (first === second) {
     return true;

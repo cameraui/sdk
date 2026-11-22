@@ -29,6 +29,7 @@ import { leakMeta } from './leak.js';
 import { licensePlateMeta } from './licensePlate.js';
 import { lightMeta } from './light.js';
 import { lockMeta } from './lock.js';
+import { mediaPlayerMeta } from './mediaPlayer.js';
 import { motionMeta } from './motion.js';
 import { objectMeta } from './object.js';
 import { objectAssistMeta } from './objectAssist.js';
@@ -89,6 +90,7 @@ export const SENSOR_META = [
   licensePlateMeta,
   lightMeta,
   lockMeta,
+  mediaPlayerMeta,
   motionMeta,
   objectMeta,
   objectAssistMeta,

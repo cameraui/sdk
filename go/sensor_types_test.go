@@ -17,6 +17,15 @@ func (s *shadowVacuum) Dock() {
 	s.VacuumControl.Dock()
 }
 
+func fireCommandReset(s *CommandControl) {
+	s.mu.Lock()
+	s.commandResetTimer.Reset(0)
+	s.mu.Unlock()
+	for deadline := time.Now().Add(2 * time.Second); s.GetValue(commandPropertyCommand) != "" && time.Now().Before(deadline); {
+		time.Sleep(time.Millisecond)
+	}
+}
+
 func TestButtonOffersOnlyItsPresses(t *testing.T) {
 	button := NewButtonTrigger("Remote", ButtonConfig{Index: 2, Presses: []ButtonPress{ButtonPressLong, ButtonPressSingle}})
 	defer button.cleanup()
@@ -69,13 +78,7 @@ func TestRobotRunsTheWrittenCommandAndReadsEmptyAgain(t *testing.T) {
 		t.Fatalf("docked = %d, command = %v", vacuum.docked, vacuum.GetValue(VacuumPropertyCommand))
 	}
 
-	// fire the reset now instead of waiting commandAutoResetMs
-	vacuum.mu.Lock()
-	vacuum.commandResetTimer.Reset(0)
-	vacuum.mu.Unlock()
-	for deadline := time.Now().Add(2 * time.Second); vacuum.GetValue(VacuumPropertyCommand) != "" && time.Now().Before(deadline); {
-		time.Sleep(time.Millisecond)
-	}
+	fireCommandReset(&vacuum.CommandControl)
 	if got := vacuum.GetValue(VacuumPropertyCommand); got != "" {
 		t.Fatalf("command after the reset = %v", got)
 	}
@@ -103,5 +106,56 @@ func TestRobotKeepsTheActivityAndTheFanSpeed(t *testing.T) {
 	}
 	if got := mower.GetValue(LawnMowerPropertyCommand); got != LawnMowerCommandStart || mower.GetType() != SensorTypeLawnMower {
 		t.Fatalf("command = %v, type = %q", got, mower.GetType())
+	}
+}
+
+func TestMediaPlayerTakesCommandsPowerAndSoundAndReadsOnFromTheState(t *testing.T) {
+	player := NewMediaPlayerControl("Media Player")
+	defer player.cleanup()
+
+	if err := player.UpdateValue(MediaPlayerPropertyCommand, MediaPlayerCommandNext); err != nil {
+		t.Fatal(err)
+	}
+	if got := player.GetValue(MediaPlayerPropertyCommand); got != MediaPlayerCommandNext {
+		t.Fatalf("command = %v", got)
+	}
+	fireCommandReset(&player.CommandControl)
+	if got := player.GetValue(MediaPlayerPropertyCommand); got != "" {
+		t.Fatalf("command after the reset = %v", got)
+	}
+
+	for _, write := range []struct {
+		property string
+		value    any
+	}{{MediaPlayerPropertyOn, true}, {MediaPlayerPropertyVolume, 130}, {MediaPlayerPropertyMuted, true}} {
+		if err := player.UpdateValue(write.property, write.value); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if volume, _ := player.GetVolume(); !player.IsOn() || volume != 100 || !player.IsMuted() {
+		t.Fatalf("on = %v, volume = %d, muted = %v", player.IsOn(), volume, player.IsMuted())
+	}
+
+	player.SetState(MediaPlayerStateOff)
+	if player.IsOn() {
+		t.Fatal("on after the off state")
+	}
+	player.SetState(MediaPlayerStatePlaying)
+	player.SetNowPlaying("So What", "Miles Davis")
+	if !player.IsOn() || player.GetTitle() != "So What" || player.GetArtist() != "Miles Davis" {
+		t.Fatalf("on = %v, title = %q, artist = %q", player.IsOn(), player.GetTitle(), player.GetArtist())
+	}
+}
+
+func TestMediaPlayerNarrowsTheKindToTheOneItIs(t *testing.T) {
+	player := NewMediaPlayerControl("Media Player")
+	defer player.cleanup()
+
+	player.SetKind(MediaPlayerKindTv)
+	if got := player.ToJSON().PropertySpecs[MediaPlayerPropertyKind].Values; player.GetKind() != MediaPlayerKindTv || !reflect.DeepEqual(got, []any{MediaPlayerKindTv}) {
+		t.Fatalf("kind = %q, kind values = %v", player.GetKind(), got)
+	}
+	if player.GetType() != SensorTypeMediaPlayer || player.GetCategory() != SensorCategoryControl {
+		t.Fatalf("type = %q, category = %q", player.GetType(), player.GetCategory())
 	}
 }

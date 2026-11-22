@@ -66,6 +66,7 @@ const (
 	SensorTypeWaterHeater    SensorType = "waterHeater"    // Water heater or boiler
 	SensorTypeVacuum         SensorType = "vacuum"         // Robot vacuum
 	SensorTypeLawnMower      SensorType = "lawnMower"      // Robot lawn mower
+	SensorTypeMediaPlayer    SensorType = "mediaPlayer"    // TV, speaker, receiver or projector
 	SensorTypeChime          SensorType = "chime"          // Chime that plays tones
 	SensorTypeDisplay        SensorType = "display"        // Text display on a device
 	SensorTypeBattery        SensorType = "battery"        // Battery level and charging state

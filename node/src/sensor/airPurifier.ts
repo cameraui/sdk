@@ -1,5 +1,6 @@
 import { Sensor, SensorCategory, SensorType } from './base.js';
 import { defineSensor, SensorDomain } from './meta.js';
+import { PERCENT } from '../internal/shared-utils.js';
 
 import type { Observable } from '../observable/index.js';
 import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
@@ -307,8 +308,6 @@ export class AirPurifierControl<TStorage extends object = Record<string, any>> e
     }
   }
 }
-
-const PERCENT = { type: 'number', min: 0, max: 100, step: 1, unit: '%' } as const;
 
 /** Registry metadata for {@link AirPurifierControl}. */
 export const airPurifierMeta = defineSensor({

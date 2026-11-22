@@ -49,7 +49,7 @@ type LawnMowerControl struct{ RobotControl }
 // NewLawnMowerControl creates a lawn mower with the given name and options.
 func NewLawnMowerControl(name string, opts ...SensorOption) *LawnMowerControl {
 	s := &LawnMowerControl{}
-	s.initRobot(SensorTypeLawnMower, name, opts)
+	s.initCommand(SensorTypeLawnMower, name, opts)
 	return s
 }
 

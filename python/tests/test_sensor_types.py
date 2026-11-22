@@ -17,12 +17,17 @@ from camera_ui_sdk import (
     LawnMowerCommand,
     LawnMowerControl,
     LawnMowerProperty,
+    MediaPlayerCommand,
+    MediaPlayerControl,
+    MediaPlayerKind,
+    MediaPlayerProperty,
+    MediaPlayerState,
     VacuumActivity,
     VacuumCommand,
     VacuumControl,
     VacuumProperty,
 )
-from camera_ui_sdk.sensor.robot import COMMAND_AUTO_RESET_MS
+from camera_ui_sdk.sensor.command import COMMAND_AUTO_RESET_MS
 
 
 def recorded(sensor: ButtonTrigger[Any] | AccessTrigger[Any] | VacuumControl[Any]) -> list[dict[str, Any]]:
@@ -130,3 +135,36 @@ class TestRobots:
         await mower.updateValue(LawnMowerProperty.Command, LawnMowerCommand.Start)
         assert mower.getValue(LawnMowerProperty.Command) == LawnMowerCommand.Start
         mower._cleanup()  # pyright: ignore[reportPrivateUsage]
+
+
+class TestMediaPlayer:
+    @pytest.mark.asyncio
+    async def test_takes_commands_power_and_sound_and_reads_on_from_the_state(self) -> None:
+        player = MediaPlayerControl()
+        await player.updateValue(MediaPlayerProperty.Command, MediaPlayerCommand.Next)
+        assert player.getValue(MediaPlayerProperty.Command) == MediaPlayerCommand.Next
+        timer = player._command_reset_timer  # pyright: ignore[reportPrivateUsage]
+        assert timer is not None
+        timer.cancel()
+        timer.function()
+        assert player.getValue(MediaPlayerProperty.Command) == ""
+
+        await player.updateValue(MediaPlayerProperty.On, True)
+        await player.updateValue(MediaPlayerProperty.Volume, 130)
+        await player.updateValue(MediaPlayerProperty.Muted, True)
+        assert (player.on, player.volume, player.muted) == (True, 100, True)
+
+        player.setState(MediaPlayerState.Off)
+        assert player.on is False
+        player.setState(MediaPlayerState.Playing)
+        player.setNowPlaying("So What", "Miles Davis")
+        assert (player.on, player.title, player.artist) == (True, "So What", "Miles Davis")
+        player.setNowPlaying()
+        assert (player.title, player.artist) == ("", "")
+        player._cleanup()  # pyright: ignore[reportPrivateUsage]
+
+    def test_narrows_the_kind_to_the_one_it_is(self) -> None:
+        player = MediaPlayerControl()
+        player.setKind(MediaPlayerKind.Tv)
+        assert player.kind == MediaPlayerKind.Tv
+        assert player.toJSON()["propertySpecs"][MediaPlayerProperty.Kind] == {"values": [MediaPlayerKind.Tv]}

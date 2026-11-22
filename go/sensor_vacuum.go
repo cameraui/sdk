@@ -66,7 +66,7 @@ type VacuumControl struct{ RobotControl }
 // NewVacuumControl creates a vacuum with the given name and options.
 func NewVacuumControl(name string, opts ...SensorOption) *VacuumControl {
 	s := &VacuumControl{}
-	s.initRobot(SensorTypeVacuum, name, opts)
+	s.initCommand(SensorTypeVacuum, name, opts)
 	return s
 }
 

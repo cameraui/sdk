@@ -116,6 +116,10 @@ from .cold import (
     ColdSensorLike,
     ColdSensorProperties,
 )
+from .command import (
+    CommandControl,
+    CommandControlProperties,
+)
 from .contact import (
     ContactProperty,
     ContactPropertyChangeData,
@@ -283,6 +287,17 @@ from .lock import (
 from .measurement import (
     MeasurementInfo,
     MeasurementInfoProperties,
+)
+from .media_player import (
+    MediaPlayerCapability,
+    MediaPlayerCommand,
+    MediaPlayerControl,
+    MediaPlayerControlLike,
+    MediaPlayerControlProperties,
+    MediaPlayerKind,
+    MediaPlayerProperty,
+    MediaPlayerPropertyChangeData,
+    MediaPlayerState,
 )
 from .motion import (
     MotionDetectorSensor,
@@ -486,6 +501,7 @@ __all__ = [
     "SensorLike",
     "BinarySensor",
     "MeasurementInfo",
+    "CommandControl",
     "RobotControl",
     "SensorType",
     "SensorCategory",
@@ -598,6 +614,7 @@ __all__ = [
     "WaterHeaterControl",
     "VacuumControl",
     "LawnMowerControl",
+    "MediaPlayerControl",
     "PTZControl",
     "DoorbellTrigger",
     "ButtonTrigger",
@@ -616,6 +633,7 @@ __all__ = [
     "AirPurifierCapability",
     "WaterHeaterCapability",
     "VacuumCapability",
+    "MediaPlayerCapability",
     "SirenCapability",
     "PTZCapability",
     "BatteryCapability",
@@ -636,6 +654,9 @@ __all__ = [
     "VacuumCommand",
     "LawnMowerActivity",
     "LawnMowerCommand",
+    "MediaPlayerState",
+    "MediaPlayerKind",
+    "MediaPlayerCommand",
     "SecuritySystemState",
     "AccessAttempt",
     # Property names
@@ -666,6 +687,7 @@ __all__ = [
     "WaterHeaterProperty",
     "VacuumProperty",
     "LawnMowerProperty",
+    "MediaPlayerProperty",
     "GasProperty",
     "HeatProperty",
     "HumidityProperty",
@@ -693,6 +715,7 @@ __all__ = [
     # Property values
     "BinarySensorProperties",
     "MeasurementInfoProperties",
+    "CommandControlProperties",
     "RobotControlProperties",
     "AudioSensorProperties",
     "BatteryInfoProperties",
@@ -722,6 +745,7 @@ __all__ = [
     "WaterHeaterControlProperties",
     "VacuumControlProperties",
     "LawnMowerControlProperties",
+    "MediaPlayerControlProperties",
     "GasSensorProperties",
     "HeatSensorProperties",
     "HumidityInfoProperties",
@@ -772,6 +796,7 @@ __all__ = [
     "WaterHeaterPropertyChangeData",
     "VacuumPropertyChangeData",
     "LawnMowerPropertyChangeData",
+    "MediaPlayerPropertyChangeData",
     "GasPropertyChangeData",
     "HeatPropertyChangeData",
     "HumidityPropertyChangeData",
@@ -822,6 +847,7 @@ __all__ = [
     "WaterHeaterControlLike",
     "VacuumControlLike",
     "LawnMowerControlLike",
+    "MediaPlayerControlLike",
     "GasSensorLike",
     "HeatSensorLike",
     "HumidityInfoLike",

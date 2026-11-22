@@ -35,6 +35,7 @@ import type { LeakProperty } from './leak.js';
 import type { LicensePlateProperty } from './licensePlate.js';
 import type { LightCapability, LightProperty } from './light.js';
 import type { LockProperty } from './lock.js';
+import type { MediaPlayerCapability, MediaPlayerProperty } from './mediaPlayer.js';
 import type { PropertySpecOverride, SensorPropertySpec } from './meta.js';
 import type { MotionProperty } from './motion.js';
 import type { ObjectProperty } from './object.js';
@@ -88,6 +89,7 @@ export type SensorPropertyType =
   | LicensePlateProperty
   | LightProperty
   | LockProperty
+  | MediaPlayerProperty
   | MotionProperty
   | ObjectProperty
   | OccupancyProperty
@@ -126,7 +128,8 @@ export type SensorCapability =
   | HumidifierCapability
   | AirPurifierCapability
   | WaterHeaterCapability
-  | VacuumCapability;
+  | VacuumCapability
+  | MediaPlayerCapability;
 
 /**
  * The plugin's view of the source behind an adopted sensor. `unavailable`
@@ -246,6 +249,8 @@ export enum SensorType {
   Vacuum = 'vacuum',
   /** Robot lawn mower. */
   LawnMower = 'lawnMower',
+  /** TV, speaker, receiver or projector. */
+  MediaPlayer = 'mediaPlayer',
   /** Chime that plays tones. */
   Chime = 'chime',
   /** Text display on a device. */

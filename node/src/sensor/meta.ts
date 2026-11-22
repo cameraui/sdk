@@ -117,6 +117,8 @@ export enum SensorDomain {
   Vacuum = 'vacuum',
   /** Robot that mows the lawn on command. */
   LawnMower = 'lawnMower',
+  /** TV, speaker or receiver that plays media. */
+  MediaPlayer = 'mediaPlayer',
   /** Armable alarm with several arm modes. */
   Alarm = 'alarm',
   /** Momentary happening of a kind, such as a button press, empty between happenings. */
@@ -183,6 +185,22 @@ export interface SensorHumidifier {
   readonly action?: string;
   /** Name of the property that carries the mode. */
   readonly mode?: string;
+}
+
+/** Properties of a media player, named in {@link SensorSemantics.mediaPlayer}. */
+export interface SensorMediaPlayer {
+  /** Name of the property that turns the player on and off. */
+  readonly power?: string;
+  /** Name of the property that carries the volume, 0 to 100. */
+  readonly volume?: string;
+  /** Name of the property that carries whether the sound is muted. */
+  readonly muted?: string;
+  /** Name of the property that carries the selected input, its choices are the inputs. */
+  readonly source?: string;
+  /** Name of the property that carries the title of what plays. */
+  readonly title?: string;
+  /** Name of the property that carries the artist of what plays. */
+  readonly artist?: string;
 }
 
 /**
@@ -290,6 +308,8 @@ export interface SensorSemantics {
     /** Name of the property that carries the value. */
     readonly property: string;
   };
+  /** Power, sound, input and what plays of a media player, as far as it offers them. */
+  readonly mediaPlayer?: SensorMediaPlayer;
 }
 
 /**

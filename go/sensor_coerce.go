@@ -247,6 +247,17 @@ var propertyTypeRegistry = map[SensorType]map[string]coerceFunc{
 		"activity": coerceString,
 		"command":  coerceString,
 	},
+	SensorTypeMediaPlayer: {
+		"on":      coerceBool,
+		"state":   coerceString,
+		"kind":    coerceString,
+		"command": coerceString,
+		"volume":  coerceInt,
+		"muted":   coerceBool,
+		"source":  coerceString,
+		"title":   coerceString,
+		"artist":  coerceString,
+	},
 }
 
 type coerceFunc func(raw any) any

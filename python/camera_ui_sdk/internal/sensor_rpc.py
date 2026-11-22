@@ -35,6 +35,7 @@ if TYPE_CHECKING:
     from ..sensor.license_plate import LicensePlateProperty
     from ..sensor.light import LightCapability, LightProperty
     from ..sensor.lock import LockProperty
+    from ..sensor.media_player import MediaPlayerCapability, MediaPlayerProperty
     from ..sensor.motion import MotionProperty
     from ..sensor.object import ObjectProperty
     from ..sensor.occupancy import OccupancyProperty
@@ -88,6 +89,7 @@ if TYPE_CHECKING:
         | LicensePlateProperty
         | LightProperty
         | LockProperty
+        | MediaPlayerProperty
         | MotionProperty
         | ObjectProperty
         | OccupancyProperty
@@ -127,6 +129,7 @@ if TYPE_CHECKING:
         | AirPurifierCapability
         | WaterHeaterCapability
         | VacuumCapability
+        | MediaPlayerCapability
     )
 
 
