@@ -197,7 +197,7 @@ class AirPurifierControl(
     @property
     def preset(self) -> str | None:
         """Active preset."""
-        return self.props.preset
+        return self.props.preset  # type: ignore[no-any-return]
 
     @property
     def childLock(self) -> bool:
@@ -207,7 +207,7 @@ class AirPurifierControl(
     @property
     def filterLife(self) -> int | None:
         """Filter life left in percent."""
-        return self.props.filterLife
+        return self.props.filterLife  # type: ignore[no-any-return]
 
     @property
     def filterChange(self) -> bool:

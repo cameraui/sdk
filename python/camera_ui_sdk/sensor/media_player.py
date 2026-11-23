@@ -208,7 +208,7 @@ class MediaPlayerControl(
     @property
     def volume(self) -> int | None:
         """Volume, 0 to 100."""
-        return self.props.volume
+        return self.props.volume  # type: ignore[no-any-return]
 
     @property
     def muted(self) -> bool:
@@ -218,17 +218,17 @@ class MediaPlayerControl(
     @property
     def source(self) -> str | None:
         """Selected input or app."""
-        return self.props.source
+        return self.props.source  # type: ignore[no-any-return]
 
     @property
     def title(self) -> str | None:
         """Title of what plays."""
-        return self.props.title
+        return self.props.title  # type: ignore[no-any-return]
 
     @property
     def artist(self) -> str | None:
         """Artist of what plays."""
-        return self.props.artist
+        return self.props.artist  # type: ignore[no-any-return]
 
     async def setOn(self) -> None:
         """Turn the player on. Override to drive hardware and call

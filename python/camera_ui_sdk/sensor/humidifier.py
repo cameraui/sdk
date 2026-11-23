@@ -175,7 +175,7 @@ class HumidifierControl(
     @property
     def currentHumidity(self) -> float | None:
         """Measured humidity in percent."""
-        return self.props.currentHumidity
+        return self.props.currentHumidity  # type: ignore[no-any-return]
 
     @property
     def action(self) -> HumidifierAction | None:
@@ -186,7 +186,7 @@ class HumidifierControl(
     @property
     def mode(self) -> str | None:
         """Active mode."""
-        return self.props.mode
+        return self.props.mode  # type: ignore[no-any-return]
 
     @property
     def kind(self) -> HumidifierKind | None:

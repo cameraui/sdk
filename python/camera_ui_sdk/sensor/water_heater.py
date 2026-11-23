@@ -152,7 +152,7 @@ class WaterHeaterControl(
     @property
     def currentTemperature(self) -> float | None:
         """Current water temperature in °C."""
-        return self.props.currentTemperature
+        return self.props.currentTemperature  # type: ignore[no-any-return]
 
     @property
     def targetTemperature(self) -> float:

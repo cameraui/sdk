@@ -173,7 +173,7 @@ class FanControl(Sensor[FanControlProperties, TStorage, FanCapability], Generic[
     @property
     def preset(self) -> str | None:
         """Active preset."""
-        return self.props.preset
+        return self.props.preset  # type: ignore[no-any-return]
 
     async def setOn(self) -> None:
         """Turn the fan on. Override to drive hardware and call

@@ -207,7 +207,7 @@ class ThermostatControl(
     @property
     def currentTemperature(self) -> float | None:
         """Current temperature in °C."""
-        return self.props.currentTemperature
+        return self.props.currentTemperature  # type: ignore[no-any-return]
 
     @property
     def targetTemperature(self) -> float:
@@ -239,17 +239,17 @@ class ThermostatControl(
     @property
     def currentHumidity(self) -> float | None:
         """Current humidity in percent."""
-        return self.props.currentHumidity
+        return self.props.currentHumidity  # type: ignore[no-any-return]
 
     @property
     def preset(self) -> str | None:
         """Active preset."""
-        return self.props.preset
+        return self.props.preset  # type: ignore[no-any-return]
 
     @property
     def fanMode(self) -> str | None:
         """Active fan mode."""
-        return self.props.fanMode
+        return self.props.fanMode  # type: ignore[no-any-return]
 
     @property
     def targetHumidity(self) -> int:

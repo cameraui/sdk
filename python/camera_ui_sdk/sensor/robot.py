@@ -30,7 +30,7 @@ class RobotControl(
     @property
     def activity(self) -> str | None:
         """What the robot does right now."""
-        return self.props.activity
+        return self.props.activity  # type: ignore[no-any-return]
 
     def setActivity(self, value: str) -> None:
         """Report what the robot does right now.

@@ -184,7 +184,7 @@ class LightControl(Sensor[LightControlProperties, TStorage, LightCapability], Ge
     @property
     def color(self) -> LightColor:
         """Color as hue and saturation."""
-        return self.props.color
+        return self.props.color  # type: ignore[no-any-return]
 
     @property
     def colorMode(self) -> LightColorMode:

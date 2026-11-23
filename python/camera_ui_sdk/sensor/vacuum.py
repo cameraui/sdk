@@ -137,7 +137,7 @@ class VacuumControl(RobotControl[VacuumControlProperties, TStorage, VacuumCapabi
     @property
     def fanSpeed(self) -> str | None:
         """Suction level."""
-        return self.props.fanSpeed
+        return self.props.fanSpeed  # type: ignore[no-any-return]
 
     async def start(self) -> None:
         """Start or resume cleaning. Override to drive hardware and call
