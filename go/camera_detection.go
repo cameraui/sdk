@@ -212,6 +212,10 @@ type CameraDetectionSettings struct {
 	CascadeTimeout *int `msgpack:"cascadeTimeout,omitempty" json:"cascadeTimeout,omitempty"`
 	// Snooze indicates whether detections are snoozed (paused).
 	Snooze bool `msgpack:"snooze,omitempty" json:"snooze,omitempty"`
+	// SnoozeSince is when the snooze began (Unix ms), set by the server.
+	SnoozeSince int64 `msgpack:"snoozeSince,omitempty" json:"snoozeSince,omitempty"`
+	// SnoozeUntil is when the snooze ends by itself (Unix ms), zero while it has no end.
+	SnoozeUntil int64 `msgpack:"snoozeUntil,omitempty" json:"snoozeUntil,omitempty"`
 }
 
 // PtzAutotrackSettings is the PTZ autotracking settings: the camera follows

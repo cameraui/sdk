@@ -19,4 +19,10 @@ export interface CameraRecordingSettings {
   preBuffer: number;
   /** Stream tiers to record. */
   sources: RecordingSource[];
+  /** Whether recording is paused. A paused camera keeps its place among the recording cameras. */
+  paused?: boolean;
+  /** When the pause began (Unix ms), set by the server. */
+  pausedSince?: number;
+  /** When the pause ends by itself (Unix ms), none while it has no end. */
+  pausedUntil?: number;
 }

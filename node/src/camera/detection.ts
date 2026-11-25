@@ -284,4 +284,8 @@ export interface CameraDetectionSettings {
   cascadeTimeout?: number;
   /** Whether detections are snoozed (paused). */
   snooze?: boolean;
+  /** When the snooze began (Unix ms), set by the server. */
+  snoozeSince?: number;
+  /** When the snooze ends by itself (Unix ms), none while it has no end. */
+  snoozeUntil?: number;
 }

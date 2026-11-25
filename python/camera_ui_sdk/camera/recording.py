@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal, TypedDict
+from typing import Literal, NotRequired, TypedDict
 
 RecordingMode = Literal["continuous", "event", "adhoc"]
 """
@@ -25,3 +25,9 @@ class CameraRecordingSettings(TypedDict):
     """Seconds of video kept before an event (event mode, 0 - 60)."""
     sources: list[RecordingSource]
     """Stream tiers to record."""
+    paused: NotRequired[bool]
+    """Whether recording is paused. A paused camera keeps its place among the recording cameras."""
+    pausedSince: NotRequired[int]
+    """When the pause began (Unix ms), set by the server."""
+    pausedUntil: NotRequired[int]
+    """When the pause ends by itself (Unix ms), none while it has no end."""

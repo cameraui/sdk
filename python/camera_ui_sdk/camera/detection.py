@@ -265,3 +265,7 @@ class CameraDetectionSettings(TypedDict):
     """Cascade hold-open window in seconds."""
     snooze: NotRequired[bool]
     """Whether detections are snoozed (paused)."""
+    snoozeSince: NotRequired[int]
+    """When the snooze began (Unix ms), set by the server."""
+    snoozeUntil: NotRequired[int]
+    """When the snooze ends by itself (Unix ms), none while it has no end."""

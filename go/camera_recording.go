@@ -34,4 +34,10 @@ type CameraRecordingSettings struct {
 	PreBuffer float64 `msgpack:"preBuffer,omitempty" json:"preBuffer"`
 	// Sources are the stream tiers to record.
 	Sources []RecordingSource `msgpack:"sources,omitempty" json:"sources,omitempty"`
+	// Paused reports whether recording is paused. A paused camera keeps its place among the recording cameras.
+	Paused bool `msgpack:"paused,omitempty" json:"paused,omitempty"`
+	// PausedSince is when the pause began (Unix ms), set by the server.
+	PausedSince int64 `msgpack:"pausedSince,omitempty" json:"pausedSince,omitempty"`
+	// PausedUntil is when the pause ends by itself (Unix ms), zero while it has no end.
+	PausedUntil int64 `msgpack:"pausedUntil,omitempty" json:"pausedUntil,omitempty"`
 }
