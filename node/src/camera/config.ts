@@ -16,6 +16,7 @@ import type {
 import type { CameraExportSettings } from './export.js';
 import type { CameraFrameWorkerSettings, SnapshotSettings } from './frames.js';
 import type { CameraNotificationSettings } from './notification.js';
+import type { CameraPrivacy } from './privacy.js';
 import type { CameraRecordingSettings } from './recording.js';
 import type { StreamUrls } from './streaming.js';
 
@@ -166,6 +167,8 @@ export interface BaseCamera {
   room: string;
   /** Whether camera is disabled. */
   disabled: boolean;
+  /** Privacy mode of the camera. */
+  privacy: CameraPrivacy;
   /** Whether camera streams from cloud. */
   isCloud: boolean;
   /** Camera hardware information. */

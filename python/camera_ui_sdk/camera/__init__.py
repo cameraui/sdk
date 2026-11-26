@@ -88,6 +88,7 @@ from .notification import (
     CameraNotificationSettings,
     NotificationSpeed,
 )
+from .privacy import CameraPrivacy
 from .recording import (
     CameraRecordingSettings,
     RecordingMode,
@@ -176,6 +177,7 @@ __all__ = [
     "CameraDetectionSettings",
     "CameraNotificationSettings",
     "CameraExportSettings",
+    "CameraPrivacy",
     "CameraRecordingSettings",
     "FrameWorkerDecoderHardware",
     "FrameWorkerDecoderSettings",

@@ -22,6 +22,7 @@ from .enums import (
 from .export import CameraExportSettings
 from .frames import CameraFrameWorkerSettings, SnapshotSettings
 from .notification import CameraNotificationSettings
+from .privacy import CameraPrivacy
 from .recording import CameraRecordingSettings
 from .streaming import StreamUrls
 
@@ -311,6 +312,8 @@ class BaseCamera(TypedDict):
     """Room this camera belongs to."""
     disabled: bool
     """Whether camera is disabled."""
+    privacy: CameraPrivacy
+    """Privacy mode of the camera."""
     isCloud: bool
     """Whether camera streams from cloud."""
     info: CameraInformation
@@ -355,6 +358,7 @@ CameraPublicProperties = Literal[
     "name",
     "room",
     "disabled",
+    "privacy",
     "isCloud",
     "info",
     "type",

@@ -7,12 +7,12 @@ type MediaPlayerState = string
 
 // States of a media player.
 const (
-	MediaPlayerStateOff       MediaPlayerState = "off"
-	MediaPlayerStateOn        MediaPlayerState = "on" // On, without telling what it does
-	MediaPlayerStateIdle      MediaPlayerState = "idle"
-	MediaPlayerStatePlaying   MediaPlayerState = "playing"
-	MediaPlayerStatePaused    MediaPlayerState = "paused"
-	MediaPlayerStateBuffering MediaPlayerState = "buffering"
+	MediaPlayerStateOff       MediaPlayerState = "off"       // Player is off or in standby
+	MediaPlayerStateOn        MediaPlayerState = "on"        // On, without telling what it does
+	MediaPlayerStateIdle      MediaPlayerState = "idle"      // Player is on and plays nothing
+	MediaPlayerStatePlaying   MediaPlayerState = "playing"   // Player is playing
+	MediaPlayerStatePaused    MediaPlayerState = "paused"    // Playback is paused
+	MediaPlayerStateBuffering MediaPlayerState = "buffering" // Player is loading and about to play
 )
 
 // MediaPlayerKind is what kind of device a media player is.
@@ -20,10 +20,10 @@ type MediaPlayerKind = string
 
 // Kinds of a media player.
 const (
-	MediaPlayerKindTv        MediaPlayerKind = "tv"
-	MediaPlayerKindSpeaker   MediaPlayerKind = "speaker"
-	MediaPlayerKindReceiver  MediaPlayerKind = "receiver"
-	MediaPlayerKindProjector MediaPlayerKind = "projector"
+	MediaPlayerKindTv        MediaPlayerKind = "tv"        // A TV
+	MediaPlayerKindSpeaker   MediaPlayerKind = "speaker"   // A speaker
+	MediaPlayerKindReceiver  MediaPlayerKind = "receiver"  // An AV receiver
+	MediaPlayerKindProjector MediaPlayerKind = "projector" // A projector
 )
 
 // MediaPlayerCommand is a command a media player takes.
@@ -31,11 +31,11 @@ type MediaPlayerCommand = string
 
 // Commands a media player takes.
 const (
-	MediaPlayerCommandPlay     MediaPlayerCommand = "play"
-	MediaPlayerCommandPause    MediaPlayerCommand = "pause"
-	MediaPlayerCommandStop     MediaPlayerCommand = "stop"
-	MediaPlayerCommandNext     MediaPlayerCommand = "next"
-	MediaPlayerCommandPrevious MediaPlayerCommand = "previous"
+	MediaPlayerCommandPlay     MediaPlayerCommand = "play"     // Start or resume playback
+	MediaPlayerCommandPause    MediaPlayerCommand = "pause"    // Pause playback
+	MediaPlayerCommandStop     MediaPlayerCommand = "stop"     // Stop playback
+	MediaPlayerCommandNext     MediaPlayerCommand = "next"     // Skip to the next track or channel
+	MediaPlayerCommandPrevious MediaPlayerCommand = "previous" // Go back to the previous track or channel
 )
 
 // Optional capabilities of a media player.
@@ -106,19 +106,19 @@ func NewMediaPlayerControl(name string, opts ...SensorOption) *MediaPlayerContro
 	return s
 }
 
-// IsOn reports whether the player is on.
+// IsOn reports whether the player is on, writable with the power capability.
 func (s *MediaPlayerControl) IsOn() bool {
 	v, _ := s.GetValue(MediaPlayerPropertyOn).(bool)
 	return v
 }
 
-// GetState returns what the player does right now, empty before the first report.
+// GetState returns what the player does right now, a MediaPlayerState, empty before the first report.
 func (s *MediaPlayerControl) GetState() MediaPlayerState {
 	v, _ := s.GetValue(MediaPlayerPropertyState).(string)
 	return v
 }
 
-// GetKind returns what kind of device it is, empty when the plugin did not say.
+// GetKind returns what kind of device it is, a MediaPlayerKind, empty when the plugin did not say.
 func (s *MediaPlayerControl) GetKind() MediaPlayerKind {
 	v, _ := s.GetValue(MediaPlayerPropertyKind).(string)
 	return v
@@ -136,7 +136,7 @@ func (s *MediaPlayerControl) IsMuted() bool {
 	return v
 }
 
-// GetSource returns the selected input or app.
+// GetSource returns the selected input or app, one of the choices the plugin sets.
 func (s *MediaPlayerControl) GetSource() string {
 	v, _ := s.GetValue(MediaPlayerPropertySource).(string)
 	return v

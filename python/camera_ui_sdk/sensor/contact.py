@@ -17,8 +17,11 @@ class ContactKind(StrEnum):
     """What a contact guards, it decides how smart homes show it."""
 
     Door = "door"
+    """A door."""
     GarageDoor = "garage_door"
+    """A garage door."""
     Window = "window"
+    """A window."""
 
 
 class ContactProperty(StrEnum):
@@ -27,7 +30,7 @@ class ContactProperty(StrEnum):
     Detected = "detected"
     """Whether the contact is open (true = open, false = closed)."""
     Kind = "kind"
-    """What the contact guards, a ContactKind."""
+    """What the contact guards, a ``ContactKind``."""
 
 
 class ContactSensorProperties(TypedDict):
@@ -98,7 +101,7 @@ class ContactSensor(BinarySensor[ContactSensorProperties, TStorage], Generic[TSt
 
     @property
     def kind(self) -> ContactKind | None:
-        """What the contact guards."""
+        """What the contact guards, a ``ContactKind``."""
         value = self.props.kind
         return ContactKind(value) if value is not None else None
 

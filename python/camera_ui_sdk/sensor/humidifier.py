@@ -18,16 +18,22 @@ class HumidifierKind(StrEnum):
     """Whether the device adds or removes moisture, it decides how smart homes show it."""
 
     Humidifier = "humidifier"
+    """Adds moisture to the air."""
     Dehumidifier = "dehumidifier"
+    """Removes moisture from the air."""
 
 
 class HumidifierAction(StrEnum):
     """What a humidifier does right now."""
 
     Off = "off"
+    """Humidifier is off."""
     Idle = "idle"
+    """Humidifier is on but not working right now."""
     Humidifying = "humidifying"
+    """Humidifier adds moisture."""
     Drying = "drying"
+    """Humidifier removes moisture."""
 
 
 class HumidifierCapability(StrEnum):
@@ -167,7 +173,7 @@ class HumidifierControl(
 
     @property
     def on(self) -> bool:
-        """``True`` while the humidifier is on."""
+        """``True`` while the humidifier is on, a command when written."""
         return bool(self.props.on)
 
     @property
@@ -182,18 +188,18 @@ class HumidifierControl(
 
     @property
     def action(self) -> HumidifierAction | None:
-        """What the humidifier does right now."""
+        """What the humidifier does right now, a ``HumidifierAction``."""
         value = self.props.action
         return HumidifierAction(value) if value is not None else None
 
     @property
     def mode(self) -> str | None:
-        """Active mode."""
+        """Active mode, one of the choices the plugin sets."""
         return self.props.mode  # type: ignore[no-any-return]
 
     @property
     def kind(self) -> HumidifierKind | None:
-        """Whether it humidifies or dehumidifies."""
+        """Whether it humidifies or dehumidifies, a ``HumidifierKind``."""
         value = self.props.kind
         return HumidifierKind(value) if value is not None else None
 

@@ -6,7 +6,9 @@ import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /** Direction a fan turns. */
 export enum FanDirection {
+  /** Fan turns in its normal direction. */
   Forward = 'forward',
+  /** Fan turns the other way. */
   Reverse = 'reverse',
 }
 
@@ -113,7 +115,7 @@ export class FanControl<TStorage extends object = Record<string, any>> extends S
     return this.props.speed;
   }
 
-  /** Direction the fan turns. */
+  /** Direction, a {@link FanDirection}. */
   get direction(): FanDirection {
     return this.props.direction;
   }
@@ -123,7 +125,7 @@ export class FanControl<TStorage extends object = Record<string, any>> extends S
     return this.props.oscillating;
   }
 
-  /** Active preset. */
+  /** Active preset, one of the choices the device offers. */
   get preset(): string | undefined {
     return this.props.preset;
   }

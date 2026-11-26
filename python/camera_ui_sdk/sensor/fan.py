@@ -17,7 +17,9 @@ class FanDirection(StrEnum):
     """Direction a fan turns."""
 
     Forward = "forward"
+    """Fan turns in its normal direction."""
     Reverse = "reverse"
+    """Fan turns the other way."""
 
 
 class FanCapability(StrEnum):
@@ -164,7 +166,7 @@ class FanControl(Sensor[FanControlProperties, TStorage, FanCapability], Generic[
 
     @property
     def direction(self) -> FanDirection:
-        """Direction the fan turns."""
+        """Direction, a ``FanDirection``."""
         value = self.props.direction
         return FanDirection(value) if value is not None else FanDirection.Forward
 
@@ -175,7 +177,7 @@ class FanControl(Sensor[FanControlProperties, TStorage, FanCapability], Generic[
 
     @property
     def preset(self) -> str | None:
-        """Active preset."""
+        """Active preset, one of the choices the device offers."""
         return self.props.preset  # type: ignore[no-any-return]
 
     async def setOn(self) -> None:

@@ -10,6 +10,7 @@ import type { CameraType, DetectionEventType } from './enums.js';
 import type { DetectionEvent } from './events.js';
 import type { CameraExportSettings } from './export.js';
 import type { CameraFrameWorkerSettings, SnapshotSettings } from './frames.js';
+import type { CameraPrivacy } from './privacy.js';
 import type { Fmp4Session, ProbeConfig, ProbeStream, RTSPUrlOptions, RtpSession, SnapshotUrlOptions } from './streaming.js';
 
 /** Camera source with snapshot and probe capabilities. */
@@ -94,6 +95,8 @@ export interface CameraDevice {
   readonly pluginInfo: CameraPluginInfo | undefined;
   /** Whether camera is disabled. */
   readonly disabled: boolean;
+  /** Privacy mode of the camera. */
+  readonly privacy: CameraPrivacy;
   /** Camera display name. */
   readonly name: string;
   /** Room this camera belongs to. */

@@ -69,10 +69,15 @@ class CameraZones(TypedDict):
     """What happens to a picture the privacy zones could not be applied to. Default: send."""
 
     motion: list[MotionZone]
+    """Zones where frame motion counts."""
     object: list[ObjectZone]
+    """Zones that set which object types count where."""
     privacy: list[PrivacyZone]
+    """Zones where nothing is looked at."""
     alert: list[AlertZone]
+    """Zones that set which object types notify from where."""
     lines: list[DetectionLine]
+    """Lines that report objects crossing them."""
 
 
 AlertZoneMatch = Literal["anchor", "intersect", "contain"]

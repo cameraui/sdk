@@ -127,7 +127,7 @@ class ButtonTrigger(Sensor[ButtonTriggerProperties, TStorage, str], Generic[TSto
 
     @property
     def index(self) -> int:
-        """Position of the button on its device, 0 when not set."""
+        """Position of the button on its device, from 1. 0 leaves the order to the creation order."""
         return int(self.props.index or 0)
 
     def press(self, kind: ButtonPress = ButtonPress.Single) -> None:

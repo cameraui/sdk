@@ -18,8 +18,11 @@ class AirPurifierState(StrEnum):
     """What an air purifier does right now."""
 
     Inactive = "inactive"
+    """Purifier is off."""
     Idle = "idle"
+    """Purifier is on but not purifying right now."""
     Purifying = "purifying"
+    """Purifier cleans the air."""
 
 
 class AirPurifierCapability(StrEnum):
@@ -178,12 +181,12 @@ class AirPurifierControl(
 
     @property
     def on(self) -> bool:
-        """``True`` while the purifier is on."""
+        """``True`` while the purifier is on, a command when written."""
         return bool(self.props.on)
 
     @property
     def state(self) -> AirPurifierState | None:
-        """What the purifier does right now."""
+        """What the purifier does right now, an ``AirPurifierState``."""
         value = self.props.state
         return AirPurifierState(value) if value is not None else None
 
@@ -199,7 +202,7 @@ class AirPurifierControl(
 
     @property
     def preset(self) -> str | None:
-        """Active preset."""
+        """Active preset, one of the choices the plugin sets."""
         return self.props.preset  # type: ignore[no-any-return]
 
     @property

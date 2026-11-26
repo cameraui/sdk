@@ -79,7 +79,7 @@ export class ChimeControl<TStorage extends object = Record<string, any>> extends
     return this.props.active;
   }
 
-  /** Tone the chime plays. */
+  /** Tone the chime plays, one of the tones the device offers. */
   get tone(): string {
     return this.props.tone;
   }
@@ -89,7 +89,7 @@ export class ChimeControl<TStorage extends object = Record<string, any>> extends
     return this.props.volume;
   }
 
-  /** How often the tone plays. */
+  /** How often the tone plays (1-10). */
   get repeat(): number {
     return this.props.repeat;
   }

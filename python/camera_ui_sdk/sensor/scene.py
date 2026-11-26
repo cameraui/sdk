@@ -17,7 +17,7 @@ class SceneProperty(StrEnum):
     """Property names of a scene."""
 
     Active = "active"
-    """``True`` for a moment while the scene runs, a command when written ``True``."""
+    """``True`` for a moment after the scene ran, a command when written ``True``."""
 
 
 class SceneControlProperties(TypedDict):
@@ -104,7 +104,7 @@ class SceneControl(Sensor[SceneControlProperties, TStorage, str], Generic[TStora
 
     @property
     def active(self) -> bool:
-        """``True`` for a moment after the scene ran."""
+        """``True`` for a moment after the scene ran, a command when written ``True``."""
         return bool(self.props.active)
 
     async def activate(self) -> None:

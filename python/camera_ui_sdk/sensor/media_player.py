@@ -19,31 +19,45 @@ class MediaPlayerState(StrEnum):
     """What a media player does right now."""
 
     Off = "off"
+    """Player is off or in standby."""
     On = "on"
     """On, without telling what it does."""
     Idle = "idle"
+    """Player is on and plays nothing."""
     Playing = "playing"
+    """Player is playing."""
     Paused = "paused"
+    """Playback is paused."""
     Buffering = "buffering"
+    """Player is loading and about to play."""
 
 
 class MediaPlayerKind(StrEnum):
     """What kind of device a media player is."""
 
     Tv = "tv"
+    """A TV."""
     Speaker = "speaker"
+    """A speaker."""
     Receiver = "receiver"
+    """An AV receiver."""
     Projector = "projector"
+    """A projector."""
 
 
 class MediaPlayerCommand(StrEnum):
     """Commands a media player takes."""
 
     Play = "play"
+    """Start or resume playback."""
     Pause = "pause"
+    """Pause playback."""
     Stop = "stop"
+    """Stop playback."""
     Next = "next"
+    """Skip to the next track or channel."""
     Previous = "previous"
+    """Go back to the previous track or channel."""
 
 
 class MediaPlayerCapability(StrEnum):
@@ -193,18 +207,18 @@ class MediaPlayerControl(
 
     @property
     def on(self) -> bool:
-        """Whether the player is on."""
+        """Whether the player is on, writable with the ``power`` capability."""
         return bool(self.props.on)
 
     @property
     def state(self) -> MediaPlayerState | None:
-        """What the player does right now."""
+        """What the player does right now, a ``MediaPlayerState``."""
         value = self.props.state
         return MediaPlayerState(value) if value is not None else None
 
     @property
     def kind(self) -> MediaPlayerKind | None:
-        """What kind of device it is."""
+        """What kind of device it is, a ``MediaPlayerKind``."""
         value = self.props.kind
         return MediaPlayerKind(value) if value is not None else None
 
@@ -220,7 +234,7 @@ class MediaPlayerControl(
 
     @property
     def source(self) -> str | None:
-        """Selected input or app."""
+        """Selected input or app, one of the choices the plugin sets."""
         return self.props.source  # type: ignore[no-any-return]
 
     @property

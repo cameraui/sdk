@@ -118,12 +118,12 @@ export class LightControl<TStorage extends object = Record<string, any>> extends
     return this.props.colorTemperature;
   }
 
-  /** Color as hue and saturation. */
+  /** Color as hue and saturation, see {@link LightColor}. */
   get color(): LightColor {
     return this.props.color;
   }
 
-  /** Whether the light shows its color temperature or its color. */
+  /** Whether the light shows its color temperature or its color, see {@link LightColorMode}. */
   get colorMode(): LightColorMode {
     return this.props.colorMode;
   }

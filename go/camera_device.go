@@ -158,6 +158,13 @@ func (d *CameraDevice) Disabled() bool {
 	return d.camera.Disabled
 }
 
+// Privacy returns the privacy mode of the camera.
+func (d *CameraDevice) Privacy() CameraPrivacy {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+	return d.camera.Privacy
+}
+
 // Snooze returns whether detections are snoozed (paused).
 func (d *CameraDevice) Snooze() bool {
 	d.mu.RLock()

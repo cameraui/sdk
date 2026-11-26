@@ -7,22 +7,35 @@ import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /** State of a cover. A target takes `Open` and `Closed`. */
 export enum CoverState {
+  /** Cover is open, fully or part-way. */
   Open = 0,
+  /** Cover is fully closed. */
   Closed = 1,
+  /** Cover is moving towards open. */
   Opening = 2,
+  /** Cover is moving towards closed. */
   Closing = 3,
+  /** Cover stopped part-way. */
   Stopped = 4,
 }
 
 /** What a cover is, it decides how smart homes show it. */
 export enum CoverKind {
+  /** An awning. */
   Awning = 'awning',
+  /** A blind of slats, such as a Venetian blind. */
   Blind = 'blind',
+  /** A curtain or drape. */
   Curtain = 'curtain',
+  /** A damper that controls the airflow in a duct. */
   Damper = 'damper',
+  /** A door or gate. */
   Door = 'door',
+  /** A shade of one piece of fabric, such as a roller shade. */
   Shade = 'shade',
+  /** A shutter, such as a roller shutter. */
   Shutter = 'shutter',
+  /** A window that opens and closes. */
   Window = 'window',
 }
 
@@ -138,12 +151,12 @@ export class CoverControl<TStorage extends object = Record<string, any>> extends
     });
   }
 
-  /** Current state. */
+  /** Current state, a {@link CoverState}. */
   get currentState(): CoverState {
     return this.props.currentState;
   }
 
-  /** Target state. */
+  /** Target state, `Open` or `Closed`. */
   get targetState(): CoverState {
     return this.props.targetState;
   }
@@ -173,7 +186,7 @@ export class CoverControl<TStorage extends object = Record<string, any>> extends
     return this.props.obstructionDetected;
   }
 
-  /** What the cover is. */
+  /** What the cover is, a {@link CoverKind}. */
   get kind(): CoverKind | undefined {
     return this.props.kind;
   }

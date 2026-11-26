@@ -26,6 +26,7 @@ from .events import DetectionEventPayload
 from .export import CameraExportSettings
 from .frames import CameraFrameWorkerSettings, SnapshotSettings
 from .notification import CameraNotificationSettings
+from .privacy import CameraPrivacy
 from .recording import CameraRecordingSettings
 from .streaming import (
     ProbeConfig,
@@ -154,6 +155,11 @@ class CameraDevice(Protocol):
     @property
     def disabled(self) -> bool:
         """Whether camera is disabled."""
+        ...
+
+    @property
+    def privacy(self) -> CameraPrivacy:
+        """Privacy mode of the camera."""
         ...
 
     @property

@@ -876,6 +876,14 @@ func (s *BaseSensor) deactivateQuiet() bool {
 	return true
 }
 
+func (s *BaseSensor) handleWrites(own valueWriter) {
+	s.writer = own
+}
+
+func (s *BaseSensor) isCommand(string) bool {
+	return false
+}
+
 // WithNativeID sets the plugin-supplied durable identity (e.g. an upstream
 // device id). The host reconciles the sensor across restarts by
 // (pluginId, nativeId); without it, identity falls back to (type, name) and a
@@ -1028,14 +1036,6 @@ func fireSensorLifecycle(outer any, active bool) {
 			}
 		}
 	}()
-}
-
-func (s *BaseSensor) handleWrites(own valueWriter) {
-	s.writer = own
-}
-
-func (s *BaseSensor) isCommand(string) bool {
-	return false
 }
 
 func outerOr[T any](s *BaseSensor, own T) T {

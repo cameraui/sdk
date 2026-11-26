@@ -7,9 +7,9 @@ type AirPurifierState = string
 
 // States of an air purifier.
 const (
-	AirPurifierStateInactive  AirPurifierState = "inactive"
-	AirPurifierStateIdle      AirPurifierState = "idle"
-	AirPurifierStatePurifying AirPurifierState = "purifying"
+	AirPurifierStateInactive  AirPurifierState = "inactive"  // Purifier is off
+	AirPurifierStateIdle      AirPurifierState = "idle"      // Purifier is on but not purifying right now
+	AirPurifierStatePurifying AirPurifierState = "purifying" // Purifier cleans the air
 )
 
 // Optional capabilities of an air purifier.
@@ -80,13 +80,13 @@ func (s *AirPurifierControl) GetType() SensorType         { return SensorTypeAir
 func (s *AirPurifierControl) GetCategory() SensorCategory { return SensorCategoryControl }
 func (s *AirPurifierControl) ToJSON() sensorJSON          { return s.toBaseJSON(s.GetType(), s.GetCategory()) }
 
-// IsOn reports true while the purifier is on.
+// IsOn reports true while the purifier is on, a command when written.
 func (s *AirPurifierControl) IsOn() bool {
 	v, _ := s.GetValue(AirPurifierPropertyOn).(bool)
 	return v
 }
 
-// GetState returns what the purifier does right now, empty before the first report.
+// GetState returns what the purifier does right now, an AirPurifierState, empty before the first report.
 func (s *AirPurifierControl) GetState() AirPurifierState {
 	v, _ := s.GetValue(AirPurifierPropertyState).(string)
 	return v
@@ -104,7 +104,7 @@ func (s *AirPurifierControl) IsAuto() bool {
 	return v
 }
 
-// GetPreset returns the active preset.
+// GetPreset returns the active preset, one of the choices the plugin sets.
 func (s *AirPurifierControl) GetPreset() string {
 	v, _ := s.GetValue(AirPurifierPropertyPreset).(string)
 	return v

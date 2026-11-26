@@ -17,22 +17,34 @@ class VacuumActivity(StrEnum):
     """What a vacuum does right now."""
 
     Cleaning = "cleaning"
+    """Vacuum is cleaning."""
     Docked = "docked"
+    """Vacuum is in its dock."""
     Idle = "idle"
+    """Vacuum is off its dock and not cleaning."""
     Paused = "paused"
+    """Vacuum paused where it is."""
     Returning = "returning"
+    """Vacuum drives back to its dock."""
     Error = "error"
+    """Vacuum reports an error."""
 
 
 class VacuumCommand(StrEnum):
     """Commands a vacuum takes."""
 
     Start = "start"
+    """Start or resume cleaning."""
     Pause = "pause"
+    """Pause cleaning where the vacuum is."""
     Stop = "stop"
+    """Stop cleaning."""
     Dock = "dock"
+    """Send the vacuum back to its dock."""
     Locate = "locate"
+    """Make the vacuum beep so it can be found."""
     Spot = "spot"
+    """Clean the spot around the vacuum."""
 
 
 class VacuumCapability(StrEnum):
@@ -139,7 +151,7 @@ class VacuumControl(RobotControl[VacuumControlProperties, TStorage, VacuumCapabi
 
     @property
     def fanSpeed(self) -> str | None:
-        """Suction level."""
+        """Suction level, one of the choices the plugin sets."""
         return self.props.fanSpeed  # type: ignore[no-any-return]
 
     async def start(self) -> None:

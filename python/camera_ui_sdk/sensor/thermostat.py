@@ -18,27 +18,40 @@ class ThermostatMode(StrEnum):
     """What a thermostat is set to do."""
 
     Off = "off"
+    """Thermostat is off."""
     Heat = "heat"
+    """Heats to the target temperature."""
     Cool = "cool"
+    """Cools to the target temperature."""
     HeatCool = "heat_cool"
     """Heats and cools to stay inside a target range."""
     Auto = "auto"
     """The device decides by its own schedule or logic."""
     Dry = "dry"
+    """Dries the air."""
     FanOnly = "fan_only"
+    """Runs only the fan, without heating or cooling."""
 
 
 class ThermostatAction(StrEnum):
     """What a thermostat does right now."""
 
     Off = "off"
+    """Thermostat is off."""
     Idle = "idle"
+    """Thermostat is on but not working right now."""
     Heating = "heating"
+    """Thermostat heats."""
     Cooling = "cooling"
+    """Thermostat cools."""
     Drying = "drying"
+    """Thermostat dries the air."""
     Fan = "fan"
+    """Thermostat runs only the fan."""
     Preheating = "preheating"
+    """Thermostat warms up before it heats."""
     Defrosting = "defrosting"
+    """Thermostat defrosts its outdoor unit."""
 
 
 class ThermostatCapability(StrEnum):
@@ -62,13 +75,13 @@ class ThermostatProperty(StrEnum):
     """Property names of a thermostat. Temperatures are in °C."""
 
     CurrentTemperature = "currentTemperature"
-    """Current temperature."""
+    """Current temperature in °C."""
     TargetTemperature = "targetTemperature"
-    """Temperature the thermostat heats or cools to."""
+    """Temperature the thermostat heats or cools to, in °C."""
     TargetTemperatureLow = "targetTemperatureLow"
-    """Lower end of the target range."""
+    """Lower end of the target range in °C."""
     TargetTemperatureHigh = "targetTemperatureHigh"
-    """Upper end of the target range."""
+    """Upper end of the target range in °C."""
     Mode = "mode"
     """Mode, a ``ThermostatMode``."""
     Action = "action"
@@ -214,7 +227,7 @@ class ThermostatControl(
 
     @property
     def targetTemperature(self) -> float:
-        """Target temperature in °C."""
+        """Temperature the thermostat heats or cools to, in °C."""
         return float(self.props.targetTemperature)
 
     @property
@@ -229,13 +242,13 @@ class ThermostatControl(
 
     @property
     def mode(self) -> ThermostatMode:
-        """Mode."""
+        """Mode, a ``ThermostatMode``."""
         value = self.props.mode
         return ThermostatMode(value) if value is not None else ThermostatMode.Off
 
     @property
     def action(self) -> ThermostatAction | None:
-        """What the thermostat does right now."""
+        """What the thermostat does right now, a ``ThermostatAction``."""
         value = self.props.action
         return ThermostatAction(value) if value is not None else None
 
@@ -246,17 +259,17 @@ class ThermostatControl(
 
     @property
     def preset(self) -> str | None:
-        """Active preset."""
+        """Active preset, one of the choices the device offers."""
         return self.props.preset  # type: ignore[no-any-return]
 
     @property
     def fanMode(self) -> str | None:
-        """Active fan mode."""
+        """Active fan mode, one of the choices the device offers."""
         return self.props.fanMode  # type: ignore[no-any-return]
 
     @property
     def targetHumidity(self) -> int:
-        """Target humidity in percent."""
+        """Humidity in percent the thermostat keeps."""
         return int(self.props.targetHumidity or 0)
 
     async def setTargetTemperature(self, value: float) -> None:

@@ -33,9 +33,9 @@ class LightProperty(StrEnum):
     ColorTemperature = "colorTemperature"
     """White color temperature in Kelvin."""
     Color = "color"
-    """Color as hue and saturation, see LightColor."""
+    """Color as hue and saturation, see ``LightColor``."""
     ColorMode = "colorMode"
-    """Whether the light shows its color temperature or its color, see LightColorMode."""
+    """Whether the light shows its color temperature or its color, see ``LightColorMode``."""
 
 
 class LightColorMode(StrEnum):
@@ -186,12 +186,12 @@ class LightControl(Sensor[LightControlProperties, TStorage, LightCapability], Ge
 
     @property
     def color(self) -> LightColor:
-        """Color as hue and saturation."""
+        """Color as hue and saturation, see ``LightColor``."""
         return self.props.color  # type: ignore[no-any-return]
 
     @property
     def colorMode(self) -> LightColorMode:
-        """Whether the light shows its color temperature or its color."""
+        """Whether the light shows its color temperature or its color, see ``LightColorMode``."""
         return LightColorMode(self.props.colorMode)
 
     async def setOn(self) -> None:

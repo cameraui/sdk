@@ -12,7 +12,7 @@ type ButtonProperty = string
 // Property names of a button.
 const (
 	ButtonPropertyPress ButtonProperty = "press" // Kind of the press in progress, empty between presses
-	ButtonPropertyIndex ButtonProperty = "index" // Position of the button on its device, from 1, 0 leaves the order to the creation order
+	ButtonPropertyIndex ButtonProperty = "index" // Position of the button on its device, from 1. 0 leaves the order to the creation order
 )
 
 // ButtonPress is how a button was pressed.
@@ -74,7 +74,7 @@ func (s *ButtonTrigger) GetPress() ButtonPress {
 	return ButtonPress(v)
 }
 
-// GetIndex returns the position of the button on its device, 0 when not set.
+// GetIndex returns the position of the button on its device, from 1. 0 leaves the order to the creation order.
 func (s *ButtonTrigger) GetIndex() int {
 	if v, ok := toInt64(s.GetValue(ButtonPropertyIndex)); ok {
 		return int(v)

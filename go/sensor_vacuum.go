@@ -5,12 +5,12 @@ type VacuumActivity = string
 
 // Activities of a vacuum.
 const (
-	VacuumActivityCleaning  VacuumActivity = "cleaning"
-	VacuumActivityDocked    VacuumActivity = "docked"
-	VacuumActivityIdle      VacuumActivity = "idle"
-	VacuumActivityPaused    VacuumActivity = "paused"
-	VacuumActivityReturning VacuumActivity = "returning"
-	VacuumActivityError     VacuumActivity = "error"
+	VacuumActivityCleaning  VacuumActivity = "cleaning"  // Vacuum is cleaning
+	VacuumActivityDocked    VacuumActivity = "docked"    // Vacuum is in its dock
+	VacuumActivityIdle      VacuumActivity = "idle"      // Vacuum is off its dock and not cleaning
+	VacuumActivityPaused    VacuumActivity = "paused"    // Vacuum paused where it is
+	VacuumActivityReturning VacuumActivity = "returning" // Vacuum drives back to its dock
+	VacuumActivityError     VacuumActivity = "error"     // Vacuum reports an error
 )
 
 // VacuumCommand is a command a vacuum takes.
@@ -18,12 +18,12 @@ type VacuumCommand = string
 
 // Commands a vacuum takes.
 const (
-	VacuumCommandStart  VacuumCommand = "start"
-	VacuumCommandPause  VacuumCommand = "pause"
-	VacuumCommandStop   VacuumCommand = "stop"
-	VacuumCommandDock   VacuumCommand = "dock"
-	VacuumCommandLocate VacuumCommand = "locate"
-	VacuumCommandSpot   VacuumCommand = "spot"
+	VacuumCommandStart  VacuumCommand = "start"  // Start or resume cleaning
+	VacuumCommandPause  VacuumCommand = "pause"  // Pause cleaning where the vacuum is
+	VacuumCommandStop   VacuumCommand = "stop"   // Stop cleaning
+	VacuumCommandDock   VacuumCommand = "dock"   // Send the vacuum back to its dock
+	VacuumCommandLocate VacuumCommand = "locate" // Make the vacuum beep so it can be found
+	VacuumCommandSpot   VacuumCommand = "spot"   // Clean the spot around the vacuum
 )
 
 // Optional capabilities of a vacuum.
@@ -75,7 +75,7 @@ func NewVacuumControl(name string, opts ...SensorOption) *VacuumControl {
 	return s
 }
 
-// GetFanSpeed returns the suction level.
+// GetFanSpeed returns the suction level, one of the choices the plugin sets.
 func (s *VacuumControl) GetFanSpeed() string {
 	v, _ := s.GetValue(VacuumPropertyFanSpeed).(string)
 	return v

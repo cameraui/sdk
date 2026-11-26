@@ -7,8 +7,8 @@ type HumidifierKind = string
 
 // Kinds of a humidifier.
 const (
-	HumidifierKindHumidifier   HumidifierKind = "humidifier"
-	HumidifierKindDehumidifier HumidifierKind = "dehumidifier"
+	HumidifierKindHumidifier   HumidifierKind = "humidifier"   // Adds moisture to the air
+	HumidifierKindDehumidifier HumidifierKind = "dehumidifier" // Removes moisture from the air
 )
 
 // HumidifierAction is what a humidifier does right now.
@@ -16,10 +16,10 @@ type HumidifierAction = string
 
 // Actions of a humidifier.
 const (
-	HumidifierActionOff         HumidifierAction = "off"
-	HumidifierActionIdle        HumidifierAction = "idle"
-	HumidifierActionHumidifying HumidifierAction = "humidifying"
-	HumidifierActionDrying      HumidifierAction = "drying"
+	HumidifierActionOff         HumidifierAction = "off"         // Humidifier is off
+	HumidifierActionIdle        HumidifierAction = "idle"        // Humidifier is on but not working right now
+	HumidifierActionHumidifying HumidifierAction = "humidifying" // Humidifier adds moisture
+	HumidifierActionDrying      HumidifierAction = "drying"      // Humidifier removes moisture
 )
 
 // Optional capabilities of a humidifier.
@@ -79,7 +79,7 @@ func (s *HumidifierControl) GetType() SensorType         { return SensorTypeHumi
 func (s *HumidifierControl) GetCategory() SensorCategory { return SensorCategoryControl }
 func (s *HumidifierControl) ToJSON() sensorJSON          { return s.toBaseJSON(s.GetType(), s.GetCategory()) }
 
-// IsOn reports true while the humidifier is on.
+// IsOn reports true while the humidifier is on, a command when written.
 func (s *HumidifierControl) IsOn() bool {
 	v, _ := s.GetValue(HumidifierPropertyOn).(bool)
 	return v
@@ -97,19 +97,19 @@ func (s *HumidifierControl) GetCurrentHumidity() (float64, bool) {
 	return v, ok
 }
 
-// GetAction returns what the humidifier does right now, empty before the first report.
+// GetAction returns what the humidifier does right now, a HumidifierAction, empty before the first report.
 func (s *HumidifierControl) GetAction() HumidifierAction {
 	v, _ := s.GetValue(HumidifierPropertyAction).(string)
 	return v
 }
 
-// GetMode returns the active mode.
+// GetMode returns the active mode, one of the choices the plugin sets.
 func (s *HumidifierControl) GetMode() string {
 	v, _ := s.GetValue(HumidifierPropertyMode).(string)
 	return v
 }
 
-// GetKind returns whether it humidifies or dehumidifies, empty when the plugin did not say.
+// GetKind returns whether it humidifies or dehumidifies, a HumidifierKind, empty when the plugin did not say.
 func (s *HumidifierControl) GetKind() HumidifierKind {
 	v, _ := s.GetValue(HumidifierPropertyKind).(string)
 	return v

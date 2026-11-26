@@ -7,8 +7,8 @@ type FanDirection = string
 
 // Directions of a fan.
 const (
-	FanDirectionForward FanDirection = "forward"
-	FanDirectionReverse FanDirection = "reverse"
+	FanDirectionForward FanDirection = "forward" // Fan turns in its normal direction
+	FanDirectionReverse FanDirection = "reverse" // Fan turns the other way
 )
 
 // Optional capabilities of a fan.
@@ -84,7 +84,7 @@ func (s *FanControl) GetSpeed() int {
 	return v
 }
 
-// GetDirection returns the direction the fan turns.
+// GetDirection returns the direction, a FanDirection.
 func (s *FanControl) GetDirection() FanDirection {
 	if v, ok := s.GetValue(FanPropertyDirection).(string); ok {
 		return v
@@ -98,7 +98,7 @@ func (s *FanControl) IsOscillating() bool {
 	return v
 }
 
-// GetPreset returns the active preset.
+// GetPreset returns the active preset, one of the choices the device offers.
 func (s *FanControl) GetPreset() string {
 	v, _ := s.GetValue(FanPropertyPreset).(string)
 	return v

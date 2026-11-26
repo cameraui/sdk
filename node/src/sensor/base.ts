@@ -679,7 +679,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
    * reaches the host. Ignored for a sensor added with `camera.addSensor()`,
    * its camera is its device.
    *
-   * @param device - Device at the source, `undefined` to leave the current one
+   * @param device - Device at the source, `undefined` to take the sensor out of its device
    *
    * @param options - Whether this sensor is the device's main sensor
    *

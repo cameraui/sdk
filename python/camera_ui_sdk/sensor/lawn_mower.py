@@ -17,18 +17,26 @@ class LawnMowerActivity(StrEnum):
     """What a lawn mower does right now."""
 
     Mowing = "mowing"
+    """Mower is mowing."""
     Docked = "docked"
+    """Mower is in its dock."""
     Paused = "paused"
+    """Mower paused where it is."""
     Returning = "returning"
+    """Mower drives back to its dock."""
     Error = "error"
+    """Mower reports an error."""
 
 
 class LawnMowerCommand(StrEnum):
     """Commands a lawn mower takes."""
 
     Start = "start"
+    """Start or resume mowing."""
     Pause = "pause"
+    """Pause mowing where the mower is."""
     Dock = "dock"
+    """Stop mowing and send the mower back to its dock."""
 
 
 class LawnMowerProperty(StrEnum):

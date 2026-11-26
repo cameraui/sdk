@@ -6,15 +6,23 @@ import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /** Operating mode of a water heater. */
 export enum WaterHeaterMode {
+  /** Water heater is off. */
   Off = 'off',
+  /** Energy-saving mode. */
   Eco = 'eco',
+  /** Heats with electricity only. */
   Electric = 'electric',
+  /** Heats with gas only. */
   Gas = 'gas',
+  /** Heats with the heat pump only. */
   HeatPump = 'heat_pump',
+  /** Heats more to keep up with a high demand for hot water. */
   HighDemand = 'high_demand',
+  /** Heats as fast as it can. */
   Performance = 'performance',
   /** The device decides by its own schedule or logic. */
   Auto = 'auto',
+  /** Heats the water. */
   Heat = 'heat',
   /** Running in a mode without a name of its own. */
   On = 'on',
@@ -113,7 +121,7 @@ export class WaterHeaterControl<TStorage extends object = Record<string, any>> e
     return this.props.targetTemperature;
   }
 
-  /** Operating mode. */
+  /** Operating mode, a {@link WaterHeaterMode}, a command when written. */
   get mode(): WaterHeaterMode {
     return this.props.mode;
   }

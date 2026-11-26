@@ -6,11 +6,11 @@ import "math"
 type CoverState int
 
 const (
-	CoverStateOpen    CoverState = 0
-	CoverStateClosed  CoverState = 1
-	CoverStateOpening CoverState = 2
-	CoverStateClosing CoverState = 3
-	CoverStateStopped CoverState = 4
+	CoverStateOpen    CoverState = 0 // Cover is open, fully or part-way
+	CoverStateClosed  CoverState = 1 // Cover is fully closed
+	CoverStateOpening CoverState = 2 // Cover is moving towards open
+	CoverStateClosing CoverState = 3 // Cover is moving towards closed
+	CoverStateStopped CoverState = 4 // Cover stopped part-way
 )
 
 // CoverKind says what a cover is, it decides how smart homes show it.
@@ -18,14 +18,14 @@ type CoverKind = string
 
 // Kinds of a cover.
 const (
-	CoverKindAwning  CoverKind = "awning"
-	CoverKindBlind   CoverKind = "blind"
-	CoverKindCurtain CoverKind = "curtain"
-	CoverKindDamper  CoverKind = "damper"
-	CoverKindDoor    CoverKind = "door"
-	CoverKindShade   CoverKind = "shade"
-	CoverKindShutter CoverKind = "shutter"
-	CoverKindWindow  CoverKind = "window"
+	CoverKindAwning  CoverKind = "awning"  // An awning
+	CoverKindBlind   CoverKind = "blind"   // A blind of slats, such as a Venetian blind
+	CoverKindCurtain CoverKind = "curtain" // A curtain or drape
+	CoverKindDamper  CoverKind = "damper"  // A damper that controls the airflow in a duct
+	CoverKindDoor    CoverKind = "door"    // A door or gate
+	CoverKindShade   CoverKind = "shade"   // A shade of one piece of fabric, such as a roller shade
+	CoverKindShutter CoverKind = "shutter" // A shutter, such as a roller shutter
+	CoverKindWindow  CoverKind = "window"  // A window that opens and closes
 )
 
 // Optional capabilities of a cover.
@@ -95,7 +95,7 @@ func (s *CoverControl) GetType() SensorType         { return SensorTypeCover }
 func (s *CoverControl) GetCategory() SensorCategory { return SensorCategoryControl }
 func (s *CoverControl) ToJSON() sensorJSON          { return s.toBaseJSON(s.GetType(), s.GetCategory()) }
 
-// GetCurrentState returns the current state.
+// GetCurrentState returns the current state, a CoverState.
 func (s *CoverControl) GetCurrentState() CoverState {
 	if v, ok := s.GetValue(CoverPropertyCurrentState).(int); ok {
 		return CoverState(v)
@@ -103,7 +103,7 @@ func (s *CoverControl) GetCurrentState() CoverState {
 	return CoverStateClosed
 }
 
-// GetTargetState returns the target state.
+// GetTargetState returns the target state, Open or Closed.
 func (s *CoverControl) GetTargetState() CoverState {
 	if v, ok := s.GetValue(CoverPropertyTargetState).(int); ok {
 		return CoverState(v)
@@ -141,7 +141,7 @@ func (s *CoverControl) IsObstructionDetected() bool {
 	return v
 }
 
-// GetKind returns what the cover is, empty when the plugin did not say.
+// GetKind returns what the cover is, a CoverKind, empty when the plugin did not say.
 func (s *CoverControl) GetKind() CoverKind {
 	v, _ := s.GetValue(CoverPropertyKind).(string)
 	return v

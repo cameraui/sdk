@@ -7,21 +7,33 @@ import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /** What a vacuum does right now. */
 export enum VacuumActivity {
+  /** Vacuum is cleaning. */
   Cleaning = 'cleaning',
+  /** Vacuum is in its dock. */
   Docked = 'docked',
+  /** Vacuum is off its dock and not cleaning. */
   Idle = 'idle',
+  /** Vacuum paused where it is. */
   Paused = 'paused',
+  /** Vacuum drives back to its dock. */
   Returning = 'returning',
+  /** Vacuum reports an error. */
   Error = 'error',
 }
 
 /** Commands a vacuum takes. */
 export enum VacuumCommand {
+  /** Start or resume cleaning. */
   Start = 'start',
+  /** Pause cleaning where the vacuum is. */
   Pause = 'pause',
+  /** Stop cleaning. */
   Stop = 'stop',
+  /** Send the vacuum back to its dock. */
   Dock = 'dock',
+  /** Make the vacuum beep so it can be found. */
   Locate = 'locate',
+  /** Clean the spot around the vacuum. */
   Spot = 'spot',
 }
 
@@ -96,7 +108,7 @@ export class VacuumControl<TStorage extends object = Record<string, any>> extend
     super(name, options);
   }
 
-  /** Suction level. */
+  /** Suction level, one of the choices the plugin sets. */
   get fanSpeed(): string | undefined {
     return this.props.fanSpeed;
   }

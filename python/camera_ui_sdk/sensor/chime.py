@@ -143,7 +143,7 @@ class ChimeControl(Sensor[ChimeControlProperties, TStorage, ChimeCapability], Ge
 
     @property
     def tone(self) -> str:
-        """Tone the chime plays."""
+        """Tone the chime plays, one of the tones the device offers."""
         return str(self.props.tone or "")
 
     @property
@@ -153,7 +153,7 @@ class ChimeControl(Sensor[ChimeControlProperties, TStorage, ChimeCapability], Ge
 
     @property
     def repeat(self) -> int:
-        """How often the tone plays."""
+        """How often the tone plays (1-10)."""
         return int(self.props.repeat or 1)
 
     async def play(self) -> None:

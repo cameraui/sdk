@@ -6,7 +6,7 @@ import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /** Property names of a scene. */
 export enum SceneProperty {
-  /** `true` for a moment while the scene runs, a command when written `true`. */
+  /** `true` for a moment after the scene ran, a command when written `true`. */
   Active = 'active',
 }
 
@@ -61,7 +61,7 @@ export class SceneControl<TStorage extends object = Record<string, any>> extends
     this._writeState({ [SceneProperty.Active]: false });
   }
 
-  /** `true` for a moment after the scene ran. */
+  /** `true` for a moment after the scene ran, a command when written `true`. */
   get active(): boolean {
     return this.props.active;
   }

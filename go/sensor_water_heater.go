@@ -7,16 +7,16 @@ type WaterHeaterMode = string
 
 // Modes of a water heater.
 const (
-	WaterHeaterModeOff         WaterHeaterMode = "off"
-	WaterHeaterModeEco         WaterHeaterMode = "eco"
-	WaterHeaterModeElectric    WaterHeaterMode = "electric"
-	WaterHeaterModeGas         WaterHeaterMode = "gas"
-	WaterHeaterModeHeatPump    WaterHeaterMode = "heat_pump"
-	WaterHeaterModeHighDemand  WaterHeaterMode = "high_demand"
-	WaterHeaterModePerformance WaterHeaterMode = "performance"
-	WaterHeaterModeAuto        WaterHeaterMode = "auto" // The device decides by its own schedule or logic
-	WaterHeaterModeHeat        WaterHeaterMode = "heat"
-	WaterHeaterModeOn          WaterHeaterMode = "on" // Running in a mode without a name of its own
+	WaterHeaterModeOff         WaterHeaterMode = "off"         // Water heater is off
+	WaterHeaterModeEco         WaterHeaterMode = "eco"         // Energy-saving mode
+	WaterHeaterModeElectric    WaterHeaterMode = "electric"    // Heats with electricity only
+	WaterHeaterModeGas         WaterHeaterMode = "gas"         // Heats with gas only
+	WaterHeaterModeHeatPump    WaterHeaterMode = "heat_pump"   // Heats with the heat pump only
+	WaterHeaterModeHighDemand  WaterHeaterMode = "high_demand" // Heats more to keep up with a high demand for hot water
+	WaterHeaterModePerformance WaterHeaterMode = "performance" // Heats as fast as it can
+	WaterHeaterModeAuto        WaterHeaterMode = "auto"        // The device decides by its own schedule or logic
+	WaterHeaterModeHeat        WaterHeaterMode = "heat"        // Heats the water
+	WaterHeaterModeOn          WaterHeaterMode = "on"          // Running in a mode without a name of its own
 )
 
 // Optional capabilities of a water heater.
@@ -85,7 +85,7 @@ func (s *WaterHeaterControl) GetTargetTemperature() float64 {
 	return v
 }
 
-// GetMode returns the operating mode.
+// GetMode returns the operating mode, a WaterHeaterMode, a command when written.
 func (s *WaterHeaterControl) GetMode() WaterHeaterMode {
 	v, _ := s.GetValue(WaterHeaterPropertyMode).(string)
 	return v

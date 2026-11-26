@@ -5,9 +5,9 @@ type ContactKind = string
 
 // Kinds of a contact.
 const (
-	ContactKindDoor       ContactKind = "door"
-	ContactKindGarageDoor ContactKind = "garage_door"
-	ContactKindWindow     ContactKind = "window"
+	ContactKindDoor       ContactKind = "door"        // A door
+	ContactKindGarageDoor ContactKind = "garage_door" // A garage door
+	ContactKindWindow     ContactKind = "window"      // A window
 )
 
 // ContactProperty is a property name of a contact sensor.
@@ -29,7 +29,7 @@ func NewContactSensor(name string, opts ...SensorOption) *ContactSensor {
 	return s
 }
 
-// GetKind returns what the contact guards.
+// GetKind returns what the contact guards, a ContactKind.
 func (s *ContactSensor) GetKind() ContactKind {
 	v, _ := s.GetValue(ContactPropertyKind).(string)
 	return v

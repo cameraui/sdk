@@ -6,8 +6,11 @@ import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /** What a contact guards, it decides how smart homes show it. */
 export enum ContactKind {
+  /** A door. */
   Door = 'door',
+  /** A garage door. */
   GarageDoor = 'garage_door',
+  /** A window. */
   Window = 'window',
 }
 
@@ -43,7 +46,7 @@ export class ContactSensor<TStorage extends object = Record<string, any>> extend
     super(name, options);
   }
 
-  /** What the contact guards. */
+  /** What the contact guards, a {@link ContactKind}. */
   get kind(): ContactKind | undefined {
     return this.props.kind;
   }

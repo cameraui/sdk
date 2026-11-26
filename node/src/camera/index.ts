@@ -6,5 +6,6 @@ export * from './events.js';
 export * from './export.js';
 export * from './frames.js';
 export * from './notification.js';
+export * from './privacy.js';
 export * from './recording.js';
 export * from './streaming.js';

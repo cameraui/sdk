@@ -17,23 +17,36 @@ class CoverState(IntEnum):
     """State of a cover. A target takes ``Open`` and ``Closed``."""
 
     Open = 0
+    """Cover is open, fully or part-way."""
     Closed = 1
+    """Cover is fully closed."""
     Opening = 2
+    """Cover is moving towards open."""
     Closing = 3
+    """Cover is moving towards closed."""
     Stopped = 4
+    """Cover stopped part-way."""
 
 
 class CoverKind(StrEnum):
     """What a cover is, it decides how smart homes show it."""
 
     Awning = "awning"
+    """An awning."""
     Blind = "blind"
+    """A blind of slats, such as a Venetian blind."""
     Curtain = "curtain"
+    """A curtain or drape."""
     Damper = "damper"
+    """A damper that controls the airflow in a duct."""
     Door = "door"
+    """A door or gate."""
     Shade = "shade"
+    """A shade of one piece of fabric, such as a roller shade."""
     Shutter = "shutter"
+    """A shutter, such as a roller shutter."""
     Window = "window"
+    """A window that opens and closes."""
 
 
 class CoverCapability(StrEnum):
@@ -193,13 +206,13 @@ class CoverControl(Sensor[CoverControlProperties, TStorage, CoverCapability], Ge
 
     @property
     def currentState(self) -> CoverState:
-        """Current state."""
+        """Current state, a ``CoverState``."""
         value = self.props.currentState
         return CoverState(value) if value is not None else CoverState.Closed
 
     @property
     def targetState(self) -> CoverState:
-        """Target state."""
+        """Target state, ``Open`` or ``Closed``."""
         value = self.props.targetState
         return CoverState(value) if value is not None else CoverState.Closed
 
@@ -230,7 +243,7 @@ class CoverControl(Sensor[CoverControlProperties, TStorage, CoverCapability], Ge
 
     @property
     def kind(self) -> CoverKind | None:
-        """What the cover is."""
+        """What the cover is, a ``CoverKind``."""
         value = self.props.kind
         return CoverKind(value) if value is not None else None
 

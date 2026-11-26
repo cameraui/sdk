@@ -6,15 +6,21 @@ import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /** Whether the device adds or removes moisture, it decides how smart homes show it. */
 export enum HumidifierKind {
+  /** Adds moisture to the air. */
   Humidifier = 'humidifier',
+  /** Removes moisture from the air. */
   Dehumidifier = 'dehumidifier',
 }
 
 /** What a humidifier does right now. */
 export enum HumidifierAction {
+  /** Humidifier is off. */
   Off = 'off',
+  /** Humidifier is on but not working right now. */
   Idle = 'idle',
+  /** Humidifier adds moisture. */
   Humidifying = 'humidifying',
+  /** Humidifier removes moisture. */
   Drying = 'drying',
 }
 
@@ -108,7 +114,7 @@ export class HumidifierControl<TStorage extends object = Record<string, any>> ex
     this._writeState({ [HumidifierProperty.On]: false, [HumidifierProperty.TargetHumidity]: 50 });
   }
 
-  /** `true` while the humidifier is on. */
+  /** `true` while the humidifier is on, a command when written. */
   get on(): boolean {
     return this.props.on;
   }
@@ -123,17 +129,17 @@ export class HumidifierControl<TStorage extends object = Record<string, any>> ex
     return this.props.currentHumidity;
   }
 
-  /** What the humidifier does right now. */
+  /** What the humidifier does right now, a {@link HumidifierAction}. */
   get action(): HumidifierAction | undefined {
     return this.props.action;
   }
 
-  /** Active mode. */
+  /** Active mode, one of the choices the plugin sets. */
   get mode(): string | undefined {
     return this.props.mode;
   }
 
-  /** Whether it humidifies or dehumidifies. */
+  /** Whether it humidifies or dehumidifies, a {@link HumidifierKind}. */
   get kind(): HumidifierKind | undefined {
     return this.props.kind;
   }

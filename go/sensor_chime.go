@@ -67,7 +67,7 @@ func (s *ChimeControl) IsActive() bool {
 	return v
 }
 
-// GetTone returns the tone the chime plays.
+// GetTone returns the tone the chime plays, one of the tones the device offers.
 func (s *ChimeControl) GetTone() string {
 	v, _ := s.GetValue(ChimePropertyTone).(string)
 	return v
@@ -81,7 +81,7 @@ func (s *ChimeControl) GetVolume() int {
 	return 0
 }
 
-// GetRepeat returns how often the tone plays.
+// GetRepeat returns how often the tone plays (1-10).
 func (s *ChimeControl) GetRepeat() int {
 	if v, ok := toInt64(s.GetValue(ChimePropertyRepeat)); ok {
 		return int(v)

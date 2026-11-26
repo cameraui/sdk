@@ -18,17 +18,24 @@ class ValveState(IntEnum):
     """State of a valve. A target takes ``Open`` and ``Closed``."""
 
     Open = 0
+    """Valve is open, fully or part-way."""
     Closed = 1
+    """Valve is fully closed."""
     Opening = 2
+    """Valve is moving towards open."""
     Closing = 3
+    """Valve is moving towards closed."""
 
 
 class ValveKind(StrEnum):
     """What a valve controls, it decides how smart homes show it."""
 
     Water = "water"
+    """A water valve."""
     Gas = "gas"
+    """A gas valve."""
     Irrigation = "irrigation"
+    """An irrigation or sprinkler valve."""
 
 
 class ValveCapability(StrEnum):
@@ -58,7 +65,7 @@ class ValveProperty(StrEnum):
     Kind = "kind"
     """What the valve controls, a ``ValveKind``."""
     Index = "index"
-    """Position of the valve on its device, from 1."""
+    """Position of the valve on its device, from 1, 0 when not set."""
 
 
 class ValveControlProperties(TypedDict):
@@ -181,13 +188,13 @@ class ValveControl(Sensor[ValveControlProperties, TStorage, ValveCapability], Ge
 
     @property
     def currentState(self) -> ValveState:
-        """Current state."""
+        """Current state, a ``ValveState``."""
         value = self.props.currentState
         return ValveState(value) if value is not None else ValveState.Closed
 
     @property
     def targetState(self) -> ValveState:
-        """Target state."""
+        """Target state, ``Open`` or ``Closed``."""
         value = self.props.targetState
         return ValveState(value) if value is not None else ValveState.Closed
 
@@ -213,13 +220,13 @@ class ValveControl(Sensor[ValveControlProperties, TStorage, ValveCapability], Ge
 
     @property
     def kind(self) -> ValveKind | None:
-        """What the valve controls."""
+        """What the valve controls, a ``ValveKind``."""
         value = self.props.kind
         return ValveKind(value) if value is not None else None
 
     @property
     def index(self) -> int:
-        """Position of the valve on its device, 0 when not set."""
+        """Position of the valve on its device, from 1, 0 when not set."""
         return int(self.props.index or 0)
 
     async def setTargetState(self, value: ValveState) -> None:

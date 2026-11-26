@@ -8,29 +8,43 @@ import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /** What a media player does right now. */
 export enum MediaPlayerState {
+  /** Player is off or in standby. */
   Off = 'off',
   /** On, without telling what it does. */
   On = 'on',
+  /** Player is on and plays nothing. */
   Idle = 'idle',
+  /** Player is playing. */
   Playing = 'playing',
+  /** Playback is paused. */
   Paused = 'paused',
+  /** Player is loading and about to play. */
   Buffering = 'buffering',
 }
 
 /** What kind of device a media player is. */
 export enum MediaPlayerKind {
+  /** A TV. */
   Tv = 'tv',
+  /** A speaker. */
   Speaker = 'speaker',
+  /** An AV receiver. */
   Receiver = 'receiver',
+  /** A projector. */
   Projector = 'projector',
 }
 
 /** Commands a media player takes. */
 export enum MediaPlayerCommand {
+  /** Start or resume playback. */
   Play = 'play',
+  /** Pause playback. */
   Pause = 'pause',
+  /** Stop playback. */
   Stop = 'stop',
+  /** Skip to the next track or channel. */
   Next = 'next',
+  /** Go back to the previous track or channel. */
   Previous = 'previous',
 }
 
@@ -141,17 +155,17 @@ export class MediaPlayerControl<TStorage extends object = Record<string, any>> e
     this._writeState({ [MediaPlayerProperty.On]: false, [MediaPlayerProperty.Muted]: false });
   }
 
-  /** Whether the player is on. */
+  /** Whether the player is on, writable with the `power` capability. */
   get on(): boolean {
     return this.props.on;
   }
 
-  /** What the player does right now. */
+  /** What the player does right now, a {@link MediaPlayerState}. */
   get state(): MediaPlayerState | undefined {
     return this.props.state;
   }
 
-  /** What kind of device it is. */
+  /** What kind of device it is, a {@link MediaPlayerKind}. */
   get kind(): MediaPlayerKind | undefined {
     return this.props.kind;
   }
@@ -166,7 +180,7 @@ export class MediaPlayerControl<TStorage extends object = Record<string, any>> e
     return this.props.muted;
   }
 
-  /** Selected input or app. */
+  /** Selected input or app, one of the choices the plugin sets. */
   get source(): string | undefined {
     return this.props.source;
   }

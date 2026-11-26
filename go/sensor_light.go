@@ -16,7 +16,7 @@ const (
 	LightPropertyBrightness       LightProperty = "brightness"       // Brightness level (0-100)
 	LightPropertyColorTemperature LightProperty = "colorTemperature" // White color temperature in Kelvin
 	LightPropertyColor            LightProperty = "color"            // Color as hue and saturation, see LightColor
-	LightPropertyColorMode        LightProperty = "colorMode"        // Whether the light shows its color temperature or its color
+	LightPropertyColorMode        LightProperty = "colorMode"        // Whether the light shows its color temperature or its color, see LightColorMode
 )
 
 // LightColorMode says which of its two color settings a light shows.
@@ -106,7 +106,7 @@ func (s *LightControl) GetColorTemperature() int {
 	return 0
 }
 
-// GetColor returns the color as hue and saturation.
+// GetColor returns the color as hue and saturation, see LightColor.
 func (s *LightControl) GetColor() LightColor {
 	if v, ok := s.GetValue(LightPropertyColor).(LightColor); ok {
 		return v
@@ -114,7 +114,7 @@ func (s *LightControl) GetColor() LightColor {
 	return LightColor{}
 }
 
-// GetColorMode returns whether the light shows its color temperature or its color.
+// GetColorMode returns whether the light shows its color temperature or its color, see LightColorMode.
 func (s *LightControl) GetColorMode() LightColorMode {
 	if v, ok := s.GetValue(LightPropertyColorMode).(string); ok {
 		return v

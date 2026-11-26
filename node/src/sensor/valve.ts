@@ -7,16 +7,23 @@ import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /** State of a valve. A target takes `Open` and `Closed`. */
 export enum ValveState {
+  /** Valve is open, fully or part-way. */
   Open = 0,
+  /** Valve is fully closed. */
   Closed = 1,
+  /** Valve is moving towards open. */
   Opening = 2,
+  /** Valve is moving towards closed. */
   Closing = 3,
 }
 
 /** What a valve controls, it decides how smart homes show it. */
 export enum ValveKind {
+  /** A water valve. */
   Water = 'water',
+  /** A gas valve. */
   Gas = 'gas',
+  /** An irrigation or sprinkler valve. */
   Irrigation = 'irrigation',
 }
 
@@ -44,7 +51,7 @@ export enum ValveProperty {
   Remaining = 'remaining',
   /** What the valve controls, a {@link ValveKind}. */
   Kind = 'kind',
-  /** Position of the valve on its device, from 1. */
+  /** Position of the valve on its device, from 1, 0 when not set. */
   Index = 'index',
 }
 
@@ -131,12 +138,12 @@ export class ValveControl<TStorage extends object = Record<string, any>> extends
     });
   }
 
-  /** Current state. */
+  /** Current state, a {@link ValveState}. */
   get currentState(): ValveState {
     return this.props.currentState;
   }
 
-  /** Target state. */
+  /** Target state, `Open` or `Closed`. */
   get targetState(): ValveState {
     return this.props.targetState;
   }
@@ -161,12 +168,12 @@ export class ValveControl<TStorage extends object = Record<string, any>> extends
     return this.props.remaining;
   }
 
-  /** What the valve controls. */
+  /** What the valve controls, a {@link ValveKind}. */
   get kind(): ValveKind | undefined {
     return this.props.kind;
   }
 
-  /** Position of the valve on its device, 0 when not set. */
+  /** Position of the valve on its device, from 1, 0 when not set. */
   get index(): number {
     return this.props.index;
   }

@@ -56,8 +56,11 @@ class PTZPosition(TypedDict):
     """Absolute PTZ position."""
 
     pan: float
+    """Horizontal position."""
     tilt: float
+    """Vertical position."""
     zoom: float
+    """Zoom level."""
 
 
 class PTZDirection(TypedDict):
@@ -74,8 +77,11 @@ class PTZDirection(TypedDict):
     """
 
     panSpeed: float
+    """Horizontal speed, positive moves right."""
     tiltSpeed: float
+    """Vertical speed, positive moves up."""
     zoomSpeed: float
+    """Zoom speed, positive zooms in."""
 
 
 class PTZRelativeMove(TypedDict):
@@ -88,8 +94,11 @@ class PTZRelativeMove(TypedDict):
     """
 
     panDelta: float
+    """Horizontal move, positive moves right."""
     tiltDelta: float
+    """Vertical move, positive moves up."""
     zoomDelta: float
+    """Zoom change, positive zooms in."""
 
 
 class PTZControlProperties(TypedDict):

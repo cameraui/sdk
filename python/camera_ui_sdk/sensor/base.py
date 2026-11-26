@@ -702,7 +702,7 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         ``camera.addSensor()``, its camera is its device.
 
         Args:
-            device: Device at the source, ``None`` to leave the current one.
+            device: Device at the source, ``None`` to take the sensor out of its device.
             primary: Whether this sensor is the device's main sensor.
 
         Example:

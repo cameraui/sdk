@@ -5,11 +5,11 @@ type LawnMowerActivity = string
 
 // Activities of a lawn mower.
 const (
-	LawnMowerActivityMowing    LawnMowerActivity = "mowing"
-	LawnMowerActivityDocked    LawnMowerActivity = "docked"
-	LawnMowerActivityPaused    LawnMowerActivity = "paused"
-	LawnMowerActivityReturning LawnMowerActivity = "returning"
-	LawnMowerActivityError     LawnMowerActivity = "error"
+	LawnMowerActivityMowing    LawnMowerActivity = "mowing"    // Mower is mowing
+	LawnMowerActivityDocked    LawnMowerActivity = "docked"    // Mower is in its dock
+	LawnMowerActivityPaused    LawnMowerActivity = "paused"    // Mower paused where it is
+	LawnMowerActivityReturning LawnMowerActivity = "returning" // Mower drives back to its dock
+	LawnMowerActivityError     LawnMowerActivity = "error"     // Mower reports an error
 )
 
 // LawnMowerCommand is a command a lawn mower takes.
@@ -17,9 +17,9 @@ type LawnMowerCommand = string
 
 // Commands a lawn mower takes.
 const (
-	LawnMowerCommandStart LawnMowerCommand = "start"
-	LawnMowerCommandPause LawnMowerCommand = "pause"
-	LawnMowerCommandDock  LawnMowerCommand = "dock"
+	LawnMowerCommandStart LawnMowerCommand = "start" // Start or resume mowing
+	LawnMowerCommandPause LawnMowerCommand = "pause" // Pause mowing where the mower is
+	LawnMowerCommandDock  LawnMowerCommand = "dock"  // Stop mowing and send the mower back to its dock
 )
 
 // LawnMowerProperty is a property name of a lawn mower.

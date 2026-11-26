@@ -7,13 +7,13 @@ type ThermostatMode = string
 
 // Modes of a thermostat.
 const (
-	ThermostatModeOff      ThermostatMode = "off"
-	ThermostatModeHeat     ThermostatMode = "heat"
-	ThermostatModeCool     ThermostatMode = "cool"
+	ThermostatModeOff      ThermostatMode = "off"       // Thermostat is off
+	ThermostatModeHeat     ThermostatMode = "heat"      // Heats to the target temperature
+	ThermostatModeCool     ThermostatMode = "cool"      // Cools to the target temperature
 	ThermostatModeHeatCool ThermostatMode = "heat_cool" // Heats and cools to stay inside a target range
 	ThermostatModeAuto     ThermostatMode = "auto"      // The device decides by its own schedule or logic
-	ThermostatModeDry      ThermostatMode = "dry"
-	ThermostatModeFanOnly  ThermostatMode = "fan_only"
+	ThermostatModeDry      ThermostatMode = "dry"       // Dries the air
+	ThermostatModeFanOnly  ThermostatMode = "fan_only"  // Runs only the fan, without heating or cooling
 )
 
 // ThermostatAction is what a thermostat does right now.
@@ -21,14 +21,14 @@ type ThermostatAction = string
 
 // Actions of a thermostat.
 const (
-	ThermostatActionOff        ThermostatAction = "off"
-	ThermostatActionIdle       ThermostatAction = "idle"
-	ThermostatActionHeating    ThermostatAction = "heating"
-	ThermostatActionCooling    ThermostatAction = "cooling"
-	ThermostatActionDrying     ThermostatAction = "drying"
-	ThermostatActionFan        ThermostatAction = "fan"
-	ThermostatActionPreheating ThermostatAction = "preheating"
-	ThermostatActionDefrosting ThermostatAction = "defrosting"
+	ThermostatActionOff        ThermostatAction = "off"        // Thermostat is off
+	ThermostatActionIdle       ThermostatAction = "idle"       // Thermostat is on but not working right now
+	ThermostatActionHeating    ThermostatAction = "heating"    // Thermostat heats
+	ThermostatActionCooling    ThermostatAction = "cooling"    // Thermostat cools
+	ThermostatActionDrying     ThermostatAction = "drying"     // Thermostat dries the air
+	ThermostatActionFan        ThermostatAction = "fan"        // Thermostat runs only the fan
+	ThermostatActionPreheating ThermostatAction = "preheating" // Thermostat warms up before it heats
+	ThermostatActionDefrosting ThermostatAction = "defrosting" // Thermostat defrosts its outdoor unit
 )
 
 // Optional capabilities of a thermostat.
@@ -46,10 +46,10 @@ type ThermostatProperty = string
 
 // Property names of a thermostat.
 const (
-	ThermostatPropertyCurrentTemperature    ThermostatProperty = "currentTemperature"    // Current temperature
-	ThermostatPropertyTargetTemperature     ThermostatProperty = "targetTemperature"     // Temperature the thermostat heats or cools to
-	ThermostatPropertyTargetTemperatureLow  ThermostatProperty = "targetTemperatureLow"  // Lower end of the target range
-	ThermostatPropertyTargetTemperatureHigh ThermostatProperty = "targetTemperatureHigh" // Upper end of the target range
+	ThermostatPropertyCurrentTemperature    ThermostatProperty = "currentTemperature"    // Current temperature in °C
+	ThermostatPropertyTargetTemperature     ThermostatProperty = "targetTemperature"     // Temperature the thermostat heats or cools to, in °C
+	ThermostatPropertyTargetTemperatureLow  ThermostatProperty = "targetTemperatureLow"  // Lower end of the target range in °C
+	ThermostatPropertyTargetTemperatureHigh ThermostatProperty = "targetTemperatureHigh" // Upper end of the target range in °C
 	ThermostatPropertyMode                  ThermostatProperty = "mode"                  // Mode, a ThermostatMode
 	ThermostatPropertyAction                ThermostatProperty = "action"                // What the thermostat does right now, a ThermostatAction
 	ThermostatPropertyCurrentHumidity       ThermostatProperty = "currentHumidity"       // Current humidity in percent
@@ -109,7 +109,7 @@ func (s *ThermostatControl) GetCurrentTemperature() (float64, bool) {
 	return v, ok
 }
 
-// GetTargetTemperature returns the target temperature in °C.
+// GetTargetTemperature returns the temperature the thermostat heats or cools to, in °C.
 func (s *ThermostatControl) GetTargetTemperature() float64 {
 	v, _ := s.GetValue(ThermostatPropertyTargetTemperature).(float64)
 	return v
@@ -127,13 +127,13 @@ func (s *ThermostatControl) GetTargetTemperatureHigh() float64 {
 	return v
 }
 
-// GetMode returns the mode.
+// GetMode returns the mode, a ThermostatMode.
 func (s *ThermostatControl) GetMode() ThermostatMode {
 	v, _ := s.GetValue(ThermostatPropertyMode).(string)
 	return v
 }
 
-// GetAction returns what the thermostat does right now, empty before the first report.
+// GetAction returns what the thermostat does right now, a ThermostatAction, empty before the first report.
 func (s *ThermostatControl) GetAction() ThermostatAction {
 	v, _ := s.GetValue(ThermostatPropertyAction).(string)
 	return v
@@ -145,19 +145,19 @@ func (s *ThermostatControl) GetCurrentHumidity() (float64, bool) {
 	return v, ok
 }
 
-// GetPreset returns the active preset.
+// GetPreset returns the active preset, one of the choices the device offers.
 func (s *ThermostatControl) GetPreset() string {
 	v, _ := s.GetValue(ThermostatPropertyPreset).(string)
 	return v
 }
 
-// GetFanMode returns the active fan mode.
+// GetFanMode returns the active fan mode, one of the choices the device offers.
 func (s *ThermostatControl) GetFanMode() string {
 	v, _ := s.GetValue(ThermostatPropertyFanMode).(string)
 	return v
 }
 
-// GetTargetHumidity returns the target humidity in percent.
+// GetTargetHumidity returns the humidity in percent the thermostat keeps.
 func (s *ThermostatControl) GetTargetHumidity() int {
 	v, _ := s.GetValue(ThermostatPropertyTargetHumidity).(int)
 	return v

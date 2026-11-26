@@ -7,8 +7,11 @@ import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /** What an air purifier does right now. */
 export enum AirPurifierState {
+  /** Purifier is off. */
   Inactive = 'inactive',
+  /** Purifier is on but not purifying right now. */
   Idle = 'idle',
+  /** Purifier cleans the air. */
   Purifying = 'purifying',
 }
 
@@ -121,12 +124,12 @@ export class AirPurifierControl<TStorage extends object = Record<string, any>> e
     });
   }
 
-  /** `true` while the purifier is on. */
+  /** `true` while the purifier is on, a command when written. */
   get on(): boolean {
     return this.props.on;
   }
 
-  /** What the purifier does right now. */
+  /** What the purifier does right now, an {@link AirPurifierState}. */
   get state(): AirPurifierState | undefined {
     return this.props.state;
   }
@@ -141,7 +144,7 @@ export class AirPurifierControl<TStorage extends object = Record<string, any>> e
     return this.props.auto;
   }
 
-  /** Active preset. */
+  /** Active preset, one of the choices the plugin sets. */
   get preset(): string | undefined {
     return this.props.preset;
   }

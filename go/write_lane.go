@@ -35,10 +35,6 @@ type writeLane struct {
 	running bool
 }
 
-func concurrentWrites() rpc.HandlerOption {
-	return rpc.WithMethodConcurrency(map[string]int{"updateValue": writeConcurrency})
-}
-
 func (l *writeLane) write(property string, apply func() error, replaces bool) error {
 	done := make(chan error, 1)
 	write := &laneWrite{property: property, apply: apply, deadline: time.Now().Add(writeTimeout), waiters: []chan error{done}}
@@ -82,6 +78,10 @@ func (l *writeLane) run() {
 			waiter <- err
 		}
 	}
+}
+
+func concurrentWrites() rpc.HandlerOption {
+	return rpc.WithMethodConcurrency(map[string]int{"updateValue": writeConcurrency})
 }
 
 func applyWithin(write *laneWrite) error {

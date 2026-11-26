@@ -216,6 +216,8 @@ type BaseCamera struct {
 	Type CameraType `msgpack:"type,omitempty" json:"type,omitempty"`
 	// Disabled indicates whether the camera is disabled.
 	Disabled bool `msgpack:"disabled,omitempty" json:"disabled,omitempty"`
+	// Privacy is the privacy mode of the camera.
+	Privacy CameraPrivacy `msgpack:"privacy,omitempty" json:"privacy"`
 	// IsCloud indicates whether the camera streams from cloud.
 	IsCloud bool `msgpack:"isCloud,omitempty" json:"isCloud,omitempty"`
 	// Info is the camera hardware information.

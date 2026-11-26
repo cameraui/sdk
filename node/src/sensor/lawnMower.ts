@@ -7,17 +7,25 @@ import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /** What a lawn mower does right now. */
 export enum LawnMowerActivity {
+  /** Mower is mowing. */
   Mowing = 'mowing',
+  /** Mower is in its dock. */
   Docked = 'docked',
+  /** Mower paused where it is. */
   Paused = 'paused',
+  /** Mower drives back to its dock. */
   Returning = 'returning',
+  /** Mower reports an error. */
   Error = 'error',
 }
 
 /** Commands a lawn mower takes. */
 export enum LawnMowerCommand {
+  /** Start or resume mowing. */
   Start = 'start',
+  /** Pause mowing where the mower is. */
   Pause = 'pause',
+  /** Stop mowing and send the mower back to its dock. */
   Dock = 'dock',
 }
 

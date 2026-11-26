@@ -166,6 +166,8 @@ BaseCamera is the stored camera data structure \(database row\) without resolved
 	    Type CameraType `msgpack:"type,omitempty" json:"type,omitempty"`
 	    // Disabled indicates whether the camera is disabled.
 	    Disabled bool `msgpack:"disabled,omitempty" json:"disabled,omitempty"`
+	    // Privacy is the privacy mode of the camera.
+	    Privacy CameraPrivacy `msgpack:"privacy,omitempty" json:"privacy"`
 	    // IsCloud indicates whether the camera streams from cloud.
 	    IsCloud bool `msgpack:"isCloud,omitempty" json:"isCloud,omitempty"`
 	    // Info is the camera hardware information.
@@ -330,6 +332,10 @@ CameraDetectionSettings is the combined detection settings for a camera.
 	    CascadeTimeout *int `msgpack:"cascadeTimeout,omitempty" json:"cascadeTimeout,omitempty"`
 	    // Snooze indicates whether detections are snoozed (paused).
 	    Snooze bool `msgpack:"snooze,omitempty" json:"snooze,omitempty"`
+	    // SnoozeSince is when the snooze began (Unix ms), set by the server.
+	    SnoozeSince int64 `msgpack:"snoozeSince,omitempty" json:"snoozeSince,omitempty"`
+	    // SnoozeUntil is when the snooze ends by itself (Unix ms), zero while it has no end.
+	    SnoozeUntil int64 `msgpack:"snoozeUntil,omitempty" json:"snoozeUntil,omitempty"`
 	}
 
 <a name="CameraDevice"></a>
@@ -557,6 +563,13 @@ PTZAutotrack returns the PTZ autotracking settings.
 	func (d *CameraDevice) PluginInfo() *CameraPluginInfo
 
 PluginInfo returns the source plugin information, or nil if not set.
+
+<a name="CameraDevice.Privacy"></a>
+### func \(\*CameraDevice\) Privacy
+
+	func (d *CameraDevice) Privacy() CameraPrivacy
+
+Privacy returns the privacy mode of the camera.
 
 <a name="CameraDevice.RecordingSettings"></a>
 ### func \(\*CameraDevice\) RecordingSettings
@@ -894,6 +907,22 @@ CameraPower is the camera power source.
 	    CameraPowerBattery CameraPower = "battery"
 	)
 
+<a name="CameraPrivacy"></a>
+## type CameraPrivacy
+
+CameraPrivacy is the privacy mode of a camera.
+
+	type CameraPrivacy struct {
+	    // Enabled reports whether privacy mode is on. Nobody sees the camera live, its snapshots or its shares.
+	    Enabled bool `msgpack:"enabled" json:"enabled"`
+	    // PauseRecording reports whether recording and detection pause too while privacy mode is on.
+	    PauseRecording bool `msgpack:"pauseRecording" json:"pauseRecording"`
+	    // Since is when privacy mode began (Unix ms), set by the server.
+	    Since int64 `msgpack:"since,omitempty" json:"since,omitempty"`
+	    // Until is when privacy mode ends by itself (Unix ms), zero while it has no end.
+	    Until int64 `msgpack:"until,omitempty" json:"until,omitempty"`
+	}
+
 <a name="CameraRecordingSettings"></a>
 ## type CameraRecordingSettings
 
@@ -908,6 +937,12 @@ CameraRecordingSettings is the recording settings for a camera.
 	    PreBuffer float64 `msgpack:"preBuffer,omitempty" json:"preBuffer"`
 	    // Sources are the stream tiers to record.
 	    Sources []RecordingSource `msgpack:"sources,omitempty" json:"sources,omitempty"`
+	    // Paused reports whether recording is paused. A paused camera keeps its place among the recording cameras.
+	    Paused bool `msgpack:"paused,omitempty" json:"paused,omitempty"`
+	    // PausedSince is when the pause began (Unix ms), set by the server.
+	    PausedSince int64 `msgpack:"pausedSince,omitempty" json:"pausedSince,omitempty"`
+	    // PausedUntil is when the pause ends by itself (Unix ms), zero while it has no end.
+	    PausedUntil int64 `msgpack:"pausedUntil,omitempty" json:"pausedUntil,omitempty"`
 	}
 
 <a name="CameraRole"></a>

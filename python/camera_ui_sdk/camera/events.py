@@ -28,9 +28,13 @@ class DetectionPath(TypedDict):
     """Normalized box centers (0-1) of a tracked object's first and last sighting in a segment."""
 
     enterX: float
+    """Horizontal box center at the first sighting."""
     enterY: float
+    """Vertical box center at the first sighting."""
     exitX: float
+    """Horizontal box center at the last sighting."""
     exitY: float
+    """Vertical box center at the last sighting."""
 
 
 class EventAttribute(TypedDict):

@@ -17,15 +17,23 @@ class WaterHeaterMode(StrEnum):
     """Operating mode of a water heater."""
 
     Off = "off"
+    """Water heater is off."""
     Eco = "eco"
+    """Energy-saving mode."""
     Electric = "electric"
+    """Heats with electricity only."""
     Gas = "gas"
+    """Heats with gas only."""
     HeatPump = "heat_pump"
+    """Heats with the heat pump only."""
     HighDemand = "high_demand"
+    """Heats more to keep up with a high demand for hot water."""
     Performance = "performance"
+    """Heats as fast as it can."""
     Auto = "auto"
     """The device decides by its own schedule or logic."""
     Heat = "heat"
+    """Heats the water."""
     On = "on"
     """Running in a mode without a name of its own."""
 
@@ -164,7 +172,7 @@ class WaterHeaterControl(
 
     @property
     def mode(self) -> WaterHeaterMode:
-        """Operating mode."""
+        """Operating mode, a ``WaterHeaterMode``, a command when written."""
         value = self.props.mode
         return WaterHeaterMode(value) if value is not None else WaterHeaterMode.Off
 

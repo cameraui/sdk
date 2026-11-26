@@ -7,7 +7,7 @@ type SceneProperty = string
 
 // Property names of a scene.
 const (
-	ScenePropertyActive SceneProperty = "active" // True for a moment while the scene runs, a command when written true
+	ScenePropertyActive SceneProperty = "active" // True for a moment after the scene ran, a command when written true
 )
 
 const sceneAutoResetMs = 1000
@@ -41,7 +41,7 @@ func (s *SceneControl) GetType() SensorType         { return SensorTypeScene }
 func (s *SceneControl) GetCategory() SensorCategory { return SensorCategoryControl }
 func (s *SceneControl) ToJSON() sensorJSON          { return s.toBaseJSON(s.GetType(), s.GetCategory()) }
 
-// IsActive reports true for a moment after the scene ran.
+// IsActive reports true for a moment after the scene ran, a command when written true.
 func (s *SceneControl) IsActive() bool {
 	v, _ := s.GetValue(ScenePropertyActive).(bool)
 	return v

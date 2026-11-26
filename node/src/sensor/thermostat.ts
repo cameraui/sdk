@@ -6,26 +6,39 @@ import type { PropertyChangeOf, SensorLike, SensorOptions } from './base.js';
 
 /** What a thermostat is set to do. */
 export enum ThermostatMode {
+  /** Thermostat is off. */
   Off = 'off',
+  /** Heats to the target temperature. */
   Heat = 'heat',
+  /** Cools to the target temperature. */
   Cool = 'cool',
   /** Heats and cools to stay inside a target range. */
   HeatCool = 'heat_cool',
   /** The device decides by its own schedule or logic. */
   Auto = 'auto',
+  /** Dries the air. */
   Dry = 'dry',
+  /** Runs only the fan, without heating or cooling. */
   FanOnly = 'fan_only',
 }
 
 /** What a thermostat does right now. */
 export enum ThermostatAction {
+  /** Thermostat is off. */
   Off = 'off',
+  /** Thermostat is on but not working right now. */
   Idle = 'idle',
+  /** Thermostat heats. */
   Heating = 'heating',
+  /** Thermostat cools. */
   Cooling = 'cooling',
+  /** Thermostat dries the air. */
   Drying = 'drying',
+  /** Thermostat runs only the fan. */
   Fan = 'fan',
+  /** Thermostat warms up before it heats. */
   Preheating = 'preheating',
+  /** Thermostat defrosts its outdoor unit. */
   Defrosting = 'defrosting',
 }
 
@@ -47,13 +60,13 @@ export enum ThermostatCapability {
 
 /** Property names of a thermostat. Temperatures are in °C. */
 export enum ThermostatProperty {
-  /** Current temperature. */
+  /** Current temperature in °C. */
   CurrentTemperature = 'currentTemperature',
-  /** Temperature the thermostat heats or cools to. */
+  /** Temperature the thermostat heats or cools to, in °C. */
   TargetTemperature = 'targetTemperature',
-  /** Lower end of the target range. */
+  /** Lower end of the target range in °C. */
   TargetTemperatureLow = 'targetTemperatureLow',
-  /** Upper end of the target range. */
+  /** Upper end of the target range in °C. */
   TargetTemperatureHigh = 'targetTemperatureHigh',
   /** Mode, a {@link ThermostatMode}. */
   Mode = 'mode',
@@ -155,7 +168,7 @@ export class ThermostatControl<TStorage extends object = Record<string, any>> ex
     return this.props.currentTemperature;
   }
 
-  /** Target temperature in °C. */
+  /** Temperature the thermostat heats or cools to, in °C. */
   get targetTemperature(): number {
     return this.props.targetTemperature;
   }
@@ -170,12 +183,12 @@ export class ThermostatControl<TStorage extends object = Record<string, any>> ex
     return this.props.targetTemperatureHigh;
   }
 
-  /** Mode. */
+  /** Mode, a {@link ThermostatMode}. */
   get mode(): ThermostatMode {
     return this.props.mode;
   }
 
-  /** What the thermostat does right now. */
+  /** What the thermostat does right now, a {@link ThermostatAction}. */
   get action(): ThermostatAction | undefined {
     return this.props.action;
   }
@@ -185,17 +198,17 @@ export class ThermostatControl<TStorage extends object = Record<string, any>> ex
     return this.props.currentHumidity;
   }
 
-  /** Active preset. */
+  /** Active preset, one of the choices the device offers. */
   get preset(): string | undefined {
     return this.props.preset;
   }
 
-  /** Active fan mode. */
+  /** Active fan mode, one of the choices the device offers. */
   get fanMode(): string | undefined {
     return this.props.fanMode;
   }
 
-  /** Target humidity in percent. */
+  /** Humidity in percent the thermostat keeps. */
   get targetHumidity(): number {
     return this.props.targetHumidity;
   }

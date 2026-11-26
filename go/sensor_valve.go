@@ -6,10 +6,10 @@ import "math"
 type ValveState int
 
 const (
-	ValveStateOpen    ValveState = 0
-	ValveStateClosed  ValveState = 1
-	ValveStateOpening ValveState = 2
-	ValveStateClosing ValveState = 3
+	ValveStateOpen    ValveState = 0 // Valve is open, fully or part-way
+	ValveStateClosed  ValveState = 1 // Valve is fully closed
+	ValveStateOpening ValveState = 2 // Valve is moving towards open
+	ValveStateClosing ValveState = 3 // Valve is moving towards closed
 )
 
 // ValveKind says what a valve controls, it decides how smart homes show it.
@@ -17,9 +17,9 @@ type ValveKind = string
 
 // Kinds of a valve.
 const (
-	ValveKindWater      ValveKind = "water"
-	ValveKindGas        ValveKind = "gas"
-	ValveKindIrrigation ValveKind = "irrigation"
+	ValveKindWater      ValveKind = "water"      // A water valve
+	ValveKindGas        ValveKind = "gas"        // A gas valve
+	ValveKindIrrigation ValveKind = "irrigation" // An irrigation or sprinkler valve
 )
 
 // Optional capabilities of a valve.
@@ -40,7 +40,7 @@ const (
 	ValvePropertyDuration        ValveProperty = "duration"        // Seconds the valve stays open before it closes by itself
 	ValvePropertyRemaining       ValveProperty = "remaining"       // Seconds left until the open valve closes by itself
 	ValvePropertyKind            ValveProperty = "kind"            // What the valve controls, a ValveKind
-	ValvePropertyIndex           ValveProperty = "index"           // Position of the valve on its device, from 1
+	ValvePropertyIndex           ValveProperty = "index"           // Position of the valve on its device, from 1, 0 when not set
 )
 
 // ValveConfig describes a valve at construction.
@@ -90,7 +90,7 @@ func (s *ValveControl) GetType() SensorType         { return SensorTypeValve }
 func (s *ValveControl) GetCategory() SensorCategory { return SensorCategoryControl }
 func (s *ValveControl) ToJSON() sensorJSON          { return s.toBaseJSON(s.GetType(), s.GetCategory()) }
 
-// GetCurrentState returns the current state.
+// GetCurrentState returns the current state, a ValveState.
 func (s *ValveControl) GetCurrentState() ValveState {
 	if v, ok := s.GetValue(ValvePropertyCurrentState).(int); ok {
 		return ValveState(v)
@@ -98,7 +98,7 @@ func (s *ValveControl) GetCurrentState() ValveState {
 	return ValveStateClosed
 }
 
-// GetTargetState returns the target state.
+// GetTargetState returns the target state, Open or Closed.
 func (s *ValveControl) GetTargetState() ValveState {
 	if v, ok := s.GetValue(ValvePropertyTargetState).(int); ok {
 		return ValveState(v)
@@ -130,13 +130,13 @@ func (s *ValveControl) GetRemaining() int {
 	return v
 }
 
-// GetKind returns what the valve controls, empty when the plugin did not say.
+// GetKind returns what the valve controls, a ValveKind, empty when the plugin did not say.
 func (s *ValveControl) GetKind() ValveKind {
 	v, _ := s.GetValue(ValvePropertyKind).(string)
 	return v
 }
 
-// GetIndex returns the position of the valve on its device, 0 when not set.
+// GetIndex returns the position of the valve on its device, from 1, 0 when not set.
 func (s *ValveControl) GetIndex() int {
 	if v, ok := toInt64(s.GetValue(ValvePropertyIndex)); ok {
 		return int(v)
