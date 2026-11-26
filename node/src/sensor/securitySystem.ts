@@ -46,6 +46,9 @@ export interface SecuritySystemLike extends SensorLike {
  * Security system control. Override `setTargetState()` to drive hardware and call
  * `await super.setTargetState(value)` once the hardware confirms. The base
  * implementation updates both `targetState` and `currentState`.
+ *
+ * When the device refuses a command, throw from the override instead of calling
+ * `super`: the write fails for whoever sent it and the state stays as it was.
  */
 export class SecuritySystem<TStorage extends object = Record<string, any>> extends Sensor<SecuritySystemProperties, TStorage, string> {
   readonly type = SensorType.SecuritySystem;
@@ -109,7 +112,7 @@ export class SecuritySystem<TStorage extends object = Record<string, any>> exten
   }
 
   /** @internal */
-  async updateValue(property: string, value: unknown): Promise<void> {
+  protected override async _applyValue(property: string, value: unknown): Promise<void> {
     if ((property as SecuritySystemProperty) === SecuritySystemProperty.TargetState) {
       await this.setTargetState(value as SecuritySystemState);
     }

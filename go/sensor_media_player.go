@@ -64,16 +64,16 @@ const (
 )
 
 type mediaPlayerSetters interface {
-	SetOn()
-	SetOff()
-	Play()
-	Pause()
-	Stop()
-	Next()
-	Previous()
-	SetVolume(volume float64)
-	SetMuted(muted bool)
-	SetSource(value string)
+	SetOn() error
+	SetOff() error
+	Play() error
+	Pause() error
+	Stop() error
+	Next() error
+	Previous() error
+	SetVolume(volume float64) error
+	SetMuted(muted bool) error
+	SetSource(value string) error
 }
 
 // MediaPlayerControl is a TV, speaker, receiver or projector. Override SetOn,
@@ -88,6 +88,10 @@ type mediaPlayerSetters interface {
 // SetPropertySpec(MediaPlayerPropertyCommand, &PropertySpecOverride{Values: ...}).
 // The inputs come as choices with the source capability:
 // SetPropertySpec(MediaPlayerPropertySource, &PropertySpecOverride{Choices: ...}).
+//
+// When the device refuses a command, return an error from the override instead of
+// calling the embedded method: the write fails for whoever sent it and the state
+// stays as it was.
 type MediaPlayerControl struct{ CommandControl }
 
 // NewMediaPlayerControl creates a media player with the given name and options.
@@ -98,6 +102,7 @@ func NewMediaPlayerControl(name string, opts ...SensorOption) *MediaPlayerContro
 		MediaPlayerPropertyOn:    false,
 		MediaPlayerPropertyMuted: false,
 	})
+	s.handleWrites(s)
 	return s
 }
 
@@ -154,8 +159,9 @@ func (s *MediaPlayerControl) GetArtist() string {
 // Example:
 //
 //	player.SetOn()
-func (s *MediaPlayerControl) SetOn() {
+func (s *MediaPlayerControl) SetOn() error {
 	s.writeState(map[string]any{MediaPlayerPropertyOn: true})
+	return nil
 }
 
 // SetOff turns the player off.
@@ -163,8 +169,9 @@ func (s *MediaPlayerControl) SetOn() {
 // Example:
 //
 //	player.SetOff()
-func (s *MediaPlayerControl) SetOff() {
+func (s *MediaPlayerControl) SetOff() error {
 	s.writeState(map[string]any{MediaPlayerPropertyOn: false})
+	return nil
 }
 
 // Play starts or resumes playback.
@@ -172,8 +179,9 @@ func (s *MediaPlayerControl) SetOff() {
 // Example:
 //
 //	player.Play()
-func (s *MediaPlayerControl) Play() {
+func (s *MediaPlayerControl) Play() error {
 	s.sent(MediaPlayerCommandPlay)
+	return nil
 }
 
 // Pause pauses playback.
@@ -181,8 +189,9 @@ func (s *MediaPlayerControl) Play() {
 // Example:
 //
 //	player.Pause()
-func (s *MediaPlayerControl) Pause() {
+func (s *MediaPlayerControl) Pause() error {
 	s.sent(MediaPlayerCommandPause)
+	return nil
 }
 
 // Stop stops playback.
@@ -190,8 +199,9 @@ func (s *MediaPlayerControl) Pause() {
 // Example:
 //
 //	player.Stop()
-func (s *MediaPlayerControl) Stop() {
+func (s *MediaPlayerControl) Stop() error {
 	s.sent(MediaPlayerCommandStop)
+	return nil
 }
 
 // Next skips to the next track or channel.
@@ -199,8 +209,9 @@ func (s *MediaPlayerControl) Stop() {
 // Example:
 //
 //	player.Next()
-func (s *MediaPlayerControl) Next() {
+func (s *MediaPlayerControl) Next() error {
 	s.sent(MediaPlayerCommandNext)
+	return nil
 }
 
 // Previous goes back to the previous track or channel.
@@ -208,8 +219,9 @@ func (s *MediaPlayerControl) Next() {
 // Example:
 //
 //	player.Previous()
-func (s *MediaPlayerControl) Previous() {
+func (s *MediaPlayerControl) Previous() error {
 	s.sent(MediaPlayerCommandPrevious)
+	return nil
 }
 
 // SetVolume sets the volume, 0 to 100, clamped and rounded.
@@ -217,11 +229,12 @@ func (s *MediaPlayerControl) Previous() {
 // Example:
 //
 //	player.SetVolume(30)
-func (s *MediaPlayerControl) SetVolume(volume float64) {
+func (s *MediaPlayerControl) SetVolume(volume float64) error {
 	if math.IsNaN(volume) || math.IsInf(volume, 0) {
-		return
+		return nil
 	}
 	s.writeState(map[string]any{MediaPlayerPropertyVolume: int(math.Round(max(0, min(100, volume))))})
+	return nil
 }
 
 // SetMuted mutes the sound, or unmutes it with false.
@@ -229,8 +242,9 @@ func (s *MediaPlayerControl) SetVolume(volume float64) {
 // Example:
 //
 //	player.SetMuted(true)
-func (s *MediaPlayerControl) SetMuted(muted bool) {
+func (s *MediaPlayerControl) SetMuted(muted bool) error {
 	s.writeState(map[string]any{MediaPlayerPropertyMuted: muted})
+	return nil
 }
 
 // SetSource switches to another input or app, one of the source choices.
@@ -238,8 +252,9 @@ func (s *MediaPlayerControl) SetMuted(muted bool) {
 // Example:
 //
 //	player.SetSource("hdmi1")
-func (s *MediaPlayerControl) SetSource(value string) {
+func (s *MediaPlayerControl) SetSource(value string) error {
 	s.writeState(map[string]any{MediaPlayerPropertySource: value})
+	return nil
 }
 
 // SetState reports what the player does right now: off, on, idle, playing,
@@ -279,38 +294,61 @@ func (s *MediaPlayerControl) SetNowPlaying(title, artist string) {
 	})
 }
 
-// UpdateValue routes generic property writes to the semantic setters.
-func (s *MediaPlayerControl) UpdateValue(property string, value any) error {
+func (s *MediaPlayerControl) isCommand(property string) bool {
+	return property == MediaPlayerPropertyCommand
+}
+
+func (s *MediaPlayerControl) applyValue(property string, value any) error {
 	setters := outerOr[mediaPlayerSetters](&s.BaseSensor, s)
 	switch property {
 	case MediaPlayerPropertyOn:
 		if isTruthy(value) {
-			setters.SetOn()
+			if err := setters.SetOn(); err != nil {
+				return err
+			}
 		} else {
-			setters.SetOff()
+			if err := setters.SetOff(); err != nil {
+				return err
+			}
 		}
 	case MediaPlayerPropertyVolume:
 		if v, ok := toFloat64(value); ok {
-			setters.SetVolume(v)
+			if err := setters.SetVolume(v); err != nil {
+				return err
+			}
 		}
 	case MediaPlayerPropertyMuted:
-		setters.SetMuted(isTruthy(value))
+		if err := setters.SetMuted(isTruthy(value)); err != nil {
+			return err
+		}
 	case MediaPlayerPropertySource:
 		if v, ok := value.(string); ok {
-			setters.SetSource(v)
+			if err := setters.SetSource(v); err != nil {
+				return err
+			}
 		}
 	case MediaPlayerPropertyCommand:
 		switch value {
 		case MediaPlayerCommandPlay:
-			setters.Play()
+			if err := setters.Play(); err != nil {
+				return err
+			}
 		case MediaPlayerCommandPause:
-			setters.Pause()
+			if err := setters.Pause(); err != nil {
+				return err
+			}
 		case MediaPlayerCommandStop:
-			setters.Stop()
+			if err := setters.Stop(); err != nil {
+				return err
+			}
 		case MediaPlayerCommandNext:
-			setters.Next()
+			if err := setters.Next(); err != nil {
+				return err
+			}
 		case MediaPlayerCommandPrevious:
-			setters.Previous()
+			if err := setters.Previous(); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

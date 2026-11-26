@@ -190,3 +190,7 @@ class SensorJSON(TypedDict):
     propertySpecs: NotRequired[
         dict[str, PropertySpecOverride]
     ]  # absent from an older SDK, the host keeps the one it has
+
+
+def is_source_reachable(state: SensorSourceState | None) -> bool:
+    return state not in ("unavailable", "removed")

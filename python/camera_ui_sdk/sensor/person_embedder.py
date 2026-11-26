@@ -82,6 +82,3 @@ class PersonEmbedderSensor(Sensor[dict[str, Any], TStorage, str], Generic[TStora
         PersonEmbeddingResult per input frame, in the same order; return an empty
         ``embedding`` for a crop the model could not use."""
         ...
-
-    async def updateValue(self, property: str, value: Any) -> None:
-        """Read-only sensor: external writes are ignored."""

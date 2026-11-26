@@ -161,9 +161,6 @@ class ButtonTrigger(Sensor[ButtonTriggerProperties, TStorage, str], Generic[TSto
         self._press_reset_timer.daemon = True
         self._press_reset_timer.start()
 
-    async def updateValue(self, property: str, value: Any) -> None:
-        """A button takes no writes, presses come from the device."""
-
     def _cleanup(self) -> None:
         if self._press_reset_timer is not None:
             self._press_reset_timer.cancel()

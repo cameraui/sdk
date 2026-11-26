@@ -34,6 +34,9 @@ export const RING_AUTO_RESET_MS = 2000;
  * is set to true and automatically reset to false after a short delay
  * ({@link RING_AUTO_RESET_MS}). Calling `trigger()` again while still ringing
  * resets the timer (extends the ring phase).
+ *
+ * When the device refuses a command, throw from the override instead of calling
+ * `super`: the write fails for whoever sent it and the state stays as it was.
  */
 export class DoorbellTrigger<TStorage extends object = Record<string, any>> extends Sensor<DoorbellTriggerProperties, TStorage> {
   readonly type = SensorType.Doorbell;
@@ -73,7 +76,7 @@ export class DoorbellTrigger<TStorage extends object = Record<string, any>> exte
   }
 
   /** @internal */
-  updateValue(property: string, value: unknown): void {
+  protected override _applyValue(property: string, value: unknown): void {
     // ring=false is ignored, the auto-reset timer owns the off transition
     if ((property as DoorbellProperty) === DoorbellProperty.Ring && value) {
       this.trigger();

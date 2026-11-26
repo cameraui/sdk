@@ -69,6 +69,3 @@ class BinarySensor(Sensor[TProperties, TStorage, str], Generic[TProperties, TSto
             ```
         """
         self._write_state({"detected": value})
-
-    async def updateValue(self, property: str, value: Any) -> None:
-        """Read-only sensor: external writes are ignored."""

@@ -83,6 +83,3 @@ class MeasurementInfo(Sensor[TProperties, TStorage, str], Generic[TProperties, T
         if self._max is not None:
             value = min(self._max, value)
         self._write_state({"current": value})
-
-    async def updateValue(self, property: str, value: Any) -> None:
-        """Read-only sensor: external writes are ignored."""

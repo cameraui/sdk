@@ -70,6 +70,9 @@ export interface FanControlLike extends SensorLike {
  * as `choices`. A fan with a few fixed speeds sets the speed's `step`, three
  * speeds are a step of 33.
  *
+ * When the device refuses a command, throw from the override instead of calling
+ * `super`: the write fails for whoever sent it and the state stays as it was.
+ *
  * @example
  * ```ts
  * class CeilingFan extends FanControl {
@@ -212,7 +215,7 @@ export class FanControl<TStorage extends object = Record<string, any>> extends S
   }
 
   /** @internal */
-  async updateValue(property: string, value: unknown): Promise<void> {
+  protected override async _applyValue(property: string, value: unknown): Promise<void> {
     switch (property as FanProperty) {
       case FanProperty.On:
         if (value) await this.setOn();

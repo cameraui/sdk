@@ -15,8 +15,8 @@ const (
 )
 
 type outletSetters interface {
-	SetOn()
-	SetOff()
+	SetOn() error
+	SetOff() error
 }
 
 // OutletControl is a power outlet or smart plug. Override SetOn / SetOff (by
@@ -27,6 +27,10 @@ type outletSetters interface {
 //
 // An outlet that measures its load adds OutletCapabilityInUse and reports it
 // with SetInUse.
+//
+// When the device refuses a command, return an error from the override instead of
+// calling the embedded method: the write fails for whoever sent it and the state
+// stays as it was.
 type OutletControl struct{ BaseSensor }
 
 // NewOutletControl creates an outlet with the given name and options.
@@ -36,6 +40,7 @@ func NewOutletControl(name string, opts ...SensorOption) *OutletControl {
 		OutletPropertyOn:    false,
 		OutletPropertyInUse: false,
 	})
+	s.handleWrites(s)
 	return s
 }
 
@@ -60,8 +65,9 @@ func (s *OutletControl) IsInUse() bool {
 // Example:
 //
 //	outlet.SetOn()
-func (s *OutletControl) SetOn() {
+func (s *OutletControl) SetOn() error {
 	s.writeState(map[string]any{OutletPropertyOn: true})
+	return nil
 }
 
 // SetOff turns the outlet off.
@@ -69,8 +75,9 @@ func (s *OutletControl) SetOn() {
 // Example:
 //
 //	outlet.SetOff()
-func (s *OutletControl) SetOff() {
+func (s *OutletControl) SetOff() error {
 	s.writeState(map[string]any{OutletPropertyOn: false})
+	return nil
 }
 
 // SetInUse reports whether the device plugged into the outlet draws power.
@@ -82,14 +89,17 @@ func (s *OutletControl) SetInUse(inUse bool) {
 	s.writeState(map[string]any{OutletPropertyInUse: inUse})
 }
 
-// UpdateValue routes generic property writes to the semantic setters.
-func (s *OutletControl) UpdateValue(property string, value any) error {
+func (s *OutletControl) applyValue(property string, value any) error {
 	setters := outerOr[outletSetters](&s.BaseSensor, s)
 	if property == OutletPropertyOn {
 		if isTruthy(value) {
-			setters.SetOn()
+			if err := setters.SetOn(); err != nil {
+				return err
+			}
 		} else {
-			setters.SetOff()
+			if err := setters.SetOff(); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

@@ -39,8 +39,3 @@ func NewFaceEmbedderSensor(name string, opts ...SensorOption) *FaceEmbedderSenso
 func (s *FaceEmbedderSensor) GetType() SensorType         { return SensorTypeFaceEmbedder }
 func (s *FaceEmbedderSensor) GetCategory() SensorCategory { return SensorCategorySensor }
 func (s *FaceEmbedderSensor) ToJSON() sensorJSON          { return s.toBaseJSON(s.GetType(), s.GetCategory()) }
-
-// UpdateValue on a read-only sensor: external writes are ignored.
-func (s *FaceEmbedderSensor) UpdateValue(property string, value any) error {
-	return nil
-}

@@ -58,9 +58,6 @@ export abstract class SegmenterSensor<TStorage extends object = Record<string, a
    * `mask` out when the model found no object at the box.
    */
   abstract segmentObjects(frames: SegmentationFrame[]): Promise<SegmentationResult[]>;
-
-  /** @internal */
-  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Registry metadata for {@link SegmenterSensor}. */

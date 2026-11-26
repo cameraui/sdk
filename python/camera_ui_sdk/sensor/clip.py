@@ -87,6 +87,3 @@ class ClipDetectorSensor(Sensor[dict[str, Any], TStorage, str], Generic[TStorage
         when no decoded frame is available. Must return exactly one ClipResult per input frame,
         in the same order. Use ``frame['label']`` to tag the emitted embedding."""
         ...
-
-    async def updateValue(self, property: str, value: Any) -> None:
-        """Read-only sensor: external writes are ignored."""

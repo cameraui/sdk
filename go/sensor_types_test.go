@@ -12,9 +12,9 @@ type shadowVacuum struct {
 	docked int
 }
 
-func (s *shadowVacuum) Dock() {
+func (s *shadowVacuum) Dock() error {
 	s.docked++
-	s.VacuumControl.Dock()
+	return s.VacuumControl.Dock()
 }
 
 func fireCommandReset(s *CommandControl) {
@@ -66,7 +66,9 @@ func TestAirQualityLevelFollowsTheReadings(t *testing.T) {
 
 func TestRobotRunsTheWrittenCommandAndReadsEmptyAgain(t *testing.T) {
 	vacuum := &shadowVacuum{VacuumControl: NewVacuumControl("Vacuum")}
-	vacuum.setOuter(vacuum)
+	if err := vacuum.setOuter(vacuum); err != nil {
+		t.Fatal(err)
+	}
 	defer vacuum.cleanup()
 
 	for range 2 {

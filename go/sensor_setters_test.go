@@ -8,14 +8,14 @@ type shadowPTZ struct {
 	positions  []PTZPosition
 }
 
-func (s *shadowPTZ) SetVelocity(value PTZDirection) {
+func (s *shadowPTZ) SetVelocity(value PTZDirection) error {
 	s.velocities = append(s.velocities, value)
-	s.PTZControl.SetVelocity(value)
+	return s.PTZControl.SetVelocity(value)
 }
 
-func (s *shadowPTZ) SetPosition(value PTZPosition) {
+func (s *shadowPTZ) SetPosition(value PTZPosition) error {
 	s.positions = append(s.positions, value)
-	s.PTZControl.SetPosition(value)
+	return s.PTZControl.SetPosition(value)
 }
 
 type shadowSiren struct {
@@ -23,14 +23,16 @@ type shadowSiren struct {
 	activated int
 }
 
-func (s *shadowSiren) SetActive() {
+func (s *shadowSiren) SetActive() error {
 	s.activated++
-	s.SirenControl.SetActive()
+	return s.SirenControl.SetActive()
 }
 
 func TestUpdateValueReachesShadowedSetters(t *testing.T) {
 	ptz := &shadowPTZ{PTZControl: NewPTZControl("ptz")}
-	ptz.setOuter(ptz)
+	if err := ptz.setOuter(ptz); err != nil {
+		t.Fatal(err)
+	}
 
 	// a full-speed 1 from the browser arrives as int8
 	if err := ptz.UpdateValue("velocity", map[string]any{"panSpeed": int8(-1), "tiltSpeed": 0.45, "zoomSpeed": int8(0)}); err != nil {
@@ -47,7 +49,9 @@ func TestUpdateValueReachesShadowedSetters(t *testing.T) {
 	}
 
 	siren := &shadowSiren{SirenControl: NewSirenControl("siren")}
-	siren.setOuter(siren)
+	if err := siren.setOuter(siren); err != nil {
+		t.Fatal(err)
+	}
 	if err := siren.UpdateValue("active", true); err != nil {
 		t.Fatal(err)
 	}

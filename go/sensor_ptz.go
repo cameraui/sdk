@@ -70,11 +70,11 @@ type PTZRelativeMove struct {
 }
 
 type ptzSetters interface {
-	SetPosition(value PTZPosition)
-	SetVelocity(value PTZDirection)
-	SetRelativeMove(value PTZRelativeMove)
-	SetTargetPreset(value string)
-	GoHome()
+	SetPosition(value PTZPosition) error
+	SetVelocity(value PTZDirection) error
+	SetRelativeMove(value PTZRelativeMove) error
+	SetTargetPreset(value string) error
+	GoHome() error
 }
 
 // PTZControl is a pan-tilt-zoom camera control sensor. Override SetPosition /
@@ -87,6 +87,10 @@ type ptzSetters interface {
 //
 // Set capabilities to advertise supported axes and features. Use SetPresets to
 // publish the discovered preset list and SetMoving to publish movement state.
+//
+// When the device refuses a command, return an error from the override instead of
+// calling the embedded method: the write fails for whoever sent it and the state
+// stays as it was.
 type PTZControl struct{ BaseSensor }
 
 // NewPTZControl creates a PTZ control with the given name and options.
@@ -97,6 +101,7 @@ func NewPTZControl(name string, opts ...SensorOption) *PTZControl {
 		PTZPropertyMoving:   false,
 		PTZPropertyPresets:  []string{},
 	})
+	s.handleWrites(s)
 	return s
 }
 
@@ -143,8 +148,9 @@ func (s *PTZControl) GetTargetPreset() (string, bool) {
 // Example:
 //
 //	ptz.SetPosition(PTZPosition{Pan: 0.25, Tilt: -0.1, Zoom: 0.5})
-func (s *PTZControl) SetPosition(value PTZPosition) {
+func (s *PTZControl) SetPosition(value PTZPosition) error {
 	s.writeState(map[string]any{PTZPropertyPosition: value})
+	return nil
 }
 
 // SetVelocity sets the continuous-move velocity. The velocity property is unset
@@ -154,8 +160,9 @@ func (s *PTZControl) SetPosition(value PTZPosition) {
 //
 //	ptz.SetVelocity(PTZDirection{PanSpeed: 0.5, TiltSpeed: 0, ZoomSpeed: 0})
 //	ptz.SetVelocity(PTZDirection{}) // stop
-func (s *PTZControl) SetVelocity(value PTZDirection) {
+func (s *PTZControl) SetVelocity(value PTZDirection) error {
 	s.writeState(map[string]any{PTZPropertyVelocity: value})
+	return nil
 }
 
 // SetRelativeMove issues a relative displacement move. Shadow this method to
@@ -167,8 +174,9 @@ func (s *PTZControl) SetVelocity(value PTZDirection) {
 //
 //	// move the view a third of a frame to the right, a tenth down
 //	ptz.SetRelativeMove(PTZRelativeMove{PanDelta: 0.33, TiltDelta: -0.1, ZoomDelta: 0})
-func (s *PTZControl) SetRelativeMove(value PTZRelativeMove) {
+func (s *PTZControl) SetRelativeMove(value PTZRelativeMove) error {
 	s.writeState(map[string]any{PTZPropertyRelativeMove: value})
+	return nil
 }
 
 // SetTargetPreset sets the target preset ID. The property is unset until this
@@ -177,8 +185,9 @@ func (s *PTZControl) SetRelativeMove(value PTZRelativeMove) {
 // Example:
 //
 //	ptz.SetTargetPreset("Driveway")
-func (s *PTZControl) SetTargetPreset(value string) {
+func (s *PTZControl) SetTargetPreset(value string) error {
 	s.writeState(map[string]any{PTZPropertyTargetPreset: value})
+	return nil
 }
 
 // SetPresets publishes the discovered preset list. The preset list stays empty
@@ -205,32 +214,45 @@ func (s *PTZControl) SetMoving(value bool) {
 // Example:
 //
 //	ptz.GoHome()
-func (s *PTZControl) GoHome() {
-	outerOr[ptzSetters](&s.BaseSensor, s).SetPosition(PTZPosition{Pan: 0, Tilt: 0, Zoom: 0})
+func (s *PTZControl) GoHome() error {
+	return outerOr[ptzSetters](&s.BaseSensor, s).SetPosition(PTZPosition{Pan: 0, Tilt: 0, Zoom: 0})
 }
 
-// UpdateValue routes generic property writes to the semantic setters.
-func (s *PTZControl) UpdateValue(property string, value any) error {
+func (s *PTZControl) isCommand(property string) bool {
+	return property == PTZPropertyRelativeMove
+}
+
+func (s *PTZControl) applyValue(property string, value any) error {
 	setters := outerOr[ptzSetters](&s.BaseSensor, s)
 	switch property {
 	case PTZPropertyPosition:
 		if pos, ok := coercePTZPosition(value); ok {
-			setters.SetPosition(pos)
+			if err := setters.SetPosition(pos); err != nil {
+				return err
+			}
 		}
 	case PTZPropertyVelocity:
 		if dir, ok := coercePTZDirection(value); ok {
-			setters.SetVelocity(dir)
+			if err := setters.SetVelocity(dir); err != nil {
+				return err
+			}
 		}
 	case PTZPropertyTargetPreset:
 		if str, ok := value.(string); ok {
-			setters.SetTargetPreset(str)
+			if err := setters.SetTargetPreset(str); err != nil {
+				return err
+			}
 		}
 	case PTZPropertyRelativeMove:
 		if move, ok := coercePTZRelativeMove(value); ok {
-			setters.SetRelativeMove(move)
+			if err := setters.SetRelativeMove(move); err != nil {
+				return err
+			}
 		}
 	case PTZPropertyHome:
-		setters.GoHome()
+		if err := setters.GoHome(); err != nil {
+			return err
+		}
 	}
 	return nil
 }

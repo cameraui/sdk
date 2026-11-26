@@ -195,9 +195,6 @@ class LicensePlateSensor(Sensor[LicensePlateSensorProperties, TStorage, str], Ge
         """Explicitly clear license plate state (detected = False, detections = [])."""
         self.reportDetections(False)
 
-    async def updateValue(self, property: str, value: Any) -> None:
-        """Read-only sensor: external writes are ignored."""
-
 
 class LicensePlateResult(TypedDict):
     """Return type for LicensePlateDetectorSensor.detectLicensePlates()."""

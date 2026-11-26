@@ -50,8 +50,3 @@ func NewSegmenterSensor(name string, opts ...SensorOption) *SegmenterSensor {
 func (s *SegmenterSensor) GetType() SensorType         { return SensorTypeSegmenter }
 func (s *SegmenterSensor) GetCategory() SensorCategory { return SensorCategorySensor }
 func (s *SegmenterSensor) ToJSON() sensorJSON          { return s.toBaseJSON(s.GetType(), s.GetCategory()) }
-
-// UpdateValue on a read-only sensor: external writes are ignored.
-func (s *SegmenterSensor) UpdateValue(property string, value any) error {
-	return nil
-}

@@ -75,9 +75,6 @@ export abstract class MeasurementInfo<
 
     this._writeState({ current: Math.min(this.#max, Math.max(this.#min, value)) } as Partial<TProperties>);
   }
-
-  /** @internal */
-  updateValue(_property: string, _value: unknown): void {}
 }
 
 /**

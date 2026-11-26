@@ -13,13 +13,17 @@ const (
 const sceneAutoResetMs = 1000
 
 type sceneSetters interface {
-	Activate()
+	Activate() error
 }
 
 // SceneControl is a scene or script that runs on command and has no state of
 // its own. Override Activate (by embedding SceneControl in your own type and
 // shadowing the method) to run it on the device, then call the embedded
 // method after success, which sets active for a moment (sceneAutoResetMs).
+//
+// When the device refuses a command, return an error from the override instead of
+// calling the embedded method: the write fails for whoever sent it and the state
+// stays as it was.
 type SceneControl struct {
 	BaseSensor
 	activeResetTimer *time.Timer
@@ -29,6 +33,7 @@ type SceneControl struct {
 func NewSceneControl(name string, opts ...SensorOption) *SceneControl {
 	s := &SceneControl{BaseSensor: NewBaseSensor(name, opts...)}
 	s.writeState(map[string]any{ScenePropertyActive: false})
+	s.handleWrites(s)
 	return s
 }
 
@@ -48,7 +53,7 @@ func (s *SceneControl) IsActive() bool {
 // Example:
 //
 //	scene.Activate()
-func (s *SceneControl) Activate() {
+func (s *SceneControl) Activate() error {
 	s.stopResetTimer()
 	s.writeState(map[string]any{ScenePropertyActive: true})
 
@@ -62,16 +67,18 @@ func (s *SceneControl) Activate() {
 	s.mu.Lock()
 	s.activeResetTimer = timer
 	s.mu.Unlock()
+	return nil
 }
 
-// UpdateValue routes generic property writes to the semantic setters.
-// Writing active=false is ignored, the reset timer owns the off transition.
-func (s *SceneControl) UpdateValue(property string, value any) error {
+func (s *SceneControl) applyValue(property string, value any) error {
 	if property != ScenePropertyActive {
 		return nil
 	}
+	// active=false is ignored, the reset timer owns the off transition
 	if isTruthy(value) {
-		outerOr[sceneSetters](&s.BaseSensor, s).Activate()
+		if err := outerOr[sceneSetters](&s.BaseSensor, s).Activate(); err != nil {
+			return err
+		}
 	}
 	return nil
 }

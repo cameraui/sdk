@@ -32,12 +32,12 @@ const (
 )
 
 type fanSetters interface {
-	SetOn()
-	SetOff()
-	SetSpeed(speed int)
-	SetDirection(direction FanDirection)
-	SetOscillating(value bool)
-	SetPreset(value string)
+	SetOn() error
+	SetOff() error
+	SetSpeed(speed int) error
+	SetDirection(direction FanDirection) error
+	SetOscillating(value bool) error
+	SetPreset(value string) error
 }
 
 // FanControl is a ceiling, desk or other fan. Override SetOn, SetOff, SetSpeed
@@ -49,6 +49,10 @@ type fanSetters interface {
 // FanCapabilityDirection, one that swings FanCapabilityOscillation. Presets are
 // the device's own, add FanCapabilityPreset and set them as Choices. A fan with
 // a few fixed speeds sets the speed's Step, three speeds are a step of 33.
+//
+// When the device refuses a command, return an error from the override instead of
+// calling the embedded method: the write fails for whoever sent it and the state
+// stays as it was.
 type FanControl struct{ BaseSensor }
 
 // NewFanControl creates a fan with the given name and options.
@@ -60,6 +64,7 @@ func NewFanControl(name string, opts ...SensorOption) *FanControl {
 		FanPropertyDirection:   FanDirectionForward,
 		FanPropertyOscillating: false,
 	})
+	s.handleWrites(s)
 	return s
 }
 
@@ -104,8 +109,9 @@ func (s *FanControl) GetPreset() string {
 // Example:
 //
 //	fan.SetOn()
-func (s *FanControl) SetOn() {
+func (s *FanControl) SetOn() error {
 	s.writeState(map[string]any{FanPropertyOn: true})
+	return nil
 }
 
 // SetOff turns the fan off.
@@ -113,8 +119,9 @@ func (s *FanControl) SetOn() {
 // Example:
 //
 //	fan.SetOff()
-func (s *FanControl) SetOff() {
+func (s *FanControl) SetOff() error {
 	s.writeState(map[string]any{FanPropertyOn: false})
+	return nil
 }
 
 // SetSpeed sets the speed, 0 to 100 percent.
@@ -122,8 +129,9 @@ func (s *FanControl) SetOff() {
 // Example:
 //
 //	fan.SetSpeed(66)
-func (s *FanControl) SetSpeed(speed int) {
+func (s *FanControl) SetSpeed(speed int) error {
 	s.writeState(map[string]any{FanPropertySpeed: max(0, min(100, speed))})
+	return nil
 }
 
 // SetDirection sets the direction, forward or reverse.
@@ -131,8 +139,9 @@ func (s *FanControl) SetSpeed(speed int) {
 // Example:
 //
 //	fan.SetDirection(FanDirectionReverse)
-func (s *FanControl) SetDirection(direction FanDirection) {
+func (s *FanControl) SetDirection(direction FanDirection) error {
 	s.writeState(map[string]any{FanPropertyDirection: direction})
+	return nil
 }
 
 // SetOscillating lets the fan swing, or stops it with false.
@@ -140,8 +149,9 @@ func (s *FanControl) SetDirection(direction FanDirection) {
 // Example:
 //
 //	fan.SetOscillating(true)
-func (s *FanControl) SetOscillating(value bool) {
+func (s *FanControl) SetOscillating(value bool) error {
 	s.writeState(map[string]any{FanPropertyOscillating: value})
+	return nil
 }
 
 // SetPreset sets the preset, one of the preset choices.
@@ -149,33 +159,45 @@ func (s *FanControl) SetOscillating(value bool) {
 // Example:
 //
 //	fan.SetPreset("sleep")
-func (s *FanControl) SetPreset(value string) {
+func (s *FanControl) SetPreset(value string) error {
 	s.writeState(map[string]any{FanPropertyPreset: value})
+	return nil
 }
 
-// UpdateValue routes generic property writes to the semantic setters.
-func (s *FanControl) UpdateValue(property string, value any) error {
+func (s *FanControl) applyValue(property string, value any) error {
 	setters := outerOr[fanSetters](&s.BaseSensor, s)
 	switch property {
 	case FanPropertyOn:
 		if isTruthy(value) {
-			setters.SetOn()
+			if err := setters.SetOn(); err != nil {
+				return err
+			}
 		} else {
-			setters.SetOff()
+			if err := setters.SetOff(); err != nil {
+				return err
+			}
 		}
 	case FanPropertySpeed:
 		if v, ok := toFloat64(value); ok {
-			setters.SetSpeed(int(math.Round(v)))
+			if err := setters.SetSpeed(int(math.Round(v))); err != nil {
+				return err
+			}
 		}
 	case FanPropertyDirection:
 		if v, ok := value.(string); ok {
-			setters.SetDirection(v)
+			if err := setters.SetDirection(v); err != nil {
+				return err
+			}
 		}
 	case FanPropertyOscillating:
-		setters.SetOscillating(isTruthy(value))
+		if err := setters.SetOscillating(isTruthy(value)); err != nil {
+			return err
+		}
 	case FanPropertyPreset:
 		if v, ok := value.(string); ok {
-			setters.SetPreset(v)
+			if err := setters.SetPreset(v); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

@@ -40,6 +40,9 @@ export interface SirenControlLike extends SensorLike {
  * hardware, then `await super.setActive()` / `await super.setInactive()` to sync
  * the SDK state. For hardware-pushed updates, call the `super` methods from your
  * event handler. That bypasses any plugin override and only syncs state.
+ *
+ * When the device refuses a command, throw from the override instead of calling
+ * `super`: the write fails for whoever sent it and the state stays as it was.
  */
 export class SirenControl<TStorage extends object = Record<string, any>> extends Sensor<SirenControlProperties, TStorage, SirenCapability> {
   readonly type = SensorType.Siren;
@@ -106,7 +109,7 @@ export class SirenControl<TStorage extends object = Record<string, any>> extends
   }
 
   /** @internal */
-  override async updateValue(property: string, value: unknown): Promise<void> {
+  protected override async _applyValue(property: string, value: unknown): Promise<void> {
     switch (property as SirenProperty) {
       case SirenProperty.Active:
         if (value) await this.setActive();

@@ -17,9 +17,9 @@ const (
 )
 
 type displaySetters interface {
-	SetMessage(value string)
-	SetPreset(value string)
-	SetDuration(value int)
+	SetMessage(value string) error
+	SetPreset(value string) error
+	SetDuration(value int) error
 }
 
 // DisplayControl is a text display on a device, such as the screen of a
@@ -28,12 +28,17 @@ type displaySetters interface {
 // and its Choices. Override SetMessage and SetPreset (by embedding
 // DisplayControl in your own type and shadowing the methods) to drive your
 // hardware, then call the embedded methods to sync the SDK state.
+//
+// When the device refuses a command, return an error from the override instead of
+// calling the embedded method: the write fails for whoever sent it and the state
+// stays as it was.
 type DisplayControl struct{ BaseSensor }
 
 // NewDisplayControl creates a display with the given name and options.
 func NewDisplayControl(name string, opts ...SensorOption) *DisplayControl {
 	s := &DisplayControl{BaseSensor: NewBaseSensor(name, opts...)}
 	s.writeState(map[string]any{DisplayPropertyMessage: "", DisplayPropertyPreset: "", DisplayPropertyDuration: 0})
+	s.handleWrites(s)
 	return s
 }
 
@@ -66,8 +71,9 @@ func (s *DisplayControl) GetDuration() int {
 // Example:
 //
 //	display.SetMessage("Back in 5 minutes")
-func (s *DisplayControl) SetMessage(value string) {
+func (s *DisplayControl) SetMessage(value string) error {
 	s.writeState(map[string]any{DisplayPropertyMessage: value, DisplayPropertyPreset: ""})
+	return nil
 }
 
 // SetPreset shows a preset message, an empty one clears the display.
@@ -75,8 +81,9 @@ func (s *DisplayControl) SetMessage(value string) {
 // Example:
 //
 //	display.SetPreset("LEAVE_PACKAGE_AT_DOOR")
-func (s *DisplayControl) SetPreset(value string) {
+func (s *DisplayControl) SetPreset(value string) error {
 	s.writeState(map[string]any{DisplayPropertyPreset: value, DisplayPropertyMessage: ""})
+	return nil
 }
 
 // SetDuration sets how long a new message stays on the display, 0 keeps it
@@ -85,23 +92,29 @@ func (s *DisplayControl) SetPreset(value string) {
 // Example:
 //
 //	display.SetDuration(60)
-func (s *DisplayControl) SetDuration(value int) {
+func (s *DisplayControl) SetDuration(value int) error {
 	s.writeState(map[string]any{DisplayPropertyDuration: max(0, value)})
+	return nil
 }
 
-// UpdateValue routes generic property writes to the semantic setters.
-func (s *DisplayControl) UpdateValue(property string, value any) error {
+func (s *DisplayControl) applyValue(property string, value any) error {
 	setters := outerOr[displaySetters](&s.BaseSensor, s)
 	switch property {
 	case DisplayPropertyMessage:
 		v, _ := value.(string)
-		setters.SetMessage(v)
+		if err := setters.SetMessage(v); err != nil {
+			return err
+		}
 	case DisplayPropertyPreset:
 		v, _ := value.(string)
-		setters.SetPreset(v)
+		if err := setters.SetPreset(v); err != nil {
+			return err
+		}
 	case DisplayPropertyDuration:
 		if v, ok := toInt64(value); ok {
-			setters.SetDuration(int(v))
+			if err := setters.SetDuration(int(v)); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

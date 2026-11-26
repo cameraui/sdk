@@ -20,7 +20,7 @@ const (
 )
 
 type lockSetters interface {
-	SetTargetState(value LockState)
+	SetTargetState(value LockState) error
 }
 
 // LockControl is a lock/unlock control sensor. Override SetTargetState (by
@@ -31,6 +31,10 @@ type lockSetters interface {
 //
 // For asymmetric flows (long-running unlock with intermediate state) override
 // SetTargetState and write currentState separately when transitions complete.
+//
+// When the device refuses a command, return an error from the override instead of
+// calling the embedded method: the write fails for whoever sent it and the state
+// stays as it was.
 type LockControl struct{ BaseSensor }
 
 // NewLockControl creates a lock control with the given name and options.
@@ -40,6 +44,7 @@ func NewLockControl(name string, opts ...SensorOption) *LockControl {
 		LockPropertyCurrentState: int(LockStateSecured),
 		LockPropertyTargetState:  int(LockStateSecured),
 	})
+	s.handleWrites(s)
 	return s
 }
 
@@ -68,11 +73,12 @@ func (s *LockControl) GetTargetState() LockState {
 // Example:
 //
 //	lock.SetTargetState(LockStateSecured)
-func (s *LockControl) SetTargetState(value LockState) {
+func (s *LockControl) SetTargetState(value LockState) error {
 	s.writeState(map[string]any{
 		LockPropertyTargetState:  int(value),
 		LockPropertyCurrentState: int(value),
 	})
+	return nil
 }
 
 // SetCurrentState publishes the actual lock state. Use it when the physical
@@ -88,12 +94,12 @@ func (s *LockControl) SetCurrentState(value LockState) {
 	s.writeState(map[string]any{LockPropertyCurrentState: int(value)})
 }
 
-// UpdateValue routes generic property writes to the semantic setters.
-// Only targetState is externally writable, currentState is observed-only.
-func (s *LockControl) UpdateValue(property string, value any) error {
+func (s *LockControl) applyValue(property string, value any) error {
 	if property == LockPropertyTargetState {
 		if v, ok := toInt64(value); ok {
-			outerOr[lockSetters](&s.BaseSensor, s).SetTargetState(LockState(v))
+			if err := outerOr[lockSetters](&s.BaseSensor, s).SetTargetState(LockState(v)); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

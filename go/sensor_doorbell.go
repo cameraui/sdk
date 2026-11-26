@@ -13,13 +13,17 @@ const (
 const ringAutoResetMs = 2000
 
 type doorbellSetters interface {
-	Trigger()
+	Trigger() error
 }
 
 // DoorbellTrigger fires doorbell ring events.
 //
 // Plugin authors call Trigger to fire an event. The ring property is set to
 // true and automatically reset to false after ringAutoResetMs.
+//
+// When the device refuses a command, return an error from the override instead of
+// calling the embedded method: the write fails for whoever sent it and the state
+// stays as it was.
 type DoorbellTrigger struct {
 	BaseSensor
 	ringResetTimer *time.Timer
@@ -29,6 +33,7 @@ type DoorbellTrigger struct {
 func NewDoorbellTrigger(name string, opts ...SensorOption) *DoorbellTrigger {
 	s := &DoorbellTrigger{BaseSensor: NewBaseSensor(name, opts...)}
 	s.writeState(map[string]any{DoorbellPropertyRing: false})
+	s.handleWrites(s)
 	return s
 }
 
@@ -49,7 +54,7 @@ func (s *DoorbellTrigger) IsRinging() bool {
 // Example:
 //
 //	doorbell.Trigger()
-func (s *DoorbellTrigger) Trigger() {
+func (s *DoorbellTrigger) Trigger() error {
 	s.mu.Lock()
 	if s.ringResetTimer != nil {
 		s.ringResetTimer.Stop()
@@ -69,16 +74,18 @@ func (s *DoorbellTrigger) Trigger() {
 	s.mu.Lock()
 	s.ringResetTimer = timer
 	s.mu.Unlock()
+	return nil
 }
 
-// UpdateValue routes generic property writes to the semantic setters.
-// Writing ring=false is ignored, the auto-reset timer owns the off transition.
-func (s *DoorbellTrigger) UpdateValue(property string, value any) error {
+func (s *DoorbellTrigger) applyValue(property string, value any) error {
 	if property != DoorbellPropertyRing {
 		return nil
 	}
+	// ring=false is ignored, the auto-reset timer owns the off transition
 	if isTruthy(value) {
-		outerOr[doorbellSetters](&s.BaseSensor, s).Trigger()
+		if err := outerOr[doorbellSetters](&s.BaseSensor, s).Trigger(); err != nil {
+			return err
+		}
 	}
 	return nil
 }

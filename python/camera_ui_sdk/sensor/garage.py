@@ -88,6 +88,9 @@ class GarageControl(Sensor[GarageControlProperties, TStorage, str], Generic[TSto
 
     For long-running transitions (Opening/Closing intermediate states) override
     ``setTargetState`` and write ``currentState`` separately as the door moves.
+
+    When the device refuses a command, raise from the override instead of calling
+    ``super()``: the write fails for whoever sent it and the state stays as it was.
     """
 
     _requires_frames = False
@@ -200,7 +203,7 @@ class GarageControl(Sensor[GarageControlProperties, TStorage, str], Generic[TSto
         """
         self._write_state({GarageProperty.ObstructionDetected.value: value})
 
-    async def updateValue(self, property: str, value: Any) -> None:
+    async def _apply_value(self, property: str, value: Any) -> None:
         """Routes generic property writes to the semantic setters.
 
         Only targetState is externally writable.

@@ -2,6 +2,7 @@ package sdk
 
 import (
 	"context"
+	"fmt"
 	"maps"
 	"math"
 	"sync"
@@ -42,6 +43,7 @@ func newSensorProxy(client *rpc.Client, logger *Logger, data *storedSensorData) 
 	s.pluginID = data.PluginID
 	s.assignedCameraIDs = append([]string(nil), data.AssignedCameraIDs...)
 	s.assignmentLocked = data.BoundCameraID != ""
+	s.sourceState = data.SourceState
 	if data.DisplayName != "" {
 		s.displayName = data.DisplayName
 	}
@@ -148,11 +150,15 @@ func (s *sensorProxy) UpdateValue(property string, value any) error {
 	if s.proxy == nil {
 		return nil
 	}
+	if !sourceReachable(s.GetSourceState()) {
+		return fmt.Errorf("%s is not reachable", s.GetDisplayName())
+	}
 	value, err := checkPropertyWrite(s.GetPropertySpecs(), property, value)
 	if err != nil {
 		return err
 	}
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), writeTimeout+writeCallMargin)
+	defer cancel()
 	_, err = s.proxy.Invoke(ctx, "updateValue", property, value)
 	return err
 }
@@ -183,6 +189,17 @@ func (s *sensorProxy) ToStoredData() storedSensorData {
 		Primary:           s.primary,
 		PropertySpecs:     maps.Clone(s.propertySpecs),
 	}
+}
+
+func (s *sensorProxy) setSourceState(state SensorSourceState) {
+	s.mu.Lock()
+	if s.sourceState == state {
+		s.mu.Unlock()
+		return
+	}
+	s.sourceState = state
+	s.mu.Unlock()
+	s.sourceStateChanged.Next(state)
 }
 
 func (s *sensorProxy) setConnected(connected bool) {

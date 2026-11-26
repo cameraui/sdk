@@ -35,7 +35,7 @@ type TalkbackInterface interface {
 type sensorInternalInit interface {
 	setID(id string)
 	setPluginID(id string)
-	setOuter(outer Sensor)
+	setOuter(outer Sensor) error
 	setAssignedCameras(cameraIDs []string)
 	setAssignmentLocked()
 	applyDeviceState(state *sensorDeviceState)
@@ -429,7 +429,9 @@ func (d *CameraDevice) addSensor(s Sensor) error {
 		return fmt.Errorf("sensor %s does not embed BaseSensor", s.GetName())
 	}
 	si.setPluginID(d.info.ID)
-	si.setOuter(s)
+	if err := si.setOuter(s); err != nil {
+		return err
+	}
 
 	sensorJSON := d.registrationJSON(s, si)
 
@@ -478,7 +480,7 @@ func (d *CameraDevice) addSensor(s Sensor) error {
 
 	// every exported method of the sensor becomes a camelCase RPC endpoint
 	sensorProviderNS := getSensorProviderNamespaces(d.info.ID, s.GetID())
-	sensorCleanup, err := d.client.RegisterHandler(sensorProviderNS.SensorRPC, s)
+	sensorCleanup, err := d.client.RegisterHandler(sensorProviderNS.SensorRPC, s, concurrentWrites())
 	if err != nil {
 		return fmt.Errorf("failed to register sensor RPC: %w", err)
 	}

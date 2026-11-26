@@ -104,9 +104,6 @@ export class ButtonTrigger<TStorage extends object = Record<string, any>> extend
     }, PRESS_AUTO_RESET_MS);
   }
 
-  /** @internal */
-  updateValue(_property: string, _value: unknown): void {}
-
   override _cleanup(): void {
     if (this._pressResetTimer) {
       clearTimeout(this._pressResetTimer);

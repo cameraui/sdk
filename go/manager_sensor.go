@@ -388,7 +388,9 @@ func (m *SensorManager) bind(s Sensor, recordID string) error {
 	}
 
 	si.setPluginID(m.info.ID)
-	si.setOuter(s)
+	if err := si.setOuter(s); err != nil {
+		return err
+	}
 	si.setID(recordID)
 
 	sensorJSON := si.ToJSON()
@@ -413,7 +415,7 @@ func (m *SensorManager) bind(s Sensor, recordID string) error {
 	applyRegistration(si, registration)
 
 	sensorProviderNS := getSensorProviderNamespaces(m.info.ID, s.GetID())
-	rpcCleanup, err := m.client.RegisterHandler(sensorProviderNS.SensorRPC, s)
+	rpcCleanup, err := m.client.RegisterHandler(sensorProviderNS.SensorRPC, s, concurrentWrites())
 	if err != nil {
 		return fmt.Errorf("failed to register sensor RPC: %w", err)
 	}
@@ -904,6 +906,22 @@ func (m *SensorManager) handleGlobalSensorEvent(msg sensorRegistryEventMessage) 
 				// the owner was away, whatever it published in the meantime never reached us
 				go m.resyncConsumed(connected.SensorID)
 			}
+		}
+
+	case "sensor:source:changed":
+		encoded, err := rpc.Encode(msg.Data)
+		if err != nil {
+			return
+		}
+		var source sensorSourceChangedData
+		if !decodeMsgpack(m.logger, encoded, &source, "sensorSourceChangedData") {
+			return
+		}
+		m.mu.RLock()
+		proxy := m.consumed[source.SensorID]
+		m.mu.RUnlock()
+		if proxy != nil {
+			proxy.setSourceState(source.SourceState)
 		}
 
 	case "sensor:exposed:changed":

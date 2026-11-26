@@ -131,6 +131,9 @@ class ValveControl(Sensor[ValveControlProperties, TStorage, ValveCapability], Ge
     closes by itself after a set time ``ValveCapability.Duration``.
     ``setKind()`` says what the valve controls, ``index`` orders the zones of
     one irrigation controller.
+
+    When the device refuses a command, raise from the override instead of calling
+    ``super()``: the write fails for whoever sent it and the state stays as it was.
     """
 
     _requires_frames = False
@@ -323,7 +326,7 @@ class ValveControl(Sensor[ValveControlProperties, TStorage, ValveCapability], Ge
         self._write_state({ValveProperty.Kind.value: kind.value})
         self.setPropertySpec(ValveProperty.Kind.value, {"values": [kind.value]})
 
-    async def updateValue(self, property: str, value: Any) -> None:
+    async def _apply_value(self, property: str, value: Any) -> None:
         """Routes generic property writes to the semantic setters."""
         if property == ValveProperty.TargetState.value:
             await self.setTargetState(ValveState(value))

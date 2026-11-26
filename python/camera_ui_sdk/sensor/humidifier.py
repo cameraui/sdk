@@ -123,6 +123,9 @@ class HumidifierControl(
     ``setKind()`` says whether it humidifies or dehumidifies. The modes it
     offers come as choices:
     ``setPropertySpec(HumidifierProperty.Mode, {"choices": [...]})``.
+
+    When the device refuses a command, raise from the override instead of calling
+    ``super()``: the write fails for whoever sent it and the state stays as it was.
     """
 
     _requires_frames = False
@@ -287,7 +290,7 @@ class HumidifierControl(
         self._write_state({HumidifierProperty.Kind.value: kind.value})
         self.setPropertySpec(HumidifierProperty.Kind.value, {"values": [kind.value]})
 
-    async def updateValue(self, property: str, value: Any) -> None:
+    async def _apply_value(self, property: str, value: Any) -> None:
         """Routes generic property writes to the semantic setters."""
         if property == HumidifierProperty.On.value:
             if value:

@@ -53,6 +53,9 @@ export interface LawnMowerControlLike extends SensorLike {
  * Narrow the commands to those the mower takes with
  * `setPropertySpec(LawnMowerProperty.Command, { values: [...] })`.
  *
+ * When the device refuses a command, throw from the override instead of calling
+ * `super`: the write fails for whoever sent it and the state stays as it was.
+ *
  * @example
  * ```ts
  * class Mower extends LawnMowerControl {
@@ -110,7 +113,12 @@ export class LawnMowerControl<TStorage extends object = Record<string, any>> ext
   }
 
   /** @internal */
-  async updateValue(property: string, value: unknown): Promise<void> {
+  protected override _isCommand(property: string): boolean {
+    return (property as LawnMowerProperty) === LawnMowerProperty.Command;
+  }
+
+  /** @internal */
+  protected override async _applyValue(property: string, value: unknown): Promise<void> {
     if ((property as LawnMowerProperty) !== LawnMowerProperty.Command) return;
     switch (value as LawnMowerCommand) {
       case LawnMowerCommand.Start:
@@ -143,7 +151,7 @@ export const lawnMowerMeta = defineSensor({
         error: LawnMowerActivity.Error,
       },
     },
-    [LawnMowerProperty.Command]: { type: 'enum', values: LAWN_MOWER_COMMANDS, writable: true },
+    [LawnMowerProperty.Command]: { type: 'enum', values: LAWN_MOWER_COMMANDS, writable: true, command: true },
   },
   shortcutable: true,
   cascadeTrigger: { property: LawnMowerProperty.Activity, values: [LawnMowerActivity.Mowing], sustained: true },

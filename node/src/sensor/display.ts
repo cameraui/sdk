@@ -46,6 +46,9 @@ export interface DisplayControlLike extends SensorLike {
  * presets with `setPropertySpec(DisplayProperty.Preset, { choices })`. Override
  * `setMessage()` and `setPreset()` to drive the hardware and call the `super`
  * method after success.
+ *
+ * When the device refuses a command, throw from the override instead of calling
+ * `super`: the write fails for whoever sent it and the state stays as it was.
  */
 export class DisplayControl<TStorage extends object = Record<string, any>> extends Sensor<DisplayControlProperties, TStorage, DisplayCapability> {
   readonly type = SensorType.Display;
@@ -118,7 +121,7 @@ export class DisplayControl<TStorage extends object = Record<string, any>> exten
   }
 
   /** @internal */
-  override async updateValue(property: string, value: unknown): Promise<void> {
+  protected override async _applyValue(property: string, value: unknown): Promise<void> {
     switch (property as DisplayProperty) {
       case DisplayProperty.Message:
         await this.setMessage(typeof value === 'string' ? value : '');

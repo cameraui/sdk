@@ -135,9 +135,6 @@ export class ClassifierSensor<TStorage extends object = Record<string, any>> ext
   clearDetections(): void {
     this.reportDetections(false);
   }
-
-  /** @internal */
-  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Return type for {@link ClassifierDetectorSensor.detectClassifications}. */

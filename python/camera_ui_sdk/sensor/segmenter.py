@@ -98,6 +98,3 @@ class SegmenterSensor(Sensor[dict[str, Any], TStorage, str], Generic[TStorage]):
         SegmentationResult per input frame, in the same order; leave ``mask`` out when
         the model found no object at the box."""
         ...
-
-    async def updateValue(self, property: str, value: Any) -> None:
-        """Read-only sensor: external writes are ignored."""

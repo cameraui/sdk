@@ -94,6 +94,9 @@ export interface ValveControlLike extends SensorLike {
  * `setKind()` says what the valve controls, `index` in the options orders the
  * zones of one irrigation controller.
  *
+ * When the device refuses a command, throw from the override instead of calling
+ * `super`: the write fails for whoever sent it and the state stays as it was.
+ *
  * @example
  * ```ts
  * class Zone extends ValveControl {
@@ -273,7 +276,7 @@ export class ValveControl<TStorage extends object = Record<string, any>> extends
   }
 
   /** @internal */
-  async updateValue(property: string, value: unknown): Promise<void> {
+  protected override async _applyValue(property: string, value: unknown): Promise<void> {
     switch (property as ValveProperty) {
       case ValveProperty.TargetState:
         await this.setTargetState(value as ValveState);

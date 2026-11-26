@@ -117,9 +117,6 @@ export class MotionSensor<TStorage extends object = Record<string, any>> extends
   clearDetections(): void {
     this.reportDetections(false);
   }
-
-  /** @internal */
-  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Return type for {@link MotionDetectorSensor.detectMotion}. */

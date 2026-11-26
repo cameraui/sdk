@@ -1,4 +1,6 @@
+import { isSourceReachable } from '../internal/sensor-rpc.js';
 import { isEqual } from '../internal/shared-utils.js';
+import { WriteLane } from '../internal/write-lane.js';
 import { Subject } from '../observable/index.js';
 
 import type { CapabilityUpdateFn, PropertyUpdateFn, SensorDeviceState, SensorJSON, SensorMembership, SourceUpdateFn } from '../internal/sensor-rpc.js';
@@ -132,8 +134,8 @@ export type SensorCapability =
   | MediaPlayerCapability;
 
 /**
- * The plugin's view of the source behind an adopted sensor. `unavailable`
- * means wait (source unreachable, entity temporarily unavailable), `removed`
+ * The plugin's view of the source behind a sensor. `unavailable` means wait
+ * (device or source unreachable, entity temporarily unavailable), `removed`
  * means the source reported the entity gone while it was reachable. Neither
  * deletes the sensor: an adopted sensor is deleted by the user only.
  */
@@ -323,6 +325,12 @@ export interface SensorLike {
   readonly capabilities: string[];
   /** Whether the sensor is registered and its plugin is connected. */
   readonly connected: boolean;
+  /**
+   * State of the source behind the sensor. Seen from another plugin it is also
+   * `unavailable` while the camera the sensor belongs to is offline. A sensor
+   * that is `unavailable` or `removed` takes no writes.
+   */
+  readonly sourceState: SensorSourceState | undefined;
   /** Ids of the cameras the user assigned the sensor to. */
   readonly assignedCameraIds: readonly string[];
   /** Whether the sensor is bound to the camera it was added to, so the user cannot assign it elsewhere. */
@@ -346,6 +354,8 @@ export interface SensorLike {
   readonly onCapabilitiesChanged: Observable<string[]>;
   /** Emits when the connected state changes. */
   readonly onConnectedChanged: Observable<boolean>;
+  /** Emits when the source state changes. */
+  readonly onSourceStateChanged: Observable<SensorSourceState | undefined>;
   /** Emits the camera id list whenever the user changes the sensor's camera assignments. */
   readonly onAssignmentChanged: Observable<readonly string[]>;
   /** Emits the device whenever the sensor joins or leaves one, or its device, names or main-sensor role change. */
@@ -430,12 +440,15 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   readonly onAssignmentChanged: Observable<readonly string[]> = this.#assignmentChangedSubject.asObservable();
   readonly #connectedChangedSubject = new Subject<boolean>();
   readonly onConnectedChanged: Observable<boolean> = this.#connectedChangedSubject.asObservable();
+  readonly #sourceStateChangedSubject = new Subject<SensorSourceState | undefined>();
+  readonly onSourceStateChanged: Observable<SensorSourceState | undefined> = this.#sourceStateChangedSubject.asObservable();
   readonly #deviceInfoChangedSubject = new Subject<SensorDevice | undefined>();
   readonly onDeviceInfoChanged: Observable<SensorDevice | undefined> = this.#deviceInfoChangedSubject.asObservable();
   readonly #propertySpecsChangedSubject = new Subject<Readonly<Record<string, SensorPropertySpec>>>();
   readonly onPropertySpecsChanged: Observable<Readonly<Record<string, SensorPropertySpec>>> = this.#propertySpecsChangedSubject.asObservable();
 
   private _updateFn?: PropertyUpdateFn;
+  readonly #writes = new WriteLane();
 
   private _displayName = '';
 
@@ -579,14 +592,31 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   }
 
   /**
-   * Generic property write coming from a consumer. Read-only sensors implement
-   * it as a no-op, control sensors dispatch known properties to their semantic
-   * methods (`setOn`, `setActive`, `setTargetState`) so plugin overrides drive
-   * hardware. Unknown or non-writable properties are ignored.
+   * Generic property write coming from a consumer. Control sensors dispatch it
+   * to their semantic methods (`setOn`, `setActive`, `setTargetState`), so
+   * plugin overrides drive the hardware. Writes run one at a time per sensor in
+   * arrival order, a newer value of a property replaces one still waiting, a
+   * command always runs. Unknown or non-writable properties are ignored.
    *
    * Plugin authors call the semantic methods on the concrete class instead.
+   *
+   * @param property - Property to write.
+   *
+   * @param value - Value to write.
+   *
+   * @returns Resolves once the device took the value, rejects with the setter's
+   * error, when nothing answered within 10 seconds or while the source is
+   * `unavailable` or `removed`.
+   *
+   * @example
+   * ```ts
+   * await light.updateValue(LightProperty.Brightness, 80);
+   * ```
    */
-  abstract updateValue(property: string, value: unknown): void | Promise<void>;
+  async updateValue(property: string, value: unknown): Promise<void> {
+    if (!isSourceReachable(this._sourceState)) throw new Error(`${this.displayName} is not reachable`);
+    await this.#writes.write(property, () => this._applyValue(property, value), !this._isCommand(property));
+  }
 
   /**
    * Check whether the sensor advertises a capability.
@@ -605,9 +635,10 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   }
 
   /**
-   * Report what the source behind this sensor looks like right now. The host
-   * shows the state with its reason on the sensors page and never deletes on
-   * it. Only meaningful for adopted sensors.
+   * Report what the source behind this sensor looks like right now, for
+   * example `unavailable` while the device can't be reached. The host shows the
+   * state with its reason on the sensors page and never deletes on it. While it
+   * is `unavailable` or `removed` the sensor takes no writes.
    *
    * @param state - Current source state
    *
@@ -620,6 +651,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     if (this._sourceState === state) return;
     this._sourceState = state;
     this._sourceUpdateFn?.({ sourceState: state });
+    this.#sourceStateChangedSubject.next(state);
   }
 
   /**
@@ -814,6 +846,7 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
     this.#capabilitiesChangedSubject.complete();
     this.#assignmentChangedSubject.complete();
     this.#connectedChangedSubject.complete();
+    this.#sourceStateChangedSubject.complete();
     this.#deviceInfoChangedSubject.complete();
     this.#propertySpecsChangedSubject.complete();
   }
@@ -841,6 +874,14 @@ export abstract class Sensor<TProperties extends object, TStorage extends object
   public updateModelSpec(): void {
     const spec = (this as { modelSpec?: unknown }).modelSpec;
     if (spec) this._writeState({ modelSpec: spec } as unknown as Partial<TProperties>);
+  }
+
+  /** @internal */
+  protected _applyValue(_property: string, _value: unknown): void | Promise<void> {}
+
+  /** @internal */
+  protected _isCommand(_property: string): boolean {
+    return false;
   }
 
   /** @internal */

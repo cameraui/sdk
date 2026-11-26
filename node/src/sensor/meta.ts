@@ -50,6 +50,8 @@ export interface SensorPropertySpec {
   readonly maxLength?: number;
   /** Accepts external writes (commands, target states, virtual sensor state). */
   readonly writable?: boolean;
+  /** Each write is an action of its own: writes run in order and none replaces another. */
+  readonly command?: boolean;
   /** Not an observable state: hidden from trigger/condition pickers. */
   readonly internal?: boolean;
 }

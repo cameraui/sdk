@@ -38,12 +38,12 @@ const (
 )
 
 type airPurifierSetters interface {
-	SetOn()
-	SetOff()
-	SetSpeed(speed int)
-	SetAuto(auto bool)
-	SetPreset(value string)
-	SetChildLock(locked bool)
+	SetOn() error
+	SetOff() error
+	SetSpeed(speed int) error
+	SetAuto(auto bool) error
+	SetPreset(value string) error
+	SetChildLock(locked bool) error
 }
 
 // AirPurifierControl is an air purifier. Override SetOn, SetOff, SetSpeed,
@@ -56,6 +56,10 @@ type airPurifierSetters interface {
 // Each optional part comes with its AirPurifierCapability constant. The
 // presets it offers come as choices:
 // SetPropertySpec(AirPurifierPropertyPreset, &PropertySpecOverride{Choices: ...}).
+//
+// When the device refuses a command, return an error from the override instead of
+// calling the embedded method: the write fails for whoever sent it and the state
+// stays as it was.
 type AirPurifierControl struct{ BaseSensor }
 
 // NewAirPurifierControl creates an air purifier with the given name and options.
@@ -68,6 +72,7 @@ func NewAirPurifierControl(name string, opts ...SensorOption) *AirPurifierContro
 		AirPurifierPropertyChildLock:    false,
 		AirPurifierPropertyFilterChange: false,
 	})
+	s.handleWrites(s)
 	return s
 }
 
@@ -128,8 +133,9 @@ func (s *AirPurifierControl) NeedsFilterChange() bool {
 // Example:
 //
 //	purifier.SetOn()
-func (s *AirPurifierControl) SetOn() {
+func (s *AirPurifierControl) SetOn() error {
 	s.writeState(map[string]any{AirPurifierPropertyOn: true})
+	return nil
 }
 
 // SetOff turns the purifier off.
@@ -137,8 +143,9 @@ func (s *AirPurifierControl) SetOn() {
 // Example:
 //
 //	purifier.SetOff()
-func (s *AirPurifierControl) SetOff() {
+func (s *AirPurifierControl) SetOff() error {
 	s.writeState(map[string]any{AirPurifierPropertyOn: false})
+	return nil
 }
 
 // SetSpeed sets the speed, 0 to 100 percent.
@@ -146,8 +153,9 @@ func (s *AirPurifierControl) SetOff() {
 // Example:
 //
 //	purifier.SetSpeed(60)
-func (s *AirPurifierControl) SetSpeed(speed int) {
+func (s *AirPurifierControl) SetSpeed(speed int) error {
 	s.writeState(map[string]any{AirPurifierPropertySpeed: max(0, min(100, speed))})
+	return nil
 }
 
 // SetAuto switches the automatic mode on, or back to a set speed with false.
@@ -155,8 +163,9 @@ func (s *AirPurifierControl) SetSpeed(speed int) {
 // Example:
 //
 //	purifier.SetAuto(true)
-func (s *AirPurifierControl) SetAuto(auto bool) {
+func (s *AirPurifierControl) SetAuto(auto bool) error {
 	s.writeState(map[string]any{AirPurifierPropertyAuto: auto})
+	return nil
 }
 
 // SetPreset sets the preset, one of the preset choices.
@@ -164,8 +173,9 @@ func (s *AirPurifierControl) SetAuto(auto bool) {
 // Example:
 //
 //	purifier.SetPreset("sleep")
-func (s *AirPurifierControl) SetPreset(value string) {
+func (s *AirPurifierControl) SetPreset(value string) error {
 	s.writeState(map[string]any{AirPurifierPropertyPreset: value})
+	return nil
 }
 
 // SetChildLock locks the buttons on the purifier, or unlocks them with false.
@@ -173,8 +183,9 @@ func (s *AirPurifierControl) SetPreset(value string) {
 // Example:
 //
 //	purifier.SetChildLock(true)
-func (s *AirPurifierControl) SetChildLock(locked bool) {
+func (s *AirPurifierControl) SetChildLock(locked bool) error {
 	s.writeState(map[string]any{AirPurifierPropertyChildLock: locked})
+	return nil
 }
 
 // SetState reports what the purifier does right now: inactive, idle or purifying.
@@ -207,28 +218,39 @@ func (s *AirPurifierControl) SetFilterChange(change bool) {
 	s.writeState(map[string]any{AirPurifierPropertyFilterChange: change})
 }
 
-// UpdateValue routes generic property writes to the semantic setters.
-func (s *AirPurifierControl) UpdateValue(property string, value any) error {
+func (s *AirPurifierControl) applyValue(property string, value any) error {
 	setters := outerOr[airPurifierSetters](&s.BaseSensor, s)
 	switch property {
 	case AirPurifierPropertyOn:
 		if isTruthy(value) {
-			setters.SetOn()
+			if err := setters.SetOn(); err != nil {
+				return err
+			}
 		} else {
-			setters.SetOff()
+			if err := setters.SetOff(); err != nil {
+				return err
+			}
 		}
 	case AirPurifierPropertySpeed:
 		if v, ok := toFloat64(value); ok {
-			setters.SetSpeed(int(math.Round(v)))
+			if err := setters.SetSpeed(int(math.Round(v))); err != nil {
+				return err
+			}
 		}
 	case AirPurifierPropertyAuto:
-		setters.SetAuto(isTruthy(value))
+		if err := setters.SetAuto(isTruthy(value)); err != nil {
+			return err
+		}
 	case AirPurifierPropertyPreset:
 		if v, ok := value.(string); ok {
-			setters.SetPreset(v)
+			if err := setters.SetPreset(v); err != nil {
+				return err
+			}
 		}
 	case AirPurifierPropertyChildLock:
-		setters.SetChildLock(isTruthy(value))
+		if err := setters.SetChildLock(isTruthy(value)); err != nil {
+			return err
+		}
 	}
 	return nil
 }

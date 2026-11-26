@@ -150,9 +150,6 @@ export class AudioSensor<TStorage extends object = Record<string, any>> extends 
   setDecibels(value: number): void {
     this._writeState({ [AudioProperty.Decibels]: value });
   }
-
-  /** @internal */
-  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Audio frame data delivered to audio detector sensors by the backend pipeline. */

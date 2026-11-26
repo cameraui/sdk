@@ -81,6 +81,9 @@ class DisplayControl(Sensor[DisplayControlProperties, TStorage, DisplayCapabilit
     and the presets with ``setPropertySpec(DisplayProperty.Preset, {"choices": ...})``.
     Override ``setMessage()`` and ``setPreset()`` to drive the hardware and call the
     ``super()`` method after success.
+
+    When the device refuses a command, raise from the override instead of calling
+    ``super()``: the write fails for whoever sent it and the state stays as it was.
     """
 
     _requires_frames = False
@@ -178,7 +181,7 @@ class DisplayControl(Sensor[DisplayControlProperties, TStorage, DisplayCapabilit
         """
         self._write_state({DisplayProperty.Duration.value: max(0, round(value))})
 
-    async def updateValue(self, property: str, value: Any) -> None:
+    async def _apply_value(self, property: str, value: Any) -> None:
         """Routes generic property writes to the semantic setters."""
         if property == DisplayProperty.Message.value:
             await self.setMessage(str(value or ""))

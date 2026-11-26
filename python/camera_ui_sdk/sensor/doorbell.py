@@ -66,6 +66,9 @@ class DoorbellTrigger(Sensor[DoorbellTriggerProperties, TStorage, str], Generic[
     property is set to True and automatically reset to False after a short
     delay (``RING_AUTO_RESET_MS``). Calling ``trigger()`` again while still
     ringing resets the timer (extends the ring phase).
+
+    When the device refuses a command, raise from the override instead of calling
+    ``super()``: the write fails for whoever sent it and the state stays as it was.
     """
 
     _requires_frames = False
@@ -129,7 +132,7 @@ class DoorbellTrigger(Sensor[DoorbellTriggerProperties, TStorage, str], Generic[
         self._ring_reset_timer.daemon = True
         self._ring_reset_timer.start()
 
-    async def updateValue(self, property: str, value: Any) -> None:
+    async def _apply_value(self, property: str, value: Any) -> None:
         """Routes generic property writes to the semantic setters.
 
         Writing ring=false is ignored, the auto-reset timer owns the off transition.

@@ -47,6 +47,9 @@ export interface LockControlLike extends SensorLike {
  *
  * For asymmetric flows (long-running unlock with intermediate state) override
  * `setTargetState` and write `currentState` separately when transitions complete.
+ *
+ * When the device refuses a command, throw from the override instead of calling
+ * `super`: the write fails for whoever sent it and the state stays as it was.
  */
 export class LockControl<TStorage extends object = Record<string, any>> extends Sensor<LockControlProperties, TStorage, string> {
   readonly type = SensorType.Lock;
@@ -110,7 +113,7 @@ export class LockControl<TStorage extends object = Record<string, any>> extends 
   }
 
   /** @internal */
-  async updateValue(property: string, value: unknown): Promise<void> {
+  protected override async _applyValue(property: string, value: unknown): Promise<void> {
     if ((property as LockProperty) === LockProperty.TargetState) {
       await this.setTargetState(value as LockState);
     }

@@ -65,3 +65,8 @@ export interface SensorJSON {
   /** Absent from an older SDK, the host then keeps the one it has. */
   propertySpecs?: Record<string, PropertySpecOverride>;
 }
+
+/** @internal */
+export function isSourceReachable(state: SensorSourceState | undefined): boolean {
+  return state !== 'unavailable' && state !== 'removed';
+}

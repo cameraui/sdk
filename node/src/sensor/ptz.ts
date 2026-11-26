@@ -123,6 +123,9 @@ export interface PTZControlLike extends SensorLike {
  *
  * Set `capabilities` to advertise supported axes and features. Use `setPresets()`
  * to publish the discovered preset list and `setMoving()` to publish movement state.
+ *
+ * When the device refuses a command, throw from the override instead of calling
+ * `super`: the write fails for whoever sent it and the state stays as it was.
  */
 export class PTZControl<TStorage extends object = Record<string, any>> extends Sensor<PTZControlProperties, TStorage, PTZCapability> {
   readonly type = SensorType.PTZ;
@@ -270,7 +273,12 @@ export class PTZControl<TStorage extends object = Record<string, any>> extends S
   }
 
   /** @internal */
-  async updateValue(property: string, value: unknown): Promise<void> {
+  protected override _isCommand(property: string): boolean {
+    return (property as PTZProperty) === PTZProperty.RelativeMove;
+  }
+
+  /** @internal */
+  protected override async _applyValue(property: string, value: unknown): Promise<void> {
     switch (property as PTZProperty) {
       case PTZProperty.Position:
         await this.setPosition(value as PTZPosition);
@@ -305,7 +313,7 @@ export const ptzMeta = defineSensor({
     [PTZProperty.Presets]: { type: 'object' },
     [PTZProperty.Velocity]: { type: 'object', writable: true, internal: true },
     [PTZProperty.TargetPreset]: { type: 'string', writable: true },
-    [PTZProperty.RelativeMove]: { type: 'object', writable: true, internal: true },
+    [PTZProperty.RelativeMove]: { type: 'object', writable: true, command: true, internal: true },
     [PTZProperty.Home]: { type: 'boolean', writable: true, internal: true },
   },
   semantics: null,

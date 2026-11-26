@@ -112,9 +112,6 @@ func (s *AccessTrigger) Report(result AccessResult, attempt AccessAttempt) {
 	s.mu.Unlock()
 }
 
-// UpdateValue ignores writes, attempts come from the device.
-func (s *AccessTrigger) UpdateValue(string, any) error { return nil }
-
 func (s *AccessTrigger) cleanup() {
 	s.mu.Lock()
 	if s.resultResetTimer != nil {

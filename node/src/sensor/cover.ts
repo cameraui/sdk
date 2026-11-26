@@ -100,6 +100,9 @@ export interface CoverControlLike extends SensorLike {
  * {@link CoverCapability.Stop} and overrides `stop()`. `setKind()` says what
  * the cover is.
  *
+ * When the device refuses a command, throw from the override instead of calling
+ * `super`: the write fails for whoever sent it and the state stays as it was.
+ *
  * @example
  * ```ts
  * class Blind extends CoverControl {
@@ -309,7 +312,12 @@ export class CoverControl<TStorage extends object = Record<string, any>> extends
   }
 
   /** @internal */
-  async updateValue(property: string, value: unknown): Promise<void> {
+  protected override _isCommand(property: string): boolean {
+    return (property as CoverProperty) === CoverProperty.Stop;
+  }
+
+  /** @internal */
+  protected override async _applyValue(property: string, value: unknown): Promise<void> {
     switch (property as CoverProperty) {
       case CoverProperty.TargetState:
         await this.setTargetState(value as CoverState);
@@ -353,7 +361,7 @@ export const coverMeta = defineSensor({
     [CoverProperty.TargetPosition]: { ...PERCENT, writable: true },
     [CoverProperty.CurrentTilt]: PERCENT,
     [CoverProperty.TargetTilt]: { ...PERCENT, writable: true },
-    [CoverProperty.Stop]: { type: 'boolean', writable: true, internal: true },
+    [CoverProperty.Stop]: { type: 'boolean', writable: true, internal: true, command: true },
     [CoverProperty.ObstructionDetected]: { type: 'boolean' },
     [CoverProperty.Kind]: {
       type: 'enum',

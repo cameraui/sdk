@@ -222,9 +222,6 @@ class AirQualityInfo(Sensor[AirQualityInfoProperties, TStorage, AirQualityCapabi
         if not self._level_from_plugin:
             self._write_state({AirQualityProperty.Level.value: self._derived_level()})
 
-    async def updateValue(self, property: str, value: Any) -> None:
-        """An air quality sensor takes no writes, readings come from the device."""
-
     def _derived_level(self) -> str:
         if self.hasCapability(AirQualityCapability.Aqi):
             return _level_of(float(self.props.aqi or 0), _AQI_LEVELS).value

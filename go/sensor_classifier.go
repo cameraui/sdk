@@ -125,11 +125,6 @@ func (s *ClassifierSensor) ClearDetections() {
 	s.ReportDetections(false, nil)
 }
 
-// UpdateValue on a read-only sensor: external writes are ignored.
-func (s *ClassifierSensor) UpdateValue(property string, value any) error {
-	return nil
-}
-
 // ClassifierDetectorSensor is a classifier sensor that consumes video frames
 // from the backend pipeline. Pair with a ClassifierDetector implementation.
 type ClassifierDetectorSensor struct {

@@ -53,6 +53,9 @@ export interface GarageControlLike extends SensorLike {
  *
  * For long-running transitions (Opening/Closing intermediate states), override
  * `setTargetState` and write `currentState` separately as the door moves.
+ *
+ * When the device refuses a command, throw from the override instead of calling
+ * `super`: the write fails for whoever sent it and the state stays as it was.
  */
 export class GarageControl<TStorage extends object = Record<string, any>> extends Sensor<GarageControlProperties, TStorage, string> {
   readonly type = SensorType.Garage;
@@ -137,7 +140,7 @@ export class GarageControl<TStorage extends object = Record<string, any>> extend
   }
 
   /** @internal */
-  async updateValue(property: string, value: unknown): Promise<void> {
+  protected override async _applyValue(property: string, value: unknown): Promise<void> {
     if ((property as GarageProperty) === GarageProperty.TargetState) {
       await this.setTargetState(value as GarageState);
     }

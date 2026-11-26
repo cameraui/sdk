@@ -136,11 +136,6 @@ func (s *AudioSensor) SetDecibels(value float64) {
 	s.writeState(map[string]any{AudioPropertyDecibels: value})
 }
 
-// UpdateValue on a read-only sensor: external writes are ignored.
-func (s *AudioSensor) UpdateValue(property string, value any) error {
-	return nil
-}
-
 // AudioDetectorSensor is an audio sensor that consumes audio frames from the
 // backend pipeline. Pair with an AudioDetector implementation.
 type AudioDetectorSensor struct {

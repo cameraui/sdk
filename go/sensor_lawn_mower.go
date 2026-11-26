@@ -32,9 +32,9 @@ const (
 )
 
 type lawnMowerSetters interface {
-	Start()
-	Pause()
-	Dock()
+	Start() error
+	Pause() error
+	Dock() error
 }
 
 // LawnMowerControl is a robot lawn mower. Override Start, Pause and Dock (by
@@ -44,12 +44,17 @@ type lawnMowerSetters interface {
 //
 // Narrow the commands to those the mower takes with
 // SetPropertySpec(LawnMowerPropertyCommand, &PropertySpecOverride{Values: ...}).
+//
+// When the device refuses a command, return an error from the override instead of
+// calling the embedded method: the write fails for whoever sent it and the state
+// stays as it was.
 type LawnMowerControl struct{ RobotControl }
 
 // NewLawnMowerControl creates a lawn mower with the given name and options.
 func NewLawnMowerControl(name string, opts ...SensorOption) *LawnMowerControl {
 	s := &LawnMowerControl{}
 	s.initCommand(SensorTypeLawnMower, name, opts)
+	s.handleWrites(s)
 	return s
 }
 
@@ -58,8 +63,9 @@ func NewLawnMowerControl(name string, opts ...SensorOption) *LawnMowerControl {
 // Example:
 //
 //	mower.Start()
-func (s *LawnMowerControl) Start() {
+func (s *LawnMowerControl) Start() error {
 	s.sent(LawnMowerCommandStart)
+	return nil
 }
 
 // Pause pauses mowing where the mower is.
@@ -67,8 +73,9 @@ func (s *LawnMowerControl) Start() {
 // Example:
 //
 //	mower.Pause()
-func (s *LawnMowerControl) Pause() {
+func (s *LawnMowerControl) Pause() error {
 	s.sent(LawnMowerCommandPause)
+	return nil
 }
 
 // Dock stops mowing and sends the mower back to its dock.
@@ -76,23 +83,33 @@ func (s *LawnMowerControl) Pause() {
 // Example:
 //
 //	mower.Dock()
-func (s *LawnMowerControl) Dock() {
+func (s *LawnMowerControl) Dock() error {
 	s.sent(LawnMowerCommandDock)
+	return nil
 }
 
-// UpdateValue routes generic property writes to the semantic setters.
-func (s *LawnMowerControl) UpdateValue(property string, value any) error {
+func (s *LawnMowerControl) isCommand(property string) bool {
+	return property == LawnMowerPropertyCommand
+}
+
+func (s *LawnMowerControl) applyValue(property string, value any) error {
 	if property != LawnMowerPropertyCommand {
 		return nil
 	}
 	setters := outerOr[lawnMowerSetters](&s.BaseSensor, s)
 	switch value {
 	case LawnMowerCommandStart:
-		setters.Start()
+		if err := setters.Start(); err != nil {
+			return err
+		}
 	case LawnMowerCommandPause:
-		setters.Pause()
+		if err := setters.Pause(); err != nil {
+			return err
+		}
 	case LawnMowerCommandDock:
-		setters.Dock()
+		if err := setters.Dock(); err != nil {
+			return err
+		}
 	}
 	return nil
 }

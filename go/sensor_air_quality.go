@@ -125,9 +125,6 @@ func (s *AirQualityInfo) SetReading(property AirQualityProperty, value float64) 
 	}
 }
 
-// UpdateValue ignores writes, readings come from the device.
-func (s *AirQualityInfo) UpdateValue(string, any) error { return nil }
-
 func (s *AirQualityInfo) derivedLevel() AirQualityLevel {
 	switch {
 	case s.HasCapability(AirQualityCapabilityAqi):

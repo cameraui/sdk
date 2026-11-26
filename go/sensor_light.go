@@ -37,11 +37,11 @@ type LightColor struct {
 }
 
 type lightSetters interface {
-	SetOn()
-	SetOff()
-	SetBrightness(value int)
-	SetColorTemperature(kelvin int)
-	SetColor(hue, saturation float64)
+	SetOn() error
+	SetOff() error
+	SetBrightness(value int) error
+	SetColorTemperature(kelvin int) error
+	SetColor(hue, saturation float64) error
 }
 
 // LightControl is a light on/off and brightness control sensor. Override
@@ -60,6 +60,10 @@ type lightSetters interface {
 // overrides SetColorTemperature and SetColor the same way. A command switches
 // the color mode to the setting it changed. When the device reports its state,
 // sync both settings and call SetColorMode with the one it shows.
+//
+// When the device refuses a command, return an error from the override instead of
+// calling the embedded method: the write fails for whoever sent it and the state
+// stays as it was.
 type LightControl struct{ BaseSensor }
 
 // NewLightControl creates a light control with the given name and options.
@@ -72,6 +76,7 @@ func NewLightControl(name string, opts ...SensorOption) *LightControl {
 		LightPropertyColor:            LightColor{},
 		LightPropertyColorMode:        LightColorModeTemperature,
 	})
+	s.handleWrites(s)
 	return s
 }
 
@@ -123,8 +128,9 @@ func (s *LightControl) GetColorMode() LightColorMode {
 // Example:
 //
 //	light.SetOn()
-func (s *LightControl) SetOn() {
+func (s *LightControl) SetOn() error {
 	s.writeState(map[string]any{LightPropertyOn: true})
+	return nil
 }
 
 // SetOff turns the light off. Override (via embedding) to drive hardware and
@@ -133,8 +139,9 @@ func (s *LightControl) SetOn() {
 // Example:
 //
 //	light.SetOff()
-func (s *LightControl) SetOff() {
+func (s *LightControl) SetOff() error {
 	s.writeState(map[string]any{LightPropertyOn: false})
+	return nil
 }
 
 // SetBrightness sets the brightness level (clamped to [0, 100]). Override
@@ -144,7 +151,7 @@ func (s *LightControl) SetOff() {
 // Example:
 //
 //	light.SetBrightness(75)
-func (s *LightControl) SetBrightness(value int) {
+func (s *LightControl) SetBrightness(value int) error {
 	if value < 0 {
 		value = 0
 	}
@@ -152,6 +159,7 @@ func (s *LightControl) SetBrightness(value int) {
 		value = 100
 	}
 	s.writeState(map[string]any{LightPropertyBrightness: value})
+	return nil
 }
 
 // SetColorTemperature sets the white color temperature in Kelvin (clamped to
@@ -161,8 +169,9 @@ func (s *LightControl) SetBrightness(value int) {
 // Example:
 //
 //	light.SetColorTemperature(2700)
-func (s *LightControl) SetColorTemperature(kelvin int) {
+func (s *LightControl) SetColorTemperature(kelvin int) error {
 	s.writeState(map[string]any{LightPropertyColorTemperature: min(max(kelvin, 1000), 10000)})
+	return nil
 }
 
 // SetColor sets the color (hue clamped to [0, 360], saturation to [0, 100]).
@@ -172,8 +181,9 @@ func (s *LightControl) SetColorTemperature(kelvin int) {
 // Example:
 //
 //	light.SetColor(240, 100)
-func (s *LightControl) SetColor(hue, saturation float64) {
+func (s *LightControl) SetColor(hue, saturation float64) error {
 	s.writeState(map[string]any{LightPropertyColor: LightColor{Hue: min(max(hue, 0), 360), Saturation: min(max(saturation, 0), 100)}})
+	return nil
 }
 
 // SetColorMode reports which of its two color settings the light shows.
@@ -185,28 +195,37 @@ func (s *LightControl) SetColorMode(mode LightColorMode) {
 	s.writeState(map[string]any{LightPropertyColorMode: mode})
 }
 
-// UpdateValue routes generic property writes to the semantic setters.
-func (s *LightControl) UpdateValue(property string, value any) error {
+func (s *LightControl) applyValue(property string, value any) error {
 	setters := outerOr[lightSetters](&s.BaseSensor, s)
 	switch property {
 	case LightPropertyOn:
 		if isTruthy(value) {
-			setters.SetOn()
+			if err := setters.SetOn(); err != nil {
+				return err
+			}
 		} else {
-			setters.SetOff()
+			if err := setters.SetOff(); err != nil {
+				return err
+			}
 		}
 	case LightPropertyBrightness:
 		if v, ok := toInt64(value); ok {
-			setters.SetBrightness(int(v))
+			if err := setters.SetBrightness(int(v)); err != nil {
+				return err
+			}
 		}
 	case LightPropertyColorTemperature:
 		if v, ok := toInt64(value); ok {
-			setters.SetColorTemperature(int(v))
+			if err := setters.SetColorTemperature(int(v)); err != nil {
+				return err
+			}
 			s.SetColorMode(LightColorModeTemperature)
 		}
 	case LightPropertyColor:
 		if color, ok := coerceViaRoundTrip[LightColor](value).(LightColor); ok {
-			setters.SetColor(color.Hue, color.Saturation)
+			if err := setters.SetColor(color.Hue, color.Saturation); err != nil {
+				return err
+			}
 			s.SetColorMode(LightColorModeColor)
 		}
 	}

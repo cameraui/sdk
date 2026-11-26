@@ -91,6 +91,9 @@ class ChimeControl(Sensor[ChimeControlProperties, TStorage, ChimeCapability], Ge
     Override ``play()`` to drive the hardware and ``await super().play()`` after it,
     call ``super().stop()`` when the device reports the end. Without that the chime
     counts as done after ``CHIME_AUTO_RESET_MS``.
+
+    When the device refuses a command, raise from the override instead of calling
+    ``super()``: the write fails for whoever sent it and the state stays as it was.
     """
 
     _requires_frames = False
@@ -228,7 +231,7 @@ class ChimeControl(Sensor[ChimeControlProperties, TStorage, ChimeCapability], Ge
         """
         self._write_state({ChimeProperty.Repeat.value: max(1, min(10, round(value)))})
 
-    async def updateValue(self, property: str, value: Any) -> None:
+    async def _apply_value(self, property: str, value: Any) -> None:
         """Routes generic property writes to the semantic setters."""
         if property == ChimeProperty.Active.value:
             if value:

@@ -130,9 +130,6 @@ export class BatteryInfo<TStorage extends object = Record<string, any>> extends 
   setLow(value: boolean): void {
     this._writeState({ [BatteryProperty.Low]: value });
   }
-
-  /** @internal */
-  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Registry metadata for {@link BatteryInfo}. */

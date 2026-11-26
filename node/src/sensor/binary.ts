@@ -43,9 +43,6 @@ export abstract class BinarySensor<TProperties extends BinarySensorProperties = 
   setDetected(value: boolean): void {
     this._writeState({ detected: value } as Partial<TProperties>);
   }
-
-  /** @internal */
-  updateValue(_property: string, _value: unknown): void {}
 }
 
 /**

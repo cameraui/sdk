@@ -50,9 +50,9 @@ type ValveConfig struct {
 }
 
 type valveSetters interface {
-	SetTargetState(value ValveState)
-	SetTargetPosition(position int)
-	SetDuration(seconds int)
+	SetTargetState(value ValveState) error
+	SetTargetPosition(position int) error
+	SetDuration(seconds int) error
 }
 
 // ValveControl is a water or gas valve, or an irrigation zone. Override
@@ -64,6 +64,10 @@ type valveSetters interface {
 // A valve that opens part way adds ValveCapabilityPosition, one that closes by
 // itself after a set time ValveCapabilityDuration. SetKind says what the valve
 // controls, ValveConfig.Index orders the zones of one irrigation controller.
+//
+// When the device refuses a command, return an error from the override instead of
+// calling the embedded method: the write fails for whoever sent it and the state
+// stays as it was.
 type ValveControl struct{ BaseSensor }
 
 // NewValveControl creates a valve with the given name, config and options.
@@ -78,6 +82,7 @@ func NewValveControl(name string, config ValveConfig, opts ...SensorOption) *Val
 		ValvePropertyRemaining:       0,
 		ValvePropertyIndex:           config.Index,
 	})
+	s.handleWrites(s)
 	return s
 }
 
@@ -144,11 +149,12 @@ func (s *ValveControl) GetIndex() int {
 // Example:
 //
 //	valve.SetTargetState(ValveStateOpen)
-func (s *ValveControl) SetTargetState(value ValveState) {
+func (s *ValveControl) SetTargetState(value ValveState) error {
 	s.writeState(map[string]any{
 		ValvePropertyTargetState:  int(value),
 		ValvePropertyCurrentState: int(value),
 	})
+	return nil
 }
 
 // SetCurrentState reports the state of the valve.
@@ -166,9 +172,10 @@ func (s *ValveControl) SetCurrentState(value ValveState) {
 // Example:
 //
 //	valve.SetTargetPosition(50)
-func (s *ValveControl) SetTargetPosition(position int) {
+func (s *ValveControl) SetTargetPosition(position int) error {
 	value := max(0, min(100, position))
 	s.writeState(map[string]any{ValvePropertyTargetPosition: value, ValvePropertyCurrentPosition: value})
+	return nil
 }
 
 // SetCurrentPosition reports the position of the valve, 0 (closed) to 100 (open).
@@ -186,8 +193,9 @@ func (s *ValveControl) SetCurrentPosition(position int) {
 // Example:
 //
 //	valve.SetDuration(900)
-func (s *ValveControl) SetDuration(seconds int) {
+func (s *ValveControl) SetDuration(seconds int) error {
 	s.writeState(map[string]any{ValvePropertyDuration: max(0, seconds)})
+	return nil
 }
 
 // SetRemaining reports how long the open valve has left, in seconds until it
@@ -211,21 +219,26 @@ func (s *ValveControl) SetKind(kind ValveKind) {
 	s.SetPropertySpec(ValvePropertyKind, &PropertySpecOverride{Values: []any{kind}})
 }
 
-// UpdateValue routes generic property writes to the semantic setters.
-func (s *ValveControl) UpdateValue(property string, value any) error {
+func (s *ValveControl) applyValue(property string, value any) error {
 	setters := outerOr[valveSetters](&s.BaseSensor, s)
 	switch property {
 	case ValvePropertyTargetState:
 		if v, ok := toInt64(value); ok {
-			setters.SetTargetState(ValveState(v))
+			if err := setters.SetTargetState(ValveState(v)); err != nil {
+				return err
+			}
 		}
 	case ValvePropertyTargetPosition:
 		if v, ok := toFloat64(value); ok {
-			setters.SetTargetPosition(int(math.Round(v)))
+			if err := setters.SetTargetPosition(int(math.Round(v))); err != nil {
+				return err
+			}
 		}
 	case ValvePropertyDuration:
 		if v, ok := toFloat64(value); ok {
-			setters.SetDuration(int(math.Round(v)))
+			if err := setters.SetDuration(int(math.Round(v))); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

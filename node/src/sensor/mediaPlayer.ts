@@ -113,6 +113,9 @@ export interface MediaPlayerControlLike extends SensorLike {
  * The inputs come as choices with the `source` capability:
  * `setPropertySpec(MediaPlayerProperty.Source, { choices })`.
  *
+ * When the device refuses a command, throw from the override instead of calling
+ * `super`: the write fails for whoever sent it and the state stays as it was.
+ *
  * @example
  * ```ts
  * class LivingRoomTv extends MediaPlayerControl {
@@ -364,7 +367,12 @@ export class MediaPlayerControl<TStorage extends object = Record<string, any>> e
   }
 
   /** @internal */
-  async updateValue(property: string, value: unknown): Promise<void> {
+  protected override _isCommand(property: string): boolean {
+    return (property as MediaPlayerProperty) === MediaPlayerProperty.Command;
+  }
+
+  /** @internal */
+  protected override async _applyValue(property: string, value: unknown): Promise<void> {
     switch (property as MediaPlayerProperty) {
       case MediaPlayerProperty.On:
         await (value ? this.setOn() : this.setOff());
@@ -427,7 +435,7 @@ export const mediaPlayerMeta = defineSensor({
       type: 'enum',
       values: { tv: MediaPlayerKind.Tv, speaker: MediaPlayerKind.Speaker, receiver: MediaPlayerKind.Receiver, projector: MediaPlayerKind.Projector },
     },
-    [MediaPlayerProperty.Command]: { type: 'enum', values: MEDIA_PLAYER_COMMANDS, writable: true },
+    [MediaPlayerProperty.Command]: { type: 'enum', values: MEDIA_PLAYER_COMMANDS, writable: true, command: true },
     [MediaPlayerProperty.Volume]: { ...PERCENT, writable: true },
     [MediaPlayerProperty.Muted]: { type: 'boolean', writable: true },
     [MediaPlayerProperty.Source]: { type: 'string', writable: true },

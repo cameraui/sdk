@@ -32,6 +32,9 @@ export const SCENE_AUTO_RESET_MS = 1000;
  * Override `activate()` to run it on the device and call `await super.activate()`
  * after success, which sets `active` for a moment ({@link SCENE_AUTO_RESET_MS}).
  *
+ * When the device refuses a command, throw from the override instead of calling
+ * `super`: the write fails for whoever sent it and the state stays as it was.
+ *
  * @example
  * ```ts
  * class GoodNight extends SceneControl {
@@ -83,7 +86,7 @@ export class SceneControl<TStorage extends object = Record<string, any>> extends
   }
 
   /** @internal */
-  async updateValue(property: string, value: unknown): Promise<void> {
+  protected override async _applyValue(property: string, value: unknown): Promise<void> {
     if ((property as SceneProperty) === SceneProperty.Active && value) await this.activate();
   }
 

@@ -317,6 +317,35 @@ describe('cross-SDK parity', () => {
     expect(go).toEqual(node);
   });
 
+  it('command properties match across node, python and go', () => {
+    const node = new Set(
+      SENSOR_META.flatMap((meta: SensorMeta) =>
+        Object.entries(meta.properties)
+          .filter(([, spec]) => spec.command)
+          .map(([property]) => `${meta.type.toLowerCase()}.${property}`),
+      ),
+    );
+    const python = new Set(
+      sources('python/camera_ui_sdk/sensor', '.py').flatMap((source) =>
+        [...source.matchAll(/def _is_command\(self, property: str\) -> bool:\s+return property == (\w+)Property\.(\w+)\.value/g)].map(
+          ([, prefix, member]) => `${prefix.toLowerCase()}.${block(source, new RegExp(`\\n    ${member} = "([^"]+)"`))}`,
+        ),
+      ),
+    );
+    const go = new Set(
+      sources('go', '.go').flatMap((source) =>
+        [...source.matchAll(/\) isCommand\(property string\) bool \{\s+return property == (\w+)/g)].map(([, constant]) => {
+          const [, prefix, value] = (new RegExp(`${constant}\\s+(\\w+)Property\\s*=\\s*"([^"]+)"`).exec(source)) ?? [];
+          return `${prefix.toLowerCase()}.${value}`;
+        }),
+      ),
+    );
+
+    expect(node.size).toBeGreaterThan(0);
+    expect([...python].sort()).toEqual([...node].sort());
+    expect([...go].sort()).toEqual([...node].sort());
+  });
+
   it('go contract-validation sensor list covers every SensorType', () => {
     const constByName = new Map([...read('go/sensor_base.go').matchAll(/(SensorType\w+)\s+SensorType\s*=\s*"([^"]+)"/g)].map((m) => [m[1], m[2]]));
     const listed = new Set(

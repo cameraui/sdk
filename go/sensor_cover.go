@@ -52,10 +52,10 @@ const (
 )
 
 type coverSetters interface {
-	SetTargetState(value CoverState)
-	SetTargetPosition(position int)
-	SetTargetTilt(tilt int)
-	Stop()
+	SetTargetState(value CoverState) error
+	SetTargetPosition(position int) error
+	SetTargetTilt(tilt int) error
+	Stop() error
 }
 
 // CoverControl is a blind, shutter, awning, curtain or other cover. Override
@@ -68,6 +68,10 @@ type coverSetters interface {
 // A cover that moves to positions adds CoverCapabilityPosition, one with slats
 // CoverCapabilityTilt, one that stops on command CoverCapabilityStop and
 // shadows Stop. SetKind says what the cover is.
+//
+// When the device refuses a command, return an error from the override instead of
+// calling the embedded method: the write fails for whoever sent it and the state
+// stays as it was.
 type CoverControl struct{ BaseSensor }
 
 // NewCoverControl creates a cover with the given name and options.
@@ -83,6 +87,7 @@ func NewCoverControl(name string, opts ...SensorOption) *CoverControl {
 		CoverPropertyStop:                false,
 		CoverPropertyObstructionDetected: false,
 	})
+	s.handleWrites(s)
 	return s
 }
 
@@ -147,11 +152,12 @@ func (s *CoverControl) GetKind() CoverKind {
 // Example:
 //
 //	cover.SetTargetState(CoverStateOpen)
-func (s *CoverControl) SetTargetState(value CoverState) {
+func (s *CoverControl) SetTargetState(value CoverState) error {
 	s.writeState(map[string]any{
 		CoverPropertyTargetState:  int(value),
 		CoverPropertyCurrentState: int(value),
 	})
+	return nil
 }
 
 // Stop stops the cover and reports it as stopped. The stop property is a
@@ -160,8 +166,9 @@ func (s *CoverControl) SetTargetState(value CoverState) {
 // Example:
 //
 //	cover.Stop()
-func (s *CoverControl) Stop() {
+func (s *CoverControl) Stop() error {
 	s.writeState(map[string]any{CoverPropertyCurrentState: int(CoverStateStopped)})
+	return nil
 }
 
 // SetCurrentState reports the state of the cover.
@@ -179,9 +186,10 @@ func (s *CoverControl) SetCurrentState(value CoverState) {
 // Example:
 //
 //	cover.SetTargetPosition(50)
-func (s *CoverControl) SetTargetPosition(position int) {
+func (s *CoverControl) SetTargetPosition(position int) error {
 	value := max(0, min(100, position))
 	s.writeState(map[string]any{CoverPropertyTargetPosition: value, CoverPropertyCurrentPosition: value})
+	return nil
 }
 
 // SetCurrentPosition reports the position of the cover, 0 (closed) to 100 (open).
@@ -199,9 +207,10 @@ func (s *CoverControl) SetCurrentPosition(position int) {
 // Example:
 //
 //	cover.SetTargetTilt(100)
-func (s *CoverControl) SetTargetTilt(tilt int) {
+func (s *CoverControl) SetTargetTilt(tilt int) error {
 	value := max(0, min(100, tilt))
 	s.writeState(map[string]any{CoverPropertyTargetTilt: value, CoverPropertyCurrentTilt: value})
+	return nil
 }
 
 // SetCurrentTilt reports the tilt of the slats, 0 (closed) to 100 (open).
@@ -233,25 +242,36 @@ func (s *CoverControl) SetKind(kind CoverKind) {
 	s.SetPropertySpec(CoverPropertyKind, &PropertySpecOverride{Values: []any{kind}})
 }
 
-// UpdateValue routes generic property writes to the semantic setters.
-func (s *CoverControl) UpdateValue(property string, value any) error {
+func (s *CoverControl) isCommand(property string) bool {
+	return property == CoverPropertyStop
+}
+
+func (s *CoverControl) applyValue(property string, value any) error {
 	setters := outerOr[coverSetters](&s.BaseSensor, s)
 	switch property {
 	case CoverPropertyTargetState:
 		if v, ok := toInt64(value); ok {
-			setters.SetTargetState(CoverState(v))
+			if err := setters.SetTargetState(CoverState(v)); err != nil {
+				return err
+			}
 		}
 	case CoverPropertyTargetPosition:
 		if v, ok := toFloat64(value); ok {
-			setters.SetTargetPosition(int(math.Round(v)))
+			if err := setters.SetTargetPosition(int(math.Round(v))); err != nil {
+				return err
+			}
 		}
 	case CoverPropertyTargetTilt:
 		if v, ok := toFloat64(value); ok {
-			setters.SetTargetTilt(int(math.Round(v)))
+			if err := setters.SetTargetTilt(int(math.Round(v))); err != nil {
+				return err
+			}
 		}
 	case CoverPropertyStop:
 		if isTruthy(value) {
-			setters.Stop()
+			if err := setters.Stop(); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

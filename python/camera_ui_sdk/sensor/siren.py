@@ -75,6 +75,9 @@ class SirenControl(Sensor[SirenControlProperties, TStorage, SirenCapability], Ge
     to sync the SDK state. For hardware-pushed updates, call the super methods
     from your event handler. That bypasses any plugin override and only syncs
     state.
+
+    When the device refuses a command, raise from the override instead of calling
+    ``super()``: the write fails for whoever sent it and the state stays as it was.
     """
 
     _requires_frames = False
@@ -162,7 +165,7 @@ class SirenControl(Sensor[SirenControlProperties, TStorage, SirenCapability], Ge
         """
         self._write_state({SirenProperty.Volume.value: max(0, min(100, value))})
 
-    async def updateValue(self, property: str, value: Any) -> None:
+    async def _apply_value(self, property: str, value: Any) -> None:
         """Routes generic property writes to the semantic setters."""
         if property == SirenProperty.Active.value:
             if value:

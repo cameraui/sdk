@@ -79,6 +79,9 @@ export interface HumidifierControlLike extends SensorLike {
  * `setKind()` says whether it humidifies or dehumidifies. The modes it offers
  * come as choices: `setPropertySpec(HumidifierProperty.Mode, { choices })`.
  *
+ * When the device refuses a command, throw from the override instead of calling
+ * `super`: the write fails for whoever sent it and the state stays as it was.
+ *
  * @example
  * ```ts
  * class Bedroom extends HumidifierControl {
@@ -237,7 +240,7 @@ export class HumidifierControl<TStorage extends object = Record<string, any>> ex
   }
 
   /** @internal */
-  async updateValue(property: string, value: unknown): Promise<void> {
+  protected override async _applyValue(property: string, value: unknown): Promise<void> {
     switch (property as HumidifierProperty) {
       case HumidifierProperty.On:
         await (value ? this.setOn() : this.setOff());

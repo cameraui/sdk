@@ -21,10 +21,14 @@ const (
 )
 
 type securitySystemSetters interface {
-	SetTargetState(value SecuritySystemState)
+	SetTargetState(value SecuritySystemState) error
 }
 
 // SecuritySystem is a security system arm/disarm control sensor.
+//
+// When the device refuses a command, return an error from the override instead of
+// calling the embedded method: the write fails for whoever sent it and the state
+// stays as it was.
 type SecuritySystem struct{ BaseSensor }
 
 // NewSecuritySystem creates a security system with the given name and options.
@@ -34,6 +38,7 @@ func NewSecuritySystem(name string, opts ...SensorOption) *SecuritySystem {
 		SecuritySystemPropertyCurrentState: int(SecuritySystemStateDisarmed),
 		SecuritySystemPropertyTargetState:  int(SecuritySystemStateDisarmed),
 	})
+	s.handleWrites(s)
 	return s
 }
 
@@ -64,11 +69,12 @@ func (s *SecuritySystem) GetTargetState() SecuritySystemState {
 // Example:
 //
 //	alarm.SetTargetState(SecuritySystemStateAwayArm)
-func (s *SecuritySystem) SetTargetState(value SecuritySystemState) {
+func (s *SecuritySystem) SetTargetState(value SecuritySystemState) error {
 	s.writeState(map[string]any{
 		SecuritySystemPropertyTargetState:  int(value),
 		SecuritySystemPropertyCurrentState: int(value),
 	})
+	return nil
 }
 
 // SetCurrentState publishes the actual security system state. Use this for
@@ -83,11 +89,12 @@ func (s *SecuritySystem) SetCurrentState(value SecuritySystemState) {
 	s.writeState(map[string]any{SecuritySystemPropertyCurrentState: int(value)})
 }
 
-// UpdateValue routes generic property writes to the semantic setters.
-func (s *SecuritySystem) UpdateValue(property string, value any) error {
+func (s *SecuritySystem) applyValue(property string, value any) error {
 	if property == SecuritySystemPropertyTargetState {
 		if v, ok := toInt64(value); ok {
-			outerOr[securitySystemSetters](&s.BaseSensor, s).SetTargetState(SecuritySystemState(v))
+			if err := outerOr[securitySystemSetters](&s.BaseSensor, s).SetTargetState(SecuritySystemState(v)); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

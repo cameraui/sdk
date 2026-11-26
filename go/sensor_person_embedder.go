@@ -39,8 +39,3 @@ func NewPersonEmbedderSensor(name string, opts ...SensorOption) *PersonEmbedderS
 func (s *PersonEmbedderSensor) GetType() SensorType         { return SensorTypePersonEmbedder }
 func (s *PersonEmbedderSensor) GetCategory() SensorCategory { return SensorCategorySensor }
 func (s *PersonEmbedderSensor) ToJSON() sensorJSON          { return s.toBaseJSON(s.GetType(), s.GetCategory()) }
-
-// UpdateValue on a read-only sensor: external writes are ignored.
-func (s *PersonEmbedderSensor) UpdateValue(property string, value any) error {
-	return nil
-}

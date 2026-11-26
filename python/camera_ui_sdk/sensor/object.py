@@ -212,9 +212,6 @@ class ObjectSensor(Sensor[ObjectSensorProperties, TStorage, str], Generic[TStora
         """Explicitly clear detection state (detected = False, detections = [], labels = [])."""
         self.reportDetections(False)
 
-    async def updateValue(self, property: str, value: Any) -> None:
-        """Read-only sensor: external writes are ignored."""
-
 
 class ObjectResult(TypedDict):
     """Return type for ObjectDetectorSensor.detectObjects()."""

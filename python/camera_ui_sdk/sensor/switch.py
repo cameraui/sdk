@@ -60,6 +60,9 @@ class SwitchControl(Sensor[SwitchControlProperties, TStorage, str], Generic[TSto
     success to sync the SDK state. For hardware-pushed updates, call the super
     methods from your event handler. That bypasses any plugin override and only
     syncs state.
+
+    When the device refuses a command, raise from the override instead of calling
+    ``super()``: the write fails for whoever sent it and the state stays as it was.
     """
 
     _requires_frames = False
@@ -121,7 +124,7 @@ class SwitchControl(Sensor[SwitchControlProperties, TStorage, str], Generic[TSto
         """
         self._write_state({SwitchProperty.On.value: False})
 
-    async def updateValue(self, property: str, value: Any) -> None:
+    async def _apply_value(self, property: str, value: Any) -> None:
         """Routes generic property writes to the semantic setters."""
         if property == SwitchProperty.On.value:
             if value:

@@ -22,7 +22,7 @@ const (
 )
 
 type garageSetters interface {
-	SetTargetState(value GarageState)
+	SetTargetState(value GarageState) error
 }
 
 // GarageControl is a garage door control sensor. Override SetTargetState (by
@@ -33,6 +33,10 @@ type garageSetters interface {
 //
 // For long-running transitions (Opening/Closing intermediate states) override
 // SetTargetState and write currentState separately as the door moves.
+//
+// When the device refuses a command, return an error from the override instead of
+// calling the embedded method: the write fails for whoever sent it and the state
+// stays as it was.
 type GarageControl struct{ BaseSensor }
 
 // NewGarageControl creates a garage door control with the given name and options.
@@ -43,6 +47,7 @@ func NewGarageControl(name string, opts ...SensorOption) *GarageControl {
 		GaragePropertyTargetState:         int(GarageStateClosed),
 		GaragePropertyObstructionDetected: false,
 	})
+	s.handleWrites(s)
 	return s
 }
 
@@ -77,11 +82,12 @@ func (s *GarageControl) IsObstructionDetected() bool {
 // Example:
 //
 //	garage.SetTargetState(GarageStateOpen)
-func (s *GarageControl) SetTargetState(value GarageState) {
+func (s *GarageControl) SetTargetState(value GarageState) error {
 	s.writeState(map[string]any{
 		GaragePropertyTargetState:  int(value),
 		GaragePropertyCurrentState: int(value),
 	})
+	return nil
 }
 
 // SetCurrentState publishes the actual door state. Use this to drive
@@ -106,12 +112,12 @@ func (s *GarageControl) SetObstructionDetected(detected bool) {
 	s.writeState(map[string]any{GaragePropertyObstructionDetected: detected})
 }
 
-// UpdateValue routes generic property writes to the semantic setters.
-// Only targetState is externally writable.
-func (s *GarageControl) UpdateValue(property string, value any) error {
+func (s *GarageControl) applyValue(property string, value any) error {
 	if property == GaragePropertyTargetState {
 		if v, ok := toInt64(value); ok {
-			outerOr[garageSetters](&s.BaseSensor, s).SetTargetState(GarageState(v))
+			if err := outerOr[garageSetters](&s.BaseSensor, s).SetTargetState(GarageState(v)); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

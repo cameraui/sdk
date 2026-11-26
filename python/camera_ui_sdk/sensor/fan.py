@@ -108,6 +108,9 @@ class FanControl(Sensor[FanControlProperties, TStorage, FanCapability], Generic[
     Presets are the device's own, add ``FanCapability.Preset`` and set them as
     ``choices``. A fan with a few fixed speeds sets the speed's ``step``, three
     speeds are a step of 33.
+
+    When the device refuses a command, raise from the override instead of calling
+    ``super()``: the write fails for whoever sent it and the state stays as it was.
     """
 
     _requires_frames = False
@@ -253,7 +256,7 @@ class FanControl(Sensor[FanControlProperties, TStorage, FanCapability], Generic[
         """
         self._write_state({FanProperty.Preset.value: value})
 
-    async def updateValue(self, property: str, value: Any) -> None:
+    async def _apply_value(self, property: str, value: Any) -> None:
         """Routes generic property writes to the semantic setters."""
         if property == FanProperty.On.value:
             if value:

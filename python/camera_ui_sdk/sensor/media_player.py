@@ -160,6 +160,9 @@ class MediaPlayerControl(
     ``setPropertySpec(MediaPlayerProperty.Command, {"values": [...]})``. The
     inputs come as choices with the ``source`` capability:
     ``setPropertySpec(MediaPlayerProperty.Source, {"choices": [...]})``.
+
+    When the device refuses a command, raise from the override instead of calling
+    ``super()``: the write fails for whoever sent it and the state stays as it was.
     """
 
     def __init__(
@@ -403,7 +406,10 @@ class MediaPlayerControl(
             {MediaPlayerProperty.Title.value: title or "", MediaPlayerProperty.Artist.value: artist or ""}
         )
 
-    async def updateValue(self, property: str, value: Any) -> None:
+    def _is_command(self, property: str) -> bool:
+        return property == MediaPlayerProperty.Command.value
+
+    async def _apply_value(self, property: str, value: Any) -> None:
         """Routes generic property writes to the semantic setters."""
         if property == MediaPlayerProperty.On.value:
             if value:

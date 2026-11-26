@@ -198,9 +198,6 @@ class MotionSensor(Sensor[MotionSensorProperties, TStorage, str], Generic[TStora
         """Explicitly clear motion state (detected = False, detections = [])."""
         self.reportDetections(False)
 
-    async def updateValue(self, property: str, value: Any) -> None:
-        """Read-only sensor: external writes are ignored."""
-
 
 class MotionResult(TypedDict):
     """Return type for MotionDetectorSensor.detectMotion()."""

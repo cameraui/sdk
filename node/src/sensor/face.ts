@@ -134,9 +134,6 @@ export class FaceSensor<TStorage extends object = Record<string, any>> extends S
   clearDetections(): void {
     this.reportDetections(false);
   }
-
-  /** @internal */
-  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Return type for {@link FaceDetectorSensor.detectFaces}. */

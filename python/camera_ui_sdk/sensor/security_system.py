@@ -84,6 +84,9 @@ class SecuritySystem(Sensor[SecuritySystemProperties, TStorage, str], Generic[TS
     Override `setTargetState()` to drive hardware and call
     `await super().setTargetState(value)` once the hardware confirms. The base
     implementation updates both `targetState` and `currentState`.
+
+    When the device refuses a command, raise from the override instead of calling
+    ``super()``: the write fails for whoever sent it and the state stays as it was.
     """
 
     _requires_frames = False
@@ -175,7 +178,7 @@ class SecuritySystem(Sensor[SecuritySystemProperties, TStorage, str], Generic[TS
         """
         self._write_state({SecuritySystemProperty.CurrentState.value: int(value)})
 
-    async def updateValue(self, property: str, value: Any) -> None:
+    async def _apply_value(self, property: str, value: Any) -> None:
         """Routes generic property writes to the semantic setters."""
         if property == SecuritySystemProperty.TargetState.value:
             await self.setTargetState(SecuritySystemState(value))

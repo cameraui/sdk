@@ -29,11 +29,6 @@ func (s *BinarySensor) SetDetected(detected bool) {
 	s.writeState(map[string]any{binaryPropertyDetected: detected})
 }
 
-// UpdateValue on a read-only sensor: external writes are ignored.
-func (s *BinarySensor) UpdateValue(property string, value any) error {
-	return nil
-}
-
 func (s *BinarySensor) initBinary(sensorType SensorType, name string, opts []SensorOption) {
 	s.BaseSensor = NewBaseSensor(name, opts...)
 	s.sensorType = sensorType

@@ -71,6 +71,9 @@ export interface VacuumControlLike extends SensorLike {
  * levels come as choices with the `fanSpeed` capability:
  * `setPropertySpec(VacuumProperty.FanSpeed, { choices })`.
  *
+ * When the device refuses a command, throw from the override instead of calling
+ * `super`: the write fails for whoever sent it and the state stays as it was.
+ *
  * @example
  * ```ts
  * class Robot extends VacuumControl {
@@ -192,7 +195,12 @@ export class VacuumControl<TStorage extends object = Record<string, any>> extend
   }
 
   /** @internal */
-  async updateValue(property: string, value: unknown): Promise<void> {
+  protected override _isCommand(property: string): boolean {
+    return (property as VacuumProperty) === VacuumProperty.Command;
+  }
+
+  /** @internal */
+  protected override async _applyValue(property: string, value: unknown): Promise<void> {
     if ((property as VacuumProperty) === VacuumProperty.FanSpeed) {
       await this.setFanSpeed(String(value));
       return;
@@ -243,7 +251,7 @@ export const vacuumMeta = defineSensor({
         error: VacuumActivity.Error,
       },
     },
-    [VacuumProperty.Command]: { type: 'enum', values: VACUUM_COMMANDS, writable: true },
+    [VacuumProperty.Command]: { type: 'enum', values: VACUUM_COMMANDS, writable: true, command: true },
     [VacuumProperty.FanSpeed]: { type: 'string', writable: true },
   },
   shortcutable: true,

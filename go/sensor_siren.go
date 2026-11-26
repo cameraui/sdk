@@ -15,9 +15,9 @@ const (
 )
 
 type sirenSetters interface {
-	SetActive()
-	SetInactive()
-	SetVolume(value int)
+	SetActive() error
+	SetInactive() error
+	SetVolume(value int) error
 }
 
 // SirenControl is a siren on/off and volume control sensor. Override
@@ -26,6 +26,10 @@ type sirenSetters interface {
 // SirenControl's methods to sync the SDK state. For hardware-pushed updates,
 // call the embedded methods directly from your event handler. That bypasses
 // any plugin override and only syncs state.
+//
+// When the device refuses a command, return an error from the override instead of
+// calling the embedded method: the write fails for whoever sent it and the state
+// stays as it was.
 type SirenControl struct{ BaseSensor }
 
 // NewSirenControl creates a siren control with the given name and options.
@@ -35,6 +39,7 @@ func NewSirenControl(name string, opts ...SensorOption) *SirenControl {
 		SirenPropertyActive: false,
 		SirenPropertyVolume: 100,
 	})
+	s.handleWrites(s)
 	return s
 }
 
@@ -61,8 +66,9 @@ func (s *SirenControl) GetVolume() int {
 // Example:
 //
 //	siren.SetActive()
-func (s *SirenControl) SetActive() {
+func (s *SirenControl) SetActive() error {
 	s.writeState(map[string]any{SirenPropertyActive: true})
+	return nil
 }
 
 // SetInactive deactivates the siren.
@@ -70,8 +76,9 @@ func (s *SirenControl) SetActive() {
 // Example:
 //
 //	siren.SetInactive()
-func (s *SirenControl) SetInactive() {
+func (s *SirenControl) SetInactive() error {
 	s.writeState(map[string]any{SirenPropertyActive: false})
+	return nil
 }
 
 // SetVolume sets the siren volume (clamped to [0,100]).
@@ -79,7 +86,7 @@ func (s *SirenControl) SetInactive() {
 // Example:
 //
 //	siren.SetVolume(80)
-func (s *SirenControl) SetVolume(value int) {
+func (s *SirenControl) SetVolume(value int) error {
 	if value < 0 {
 		value = 0
 	}
@@ -87,21 +94,27 @@ func (s *SirenControl) SetVolume(value int) {
 		value = 100
 	}
 	s.writeState(map[string]any{SirenPropertyVolume: value})
+	return nil
 }
 
-// UpdateValue routes generic property writes to the semantic setters.
-func (s *SirenControl) UpdateValue(property string, value any) error {
+func (s *SirenControl) applyValue(property string, value any) error {
 	setters := outerOr[sirenSetters](&s.BaseSensor, s)
 	switch property {
 	case SirenPropertyActive:
 		if isTruthy(value) {
-			setters.SetActive()
+			if err := setters.SetActive(); err != nil {
+				return err
+			}
 		} else {
-			setters.SetInactive()
+			if err := setters.SetInactive(); err != nil {
+				return err
+			}
 		}
 	case SirenPropertyVolume:
 		if v, ok := toInt64(value); ok {
-			setters.SetVolume(int(v))
+			if err := setters.SetVolume(int(v)); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

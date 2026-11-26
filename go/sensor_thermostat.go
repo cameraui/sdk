@@ -59,13 +59,13 @@ const (
 )
 
 type thermostatSetters interface {
-	SetTargetTemperature(value float64)
-	SetTargetTemperatureLow(value float64)
-	SetTargetTemperatureHigh(value float64)
-	SetMode(value ThermostatMode)
-	SetPreset(value string)
-	SetFanMode(value string)
-	SetTargetHumidity(value int)
+	SetTargetTemperature(value float64) error
+	SetTargetTemperatureLow(value float64) error
+	SetTargetTemperatureHigh(value float64) error
+	SetMode(value ThermostatMode) error
+	SetPreset(value string) error
+	SetFanMode(value string) error
+	SetTargetHumidity(value int) error
 }
 
 // ThermostatControl is a thermostat or air conditioner. Temperatures are in
@@ -79,6 +79,10 @@ type thermostatSetters interface {
 // SetPropertySpec(ThermostatPropertyMode, &PropertySpecOverride{Values: ...}),
 // and its temperature range with Min, Max and Step on the target properties.
 // Presets and fan modes are the device's own, set them as Choices.
+//
+// When the device refuses a command, return an error from the override instead of
+// calling the embedded method: the write fails for whoever sent it and the state
+// stays as it was.
 type ThermostatControl struct{ BaseSensor }
 
 // NewThermostatControl creates a thermostat with the given name and options.
@@ -91,6 +95,7 @@ func NewThermostatControl(name string, opts ...SensorOption) *ThermostatControl 
 		ThermostatPropertyMode:                  ThermostatModeOff,
 		ThermostatPropertyTargetHumidity:        50,
 	})
+	s.handleWrites(s)
 	return s
 }
 
@@ -163,8 +168,9 @@ func (s *ThermostatControl) GetTargetHumidity() int {
 // Example:
 //
 //	thermostat.SetTargetTemperature(21.5)
-func (s *ThermostatControl) SetTargetTemperature(value float64) {
+func (s *ThermostatControl) SetTargetTemperature(value float64) error {
 	s.writeState(map[string]any{ThermostatPropertyTargetTemperature: value})
+	return nil
 }
 
 // SetTargetTemperatureLow sets the lower end of the target range in °C.
@@ -172,8 +178,9 @@ func (s *ThermostatControl) SetTargetTemperature(value float64) {
 // Example:
 //
 //	thermostat.SetTargetTemperatureLow(19)
-func (s *ThermostatControl) SetTargetTemperatureLow(value float64) {
+func (s *ThermostatControl) SetTargetTemperatureLow(value float64) error {
 	s.writeState(map[string]any{ThermostatPropertyTargetTemperatureLow: value})
+	return nil
 }
 
 // SetTargetTemperatureHigh sets the upper end of the target range in °C.
@@ -181,8 +188,9 @@ func (s *ThermostatControl) SetTargetTemperatureLow(value float64) {
 // Example:
 //
 //	thermostat.SetTargetTemperatureHigh(24)
-func (s *ThermostatControl) SetTargetTemperatureHigh(value float64) {
+func (s *ThermostatControl) SetTargetTemperatureHigh(value float64) error {
 	s.writeState(map[string]any{ThermostatPropertyTargetTemperatureHigh: value})
+	return nil
 }
 
 // SetMode sets the mode.
@@ -190,8 +198,9 @@ func (s *ThermostatControl) SetTargetTemperatureHigh(value float64) {
 // Example:
 //
 //	thermostat.SetMode(ThermostatModeHeat)
-func (s *ThermostatControl) SetMode(value ThermostatMode) {
+func (s *ThermostatControl) SetMode(value ThermostatMode) error {
 	s.writeState(map[string]any{ThermostatPropertyMode: value})
+	return nil
 }
 
 // SetPreset sets the preset, one of the preset choices.
@@ -199,8 +208,9 @@ func (s *ThermostatControl) SetMode(value ThermostatMode) {
 // Example:
 //
 //	thermostat.SetPreset("eco")
-func (s *ThermostatControl) SetPreset(value string) {
+func (s *ThermostatControl) SetPreset(value string) error {
 	s.writeState(map[string]any{ThermostatPropertyPreset: value})
+	return nil
 }
 
 // SetFanMode sets the fan mode, one of the fan mode choices.
@@ -208,8 +218,9 @@ func (s *ThermostatControl) SetPreset(value string) {
 // Example:
 //
 //	thermostat.SetFanMode("low")
-func (s *ThermostatControl) SetFanMode(value string) {
+func (s *ThermostatControl) SetFanMode(value string) error {
 	s.writeState(map[string]any{ThermostatPropertyFanMode: value})
+	return nil
 }
 
 // SetTargetHumidity sets the target humidity in percent.
@@ -217,8 +228,9 @@ func (s *ThermostatControl) SetFanMode(value string) {
 // Example:
 //
 //	thermostat.SetTargetHumidity(45)
-func (s *ThermostatControl) SetTargetHumidity(value int) {
+func (s *ThermostatControl) SetTargetHumidity(value int) error {
 	s.writeState(map[string]any{ThermostatPropertyTargetHumidity: max(0, min(100, value))})
+	return nil
 }
 
 // SetCurrentTemperature reports the current temperature in °C.
@@ -254,37 +266,50 @@ func (s *ThermostatControl) SetCurrentHumidity(value float64) {
 	s.writeState(map[string]any{ThermostatPropertyCurrentHumidity: max(0, min(100, value))})
 }
 
-// UpdateValue routes generic property writes to the semantic setters.
-func (s *ThermostatControl) UpdateValue(property string, value any) error {
+func (s *ThermostatControl) applyValue(property string, value any) error {
 	setters := outerOr[thermostatSetters](&s.BaseSensor, s)
 	switch property {
 	case ThermostatPropertyTargetTemperature:
 		if v, ok := toFloat64(value); ok {
-			setters.SetTargetTemperature(v)
+			if err := setters.SetTargetTemperature(v); err != nil {
+				return err
+			}
 		}
 	case ThermostatPropertyTargetTemperatureLow:
 		if v, ok := toFloat64(value); ok {
-			setters.SetTargetTemperatureLow(v)
+			if err := setters.SetTargetTemperatureLow(v); err != nil {
+				return err
+			}
 		}
 	case ThermostatPropertyTargetTemperatureHigh:
 		if v, ok := toFloat64(value); ok {
-			setters.SetTargetTemperatureHigh(v)
+			if err := setters.SetTargetTemperatureHigh(v); err != nil {
+				return err
+			}
 		}
 	case ThermostatPropertyMode:
 		if v, ok := value.(string); ok {
-			setters.SetMode(v)
+			if err := setters.SetMode(v); err != nil {
+				return err
+			}
 		}
 	case ThermostatPropertyPreset:
 		if v, ok := value.(string); ok {
-			setters.SetPreset(v)
+			if err := setters.SetPreset(v); err != nil {
+				return err
+			}
 		}
 	case ThermostatPropertyFanMode:
 		if v, ok := value.(string); ok {
-			setters.SetFanMode(v)
+			if err := setters.SetFanMode(v); err != nil {
+				return err
+			}
 		}
 	case ThermostatPropertyTargetHumidity:
 		if v, ok := toFloat64(value); ok {
-			setters.SetTargetHumidity(int(math.Round(v)))
+			if err := setters.SetTargetHumidity(int(math.Round(v))); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

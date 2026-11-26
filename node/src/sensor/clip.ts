@@ -49,9 +49,6 @@ export abstract class ClipDetectorSensor<TStorage extends object = Record<string
    * emitted embedding.
    */
   abstract detectEmbeddings(frames: VideoFrameData[]): Promise<ClipResult[]>;
-
-  /** @internal */
-  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Registry metadata for {@link ClipDetectorSensor}. */

@@ -43,6 +43,9 @@ export interface OutletControlLike extends SensorLike {
  *
  * An outlet that measures its load adds {@link OutletCapability.InUse} and
  * reports it with `setInUse()`.
+ *
+ * When the device refuses a command, throw from the override instead of calling
+ * `super`: the write fails for whoever sent it and the state stays as it was.
  */
 export class OutletControl<TStorage extends object = Record<string, any>> extends Sensor<OutletControlProperties, TStorage, OutletCapability> {
   readonly type = SensorType.Outlet;
@@ -105,7 +108,7 @@ export class OutletControl<TStorage extends object = Record<string, any>> extend
   }
 
   /** @internal */
-  async updateValue(property: string, value: unknown): Promise<void> {
+  protected override async _applyValue(property: string, value: unknown): Promise<void> {
     if ((property as OutletProperty) === OutletProperty.On) {
       if (value) await this.setOn();
       else await this.setOff();

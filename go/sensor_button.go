@@ -118,9 +118,6 @@ func (s *ButtonTrigger) Press(kind ButtonPress) error {
 	return nil
 }
 
-// UpdateValue ignores writes, presses come from the device.
-func (s *ButtonTrigger) UpdateValue(string, any) error { return nil }
-
 func (s *ButtonTrigger) cleanup() {
 	s.mu.Lock()
 	if s.pressResetTimer != nil {

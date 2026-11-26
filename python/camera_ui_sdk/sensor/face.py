@@ -189,9 +189,6 @@ class FaceSensor(Sensor[FaceSensorProperties, TStorage, str], Generic[TStorage])
         """Explicitly clear face detection state (detected = False, detections = [])."""
         self.reportDetections(False)
 
-    async def updateValue(self, property: str, value: Any) -> None:
-        """Read-only sensor: external writes are ignored."""
-
 
 class FaceResult(TypedDict):
     """Return type for FaceDetectorSensor.detectFaces()."""

@@ -114,6 +114,9 @@ export interface ThermostatControlLike extends SensorLike {
  * temperature range with `{ min, max, step }` on the target properties.
  * Presets and fan modes are the device's own, set them as `choices`.
  *
+ * When the device refuses a command, throw from the override instead of calling
+ * `super`: the write fails for whoever sent it and the state stays as it was.
+ *
  * @example
  * ```ts
  * class Radiator extends ThermostatControl {
@@ -347,7 +350,7 @@ export class ThermostatControl<TStorage extends object = Record<string, any>> ex
   }
 
   /** @internal */
-  async updateValue(property: string, value: unknown): Promise<void> {
+  protected override async _applyValue(property: string, value: unknown): Promise<void> {
     switch (property as ThermostatProperty) {
       case ThermostatProperty.TargetTemperature:
         await this.setTargetTemperature(Number(value));

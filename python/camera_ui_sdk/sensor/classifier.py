@@ -193,9 +193,6 @@ class ClassifierSensor(Sensor[ClassifierSensorProperties, TStorage, str], Generi
         """Explicitly clear classifier state (detected = False, detections = [], labels = [])."""
         self.reportDetections(False)
 
-    async def updateValue(self, property: str, value: Any) -> None:
-        """Read-only sensor: external writes are ignored."""
-
 
 class ClassifierResult(TypedDict):
     """Return type for ClassifierDetectorSensor.detectClassifications()."""

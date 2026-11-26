@@ -72,8 +72,8 @@ const (
 	SensorTypeBattery        SensorType = "battery"        // Battery level and charging state
 )
 
-// SensorSourceState is the plugin's view of the source behind an adopted
-// sensor. Unavailable means wait (source unreachable, entity temporarily
+// SensorSourceState is the plugin's view of the source behind a sensor.
+// Unavailable means wait (device or source unreachable, entity temporarily
 // unavailable), Removed means the source reported the entity gone while it
 // was reachable. Neither deletes the sensor: an adopted sensor is deleted by
 // the user only.
@@ -125,6 +125,10 @@ type Sensor interface {
 	GetAssignedCameraIDs() []string
 	// Connected reports whether the sensor is registered and its plugin is connected.
 	Connected() bool
+	// GetSourceState returns the state of the source behind the sensor. Seen from another plugin it is
+	// also unavailable while the camera the sensor belongs to is offline. A sensor that is unavailable
+	// or removed takes no writes.
+	GetSourceState() SensorSourceState
 	// GetCapabilities returns the capabilities the sensor advertises.
 	GetCapabilities() []string
 	// AssignmentLocked reports whether the sensor is bound to the camera it was added to, so the user cannot assign it elsewhere.
@@ -135,10 +139,12 @@ type Sensor interface {
 	GetValue(property string) any
 	// GetValues returns a snapshot copy of all property values.
 	GetValues() map[string]any
-	// UpdateValue is the generic property write coming from a consumer. Concrete
-	// sensor types dispatch known properties to semantic methods (SetOn,
-	// SetTargetState) so plugin-side hardware overrides run. Read-only sensors
-	// implement it as a no-op. Plugin authors call the semantic methods instead.
+	// UpdateValue is the generic property write coming from a consumer. Control
+	// types dispatch it to their semantic methods (SetOn, SetTargetState), so
+	// plugin-side hardware overrides run, and return the setter's error. Writes
+	// run one at a time per sensor in arrival order, a newer value of a property
+	// replaces one still waiting, a command always runs. Read-only sensors ignore
+	// writes. Plugin authors call the semantic methods instead.
 	UpdateValue(property string, value any) error
 	// OnPropertyChanged fires on every property change.
 	OnPropertyChanged(callback func(SensorPropertyChange)) *Disposable
@@ -149,6 +155,8 @@ type Sensor interface {
 	OnAssignmentChanged(callback func([]string)) *Disposable
 	// OnConnectedChanged fires when the owning plugin's connectivity changes.
 	OnConnectedChanged(callback func(bool)) *Disposable
+	// OnSourceStateChanged fires when the source state changes.
+	OnSourceStateChanged(callback func(SensorSourceState)) *Disposable
 	// OnDeviceInfoChanged fires with the device whenever the sensor joins or leaves
 	// one, or its device, names or main-sensor role change.
 	OnDeviceInfoChanged(callback func(*SensorDevice)) *Disposable
@@ -234,6 +242,8 @@ type BaseSensor struct {
 	properties           map[string]any
 	storage              *DeviceStorage
 	outer                Sensor
+	writer               valueWriter
+	writes               *writeLane
 	updateFn             propertyUpdateFn
 	capabilitiesUpdateFn func([]string)
 	sourceUpdateFn       sourceUpdateFn
@@ -241,6 +251,7 @@ type BaseSensor struct {
 	capabilitiesChanged  *Subject[[]string]
 	assignmentChanged    *Subject[[]string]
 	connectedChanged     *Subject[bool]
+	sourceStateChanged   *Subject[SensorSourceState]
 	deviceInfoChanged    *Subject[*SensorDevice]
 	propertySpecsChanged *Subject[map[string]SensorPropertySpec]
 	registered           bool
@@ -271,6 +282,7 @@ func NewBaseSensor(name string, opts ...SensorOption) BaseSensor {
 	return BaseSensor{
 		// provisional id, replaced by the host's persistent id at registration
 		id:                   generateSensorID(),
+		writes:               &writeLane{},
 		name:                 name,
 		displayName:          name,
 		nativeID:             cfg.nativeID,
@@ -284,6 +296,7 @@ func NewBaseSensor(name string, opts ...SensorOption) BaseSensor {
 		capabilitiesChanged:  NewSubject[[]string](),
 		assignmentChanged:    NewSubject[[]string](),
 		connectedChanged:     NewSubject[bool](),
+		sourceStateChanged:   NewSubject[SensorSourceState](),
 		deviceInfoChanged:    NewSubject[*SensorDevice](),
 		propertySpecsChanged: NewSubject[map[string]SensorPropertySpec](),
 	}
@@ -438,7 +451,7 @@ func (s *BaseSensor) GetPluginID() string {
 	return s.pluginID
 }
 
-// GetSourceState returns the state of the source behind an adopted sensor, as reported with SetSourceState.
+// GetSourceState returns the state of the source behind the sensor, as reported with SetSourceState.
 func (s *BaseSensor) GetSourceState() SensorSourceState {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -446,8 +459,9 @@ func (s *BaseSensor) GetSourceState() SensorSourceState {
 }
 
 // SetSourceState reports what the source behind this sensor looks like right
-// now. The host shows the state with its reason on the sensors page and never
-// deletes on it. Only meaningful for adopted sensors.
+// now, for example unavailable while the device can't be reached. The host
+// shows the state with its reason on the sensors page and never deletes on it.
+// While it is unavailable or removed the sensor takes no writes.
 //
 // Example:
 //
@@ -465,6 +479,12 @@ func (s *BaseSensor) SetSourceState(state SensorSourceState) {
 	if updateFn != nil {
 		updateFn(sensorSourcePatch{SourceState: state})
 	}
+	s.sourceStateChanged.Next(state)
+}
+
+// OnSourceStateChanged fires when the source state changes.
+func (s *BaseSensor) OnSourceStateChanged(callback func(SensorSourceState)) *Disposable {
+	return s.sourceStateChanged.Subscribe(callback)
 }
 
 // GetAddress returns the current address at the source, e.g. a Home Assistant entity id. Display only.
@@ -574,6 +594,24 @@ func (s *BaseSensor) HasCapability(cap string) bool {
 	return slices.Contains(s.capabilities, cap)
 }
 
+// UpdateValue writes a property the way a consumer does: through the semantic
+// setter, after the writes queued before it. It returns the setter's error, or
+// an error when the device gave no answer within 10 seconds.
+//
+// Example:
+//
+//	err := light.UpdateValue(sdk.LightPropertyBrightness, 80)
+func (s *BaseSensor) UpdateValue(property string, value any) error {
+	writer := outerOr(s, s.writer)
+	if writer == nil {
+		return nil
+	}
+	if !sourceReachable(s.GetSourceState()) {
+		return fmt.Errorf("%s is not reachable", s.GetDisplayName())
+	}
+	return s.writes.write(property, func() error { return writer.applyValue(property, value) }, !writer.isCommand(property))
+}
+
 // GetValue returns the current value of a sensor property.
 func (s *BaseSensor) GetValue(property string) any {
 	s.mu.RLock()
@@ -621,10 +659,14 @@ func (s *BaseSensor) setID(id string) {
 	s.id = id
 }
 
-func (s *BaseSensor) setOuter(outer Sensor) {
+func (s *BaseSensor) setOuter(outer Sensor) error {
+	if err := checkShadowedSetters(outer, s.writer); err != nil {
+		return err
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.outer = outer
+	return nil
 }
 
 func (s *BaseSensor) setAssignmentLocked() {
@@ -818,6 +860,7 @@ func (s *BaseSensor) cleanup() {
 	s.capabilitiesChanged.Complete()
 	s.assignmentChanged.Complete()
 	s.connectedChanged.Complete()
+	s.sourceStateChanged.Complete()
 	s.deviceInfoChanged.Complete()
 	s.propertySpecsChanged.Complete()
 	s.storage = nil
@@ -985,6 +1028,14 @@ func fireSensorLifecycle(outer any, active bool) {
 			}
 		}
 	}()
+}
+
+func (s *BaseSensor) handleWrites(own valueWriter) {
+	s.writer = own
+}
+
+func (s *BaseSensor) isCommand(string) bool {
+	return false
 }
 
 func outerOr[T any](s *BaseSensor, own T) T {

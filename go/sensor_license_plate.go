@@ -119,11 +119,6 @@ func (s *LicensePlateSensor) ClearDetections() {
 	s.ReportDetections(false, nil)
 }
 
-// UpdateValue on a read-only sensor: external writes are ignored.
-func (s *LicensePlateSensor) UpdateValue(property string, value any) error {
-	return nil
-}
-
 // LicensePlateDetectorSensor is a license plate sensor that consumes video
 // frames from the backend pipeline. Pair with a LicensePlateDetector
 // implementation.

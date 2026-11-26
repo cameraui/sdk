@@ -143,6 +143,9 @@ class CoverControl(Sensor[CoverControlProperties, TStorage, CoverCapability], Ge
     slats ``CoverCapability.Tilt``, one that stops on command
     ``CoverCapability.Stop`` and overrides ``stop()``. ``setKind()`` says what
     the cover is.
+
+    When the device refuses a command, raise from the override instead of calling
+    ``super()``: the write fails for whoever sent it and the state stays as it was.
     """
 
     _requires_frames = False
@@ -352,7 +355,10 @@ class CoverControl(Sensor[CoverControlProperties, TStorage, CoverCapability], Ge
         self._write_state({CoverProperty.Kind.value: kind.value})
         self.setPropertySpec(CoverProperty.Kind.value, {"values": [kind.value]})
 
-    async def updateValue(self, property: str, value: Any) -> None:
+    def _is_command(self, property: str) -> bool:
+        return property == CoverProperty.Stop.value
+
+    async def _apply_value(self, property: str, value: Any) -> None:
         """Routes generic property writes to the semantic setters."""
         if property == CoverProperty.TargetState.value:
             await self.setTargetState(CoverState(value))

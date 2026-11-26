@@ -53,6 +53,8 @@ type SensorPropertySpec struct {
 	MaxLength *int `msgpack:"maxLength,omitempty" json:"maxLength,omitempty"`
 	// Writable reports whether the property accepts external writes (commands, target states, virtual sensor state).
 	Writable bool `msgpack:"writable,omitempty" json:"writable,omitempty"`
+	// Command reports that each write is an action of its own: writes run in order and none replaces another.
+	Command bool `msgpack:"command,omitempty" json:"command,omitempty"`
 	// Internal reports that the property is no observable state, hidden from trigger and condition pickers.
 	Internal bool `msgpack:"internal,omitempty" json:"internal,omitempty"`
 }

@@ -44,9 +44,6 @@ export abstract class PersonEmbedderSensor<TStorage extends object = Record<stri
    * empty `embedding` for a crop the model could not use.
    */
   abstract embedPersons(frames: VideoFrameData[]): Promise<PersonEmbeddingResult[]>;
-
-  /** @internal */
-  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Registry metadata for {@link PersonEmbedderSensor}. */

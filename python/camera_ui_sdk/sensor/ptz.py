@@ -157,6 +157,9 @@ class PTZControl(Sensor[PTZControlProperties, TStorage, PTZCapability], Generic[
     Set `capabilities` to advertise supported axes and features. Use
     `setPresets()` to publish the discovered preset list and `setMoving()` to
     publish movement state.
+
+    When the device refuses a command, raise from the override instead of calling
+    ``super()``: the write fails for whoever sent it and the state stays as it was.
     """
 
     _requires_frames = False
@@ -321,7 +324,10 @@ class PTZControl(Sensor[PTZControlProperties, TStorage, PTZCapability], Generic[
         """
         await self.setPosition({"pan": 0, "tilt": 0, "zoom": 0})
 
-    async def updateValue(self, property: str, value: Any) -> None:
+    def _is_command(self, property: str) -> bool:
+        return property == PTZProperty.RelativeMove.value
+
+    async def _apply_value(self, property: str, value: Any) -> None:
         """Routes generic property writes to the semantic setters."""
         if property == PTZProperty.Position.value:
             await self.setPosition(value)

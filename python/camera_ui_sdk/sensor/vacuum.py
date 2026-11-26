@@ -107,6 +107,9 @@ class VacuumControl(RobotControl[VacuumControlProperties, TStorage, VacuumCapabi
     ``setPropertySpec(VacuumProperty.Command, {"values": [...]})``. The suction
     levels come as choices with the ``fanSpeed`` capability:
     ``setPropertySpec(VacuumProperty.FanSpeed, {"choices": [...]})``.
+
+    When the device refuses a command, raise from the override instead of calling
+    ``super()``: the write fails for whoever sent it and the state stays as it was.
     """
 
     def __init__(
@@ -219,7 +222,10 @@ class VacuumControl(RobotControl[VacuumControlProperties, TStorage, VacuumCapabi
         """
         self._write_state({VacuumProperty.FanSpeed.value: value})
 
-    async def updateValue(self, property: str, value: Any) -> None:
+    def _is_command(self, property: str) -> bool:
+        return property == VacuumProperty.Command.value
+
+    async def _apply_value(self, property: str, value: Any) -> None:
         """Routes generic property writes to the semantic setters."""
         if property == VacuumProperty.FanSpeed.value:
             await self.setFanSpeed(str(value))

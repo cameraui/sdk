@@ -189,6 +189,3 @@ class BatteryInfo(Sensor[BatteryInfoProperties, TStorage, BatteryCapability], Ge
             ```
         """
         self._write_state({BatteryProperty.Low.value: value})
-
-    async def updateValue(self, property: str, value: Any) -> None:
-        """Read-only sensor: external writes are ignored."""

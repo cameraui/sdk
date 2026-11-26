@@ -101,8 +101,3 @@ func (s *BatteryInfo) SetCharging(value ChargingState) {
 func (s *BatteryInfo) SetLow(value bool) {
 	s.writeState(map[string]any{BatteryPropertyLow: value})
 }
-
-// UpdateValue on a read-only sensor: external writes are ignored.
-func (s *BatteryInfo) UpdateValue(property string, value any) error {
-	return nil
-}

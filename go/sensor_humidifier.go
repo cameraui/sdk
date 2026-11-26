@@ -43,10 +43,10 @@ const (
 )
 
 type humidifierSetters interface {
-	SetOn()
-	SetOff()
-	SetTargetHumidity(value int)
-	SetMode(value string)
+	SetOn() error
+	SetOff() error
+	SetTargetHumidity(value int) error
+	SetMode(value string) error
 }
 
 // HumidifierControl is a humidifier or dehumidifier that works toward a target
@@ -58,6 +58,10 @@ type humidifierSetters interface {
 //
 // SetKind says whether it humidifies or dehumidifies. The modes it offers come
 // as choices: SetPropertySpec(HumidifierPropertyMode, &PropertySpecOverride{Choices: ...}).
+//
+// When the device refuses a command, return an error from the override instead of
+// calling the embedded method: the write fails for whoever sent it and the state
+// stays as it was.
 type HumidifierControl struct{ BaseSensor }
 
 // NewHumidifierControl creates a humidifier with the given name and options.
@@ -67,6 +71,7 @@ func NewHumidifierControl(name string, opts ...SensorOption) *HumidifierControl 
 		HumidifierPropertyOn:             false,
 		HumidifierPropertyTargetHumidity: 50,
 	})
+	s.handleWrites(s)
 	return s
 }
 
@@ -115,8 +120,9 @@ func (s *HumidifierControl) GetKind() HumidifierKind {
 // Example:
 //
 //	humidifier.SetOn()
-func (s *HumidifierControl) SetOn() {
+func (s *HumidifierControl) SetOn() error {
 	s.writeState(map[string]any{HumidifierPropertyOn: true})
+	return nil
 }
 
 // SetOff turns the humidifier off.
@@ -124,8 +130,9 @@ func (s *HumidifierControl) SetOn() {
 // Example:
 //
 //	humidifier.SetOff()
-func (s *HumidifierControl) SetOff() {
+func (s *HumidifierControl) SetOff() error {
 	s.writeState(map[string]any{HumidifierPropertyOn: false})
+	return nil
 }
 
 // SetTargetHumidity sets the target humidity, 0 to 100 percent.
@@ -133,8 +140,9 @@ func (s *HumidifierControl) SetOff() {
 // Example:
 //
 //	humidifier.SetTargetHumidity(45)
-func (s *HumidifierControl) SetTargetHumidity(value int) {
+func (s *HumidifierControl) SetTargetHumidity(value int) error {
 	s.writeState(map[string]any{HumidifierPropertyTargetHumidity: max(0, min(100, value))})
+	return nil
 }
 
 // SetMode sets the mode, one of the mode choices.
@@ -142,8 +150,9 @@ func (s *HumidifierControl) SetTargetHumidity(value int) {
 // Example:
 //
 //	humidifier.SetMode("sleep")
-func (s *HumidifierControl) SetMode(value string) {
+func (s *HumidifierControl) SetMode(value string) error {
 	s.writeState(map[string]any{HumidifierPropertyMode: value})
+	return nil
 }
 
 // SetCurrentHumidity reports the humidity the device measures, 0 to 100 percent.
@@ -178,23 +187,30 @@ func (s *HumidifierControl) SetKind(kind HumidifierKind) {
 	s.SetPropertySpec(HumidifierPropertyKind, &PropertySpecOverride{Values: []any{kind}})
 }
 
-// UpdateValue routes generic property writes to the semantic setters.
-func (s *HumidifierControl) UpdateValue(property string, value any) error {
+func (s *HumidifierControl) applyValue(property string, value any) error {
 	setters := outerOr[humidifierSetters](&s.BaseSensor, s)
 	switch property {
 	case HumidifierPropertyOn:
 		if isTruthy(value) {
-			setters.SetOn()
+			if err := setters.SetOn(); err != nil {
+				return err
+			}
 		} else {
-			setters.SetOff()
+			if err := setters.SetOff(); err != nil {
+				return err
+			}
 		}
 	case HumidifierPropertyTargetHumidity:
 		if v, ok := toFloat64(value); ok {
-			setters.SetTargetHumidity(int(math.Round(v)))
+			if err := setters.SetTargetHumidity(int(math.Round(v))); err != nil {
+				return err
+			}
 		}
 	case HumidifierPropertyMode:
 		if v, ok := value.(string); ok {
-			setters.SetMode(v)
+			if err := setters.SetMode(v); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

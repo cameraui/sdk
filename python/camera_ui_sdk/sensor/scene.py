@@ -64,6 +64,9 @@ class SceneControl(Sensor[SceneControlProperties, TStorage, str], Generic[TStora
     Override ``activate()`` to run it on the device and call
     ``await super().activate()`` after success, which sets ``active`` for a
     moment (``SCENE_AUTO_RESET_MS``).
+
+    When the device refuses a command, raise from the override instead of calling
+    ``super()``: the write fails for whoever sent it and the state stays as it was.
     """
 
     _requires_frames = False
@@ -126,7 +129,7 @@ class SceneControl(Sensor[SceneControlProperties, TStorage, str], Generic[TStora
         self._active_reset_timer.daemon = True
         self._active_reset_timer.start()
 
-    async def updateValue(self, property: str, value: Any) -> None:
+    async def _apply_value(self, property: str, value: Any) -> None:
         """Routes generic property writes to the semantic setters.
 
         Writing active=false is ignored, the reset timer owns the off transition.

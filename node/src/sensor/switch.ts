@@ -29,6 +29,9 @@ export interface SwitchControlLike extends SensorLike {
  * hardware and call `await super.setOn()` / `await super.setOff()` after
  * success to sync the SDK state. For hardware-pushed updates, call the `super`
  * methods from your event handler.
+ *
+ * When the device refuses a command, throw from the override instead of calling
+ * `super`: the write fails for whoever sent it and the state stays as it was.
  */
 export class SwitchControl<TStorage extends object = Record<string, any>> extends Sensor<SwitchControlProperties, TStorage> {
   readonly type = SensorType.Switch;
@@ -72,7 +75,7 @@ export class SwitchControl<TStorage extends object = Record<string, any>> extend
   }
 
   /** @internal */
-  async updateValue(property: string, value: unknown): Promise<void> {
+  protected override async _applyValue(property: string, value: unknown): Promise<void> {
     if ((property as SwitchProperty) === SwitchProperty.On) {
       if (value) await this.setOn();
       else await this.setOff();

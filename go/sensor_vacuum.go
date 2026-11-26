@@ -42,13 +42,13 @@ const (
 )
 
 type vacuumSetters interface {
-	Start()
-	Pause()
-	Stop()
-	Dock()
-	Locate()
-	Spot()
-	SetFanSpeed(value string)
+	Start() error
+	Pause() error
+	Stop() error
+	Dock() error
+	Locate() error
+	Spot() error
+	SetFanSpeed(value string) error
 }
 
 // VacuumControl is a robot vacuum. Override Start, Pause, Stop, Dock, Locate,
@@ -61,12 +61,17 @@ type vacuumSetters interface {
 // SetPropertySpec(VacuumPropertyCommand, &PropertySpecOverride{Values: ...}).
 // The suction levels come as choices with the fanSpeed capability:
 // SetPropertySpec(VacuumPropertyFanSpeed, &PropertySpecOverride{Choices: ...}).
+//
+// When the device refuses a command, return an error from the override instead of
+// calling the embedded method: the write fails for whoever sent it and the state
+// stays as it was.
 type VacuumControl struct{ RobotControl }
 
 // NewVacuumControl creates a vacuum with the given name and options.
 func NewVacuumControl(name string, opts ...SensorOption) *VacuumControl {
 	s := &VacuumControl{}
 	s.initCommand(SensorTypeVacuum, name, opts)
+	s.handleWrites(s)
 	return s
 }
 
@@ -81,8 +86,9 @@ func (s *VacuumControl) GetFanSpeed() string {
 // Example:
 //
 //	vacuum.Start()
-func (s *VacuumControl) Start() {
+func (s *VacuumControl) Start() error {
 	s.sent(VacuumCommandStart)
+	return nil
 }
 
 // Pause pauses cleaning where the vacuum is.
@@ -90,8 +96,9 @@ func (s *VacuumControl) Start() {
 // Example:
 //
 //	vacuum.Pause()
-func (s *VacuumControl) Pause() {
+func (s *VacuumControl) Pause() error {
 	s.sent(VacuumCommandPause)
+	return nil
 }
 
 // Stop stops cleaning.
@@ -99,8 +106,9 @@ func (s *VacuumControl) Pause() {
 // Example:
 //
 //	vacuum.Stop()
-func (s *VacuumControl) Stop() {
+func (s *VacuumControl) Stop() error {
 	s.sent(VacuumCommandStop)
+	return nil
 }
 
 // Dock sends the vacuum back to its dock.
@@ -108,8 +116,9 @@ func (s *VacuumControl) Stop() {
 // Example:
 //
 //	vacuum.Dock()
-func (s *VacuumControl) Dock() {
+func (s *VacuumControl) Dock() error {
 	s.sent(VacuumCommandDock)
+	return nil
 }
 
 // Locate makes the vacuum beep so it can be found.
@@ -117,8 +126,9 @@ func (s *VacuumControl) Dock() {
 // Example:
 //
 //	vacuum.Locate()
-func (s *VacuumControl) Locate() {
+func (s *VacuumControl) Locate() error {
 	s.sent(VacuumCommandLocate)
+	return nil
 }
 
 // Spot cleans the spot around the vacuum.
@@ -126,8 +136,9 @@ func (s *VacuumControl) Locate() {
 // Example:
 //
 //	vacuum.Spot()
-func (s *VacuumControl) Spot() {
+func (s *VacuumControl) Spot() error {
 	s.sent(VacuumCommandSpot)
+	return nil
 }
 
 // SetFanSpeed sets the suction level, one of the suction level choices.
@@ -135,32 +146,50 @@ func (s *VacuumControl) Spot() {
 // Example:
 //
 //	vacuum.SetFanSpeed("turbo")
-func (s *VacuumControl) SetFanSpeed(value string) {
+func (s *VacuumControl) SetFanSpeed(value string) error {
 	s.writeState(map[string]any{VacuumPropertyFanSpeed: value})
+	return nil
 }
 
-// UpdateValue routes generic property writes to the semantic setters.
-func (s *VacuumControl) UpdateValue(property string, value any) error {
+func (s *VacuumControl) isCommand(property string) bool {
+	return property == VacuumPropertyCommand
+}
+
+func (s *VacuumControl) applyValue(property string, value any) error {
 	setters := outerOr[vacuumSetters](&s.BaseSensor, s)
 	switch property {
 	case VacuumPropertyFanSpeed:
 		if v, ok := value.(string); ok {
-			setters.SetFanSpeed(v)
+			if err := setters.SetFanSpeed(v); err != nil {
+				return err
+			}
 		}
 	case VacuumPropertyCommand:
 		switch value {
 		case VacuumCommandStart:
-			setters.Start()
+			if err := setters.Start(); err != nil {
+				return err
+			}
 		case VacuumCommandPause:
-			setters.Pause()
+			if err := setters.Pause(); err != nil {
+				return err
+			}
 		case VacuumCommandStop:
-			setters.Stop()
+			if err := setters.Stop(); err != nil {
+				return err
+			}
 		case VacuumCommandDock:
-			setters.Dock()
+			if err := setters.Dock(); err != nil {
+				return err
+			}
 		case VacuumCommandLocate:
-			setters.Locate()
+			if err := setters.Locate(); err != nil {
+				return err
+			}
 		case VacuumCommandSpot:
-			setters.Spot()
+			if err := setters.Spot(); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

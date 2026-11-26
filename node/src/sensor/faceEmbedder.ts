@@ -48,9 +48,6 @@ export abstract class FaceEmbedderSensor<TStorage extends object = Record<string
    * `embedding` for a crop the model could not use.
    */
   abstract embedFaces(frames: VideoFrameData[]): Promise<FaceEmbeddingResult[]>;
-
-  /** @internal */
-  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Registry metadata for {@link FaceEmbedderSensor}. */

@@ -117,11 +117,6 @@ func (s *FaceSensor) ClearDetections() {
 	s.ReportDetections(false, nil)
 }
 
-// UpdateValue on a read-only sensor: external writes are ignored.
-func (s *FaceSensor) UpdateValue(property string, value any) error {
-	return nil
-}
-
 // FaceDetectorSensor is a face sensor that consumes video frames from the
 // backend pipeline. Pair with a FaceDetector implementation.
 type FaceDetectorSensor struct {

@@ -70,6 +70,9 @@ export interface WaterHeaterControlLike extends SensorLike {
  * temperature range with `{ min, max, step }` on the target temperature.
  * Temperatures are always in °C.
  *
+ * When the device refuses a command, throw from the override instead of calling
+ * `super`: the write fails for whoever sent it and the state stays as it was.
+ *
  * @example
  * ```ts
  * class Boiler extends WaterHeaterControl {
@@ -181,7 +184,7 @@ export class WaterHeaterControl<TStorage extends object = Record<string, any>> e
   }
 
   /** @internal */
-  async updateValue(property: string, value: unknown): Promise<void> {
+  protected override async _applyValue(property: string, value: unknown): Promise<void> {
     switch (property as WaterHeaterProperty) {
       case WaterHeaterProperty.Mode:
         await this.setMode(value as WaterHeaterMode);

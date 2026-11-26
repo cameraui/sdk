@@ -30,6 +30,11 @@ type sensorConnectedChangedData struct {
 	Connected  bool       `msgpack:"connected"`
 }
 
+type sensorSourceChangedData struct {
+	SensorID    string            `msgpack:"sensorId"`
+	SourceState SensorSourceState `msgpack:"sourceState"`
+}
+
 type sensorExposedChangedData struct {
 	SensorID   string     `msgpack:"sensorId"`
 	SensorType SensorType `msgpack:"sensorType"`

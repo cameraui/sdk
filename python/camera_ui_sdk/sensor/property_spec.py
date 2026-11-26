@@ -40,6 +40,8 @@ class SensorPropertySpec(TypedDict):
     """String properties: longest accepted text."""
     writable: NotRequired[bool]
     """Accepts external writes (commands, target states, virtual sensor state)."""
+    command: NotRequired[bool]
+    """Each write is an action of its own: writes run in order and none replaces another."""
     internal: NotRequired[bool]
     """Not an observable state: hidden from trigger/condition pickers."""
 

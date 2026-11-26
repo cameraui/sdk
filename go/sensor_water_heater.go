@@ -36,9 +36,9 @@ const (
 )
 
 type waterHeaterSetters interface {
-	SetMode(value WaterHeaterMode)
-	SetTargetTemperature(value float64)
-	SetAway(away bool)
+	SetMode(value WaterHeaterMode) error
+	SetTargetTemperature(value float64) error
+	SetAway(away bool) error
 }
 
 // WaterHeaterControl is a water heater or boiler that keeps its water at a
@@ -51,6 +51,10 @@ type waterHeaterSetters interface {
 // SetPropertySpec(WaterHeaterPropertyMode, &PropertySpecOverride{Values: ...}),
 // and its temperature range with Min, Max and Step on the target temperature.
 // Temperatures are always in °C.
+//
+// When the device refuses a command, return an error from the override instead of
+// calling the embedded method: the write fails for whoever sent it and the state
+// stays as it was.
 type WaterHeaterControl struct{ BaseSensor }
 
 // NewWaterHeaterControl creates a water heater with the given name and options.
@@ -61,6 +65,7 @@ func NewWaterHeaterControl(name string, opts ...SensorOption) *WaterHeaterContro
 		WaterHeaterPropertyMode:              WaterHeaterModeOff,
 		WaterHeaterPropertyAway:              false,
 	})
+	s.handleWrites(s)
 	return s
 }
 
@@ -97,8 +102,9 @@ func (s *WaterHeaterControl) IsAway() bool {
 // Example:
 //
 //	boiler.SetMode(WaterHeaterModeEco)
-func (s *WaterHeaterControl) SetMode(value WaterHeaterMode) {
+func (s *WaterHeaterControl) SetMode(value WaterHeaterMode) error {
 	s.writeState(map[string]any{WaterHeaterPropertyMode: value})
+	return nil
 }
 
 // SetTargetTemperature sets the target temperature in °C.
@@ -106,8 +112,9 @@ func (s *WaterHeaterControl) SetMode(value WaterHeaterMode) {
 // Example:
 //
 //	boiler.SetTargetTemperature(55)
-func (s *WaterHeaterControl) SetTargetTemperature(value float64) {
+func (s *WaterHeaterControl) SetTargetTemperature(value float64) error {
 	s.writeState(map[string]any{WaterHeaterPropertyTargetTemperature: value})
+	return nil
 }
 
 // SetAway switches the away mode on, or off with false.
@@ -115,8 +122,9 @@ func (s *WaterHeaterControl) SetTargetTemperature(value float64) {
 // Example:
 //
 //	boiler.SetAway(true)
-func (s *WaterHeaterControl) SetAway(away bool) {
+func (s *WaterHeaterControl) SetAway(away bool) error {
 	s.writeState(map[string]any{WaterHeaterPropertyAway: away})
+	return nil
 }
 
 // SetCurrentTemperature reports the current water temperature in °C.
@@ -131,20 +139,25 @@ func (s *WaterHeaterControl) SetCurrentTemperature(value float64) {
 	s.writeState(map[string]any{WaterHeaterPropertyCurrentTemperature: value})
 }
 
-// UpdateValue routes generic property writes to the semantic setters.
-func (s *WaterHeaterControl) UpdateValue(property string, value any) error {
+func (s *WaterHeaterControl) applyValue(property string, value any) error {
 	setters := outerOr[waterHeaterSetters](&s.BaseSensor, s)
 	switch property {
 	case WaterHeaterPropertyMode:
 		if v, ok := value.(string); ok {
-			setters.SetMode(v)
+			if err := setters.SetMode(v); err != nil {
+				return err
+			}
 		}
 	case WaterHeaterPropertyTargetTemperature:
 		if v, ok := toFloat64(value); ok {
-			setters.SetTargetTemperature(v)
+			if err := setters.SetTargetTemperature(v); err != nil {
+				return err
+			}
 		}
 	case WaterHeaterPropertyAway:
-		setters.SetAway(isTruthy(value))
+		if err := setters.SetAway(isTruthy(value)); err != nil {
+			return err
+		}
 	}
 	return nil
 }

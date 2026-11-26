@@ -121,9 +121,6 @@ export class AccessTrigger<TStorage extends object = Record<string, any>> extend
     }, ACCESS_AUTO_RESET_MS);
   }
 
-  /** @internal */
-  updateValue(_property: string, _value: unknown): void {}
-
   override _cleanup(): void {
     if (this._resultResetTimer) {
       clearTimeout(this._resultResetTimer);

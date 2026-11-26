@@ -81,6 +81,9 @@ class LockControl(Sensor[LockControlProperties, TStorage, str], Generic[TStorage
 
     For asymmetric flows (long-running unlock with intermediate state) override
     `setTargetState` and write `currentState` separately when transitions complete.
+
+    When the device refuses a command, raise from the override instead of calling
+    ``super()``: the write fails for whoever sent it and the state stays as it was.
     """
 
     _requires_frames = False
@@ -173,7 +176,7 @@ class LockControl(Sensor[LockControlProperties, TStorage, str], Generic[TStorage
         """
         self._write_state({LockProperty.CurrentState.value: int(value)})
 
-    async def updateValue(self, property: str, value: Any) -> None:
+    async def _apply_value(self, property: str, value: Any) -> None:
         """Routes generic property writes to the semantic setters.
 
         Only targetState is externally writable, currentState is observed-only.

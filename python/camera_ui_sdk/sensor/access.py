@@ -191,9 +191,6 @@ class AccessTrigger(Sensor[AccessTriggerProperties, TStorage, str], Generic[TSto
         self._result_reset_timer.daemon = True
         self._result_reset_timer.start()
 
-    async def updateValue(self, property: str, value: Any) -> None:
-        """An access reader takes no writes, attempts come from the device."""
-
     def _cleanup(self) -> None:
         if self._result_reset_timer is not None:
             self._result_reset_timer.cancel()

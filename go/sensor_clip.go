@@ -40,8 +40,3 @@ func NewClipDetectorSensor(name string, opts ...SensorOption) *ClipDetectorSenso
 func (s *ClipDetectorSensor) GetType() SensorType         { return SensorTypeClip }
 func (s *ClipDetectorSensor) GetCategory() SensorCategory { return SensorCategorySensor }
 func (s *ClipDetectorSensor) ToJSON() sensorJSON          { return s.toBaseJSON(s.GetType(), s.GetCategory()) }
-
-// UpdateValue on a read-only sensor: external writes are ignored.
-func (s *ClipDetectorSensor) UpdateValue(property string, value any) error {
-	return nil
-}

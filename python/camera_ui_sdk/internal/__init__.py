@@ -18,9 +18,11 @@ if TYPE_CHECKING:
         SensorMembership,
         SensorSourcePatch,
         SourceUpdateFn,
+        is_source_reachable,
     )
     from .shared_utils import is_equal
     from .streaming_internal import IceServer
+    from .write_lane import WRITE_CALL_TIMEOUT_MS, WRITE_CONCURRENCY
 
 __all__ = [
     "AsyncEventEmitter",
@@ -42,6 +44,9 @@ __all__ = [
     "CameraConfigPartial",
     "is_equal",
     "check_property_write",
+    "is_source_reachable",
+    "WRITE_CONCURRENCY",
+    "WRITE_CALL_TIMEOUT_MS",
 ]
 
 # resolved lazily to avoid circular imports during SDK bootstrap
@@ -57,6 +62,7 @@ _LAZY: dict[str, tuple[str, str]] = {
     "SensorMembership": (".sensor_rpc", "SensorMembership"),
     "SensorSourcePatch": (".sensor_rpc", "SensorSourcePatch"),
     "SourceUpdateFn": (".sensor_rpc", "SourceUpdateFn"),
+    "is_source_reachable": (".sensor_rpc", "is_source_reachable"),
     "DetectionEventMessage": (".camera_wire", "DetectionEventMessage"),
     "IceServer": (".streaming_internal", "IceServer"),
     "FrameType": (".camera_enums", "FrameType"),
@@ -65,6 +71,8 @@ _LAZY: dict[str, tuple[str, str]] = {
     "CameraConfigPartial": (".camera_config_internal", "CameraConfigPartial"),
     "is_equal": (".shared_utils", "is_equal"),
     "check_property_write": (".property_check", "check_property_write"),
+    "WRITE_CONCURRENCY": (".write_lane", "WRITE_CONCURRENCY"),
+    "WRITE_CALL_TIMEOUT_MS": (".write_lane", "WRITE_CALL_TIMEOUT_MS"),
 }
 
 

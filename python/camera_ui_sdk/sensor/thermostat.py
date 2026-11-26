@@ -162,6 +162,9 @@ class ThermostatControl(
     temperature range with ``{"min": ..., "max": ..., "step": ...}`` on the
     target properties. Presets and fan modes are the device's own, set them as
     ``choices``.
+
+    When the device refuses a command, raise from the override instead of calling
+    ``super()``: the write fails for whoever sent it and the state stays as it was.
     """
 
     _requires_frames = False
@@ -393,7 +396,7 @@ class ThermostatControl(
             return
         self._write_state({ThermostatProperty.CurrentHumidity.value: max(0.0, min(100.0, value))})
 
-    async def updateValue(self, property: str, value: Any) -> None:
+    async def _apply_value(self, property: str, value: Any) -> None:
         """Routes generic property writes to the semantic setters."""
         if property == ThermostatProperty.TargetTemperature.value:
             await self.setTargetTemperature(float(value))

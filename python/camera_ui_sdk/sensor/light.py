@@ -123,6 +123,9 @@ class LightControl(Sensor[LightControlProperties, TStorage, LightCapability], Ge
     command switches the color mode to the setting it changed. When the device
     reports its state, sync both settings and call ``setColorMode()`` with the
     one it shows.
+
+    When the device refuses a command, raise from the override instead of calling
+    ``super()``: the write fails for whoever sent it and the state stays as it was.
     """
 
     _requires_frames = False
@@ -283,7 +286,7 @@ class LightControl(Sensor[LightControlProperties, TStorage, LightCapability], Ge
         """
         self._write_state({LightProperty.ColorMode.value: LightColorMode(mode).value})
 
-    async def updateValue(self, property: str, value: Any) -> None:
+    async def _apply_value(self, property: str, value: Any) -> None:
         """Routes generic property writes to the semantic setters."""
         if property == LightProperty.On.value:
             if value:

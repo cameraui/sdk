@@ -87,6 +87,9 @@ export interface AirPurifierControlLike extends SensorLike {
  * Each optional part comes with its {@link AirPurifierCapability}. The presets
  * it offers come as choices: `setPropertySpec(AirPurifierProperty.Preset, { choices })`.
  *
+ * When the device refuses a command, throw from the override instead of calling
+ * `super`: the write fails for whoever sent it and the state stays as it was.
+ *
  * @example
  * ```ts
  * class Bedroom extends AirPurifierControl {
@@ -288,7 +291,7 @@ export class AirPurifierControl<TStorage extends object = Record<string, any>> e
   }
 
   /** @internal */
-  async updateValue(property: string, value: unknown): Promise<void> {
+  protected override async _applyValue(property: string, value: unknown): Promise<void> {
     switch (property as AirPurifierProperty) {
       case AirPurifierProperty.On:
         await (value ? this.setOn() : this.setOff());

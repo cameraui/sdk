@@ -24,8 +24,10 @@ from ..internal.sensor_rpc import (
     SensorJSON,
     SensorMembership,
     SourceUpdateFn,
+    is_source_reachable,
 )
 from ..internal.shared_utils import is_equal
+from ..internal.write_lane import WriteLane
 from ..observable import Observable, Subject
 from .device import DeviceInfo, SensorDevice
 from .property_spec import PropertySpecOverride, SensorPropertySpec
@@ -233,6 +235,16 @@ class SensorLike(Protocol):
         ...
 
     @property
+    def sourceState(self) -> SensorSourceState | None:
+        """State of the source behind the sensor.
+
+        Seen from another plugin it is also ``unavailable`` while the camera the
+        sensor belongs to is offline. A sensor that is ``unavailable`` or
+        ``removed`` takes no writes.
+        """
+        ...
+
+    @property
     def assignedCameraIds(self) -> list[str]:
         """Ids of the cameras the user assigned the sensor to."""
         ...
@@ -283,6 +295,11 @@ class SensorLike(Protocol):
     @property
     def onConnectedChanged(self) -> Observable[bool]:
         """Emits when the connected state changes."""
+        ...
+
+    @property
+    def onSourceStateChanged(self) -> Observable[SensorSourceState | None]:
+        """Emits when the source state changes."""
         ...
 
     @property
@@ -413,10 +430,12 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         self._capabilities_changed_subject: Subject[list[TCapability]] = Subject()
         self._assignment_changed_subject: Subject[list[str]] = Subject()
         self._connected_changed_subject: Subject[bool] = Subject()
+        self._source_state_changed_subject: Subject[SensorSourceState | None] = Subject()
         self._device_info_changed_subject: Subject[SensorDevice | None] = Subject()
         self._property_specs_changed_subject: Subject[Mapping[str, SensorPropertySpec]] = Subject()
 
         self._update_fn: PropertyUpdateFn | None = None
+        self._writes = WriteLane()
         self._capabilities_change_fn: Callable[[list[str]], None] | None = None
         self._source_update_fn: SourceUpdateFn | None = None
         self._storage: DeviceStorage[TStorage] | None = None
@@ -574,6 +593,11 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         return self._connected_changed_subject.as_observable()
 
     @property
+    def onSourceStateChanged(self) -> Observable[SensorSourceState | None]:
+        """Emits when the source state changes."""
+        return self._source_state_changed_subject.as_observable()
+
+    @property
     def onDeviceInfoChanged(self) -> Observable[SensorDevice | None]:
         """Emits the device whenever the sensor joins or leaves one, or its device, names or main-sensor role change."""
         return self._device_info_changed_subject.as_observable()
@@ -629,9 +653,11 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         return None
 
     def setSourceState(self, state: SensorSourceState) -> None:
-        """Report what the source behind this sensor looks like right now. The
-        host shows the state with its reason on the sensors page and never
-        deletes on it. Only meaningful for adopted sensors.
+        """Report what the source behind this sensor looks like right now.
+
+        For example ``unavailable`` while the device can't be reached. The host
+        shows the state with its reason on the sensors page and never deletes on
+        it. While it is ``unavailable`` or ``removed`` the sensor takes no writes.
 
         Args:
             state: Current source state.
@@ -646,6 +672,7 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         self._source_state = state
         if self._source_update_fn:
             self._source_update_fn({"sourceState": state})
+        self._source_state_changed_subject.next(state)
 
     def setAddress(self, address: str) -> None:
         """Report the sensor's current address at the source, e.g. after a Home
@@ -774,18 +801,36 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         """
         return self._properties_store.copy()
 
-    @abstractmethod
     async def updateValue(self, property: str, value: Any) -> None:
         """Generic property write coming from a consumer.
 
-        Read-only sensors implement it as a no-op, control sensors dispatch known
-        properties to their semantic methods (`setOn`, `setActive`,
-        `setTargetState`) so plugin overrides drive hardware. Unknown or
+        Control sensors dispatch it to their semantic methods (`setOn`,
+        `setActive`, `setTargetState`), so plugin overrides drive the hardware.
+        Writes run one at a time per sensor in arrival order, a newer value of a
+        property replaces one still waiting, a command always runs. Unknown or
         non-writable properties are ignored.
 
         Plugin authors call the semantic methods on the concrete class instead.
+
+        Args:
+            property: Property to write.
+            value: Value to write.
+
+        Raises:
+            Exception: The setter's error when the device refused the value.
+            TimeoutError: When nothing answered within 10 seconds.
+            RuntimeError: While the source is ``unavailable`` or ``removed``.
+
+        Example:
+            ```python
+            await light.updateValue(LightProperty.Brightness, 80)
+            ```
         """
-        ...
+        if not is_source_reachable(self._source_state):
+            raise RuntimeError(f"{self.displayName} is not reachable")
+        await self._writes.write(
+            property, lambda: self._apply_value(property, value), not self._is_command(property)
+        )
 
     def hasCapability(self, capability: TCapability | str) -> bool:
         """Check whether the sensor advertises a capability.
@@ -820,6 +865,13 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         spec = getattr(self, "modelSpec", None)
         if spec is not None:
             self._write_state({"modelSpec": spec})
+
+    async def _apply_value(self, property: str, value: Any) -> None:
+        """Dispatches a consumer write to the semantic setters."""
+
+    def _is_command(self, property: str) -> bool:
+        """Whether writes of the property are actions that never replace one another."""
+        return False
 
     def _write_state(self, partial: Mapping[str, Any]) -> None:
         delta: dict[str, Any] = {}
@@ -979,6 +1031,7 @@ class Sensor(ABC, Generic[TProperties, TStorage, TCapability]):
         self._capabilities_changed_subject.complete()
         self._assignment_changed_subject.complete()
         self._connected_changed_subject.complete()
+        self._source_state_changed_subject.complete()
         self._device_info_changed_subject.complete()
         self._property_specs_changed_subject.complete()
 

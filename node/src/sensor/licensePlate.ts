@@ -134,9 +134,6 @@ export class LicensePlateSensor<TStorage extends object = Record<string, any>> e
   clearDetections(): void {
     this.reportDetections(false);
   }
-
-  /** @internal */
-  updateValue(_property: string, _value: unknown): void {}
 }
 
 /** Return type for {@link LicensePlateDetectorSensor.detectLicensePlates}. */

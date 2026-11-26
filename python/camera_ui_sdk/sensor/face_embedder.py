@@ -86,6 +86,3 @@ class FaceEmbedderSensor(Sensor[dict[str, Any], TStorage, str], Generic[TStorage
         FaceEmbeddingResult per input frame, in the same order; return an empty
         ``embedding`` for a crop the model could not use."""
         ...
-
-    async def updateValue(self, property: str, value: Any) -> None:
-        """Read-only sensor: external writes are ignored."""

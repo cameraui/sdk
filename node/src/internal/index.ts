@@ -7,3 +7,4 @@ export * from './streaming-internal.js';
 export * from './camera-enums.js';
 export * from './camera-config-internal.js';
 export * from './property-check.js';
+export * from './write-lane.js';

@@ -216,9 +216,6 @@ class AudioSensor(Sensor[AudioSensorProperties, TStorage, str], Generic[TStorage
         """
         self._write_state({AudioProperty.Decibels.value: value})
 
-    async def updateValue(self, property: str, value: Any) -> None:
-        """Read-only sensor: external writes are ignored."""
-
 
 class AudioFrameData(TypedDict):
     """Audio frame data delivered to audio detector sensors by the backend pipeline."""

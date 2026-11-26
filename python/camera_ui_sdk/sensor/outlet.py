@@ -77,6 +77,9 @@ class OutletControl(Sensor[OutletControlProperties, TStorage, OutletCapability],
 
     An outlet that measures its load adds ``OutletCapability.InUse`` and
     reports it with ``setInUse()``.
+
+    When the device refuses a command, raise from the override instead of calling
+    ``super()``: the write fails for whoever sent it and the state stays as it was.
     """
 
     _requires_frames = False
@@ -156,7 +159,7 @@ class OutletControl(Sensor[OutletControlProperties, TStorage, OutletCapability],
         """
         self._write_state({OutletProperty.InUse.value: in_use})
 
-    async def updateValue(self, property: str, value: Any) -> None:
+    async def _apply_value(self, property: str, value: Any) -> None:
         """Routes generic property writes to the semantic setters."""
         if property == OutletProperty.On.value:
             if value:

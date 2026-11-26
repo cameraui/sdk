@@ -151,9 +151,6 @@ export class AirQualityInfo<TStorage extends object = Record<string, any>> exten
     if (!this._levelFromPlugin) this._writeState({ [AirQualityProperty.Level]: this._derivedLevel() });
   }
 
-  /** @internal */
-  updateValue(_property: string, _value: unknown): void {}
-
   private _derivedLevel(): AirQualityLevel | '' {
     if (this.hasCapability(AirQualityCapability.Aqi)) return this._levelOf(this.props.aqi, AQI_LEVELS);
     if (this.hasCapability(AirQualityCapability.Pm25)) return this._levelOf(this.props.pm25, PM25_LEVELS);

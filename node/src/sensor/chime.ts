@@ -53,6 +53,9 @@ export const CHIME_AUTO_RESET_MS = 10_000;
  * Override `play()` to drive the hardware and `await super.play()` after it,
  * call `super.stop()` when the device reports the end. Without that the chime
  * counts as done after {@link CHIME_AUTO_RESET_MS}.
+ *
+ * When the device refuses a command, throw from the override instead of calling
+ * `super`: the write fails for whoever sent it and the state stays as it was.
  */
 export class ChimeControl<TStorage extends object = Record<string, any>> extends Sensor<ChimeControlProperties, TStorage, ChimeCapability> {
   readonly type = SensorType.Chime;
@@ -172,7 +175,7 @@ export class ChimeControl<TStorage extends object = Record<string, any>> extends
   }
 
   /** @internal */
-  override async updateValue(property: string, value: unknown): Promise<void> {
+  protected override async _applyValue(property: string, value: unknown): Promise<void> {
     switch (property as ChimeProperty) {
       case ChimeProperty.Active:
         if (value) await this.play();

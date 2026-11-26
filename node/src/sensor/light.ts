@@ -83,6 +83,9 @@ export interface LightControlLike extends SensorLike {
  * `setColor()` the same way. A command switches the color mode to the setting
  * it changed. When the device reports its state, sync both settings and call
  * `setColorMode()` with the one it shows.
+ *
+ * When the device refuses a command, throw from the override instead of calling
+ * `super`: the write fails for whoever sent it and the state stays as it was.
  */
 export class LightControl<TStorage extends object = Record<string, any>> extends Sensor<LightControlProperties, TStorage, LightCapability> {
   readonly type = SensorType.Light;
@@ -217,7 +220,7 @@ export class LightControl<TStorage extends object = Record<string, any>> extends
   }
 
   /** @internal */
-  async updateValue(property: string, value: unknown): Promise<void> {
+  protected override async _applyValue(property: string, value: unknown): Promise<void> {
     switch (property as LightProperty) {
       case LightProperty.On:
         if (value) await this.setOn();

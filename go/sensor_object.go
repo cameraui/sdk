@@ -122,11 +122,6 @@ func (s *ObjectSensor) ClearDetections() {
 	s.ReportDetections(false, nil)
 }
 
-// UpdateValue on a read-only sensor: external writes are ignored.
-func (s *ObjectSensor) UpdateValue(property string, value any) error {
-	return nil
-}
-
 // ObjectDetectorSensor is an object sensor that consumes video frames from
 // the backend pipeline. Pair with an ObjectDetector implementation. Up to
 // three DetectObjects calls can run at once on separate goroutines, so

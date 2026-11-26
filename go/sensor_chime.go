@@ -22,11 +22,11 @@ const (
 const chimeAutoResetMs = 10_000
 
 type chimeSetters interface {
-	Play()
-	Stop()
-	SetTone(value string)
-	SetVolume(value int)
-	SetRepeat(value int)
+	Play() error
+	Stop() error
+	SetTone(value string) error
+	SetVolume(value int) error
+	SetRepeat(value int) error
 }
 
 // ChimeControl is a chime, such as a door chime or a speaker that plays
@@ -35,6 +35,10 @@ type chimeSetters interface {
 // and shadowing the method) to drive your hardware, then call the embedded
 // method to sync the SDK state, and call Stop when the device reports the end.
 // Without that the chime counts as done after chimeAutoResetMs.
+//
+// When the device refuses a command, return an error from the override instead of
+// calling the embedded method: the write fails for whoever sent it and the state
+// stays as it was.
 type ChimeControl struct {
 	BaseSensor
 	playResetTimer *time.Timer
@@ -49,6 +53,7 @@ func NewChimeControl(name string, opts ...SensorOption) *ChimeControl {
 		ChimePropertyVolume: 100,
 		ChimePropertyRepeat: 1,
 	})
+	s.handleWrites(s)
 	return s
 }
 
@@ -89,7 +94,7 @@ func (s *ChimeControl) GetRepeat() int {
 // Example:
 //
 //	chime.Play()
-func (s *ChimeControl) Play() {
+func (s *ChimeControl) Play() error {
 	s.stopResetTimer()
 	s.writeState(map[string]any{ChimePropertyActive: true})
 
@@ -103,6 +108,7 @@ func (s *ChimeControl) Play() {
 	s.mu.Lock()
 	s.playResetTimer = timer
 	s.mu.Unlock()
+	return nil
 }
 
 // Stop stops playing, call it too when the device reports the end.
@@ -110,9 +116,10 @@ func (s *ChimeControl) Play() {
 // Example:
 //
 //	chime.Stop()
-func (s *ChimeControl) Stop() {
+func (s *ChimeControl) Stop() error {
 	s.stopResetTimer()
 	s.writeState(map[string]any{ChimePropertyActive: false})
+	return nil
 }
 
 // SetTone chooses the tone, one of the tones offered as choices.
@@ -120,8 +127,9 @@ func (s *ChimeControl) Stop() {
 // Example:
 //
 //	chime.SetTone("ding-dong")
-func (s *ChimeControl) SetTone(value string) {
+func (s *ChimeControl) SetTone(value string) error {
 	s.writeState(map[string]any{ChimePropertyTone: value})
+	return nil
 }
 
 // SetVolume sets the chime volume (clamped to [0,100]).
@@ -129,8 +137,9 @@ func (s *ChimeControl) SetTone(value string) {
 // Example:
 //
 //	chime.SetVolume(60)
-func (s *ChimeControl) SetVolume(value int) {
+func (s *ChimeControl) SetVolume(value int) error {
 	s.writeState(map[string]any{ChimePropertyVolume: max(0, min(100, value))})
+	return nil
 }
 
 // SetRepeat sets how often the tone plays (clamped to [1,10]).
@@ -138,31 +147,41 @@ func (s *ChimeControl) SetVolume(value int) {
 // Example:
 //
 //	chime.SetRepeat(2)
-func (s *ChimeControl) SetRepeat(value int) {
+func (s *ChimeControl) SetRepeat(value int) error {
 	s.writeState(map[string]any{ChimePropertyRepeat: max(1, min(10, value))})
+	return nil
 }
 
-// UpdateValue routes generic property writes to the semantic setters.
-func (s *ChimeControl) UpdateValue(property string, value any) error {
+func (s *ChimeControl) applyValue(property string, value any) error {
 	setters := outerOr[chimeSetters](&s.BaseSensor, s)
 	switch property {
 	case ChimePropertyActive:
 		if isTruthy(value) {
-			setters.Play()
+			if err := setters.Play(); err != nil {
+				return err
+			}
 		} else {
-			setters.Stop()
+			if err := setters.Stop(); err != nil {
+				return err
+			}
 		}
 	case ChimePropertyTone:
 		if v, ok := value.(string); ok {
-			setters.SetTone(v)
+			if err := setters.SetTone(v); err != nil {
+				return err
+			}
 		}
 	case ChimePropertyVolume:
 		if v, ok := toInt64(value); ok {
-			setters.SetVolume(int(v))
+			if err := setters.SetVolume(int(v)); err != nil {
+				return err
+			}
 		}
 	case ChimePropertyRepeat:
 		if v, ok := toInt64(value); ok {
-			setters.SetRepeat(int(v))
+			if err := setters.SetRepeat(int(v)); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

@@ -101,11 +101,6 @@ func (s *MotionSensor) ClearDetections() {
 	s.ReportDetections(false, nil)
 }
 
-// UpdateValue on a read-only sensor: external writes are ignored.
-func (s *MotionSensor) UpdateValue(property string, value any) error {
-	return nil
-}
-
 // MotionDetectorSensor is a motion sensor that consumes video frames from the
 // backend pipeline. Pair with a MotionDetector implementation; the backend
 // invokes the detector at the configured frame interval and forwards results
