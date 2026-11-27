@@ -19,7 +19,7 @@ const rollupOptions: RollupOptions[] = [
         tsconfig: './tsconfig.json',
       }),
     ],
-    external: ['rxjs', 'debug', 'werift-rtp/src/rtcp/rtpfb/nack'],
+    external: ['rxjs', 'debug'],
   },
   {
     input: './src/internal/index.ts',
@@ -55,7 +55,7 @@ const rollupOptions: RollupOptions[] = [
         },
       },
     ],
-    external: ['rxjs', 'debug', 'werift-rtp/src/rtcp/rtpfb/nack'],
+    external: ['rxjs', 'debug'],
   },
 ];
 
