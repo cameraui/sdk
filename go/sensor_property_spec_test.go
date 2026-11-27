@@ -7,10 +7,6 @@ import (
 	rpc "github.com/cameraui/rpc/go"
 )
 
-func float(v float64) *float64 { return &v }
-
-func intPtr(v int) *int { return &v }
-
 func TestSetPropertySpecSendsOnlyChanges(t *testing.T) {
 	noNight := &PropertySpecOverride{Values: []any{SecuritySystemStateAwayArm, SecuritySystemStateStayArm, SecuritySystemStateDisarmed}}
 	alarm := NewSecuritySystem("Alarm", WithPropertySpec(SecuritySystemPropertyTargetState, noNight))
@@ -82,11 +78,11 @@ func TestApplyPropertySpecsEmitsOncePerChange(t *testing.T) {
 
 func TestCheckPropertyWrite(t *testing.T) {
 	specs := map[string]SensorPropertySpec{
-		"target":      {Type: SensorPropertyValueTypeNumber, Min: float(10), Max: float(30), Step: float(0.5)},
+		"target":      {Type: SensorPropertyValueTypeNumber, Min: new(10.0), Max: new(30.0), Step: new(0.5)},
 		"targetState": {Type: SensorPropertyValueTypeEnum, Values: map[string]any{"away_arm": int8(1), "disarmed": int8(3)}},
 		"tone":        {Type: SensorPropertyValueTypeString, Choices: []SensorPropertyChoice{{Value: "ding", Label: "Ding Dong"}}},
-		"text":        {Type: SensorPropertyValueTypeString, MaxLength: intPtr(4)},
-		"coarse":      {Type: SensorPropertyValueTypeNumber, Min: float(0), Max: float(10), Step: float(4)},
+		"text":        {Type: SensorPropertyValueTypeString, MaxLength: new(4)},
+		"coarse":      {Type: SensorPropertyValueTypeNumber, Min: new(0.0), Max: new(10.0), Step: new(4.0)},
 	}
 
 	passes := []struct {

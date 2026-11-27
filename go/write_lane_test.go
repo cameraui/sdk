@@ -121,7 +121,7 @@ func TestWriteLaneReturnsTheSetterErrorAndGoesOn(t *testing.T) {
 
 func TestWriteLaneGivesUpOnAWriteWithoutAnAnswer(t *testing.T) {
 	previous := writeTimeout
-	writeTimeout = 50 * time.Millisecond
+	writeTimeout = 100 * time.Millisecond
 	t.Cleanup(func() { writeTimeout = previous })
 
 	lane := &writeLane{}
@@ -132,6 +132,8 @@ func TestWriteLaneGivesUpOnAWriteWithoutAnAnswer(t *testing.T) {
 	first := make(chan error, 1)
 	go func() { first <- lane.write("a", rec.apply("a", hanging), true) }()
 	waitFor(func() bool { return len(rec.list()) == 1 })
+	// the deadline runs from the queueing, b still has half of it when a gives up
+	time.Sleep(writeTimeout / 2)
 	next := make(chan error, 1)
 	go func() { next <- lane.write("b", rec.apply("b", nil), true) }()
 

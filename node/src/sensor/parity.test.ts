@@ -335,7 +335,7 @@ describe('cross-SDK parity', () => {
     const go = new Set(
       sources('go', '.go').flatMap((source) =>
         [...source.matchAll(/\) isCommand\(property string\) bool \{\s+return property == (\w+)/g)].map(([, constant]) => {
-          const [, prefix, value] = (new RegExp(`${constant}\\s+(\\w+)Property\\s*=\\s*"([^"]+)"`).exec(source)) ?? [];
+          const [, prefix, value] = new RegExp(`${constant}\\s+(\\w+)Property\\s*=\\s*"([^"]+)"`).exec(source) ?? [];
           return `${prefix.toLowerCase()}.${value}`;
         }),
       ),

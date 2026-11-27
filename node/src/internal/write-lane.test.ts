@@ -80,9 +80,13 @@ describe('WriteLane', () => {
   it('rejects with the setter error and goes on with the next write', async () => {
     const lane = new WriteLane();
     const failed = lane.write('on', () => Promise.reject(new Error('offline')), true);
-    const thrown = lane.write('mode', () => {
-      throw new Error('unsupported');
-    }, true);
+    const thrown = lane.write(
+      'mode',
+      () => {
+        throw new Error('unsupported');
+      },
+      true,
+    );
     const next = lane.write('level', () => undefined, true);
 
     await expect(failed).rejects.toThrow('offline');

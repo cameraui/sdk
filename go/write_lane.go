@@ -115,8 +115,7 @@ func checkShadowedSetters(outer Sensor, own valueWriter) error {
 		return nil
 	}
 	ownType, outerType := reflect.TypeOf(own), reflect.TypeOf(outer)
-	for i := range ownType.NumMethod() {
-		method := ownType.Method(i)
+	for method := range ownType.Methods() {
 		shadow, ok := outerType.MethodByName(method.Name)
 		if ok && signature(method.Type) != signature(shadow.Type) {
 			return fmt.Errorf("%s.%s is %s, the SDK calls it as %s", outerType, method.Name, signature(shadow.Type), signature(method.Type))
@@ -132,8 +131,8 @@ func signature(method reflect.Type) string {
 		in = append(in, method.In(i))
 	}
 	out := make([]reflect.Type, 0, method.NumOut())
-	for i := range method.NumOut() {
-		out = append(out, method.Out(i))
+	for out0 := range method.Outs() {
+		out = append(out, out0)
 	}
 	return reflect.FuncOf(in, out, method.IsVariadic()).String()
 }
